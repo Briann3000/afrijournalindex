@@ -1,47 +1,170 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Script from "next/script";
+import { useLang } from "../LangContext";
 
 export default function Pricing() {
-  const [lang, setLang] = useState<string>("en");
-  const [translations, setTranslations] = useState<any>(null);
+  const { lang, setLang, t } = useLang();
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
-  // Load translations
+  // Checkout modal states
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [journals, setJournals] = useState<any[]>([]);
+  const [selectedJournalId, setSelectedJournalId] = useState<string>("");
+  const [selectedTier, setSelectedTier] = useState<string>("");
+  const [price, setPrice] = useState<number>(0);
+  const [checkoutLoading, setCheckoutLoading] = useState<boolean>(false);
+
   useEffect(() => {
-    async function loadTranslations() {
-      try {
-        const res = await fetch(`/locales/${lang}.json`);
-        if (!res.ok) throw new Error("Translation file not found");
-        const data = await res.json();
-        setTranslations(data);
-      } catch (err) {
-        console.error("Failed to load translation file", err);
+    if (showModal) {
+      async function fetchJournals() {
+        try {
+          const res = await fetch("/api/journals/list");
+          const data = await res.json();
+          if (data.success) {
+            setJournals(data.journals);
+            if (data.journals.length > 0) {
+              setSelectedJournalId(data.journals[0].id);
+            }
+          }
+        } catch (err) {
+          console.error(err);
+        }
       }
+      fetchJournals();
     }
-    loadTranslations();
+  }, [showModal]);
 
-    if (lang === "ar") {
-      document.documentElement.setAttribute("dir", "rtl");
-      document.documentElement.setAttribute("lang", "ar");
-    } else {
-      document.documentElement.setAttribute("dir", "ltr");
-      document.documentElement.setAttribute("lang", lang);
+  const handlePurchaseClick = (tier: string, KESPrice: number) => {
+    setSelectedTier(tier);
+    setPrice(KESPrice);
+    setShowModal(true);
+  };
+
+  const handleIntaSendPay = () => {
+    if (!selectedJournalId) {
+      alert("Please select or register a journal first.");
+      return;
     }
-  }, [lang]);
 
-  if (!translations) {
-    return <div style={{ background: "#121217", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>Loading AfriJournal Index...</div>;
-  }
+    setCheckoutLoading(true);
 
-  const t = translations;
+    try {
+      // @ts-ignore
+      if (typeof window !== "undefined" && window.IntaSend) {
+        // @ts-ignore
+        const intasend = new window.IntaSend({
+          publicAPIKey: "ISPubKey_sandbox_d137df7d-95cf-4df5-91db-7ff72a15f02f",
+          live: false
+        });
 
-  const handlePurchase = (tier: string) => {
-    alert(`Thank you for choosing the ${tier} evaluation. Payment integrations will be completed in Phase 5!`);
+        intasend
+          .on("COMPLETE", async (results: any) => {
+            console.log("IntaSend payment COMPLETE:", results);
+            try {
+              const res = await fetch("/api/payments/callback", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  tracking_id: results.tracking_id,
+                  state: results.state,
+                  api_ref: results.api_ref,
+                  journalId: selectedJournalId,
+                  amount: price
+                })
+              });
+              const verifyData = await res.json();
+              if (verifyData.success) {
+                alert("Payment verified and premium AJIF report generated successfully!");
+                if (verifyData.submissionId) {
+                  window.location.href = `/submit/status?id=${verifyData.submissionId}`;
+                } else {
+                  window.location.href = "/browse";
+                }
+              } else {
+                alert(`Verification failed: ${verifyData.error}`);
+              }
+            } catch (err) {
+              console.error(err);
+              alert("Verification request error.");
+            } finally {
+              setCheckoutLoading(false);
+              setShowModal(false);
+            }
+          })
+          .on("FAILED", (results: any) => {
+            console.log("IntaSend payment FAILED:", results);
+            alert("Checkout payment failed. Please try again.");
+            setCheckoutLoading(false);
+          })
+          .on("IN-PROGRESS", () => {
+            console.log("IntaSend payment IN-PROGRESS");
+          });
+
+        intasend.run({
+          amount: price,
+          currency: "KES",
+          email: "billing@intasend.com"
+        });
+      } else {
+        alert("IntaSend checkout SDK not loaded yet. Please wait a second and retry.");
+        setCheckoutLoading(false);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred launching the IntaSend Checkout window.");
+      setCheckoutLoading(false);
+    }
+  };
+
+  const handleSimulatedPay = async () => {
+    if (!selectedJournalId) {
+      alert("Please select or register a journal first.");
+      return;
+    }
+    setCheckoutLoading(true);
+    try {
+      const mockTxnId = "mock_txn_" + Math.random().toString(36).substring(2, 9);
+      const res = await fetch("/api/payments/callback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tracking_id: mockTxnId,
+          state: "COMPLETE",
+          api_ref: "mock_ref",
+          journalId: selectedJournalId,
+          amount: price
+        })
+      });
+      const verifyData = await res.json();
+      if (verifyData.success) {
+        alert("Simulated sandbox payment success! Recalculated AJIF scores.");
+        if (verifyData.submissionId) {
+          window.location.href = `/submit/status?id=${verifyData.submissionId}`;
+        } else {
+          window.location.href = "/browse";
+        }
+      } else {
+        alert(`Verification failed: ${verifyData.error}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error processing simulated transaction callback.");
+    } finally {
+      setCheckoutLoading(false);
+      setShowModal(false);
+    }
   };
 
   return (
     <div className="theme-dark">
+      {/* IntaSend Inline SDK */}
+      <Script 
+        src="https://unpkg.com/intasend-inlinejs-sdk@4.0.5/build/intasend-inline.js" 
+        strategy="lazyOnload" 
+      />
+
       {/* Header */}
       <header className="header">
         <div className="header-container">
@@ -132,7 +255,7 @@ export default function Pricing() {
                 <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-primary)", marginRight: "0.5rem" }}></i> {t.pricing_page.basic_feature4}</li>
               </ul>
             </div>
-            <button className="btn btn-primary" style={{ width: "100%" }} onClick={() => handlePurchase("Basic Impact")}>{t.pricing_page.btn_order}</button>
+            <button className="btn btn-primary" style={{ width: "100%" }} onClick={() => handlePurchaseClick("Basic Impact", 1500)}>{t.pricing_page.btn_order}</button>
           </div>
 
           {/* Premium Institutional Report */}
@@ -150,10 +273,100 @@ export default function Pricing() {
                 <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-secondary)", marginRight: "0.5rem" }}></i> {t.pricing_page.premium_feature4}</li>
               </ul>
             </div>
-            <button className="btn btn-secondary" style={{ width: "100%" }} onClick={() => handlePurchase("Premium Institutional")}>{t.pricing_page.btn_order}</button>
+            <button className="btn btn-secondary" style={{ width: "100%" }} onClick={() => handlePurchaseClick("Premium Institutional", 4500)}>{t.pricing_page.btn_order}</button>
           </div>
         </div>
       </main>
+
+      {/* IntaSend Checkout Modal */}
+      {showModal && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          background: "rgba(0,0,0,0.8)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000
+        }}>
+          <div className="glass-card" style={{ maxWidth: "450px", width: "90%", padding: "2.5rem", position: "relative" }}>
+            <button 
+              style={{ position: "absolute", top: "15px", right: "20px", background: "none", border: "none", color: "#fff", fontSize: "1.5rem", cursor: "pointer" }}
+              onClick={() => setShowModal(false)}
+            >
+              &times;
+            </button>
+            <h3 style={{ marginBottom: "1.5rem", color: "var(--color-primary)" }}>
+              <i className="fa-solid fa-credit-card" style={{ marginRight: "0.5rem" }}></i> Premium Metrics Setup
+            </h3>
+            <p style={{ fontSize: "0.9rem", color: "var(--color-text-muted)", marginBottom: "1.5rem" }}>
+              Order <strong>{selectedTier}</strong> metrics report evaluation for your journal. Payments processed securely via IntaSend.
+            </p>
+
+            <div className="form-group" style={{ marginBottom: "1.5rem" }}>
+              <label htmlFor="modalJournalSelect" style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.85rem" }}>Select Target Journal</label>
+              {journals.length > 0 ? (
+                <select 
+                  id="modalJournalSelect"
+                  value={selectedJournalId}
+                  onChange={(e) => setSelectedJournalId(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "0.8rem",
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    color: "#fff",
+                    borderRadius: "4px"
+                  }}
+                >
+                  {journals.map(j => (
+                    <option key={j.id} value={j.id} style={{ background: "#121217" }}>
+                      {j.name} {j.issn ? `(${j.issn})` : ""}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div style={{ fontSize: "0.85rem", color: "#ff4a4a" }}>
+                  No journals found. Please <a href="/submit" style={{ color: "var(--color-primary)" }}>submit a journal</a> first.
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "1.5rem" }}>
+              <div>
+                <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>Total Due:</span>
+                <div style={{ fontSize: "1.4rem", fontWeight: "bold" }}>KES {price.toLocaleString()}</div>
+              </div>
+              <button 
+                type="button" 
+                className="btn btn-primary"
+                onClick={handleIntaSendPay}
+                disabled={checkoutLoading || journals.length === 0}
+              >
+                {checkoutLoading ? "Launching..." : "Pay with IntaSend"}
+              </button>
+            </div>
+
+            <div style={{ marginTop: "1.5rem", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "1rem", textAlign: "center" }}>
+              <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block", marginBottom: "0.5rem" }}>
+                IntaSend Sandbox offline?
+              </span>
+              <button 
+                type="button" 
+                className="btn btn-secondary btn-sm" 
+                style={{ width: "100%" }}
+                onClick={handleSimulatedPay}
+                disabled={checkoutLoading || journals.length === 0}
+              >
+                Simulate Instant Payment (M-Pesa/Card)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="footer">
@@ -173,6 +386,11 @@ export default function Pricing() {
             <a href="/about">{t.nav.about}</a>
             <a href="/methodology">{t.footer.methodology}</a>
             <a href="/contact">{t.footer.contact}</a>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <div className="container footer-bottom-flex">
+            <p className="copyright">&copy; 2026 AfriJournal Index. All rights reserved.</p>
           </div>
         </div>
       </footer>

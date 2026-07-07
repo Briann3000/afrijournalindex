@@ -13,7 +13,11 @@ export async function GET(request: Request) {
     const submission = await prisma.submission.findUnique({
       where: { id },
       include: {
-        journal: true
+        journal: {
+          include: {
+            reports: true
+          }
+        }
       }
     });
 

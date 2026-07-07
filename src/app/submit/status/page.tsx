@@ -68,6 +68,10 @@ function StatusContent() {
   const { journal, submission } = data;
   const logsList = submission.evaluationLog ? submission.evaluationLog.split("\n") : [];
   
+  const reports = journal?.reports || [];
+  const latestReport = reports.length > 0 ? reports[0] : null;
+  const hasImpactFactor = latestReport !== null;
+
   // Calculate a visual score based on logs or standard threshold
   let displayScore = 100;
   if (submission.status === "REJECTED") displayScore = 45;
@@ -143,6 +147,61 @@ function StatusContent() {
             </div>
           </div>
         </div>
+
+        {hasImpactFactor && latestReport && (
+          <div className="glass-card" style={{ padding: "2.5rem", marginBottom: "2rem", border: "1px solid var(--color-primary)", background: "rgba(212, 160, 74, 0.02)" }}>
+            <h3 style={{ color: "var(--color-primary)", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <i className="fa-solid fa-chart-line"></i> Premium Citation Metrics Report (2025)
+            </h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(185px, 1fr))", gap: "1.5rem" }}>
+              <div style={{ padding: "1.5rem", background: "rgba(255,255,255,0.02)", borderRadius: "6px", textAlign: "center", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>African Journal Impact Factor (AJIF)</span>
+                <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-primary)", marginTop: "0.5rem" }}>
+                  {latestReport.standardScore.toFixed(3)}
+                </div>
+                <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>Standard 2-Year Window</span>
+              </div>
+
+              <div style={{ padding: "1.5rem", background: "rgba(255,255,255,0.02)", borderRadius: "6px", textAlign: "center", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>Regional Weighted Score</span>
+                <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-secondary)", marginTop: "0.5rem" }}>
+                  {latestReport.regionalScore ? latestReport.regionalScore.toFixed(3) : "N/A"}
+                </div>
+                <span style={{ fontSize: "0.75rem", color: "var(--color-accent-green)" }}>+15% Regional Weight Bias</span>
+              </div>
+
+              <div style={{ padding: "1.5rem", background: "rgba(255,255,255,0.02)", borderRadius: "6px", textAlign: "center", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>Total Citations</span>
+                <div style={{ fontSize: "2.2rem", fontWeight: "bold", marginTop: "0.5rem" }}>
+                  {latestReport.citationCount}
+                </div>
+                <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>Registered in 2025</span>
+              </div>
+
+              <div style={{ padding: "1.5rem", background: "rgba(255,255,255,0.02)", borderRadius: "6px", textAlign: "center", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>Citable Articles</span>
+                <div style={{ fontSize: "2.2rem", fontWeight: "bold", marginTop: "0.5rem" }}>
+                  {latestReport.articleCount}
+                </div>
+                <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>Published in 2023 - 2024</span>
+              </div>
+            </div>
+
+            <div style={{ marginTop: "2rem", padding: "1rem", background: "rgba(62,142,98,0.05)", border: "1px solid rgba(62,142,98,0.2)", borderRadius: "6px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <i className="fa-solid fa-ribbon" style={{ color: "var(--color-accent-green)", fontSize: "1.2rem" }}></i>
+                <span style={{ fontSize: "0.85rem", color: "#e2e2e9" }}>This journal has met standard citation criteria and holds a quality index grade of <strong>{journal.qualityGrade || "A"}</strong>.</span>
+              </div>
+              <button 
+                type="button" 
+                className="btn btn-primary btn-sm"
+                onClick={() => alert("Downloading Premium SVG Indexing Badge...")}
+              >
+                <i className="fa-solid fa-download" style={{ marginRight: "0.5rem" }}></i> Download Badge
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Audit Progress Timeline */}
         <div className="glass-card" style={{ padding: "2.5rem", marginBottom: "2rem" }}>

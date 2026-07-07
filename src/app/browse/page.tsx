@@ -87,6 +87,25 @@ export default function Browse() {
     setFilteredJournals(result);
   }, [search, countryFilter, disciplineFilter]);
 
+  const handleViewStatus = async (query: string) => {
+    if (query === "Pending" || !query) {
+      alert("This journal is currently awaiting formal evaluation setup.");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/evaluate/lookup?query=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (data.success) {
+        window.location.href = `/submit/status?id=${data.submissionId}`;
+      } else {
+        alert("This seed journal does not have active evaluation logs recorded.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error retrieving journal status page.");
+    }
+  };
+
   return (
     <div className="theme-dark">
       {/* Header */}
@@ -218,14 +237,34 @@ export default function Browse() {
                   <p><strong>Publisher:</strong> {journal.publisher}</p>
                   <p><strong>Frequency:</strong> {journal.frequency}</p>
                 </div>
-                <div className="journal-footer">
+                <div className="journal-footer" style={{ display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", width: "100%" }}>
                   {journal.link ? (
-                    <a href={journal.link} target="_blank" rel="noopener noreferrer" className="journal-link">
+                    <a href={journal.link} target="_blank" rel="noopener noreferrer" className="journal-link" style={{ marginRight: "auto" }}>
                       {journal.link.replace("https://", "")} <i className="fa-solid fa-up-right-from-square"></i>
                     </a>
                   ) : (
-                    <span className="journal-link-placeholder">kenpro.org</span>
+                    <span className="journal-link-placeholder" style={{ marginRight: "auto" }}>kenpro.org</span>
                   )}
+                  
+                  <button 
+                    onClick={() => handleViewStatus(journal.issn)} 
+                    style={{
+                      background: "rgba(212,160,74,0.1)",
+                      border: "1px solid rgba(212,160,74,0.3)",
+                      color: "var(--color-primary)",
+                      padding: "0.3rem 0.8rem",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem"
+                    }}
+                  >
+                    <i className="fa-solid fa-chart-column"></i> View Report
+                  </button>
+
                   <span className="journal-badge badge-indexed"><i className="fa-solid fa-check-double"></i> {t.browse_page.badge_indexed}</span>
                 </div>
               </div>

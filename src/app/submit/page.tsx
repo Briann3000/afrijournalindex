@@ -20,6 +20,29 @@ export default function Submit() {
     website: ""
   });
 
+  const [lookupQuery, setLookupQuery] = useState("");
+  const [lookupLoading, setLookupLoading] = useState(false);
+
+  const handleLookup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!lookupQuery.trim()) return;
+    setLookupLoading(true);
+    try {
+      const res = await fetch(`/api/evaluate/lookup?query=${encodeURIComponent(lookupQuery)}`);
+      const data = await res.json();
+      if (data.success) {
+        window.location.href = `/submit/status?id=${data.submissionId}`;
+      } else {
+        alert(data.error || "No matching submission found.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error looking up submission status.");
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
     // Map IDs to state keys
@@ -129,6 +152,42 @@ export default function Submit() {
         <div className="section-header">
           <h1 className="section-title">{t.submit_page.title}</h1>
           <p className="section-desc">{t.submit_page.desc}</p>
+        </div>
+
+        {/* Status Lookup Search Block */}
+        <div className="glass-card" style={{ maxWidth: "650px", margin: "0 auto 2rem", padding: "1.5rem 2rem" }}>
+          <form onSubmit={handleLookup} style={{ display: "flex", gap: "1rem", alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: "240px" }}>
+              <label htmlFor="lookupInput" style={{ display: "block", fontSize: "0.8rem", color: "var(--color-text-muted)", marginBottom: "0.4rem" }}>
+                Already submitted a journal? Track evaluation status & metrics
+              </label>
+              <input 
+                type="text" 
+                id="lookupInput" 
+                required
+                placeholder="Enter Journal Name or ISSN (e.g. 2312-0134)" 
+                value={lookupQuery}
+                onChange={(e) => setLookupQuery(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "0.7rem 1rem",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: "4px",
+                  color: "#fff",
+                  fontSize: "0.9rem"
+                }}
+              />
+            </div>
+            <button 
+              type="submit" 
+              className="btn btn-secondary" 
+              style={{ padding: "0.7rem 1.5rem" }}
+              disabled={lookupLoading}
+            >
+              {lookupLoading ? "Searching..." : "Track Status"}
+            </button>
+          </form>
         </div>
 
         <div className="glass-card" style={{ maxWidth: "650px", margin: "0 auto" }}>
