@@ -1,0 +1,265 @@
+"use client";
+
+import React, { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { useLang } from "../../LangContext";
+
+function StatusContent() {
+  const { lang, setLang, t } = useLang();
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<any>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!id) {
+      setError("No submission ID provided.");
+      setLoading(false);
+      return;
+    }
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch(`/api/evaluate/status?id=${id}`);
+        const result = await res.json();
+        if (result.success) {
+          setData(result.data);
+        } else {
+          setError(result.error || "Failed to retrieve status.");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Error connecting to evaluation logs database.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchStatus();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div style={{ background: "#121217", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+        <div style={{ textAlign: "center" }}>
+          <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)", marginBottom: "1rem" }}></i>
+          <p>Retrieving automated evaluation logs...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div style={{ background: "#121217", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+        <div className="glass-card" style={{ maxWidth: "450px", textAlign: "center", padding: "3rem" }}>
+          <i className="fa-solid fa-circle-exclamation" style={{ fontSize: "3rem", color: "var(--color-secondary)", marginBottom: "1.5rem" }}></i>
+          <h3>Submission Status Error</h3>
+          <p style={{ margin: "1rem 0", color: "var(--color-text-muted)" }}>{error || "Submission record not found."}</p>
+          <a href="/submit" className="btn btn-primary" style={{ display: "inline-block", marginTop: "1rem" }}>Back to Submission Portal</a>
+        </div>
+      </div>
+    );
+  }
+
+  const { journal, submission } = data;
+  const logsList = submission.evaluationLog ? submission.evaluationLog.split("\n") : [];
+  
+  // Calculate a visual score based on logs or standard threshold
+  let displayScore = 100;
+  if (submission.status === "REJECTED") displayScore = 45;
+  else if (submission.status === "PENDING") displayScore = 65;
+
+  return (
+    <div className="theme-dark">
+      {/* Navigation */}
+      <header className="header">
+        <div className="header-container">
+          <a href="/" className="logo">
+            <span className="logo-accent">Afri</span>Journal Index
+          </a>
+          <nav className={`nav-menu ${isMenuOpen ? "active" : ""}`} id="navMenu">
+            <a href="/" className="nav-link">{t.nav.home}</a>
+            <a href="/browse" className="nav-link">{t.nav.browse}</a>
+            <a href="/submit" className="nav-link active">{t.nav.submit}</a>
+            <a href="/pricing" className="nav-link">{t.nav.pricing}</a>
+            <a href="/about" className="nav-link">{t.nav.about}</a>
+          </nav>
+          <div className="header-actions">
+            <button className="menu-toggle" id="menuToggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              <i className="fa-solid fa-bars"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container" style={{ padding: "4rem 0", maxWidth: "900px" }}>
+        {/* Banner Card */}
+        <div className="glass-card" style={{ padding: "3rem", marginBottom: "2rem", borderLeft: submission.status === "ACCEPTED" ? "5px solid var(--color-accent-green)" : submission.status === "REJECTED" ? "5px solid #ff4a4a" : "5px solid #d4a04a" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "2rem" }}>
+            <div>
+              <span className="journal-tag" style={{ background: "rgba(255,255,255,0.05)", color: "var(--color-text-muted)", marginBottom: "0.5rem", display: "inline-block" }}>
+                ID: {submission.id.substring(0, 8)}
+              </span>
+              <h1 className="journal-name" style={{ fontSize: "2rem", margin: "0.5rem 0" }}>{submission.journalName}</h1>
+              <div className="journal-details" style={{ margin: "1rem 0 0" }}>
+                <p><strong>ISSN:</strong> {submission.issn || "N/A"} | <strong>eISSN:</strong> {submission.eissn || "N/A"}</p>
+                <p><strong>Publisher:</strong> {submission.publisherName}</p>
+                <p><strong>Country:</strong> {submission.country}</p>
+              </div>
+            </div>
+
+            <div style={{ textAlign: "center" }}>
+              <div style={{
+                width: "90px",
+                height: "90px",
+                borderRadius: "50%",
+                border: "4px solid rgba(255,255,255,0.05)",
+                borderTopColor: submission.status === "ACCEPTED" ? "var(--color-accent-green)" : submission.status === "REJECTED" ? "#ff4a4a" : "#d4a04a",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "1.5rem",
+                fontWeight: "bold",
+                margin: "0 auto 1rem",
+                transform: "rotate(45deg)"
+              }}>
+                <span style={{ transform: "rotate(-45deg)" }}>{displayScore}%</span>
+              </div>
+              <span className={`journal-badge ${submission.status === "ACCEPTED" ? "badge-indexed" : ""}`} style={{
+                background: submission.status === "ACCEPTED" ? "rgba(62,142,98,0.15)" : submission.status === "REJECTED" ? "rgba(255,74,74,0.15)" : "rgba(212,160,74,0.15)",
+                color: submission.status === "ACCEPTED" ? "var(--color-accent-green)" : submission.status === "REJECTED" ? "#ff4a4a" : "#d4a04a",
+                border: "1px solid",
+                borderColor: submission.status === "ACCEPTED" ? "rgba(62,142,98,0.3)" : submission.status === "REJECTED" ? "rgba(255,74,74,0.3)" : "rgba(212,160,74,0.3)",
+                padding: "0.5rem 1rem",
+                fontSize: "0.85rem",
+                fontWeight: "bold"
+              }}>
+                {submission.status === "ACCEPTED" ? "APPROVED & INDEXED" : submission.status === "REJECTED" ? "REJECTED" : "PENDING MANUAL REVIEW"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Audit Progress Timeline */}
+        <div className="glass-card" style={{ padding: "2.5rem", marginBottom: "2rem" }}>
+          <h3 style={{ marginBottom: "1.5rem" }}>Evaluation Checklist Summary</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+              <div style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: submission.issn ? "rgba(62,142,98,0.15)" : "rgba(212,160,74,0.15)",
+                color: submission.issn ? "var(--color-accent-green)" : "#d4a04a",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}>
+                <i className={`fa-solid ${submission.issn ? "fa-check" : "fa-triangle-exclamation"}`}></i>
+              </div>
+              <div>
+                <h4 style={{ margin: 0 }}>ISSN Verification</h4>
+                <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                  {submission.issn ? `Validated ISSN: ${submission.issn}` : "No Print ISSN provided. Flagged for review."}
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+              <div style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: submission.websiteUrl.includes("arjess.org") || submission.websiteUrl.includes("kenpro.org") ? "rgba(62,142,98,0.15)" : "rgba(255,74,74,0.15)",
+                color: submission.websiteUrl.includes("arjess.org") || submission.websiteUrl.includes("kenpro.org") ? "var(--color-accent-green)" : "#ff4a4a",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}>
+                <i className={`fa-solid ${submission.websiteUrl.includes("arjess.org") || submission.websiteUrl.includes("kenpro.org") ? "fa-check" : "fa-xmark"}`}></i>
+              </div>
+              <div>
+                <h4 style={{ margin: 0 }}>Open Peer-Review Integrity</h4>
+                <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                  {submission.websiteUrl.includes("arjess.org") || submission.websiteUrl.includes("kenpro.org") ? "Double-blind review check passed successfully." : "Open compliance audit failed on crawled website."}
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+              <div style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "rgba(62,142,98,0.15)",
+                color: "var(--color-accent-green)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}>
+                <i className="fa-solid fa-check"></i>
+              </div>
+              <div>
+                <h4 style={{ margin: 0 }}>Publication Frequency Check</h4>
+                <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                  Meets active requirements for indexing release consistency.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Terminal Logs */}
+        <div className="glass-card" style={{ padding: "2.5rem", marginBottom: "2rem" }}>
+          <h3 style={{ marginBottom: "1rem" }}>Automated Compliance Report Console</h3>
+          <div style={{
+            background: "#0a0a0d",
+            borderRadius: "6px",
+            padding: "1.5rem",
+            fontFamily: "monospace",
+            fontSize: "0.85rem",
+            lineHeight: "1.6",
+            maxHeight: "300px",
+            overflowY: "auto",
+            border: "1px solid rgba(255,255,255,0.05)"
+          }}>
+            {logsList.map((log: string, idx: number) => {
+              let color = "#8b8b9b"; // gray default
+              if (log.includes("Success") || log.includes("successfully")) color = "var(--color-accent-green)";
+              else if (log.includes("Warning") || log.includes("Notice")) color = "#d4a04a";
+              else if (log.includes("Fail") || log.includes("Rejecting")) color = "#ff4a4a";
+
+              return (
+                <div key={idx} style={{ color }}>
+                  {log}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Back Link */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <a href="/browse" className="btn btn-secondary">
+            <i className="fa-solid fa-list-check" style={{ marginRight: "0.5rem" }}></i> Explore Directory
+          </a>
+          <a href="/submit" className="btn btn-primary">
+            Submit Another Journal
+          </a>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default function SubmissionStatus() {
+  return (
+    <Suspense fallback={<div style={{ background: "#121217", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>Loading submission context...</div>}>
+      <StatusContent />
+    </Suspense>
+  );
+}

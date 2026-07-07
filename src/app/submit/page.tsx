@@ -8,10 +8,70 @@ export default function Submit() {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [step, setStep] = useState<number>(1);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Controlled form state to preserve input values across step changes
+  const [formData, setFormData] = useState({
+    name: "",
+    scope: "",
+    issn: "",
+    eissn: "",
+    publisher: "",
+    country: "",
+    frequency: "Quarterly",
+    website: ""
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { id, value } = e.target;
+    // Map IDs to state keys
+    const key = id.replace("j", "").toLowerCase();
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleNextStep = () => {
+    if (!formData.name) {
+      alert("Please fill in the Journal Full Name.");
+      return;
+    }
+    setStep(2);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Your journal application has been received by our automated system for evaluation!");
-    window.location.href = "/";
+    
+    if (!formData.name || !formData.website) {
+      alert("Journal Name and Homepage Website are required.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/evaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.scope,
+          issn: formData.issn,
+          eissn: formData.eissn,
+          publisher: formData.publisher,
+          country: formData.country,
+          frequency: formData.frequency,
+          website: formData.website
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        window.location.href = `/submit/status?id=${data.submissionId}`; // Using the returned submission ID to redirect
+      } else {
+        alert(`Evaluation Failed: ${data.error}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred during automated evaluation submission.");
+    }
   };
 
   return (
@@ -82,38 +142,82 @@ export default function Submit() {
                 
                 <div className="form-group">
                   <label htmlFor="jName">{t.submit_page.name_label}</label>
-                  <input type="text" id="jName" required placeholder="e.g. African Research Journal of Education and Social Sciences" />
+                  <input 
+                    type="text" 
+                    id="jName" 
+                    required 
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="e.g. African Research Journal of Education and Social Sciences" 
+                  />
                 </div>
                 
                 <div className="form-group">
                   <label htmlFor="jScope">{t.submit_page.scope_label}</label>
-                  <textarea id="jScope" rows={4} required placeholder={t.submit_page.scope_placeholder}></textarea>
+                  <textarea 
+                    id="jScope" 
+                    rows={4} 
+                    required 
+                    value={formData.scope}
+                    onChange={handleChange}
+                    placeholder={t.submit_page.scope_placeholder}
+                  ></textarea>
                 </div>
                 
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="jIssn">{t.submit_page.issn_label}</label>
-                    <input type="text" id="jIssn" placeholder="e.g. 2312-0134" />
+                    <input 
+                      type="text" 
+                      id="jIssn" 
+                      value={formData.issn}
+                      onChange={handleChange}
+                      placeholder="e.g. 2312-0134" 
+                    />
                   </div>
                   <div className="form-group">
                     <label htmlFor="jEissn">{t.submit_page.eissn_label}</label>
-                    <input type="text" id="jEissn" placeholder="xxxx-xxxx" />
+                    <input 
+                      type="text" 
+                      id="jEissn" 
+                      value={formData.eissn}
+                      onChange={handleChange}
+                      placeholder="xxxx-xxxx" 
+                    />
                   </div>
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="jPublisher">{t.submit_page.publisher_label}</label>
-                  <input type="text" id="jPublisher" required placeholder="e.g. Kenya Projects Organization (KENPRO)" />
+                  <input 
+                    type="text" 
+                    id="jPublisher" 
+                    required 
+                    value={formData.publisher}
+                    onChange={handleChange}
+                    placeholder="e.g. Kenya Projects Organization (KENPRO)" 
+                  />
                 </div>
 
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="jCountry">{t.submit_page.country_label}</label>
-                    <input type="text" id="jCountry" required placeholder="e.g. Kenya" />
+                    <input 
+                      type="text" 
+                      id="jCountry" 
+                      required 
+                      value={formData.country}
+                      onChange={handleChange}
+                      placeholder="e.g. Kenya" 
+                    />
                   </div>
                   <div className="form-group">
                     <label htmlFor="jFrequency">{t.submit_page.frequency_label}</label>
-                    <select id="jFrequency">
+                    <select 
+                      id="jFrequency"
+                      value={formData.frequency}
+                      onChange={handleChange}
+                    >
                       <option>Quarterly</option>
                       <option>Semi-Annually</option>
                       <option>Annually</option>
@@ -123,7 +227,7 @@ export default function Submit() {
                 </div>
 
                 <div className="form-actions" style={{ marginTop: "2rem", display: "flex", justifyContent: "flex-end" }}>
-                  <button type="button" className="btn btn-primary" onClick={() => setStep(2)}>
+                  <button type="button" className="btn btn-primary" onClick={handleNextStep}>
                     {t.submit_page.btn_next} <i className="fa-solid fa-arrow-right" style={{ marginLeft: "0.5rem" }}></i>
                   </button>
                 </div>
@@ -139,7 +243,14 @@ export default function Submit() {
 
                 <div className="form-group">
                   <label htmlFor="jWebsite">{t.submit_page.website_label}</label>
-                  <input type="url" id="jWebsite" required placeholder="https://arjess.org" />
+                  <input 
+                    type="url" 
+                    id="jWebsite" 
+                    required 
+                    value={formData.website}
+                    onChange={handleChange}
+                    placeholder="https://arjess.org" 
+                  />
                 </div>
 
                 <div className="form-group">
