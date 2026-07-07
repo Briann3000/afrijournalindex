@@ -1,0 +1,139 @@
+{
+    "nav": {
+        "home": "Accueil",
+        "browse": "Parcourir les revues",
+        "submit": "Soumettre une revue",
+        "pricing": "Tarification",
+        "about": "À propos",
+        "get_started": "Commencer"
+    },
+    "hero": {
+        "pre_badge": "Plateforme scientifique Afrique d'abord",
+        "title": "Élever l'excellence académique africaine",
+        "subtitle": "Un répertoire d'indexation transparent et gratuit pour les revues savantes africaines, proposant des rapports d'impact spécialisés conçus pour valoriser les contributions de la recherche locale.",
+        "cta_submit": "Indexez votre revue (Gratuit)",
+        "cta_explore": "Explorer les revues",
+        "card_title": "Métriques en vedette : ARJESS",
+        "card_if": "AfriJournal IF",
+        "card_grade": "Grade de qualité"
+    },
+    "stats": {
+        "journals": "Revues KENPRO hébergées",
+        "free_indexing": "Indexation gratuite des revues",
+        "languages": "Langues académiques africaines",
+        "metrics": "Métriques d'évaluation sur mesure"
+    },
+    "valprop": {
+        "title": "Autonomiser l'économie de la connaissance en Afrique",
+        "desc": "AfriJournal Index surmonte les barrières de visibilité auxquelles les éditeurs universitaires africains sont confrontés quotidiennement.",
+        "indexing_title": "Indexation libre et ouverte",
+        "indexing_text": "Nous indexons les revues évaluées par des pairs publiées sur le continent africain entièrement gratuitement, rendant votre recherche découvrable.",
+        "if_title": "Facteurs d'impact crédibles",
+        "if_text": "Accédez à des calculs rigoureux du facteur d'impact des citations de votre revue pour accroître le prestige institutionnel.",
+        "eval_title": "Vérification automatisée",
+        "eval_text": "Notre plateforme effectue des vérifications automatisées sur l'ISSN, l'historique des publications et les comités de rédaction pour vérifier instantanément le statut de qualité."
+    },
+    "showcase": {
+        "title": "Répertoire d'origine : Revues KENPRO",
+        "desc": "Explorez le catalogue initial de revues évaluées par des pairs gérées par la Kenya Projects Organization (KENPRO)."
+    },
+    "cta": {
+        "title": "Prêt à indexer votre revue académique ?",
+        "desc": "Soumettez votre publication à notre system d'évaluation automatisé. Établissez la vérification et obtenez des rapports d'impact calculés dès aujourd'hui.",
+        "btn": "Faire indexer maintenant"
+    },
+    "footer": {
+        "desc": "Connecter les revues académiques africaines à la communauté scientifique mondiale grâce à une découverte ouverte, une indexation transparente et des mesures rigoureuses.",
+        "links_head": "Plateforme",
+        "resources_head": "Ressources",
+        "methodology": "Méthodologie",
+        "contact": "Contacter le support"
+    },
+    "submit_page": {
+        "title": "Portail de soumission de revue",
+        "desc": "Soumettez votre publication académique pour être évaluée pour une indexation gratuite dans la base de données AfriJournal.",
+        "step1_title": "1. Identification de la revue",
+        "name_label": "Nom complet de la revue",
+        "scope_label": "Description & Portée de la revue",
+        "scope_placeholder": "Décrivez les objectifs, la portée et les sujets couverts par la revue...",
+        "issn_label": "ISSN imprimé",
+        "eissn_label": "eISSN en ligne",
+        "publisher_label": "Organisation éditrice",
+        "country_label": "Pays d'origine",
+        "frequency_label": "Fréquence de publication",
+        "btn_next": "Étape suivante",
+        "step2_title": "2. Détails de vérification",
+        "website_label": "Lien officiel de la page d'accueil de la revue",
+        "upload_label": "Téléverser un exemple de numéro (PDF, Max 10Mo)",
+        "upload_sub": "Glissez-déposez ou sélectionnez un fichier PDF",
+        "terms_label": "J'accepte les conditions générales de la politique d'indexation d'AfriJournal Index.",
+        "btn_prev": "Précédent",
+        "btn_submit": "Soumettre la candidature"
+    },
+    "browse_page": {
+        "title": "Répertoire des revues indexées",
+        "desc": "Recherchez et découvrez des revues validées et évaluées par des pairs publiées sur le continent africain.",
+        "search_placeholder": "Rechercher par nom, ISSN, éditeur...",
+        "filter_all_countries": "Tous les pays",
+        "filter_all_disciplines": "Toutes les disciplines",
+        "no_results": "Aucune revue trouvée correspondant à vos critères de recherche.",
+        "badge_indexed": "Indexé"
+    },
+    "pricing_page": {
+        "title": "Tarification des rapports d'évaluation & de métriques",
+        "desc": "L'indexation des revues est entièrement gratuite. Achetez des analyses détaillées des métriques et des rapports d'évaluation du facteur d'impact pour renforcer la visibilité.",
+        "free_title": "Indexation standard",
+        "free_price": "0 €",
+        "free_sub": "/ Gratuit pour toujours",
+        "free_desc": "Inclusion de base dans le répertoire accessible par les chercheurs et les bibliothèques du monde entier.",
+        "free_feature1": "Inscription au répertoire public",
+        "free_feature2": "Archivage de base des métadonnées",
+        "free_feature3": "Contrôles qualité automatisés",
+        "free_feature4": "Indexation de recherche du répertoire",
+        "basic_title": "Rapport d'impact de base",
+        "basic_price": "99 €",
+        "basic_sub": "/ unique",
+        "basic_desc": "Calcule votre facteur d'impact de citation standard sur 2 ans et fournit une page d'évaluation officielle.",
+        "basic_feature1": "Calcul standard de l'AJIF",
+        "basic_feature2": "Widget de badge de vérification",
+        "basic_feature3": "Fiche détaillée des citations",
+        "basic_feature4": "Classement de performance (Discipline)",
+        "premium_title": "Institutionnel Premium",
+        "premium_price": "349 €",
+        "premium_sub": "/ unique",
+        "premium_desc": "Rapport d'évaluation complet avec cartographies des citations, notation de l'impact local et guide d'amélioration.",
+        "premium_feature1": "IF régional standard + personnalisé",
+        "premium_feature2": "Cartographies interactives des citations",
+        "premium_feature3": "Rapport de conformité au plagiat",
+        "premium_feature4": "Guide de visibilité sur 12 mois",
+        "btn_order": "Commander l'évaluation",
+        "badge_popular": "POPULAIRE"
+    },
+    "about_page": {
+        "subtitle": "Établir des paramètres d'indexation transparents pour la recherche scientifique africaine.",
+        "mission_title": "Notre Mission",
+        "mission_text1": "Les revues savantes publiées en Afrique se heurtent fréquemment à des obstacles structurels à leur inclusion dans les bases de données d'indexation mondiales. AfriJournal Index a été fondé pour combler cette lacune, en fournissant une plateforme d'indexation gratuite et de haut niveau spécifiquement conçue pour les revues hébergées en Afrique.",
+        "mission_text2": "Notre plateforme évalue les directives de qualité de manière équitable, en utilisant l'automatisation pour vérifier les normes ISSN, les structures d'évaluation par les pairs, la fréquence de publication et les contributions régionales à la recherche universitaire.",
+        "partner_title": "Partenariat avec KENPRO",
+        "partner_text": "En partenariat avec la Kenya Projects Organization (KENPRO), nous hébergeons un répertoire initial de revues régionales validées et à fort impact, notamment ARJESS, JMBA et IJEHS, garantissant que les recherches scientifiques locales soient cataloguées pour un accès mondial aux citations."
+    },
+    "contact_page": {
+        "desc": "Vous avez des questions sur l'indexation standard ou les évaluations métriques ? Envoyez-nous un message.",
+        "name_label": "Votre Nom",
+        "email_label": "Adresse e-mail",
+        "subject_label": "Objet",
+        "message_label": "Message",
+        "btn_send": "Envoyer le message"
+    },
+    "methodology_page": {
+        "desc": "Comment nous calculons les facteurs d'impact standard des citations pour les revues régionales africaines.",
+        "formula_title": "Facteur d'impact des revues africaines (AJIF)",
+        "formula_desc": "Le facteur d'impact des revues africaines (AJIF) est calculé chaque année en suivant les articles évalués par des pairs et en comptant les citations enregistrées dans le répertoire AfriJournal.",
+        "formula_num": "Citations en 2025 pour les articles publiés en 2023-2024",
+        "formula_den": "Nombre total d'articles citables publiés en 2023-2024",
+        "criteria_title": "Critères d'évaluation automatisés",
+        "criteria_1": "Cohérence des métadonnées: Statut ISSN/eISSN actif vérifié auprès des registres régionaux.",
+        "criteria_2": "Évaluation ouverte par les pairs: Adhésion vérifiée à des flux de travail d'évaluation par les pairs transparents.",
+        "criteria_3": "Régularité des publications: La revue doit publier au moins deux numéros par an sans interruption."
+    }
+}

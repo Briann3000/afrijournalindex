@@ -1,0 +1,202 @@
+"use client";
+
+import React, { useState } from "react";
+import { useLang } from "../LangContext";
+
+export default function Submit() {
+  const { lang, setLang, t } = useLang();
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [step, setStep] = useState<number>(1);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    alert("Your journal application has been received by our automated system for evaluation!");
+    window.location.href = "/";
+  };
+
+  return (
+    <div className="theme-dark">
+      {/* Navigation Bar */}
+      <header className="header">
+        <div className="header-container">
+          <a href="/" className="logo">
+            <span className="logo-accent">Afri</span>Journal Index
+          </a>
+          
+          <nav className={`nav-menu ${isMenuOpen ? "active" : ""}`} id="navMenu" style={isMenuOpen ? {
+            display: "flex",
+            flexDirection: "column",
+            position: "absolute",
+            top: "80px",
+            left: "0",
+            width: "100%",
+            background: "var(--color-bg-card)",
+            padding: "2rem",
+            borderBottom: "1px solid rgba(255,255,255,0.05)",
+            zIndex: 99
+          } : undefined}>
+            <a href="/" className="nav-link">{t.nav.home}</a>
+            <a href="/browse" className="nav-link">{t.nav.browse}</a>
+            <a href="/submit" className="nav-link active">{t.nav.submit}</a>
+            <a href="/pricing" className="nav-link">{t.nav.pricing}</a>
+            <a href="/about" className="nav-link">{t.nav.about}</a>
+          </nav>
+          
+          <div className="header-actions">
+            <div className="lang-selector-wrapper">
+              <select 
+                id="langSelector" 
+                className="lang-selector"
+                value={lang}
+                onChange={(e) => setLang(e.target.value)}
+              >
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="pt">Português</option>
+                <option value="ar">العربية</option>
+                <option value="sw">Kiswahili</option>
+              </select>
+            </div>
+            <a href="/submit" className="btn btn-primary btn-sm">{t.nav.get_started}</a>
+            <button className="menu-toggle" id="menuToggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              <i className="fa-solid fa-bars"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container" style={{ padding: "4rem 0" }}>
+        <div className="section-header">
+          <h1 className="section-title">{t.submit_page.title}</h1>
+          <p className="section-desc">{t.submit_page.desc}</p>
+        </div>
+
+        <div className="glass-card" style={{ maxWidth: "650px", margin: "0 auto" }}>
+          <form id="submitForm" className="submission-form" onSubmit={handleSubmit}>
+            {/* Step 1: Basic Metadata */}
+            {step === 1 && (
+              <div className="form-step active" id="step1">
+                <h3 style={{ marginBottom: "1.5rem", color: "var(--color-primary)" }}>
+                  <i className="fa-solid fa-circle-info" style={{ marginRight: "0.5rem" }}></i> {t.submit_page.step1_title}
+                </h3>
+                
+                <div className="form-group">
+                  <label htmlFor="jName">{t.submit_page.name_label}</label>
+                  <input type="text" id="jName" required placeholder="e.g. African Research Journal of Education and Social Sciences" />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="jScope">{t.submit_page.scope_label}</label>
+                  <textarea id="jScope" rows={4} required placeholder={t.submit_page.scope_placeholder}></textarea>
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="jIssn">{t.submit_page.issn_label}</label>
+                    <input type="text" id="jIssn" placeholder="e.g. 2312-0134" />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="jEissn">{t.submit_page.eissn_label}</label>
+                    <input type="text" id="jEissn" placeholder="xxxx-xxxx" />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="jPublisher">{t.submit_page.publisher_label}</label>
+                  <input type="text" id="jPublisher" required placeholder="e.g. Kenya Projects Organization (KENPRO)" />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="jCountry">{t.submit_page.country_label}</label>
+                    <input type="text" id="jCountry" required placeholder="e.g. Kenya" />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="jFrequency">{t.submit_page.frequency_label}</label>
+                    <select id="jFrequency">
+                      <option>Quarterly</option>
+                      <option>Semi-Annually</option>
+                      <option>Annually</option>
+                      <option>Continuous</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-actions" style={{ marginTop: "2rem", display: "flex", justifyContent: "flex-end" }}>
+                  <button type="button" className="btn btn-primary" onClick={() => setStep(2)}>
+                    {t.submit_page.btn_next} <i className="fa-solid fa-arrow-right" style={{ marginLeft: "0.5rem" }}></i>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Verification & Review */}
+            {step === 2 && (
+              <div className="form-step" id="step2">
+                <h3 style={{ marginBottom: "1.5rem", color: "var(--color-primary)" }}>
+                  <i className="fa-solid fa-shield-halved" style={{ marginRight: "0.5rem" }}></i> {t.submit_page.step2_title}
+                </h3>
+
+                <div className="form-group">
+                  <label htmlFor="jWebsite">{t.submit_page.website_label}</label>
+                  <input type="url" id="jWebsite" required placeholder="https://arjess.org" />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="jUpload">{t.submit_page.upload_label}</label>
+                  <div className="file-upload-wrapper">
+                    <input type="file" id="jUpload" accept=".pdf" />
+                    <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", marginTop: "0.5rem" }}>{t.submit_page.upload_sub}</p>
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ flexDirection: "row", alignItems: "center", gap: "0.8rem", margin: "1.5rem 0" }}>
+                  <input type="checkbox" id="jTerms" required style={{ width: "18px", height: "18px", cursor: "pointer" }} />
+                  <label htmlFor="jTerms" style={{ cursor: "pointer", userSelect: "none" }}>
+                    {t.submit_page.terms_label}
+                  </label>
+                </div>
+
+                <div className="form-actions" style={{ marginTop: "2rem", display: "flex", justifyContent: "space-between" }}>
+                  <button type="button" className="btn btn-secondary" onClick={() => setStep(1)}>
+                    <i className="fa-solid fa-arrow-left" style={{ marginRight: "0.5rem" }}></i> {t.submit_page.btn_prev}
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    {t.submit_page.btn_submit} <i className="fa-solid fa-paper-plane" style={{ marginLeft: "0.5rem" }}></i>
+                  </button>
+                </div>
+              </div>
+            )}
+          </form>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="footer">
+        <div className="container footer-grid">
+          <div className="footer-brand">
+            <a href="/" className="logo"><span className="logo-accent">Afri</span>Journal Index</a>
+            <p className="footer-desc">{t.footer.desc}</p>
+          </div>
+          <div className="footer-links">
+            <h4 className="footer-heading">{t.footer.links_head}</h4>
+            <a href="/browse">{t.nav.browse}</a>
+            <a href="/submit">{t.nav.submit}</a>
+            <a href="/pricing">{t.nav.pricing}</a>
+          </div>
+          <div className="footer-links">
+            <h4 className="footer-heading">{t.footer.resources_head}</h4>
+            <a href="/about">{t.nav.about}</a>
+            <a href="/methodology">{t.footer.methodology}</a>
+            <a href="/contact">{t.footer.contact}</a>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <div className="container footer-bottom-flex">
+            <p className="copyright">&copy; 2026 AfriJournal Index. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}

@@ -1,0 +1,139 @@
+{
+    "nav": {
+        "home": "Início",
+        "browse": "Navegar Periódicos",
+        "submit": "Submeter Periódico",
+        "pricing": "Preços",
+        "about": "Sobre Nós",
+        "get_started": "Iniciar"
+    },
+    "hero": {
+        "pre_badge": "Plataforma Acadêmica Focada em África",
+        "title": "Elevando a Excelência Acadêmica Africana",
+        "subtitle": "Um diretório de indexação transparente e gratuito para periódicos acadêmicos africanos, com relatórios de impacto especializados projetados para valorizar as contribuições de pesquisa locais.",
+        "cta_submit": "Indexar seu periódico (Grátis)",
+        "cta_explore": "Explorar periódicos",
+        "card_title": "Métricas em Destaque: ARJESS",
+        "card_if": "AfriJournal IF",
+        "card_grade": "Grau de Qualidade"
+    },
+    "stats": {
+        "journals": "Periódicos KENPRO Hospedados",
+        "free_indexing": "Indexação de Periódicos Grátis",
+        "languages": "Idiomas Acadêmicos Africanos",
+        "metrics": "Métricas de Avaliação Customizadas"
+    },
+    "valprop": {
+        "title": "Empoderando a Economia do Conhecimento Africana",
+        "desc": "O AfriJournal Index supera as barreiras de visibilidade enfrentadas diariamente pelos editores acadêmicos africanos.",
+        "indexing_title": "Indexação Livre e Aberta",
+        "indexing_text": "Indexamos periódicos revisados por pares publicados no continente africano de forma totalmente gratuita, tornando sua pesquisa detectável.",
+        "if_title": "Fatores de Impacto Credíveis",
+        "if_text": "Acesse cálculos rigorosos do fator de impacto de citações do seu periódico para aumentar o prestígio institucional.",
+        "eval_title": "Verificação Automatizada",
+        "eval_text": "Nossa plataforma executa verificações automatizadas de ISSN, histórico de publicação e conselhos editoriais para verificar o status de qualidade instantaneamente."
+    },
+    "showcase": {
+        "title": "Diretório Semente: Periódicos KENPRO",
+        "desc": "Explore o catálogo inicial de periódicos revisados por pares fornecidos pela Kenya Projects Organization (KENPRO)."
+    },
+    "cta": {
+        "title": "Pronto para indexar seu periódico acadêmico?",
+        "desc": "Submeta sua publicação ao nosso sistema de análise automatizado. Estabeleça a verificação e obtenha relatórios de impacto calculados hoje mesmo.",
+        "btn": "Ser Indexado Agora"
+    },
+    "footer": {
+        "desc": "Conectando periódicos acadêmicos africanos com a comunidade acadêmica global através de descoberta aberta, indexação transparente e métricas rigorosas.",
+        "links_head": "Plataforma",
+        "resources_head": "Recursos",
+        "methodology": "Metodologia",
+        "contact": "Contatar Suporte"
+    },
+    "submit_page": {
+        "title": "Portal de Submissão de Periódicos",
+        "desc": "Submeta seu periódico acadêmico para ser avaliado para indexação gratuita no banco de dados AfriJournal.",
+        "step1_title": "1. Identificação do Periódico",
+        "name_label": "Nome Completo do Periódico",
+        "scope_label": "Descrição & Escopo do Periódico",
+        "scope_placeholder": "Descreva os objetivos, escopo e tópicos abordados pelo periódico...",
+        "issn_label": "ISSN Impresso",
+        "eissn_label": "eISSN Online",
+        "publisher_label": "Organização Editora",
+        "country_label": "País de Origem",
+        "frequency_label": "Frequência de Publicação",
+        "btn_next": "Próximo Passo",
+        "step2_title": "2. Detalhes de Verificação",
+        "website_label": "Link Oficial da Página do Periódico",
+        "upload_label": "Upload de Edição de Amostra (PDF, Max 10MB)",
+        "upload_sub": "Arraste e solte ou selecione um arquivo PDF",
+        "terms_label": "Concordo com os Termos e Condições da política de indexação do AfriJournal Index.",
+        "btn_prev": "Anterior",
+        "btn_submit": "Enviar Submissão"
+    },
+    "browse_page": {
+        "title": "Diretório de Periódicos Indexados",
+        "desc": "Pesquise e descubra periódicos validados e revisados por pares publicados no continente africano.",
+        "search_placeholder": "Pesquisar por nome, ISSN, editora...",
+        "filter_all_countries": "Todos os Países",
+        "filter_all_disciplines": "Todas as Disciplinas",
+        "no_results": "Nenhum periódico encontrado com os critérios de busca.",
+        "badge_indexed": "Indexado"
+    },
+    "pricing_page": {
+        "title": "Tabela de Preços para Avaliação e Relatórios",
+        "desc": "A indexação de periódicos é totalmente gratuita. Adquira relatórios de avaliação do fator de impacto e análises de métricas detalhadas.",
+        "free_title": "Indexação Padrão",
+        "free_price": "$0",
+        "free_sub": "/ Grátis para sempre",
+        "free_desc": "Inclusão básica no diretório acessível por pesquisadores e bibliotecas globalmente.",
+        "free_feature1": "Listagem em Diretório Público",
+        "free_feature2": "Arquivamento de Métadados Básico",
+        "free_feature3": "Verificações de Qualidade Automáticas",
+        "free_feature4": "Indexação de Busca no Diretório",
+        "basic_title": "Relatório de Impacto Básico",
+        "basic_price": "$99",
+        "basic_sub": "/ pagamento único",
+        "basic_desc": "Calcula o fator de impacto padrão de citações de 2 anos e fornece uma página de classificação formal.",
+        "basic_feature1": "Cálculo Padrão AJIF",
+        "basic_feature2": "Widget de Selo de Verificação",
+        "basic_feature3": "Planilha de Detalhamento de Citações",
+        "basic_feature4": "Classificação de Desempenho (Disciplina)",
+        "premium_title": "Premium Institucional",
+        "premium_price": "$349",
+        "premium_sub": "/ pagamento único",
+        "premium_desc": "Relatório de avaliação abrangente com mapas de citações, pontuação de impacto local e guia de melhoria.",
+        "premium_feature1": "IF Regional Padrão + Personalizado",
+        "premium_feature2": "Mapas Interativos de Citações",
+        "premium_feature3": "Relatório de Conformidade de Plágio",
+        "premium_feature4": "Guia de Visibilidade de 12 Meses",
+        "btn_order": "Solicitar Avaliação",
+        "badge_popular": "POPULAR"
+    },
+    "about_page": {
+        "subtitle": "Estabelecer métricas de indexação transparentes para a pesquisa científica africana.",
+        "mission_title": "Nossa Missão",
+        "mission_text1": "Os periódicos científicos publicados na África enfrentam frequentemente barreiras estruturais para a inclusão em bases de dados de indexação globais. O AfriJournal Index foi fundado para preencher esta lacuna, fornecendo uma plataforma de indexação gratuita e de alto padrão projetada especificamente para periódicos hospedados na África.",
+        "mission_text2": "Nossa plataforma avalia as diretrizes de qualidade de forma justa, usando automação para verificar padrões ISSN, estruturas de revisão por pares, frequência de publicação e contribuições regionais para a pesquisa acadêmica.",
+        "partner_title": "Parceria com a KENPRO",
+        "partner_text": "Em parceria com a Kenya Projects Organization (KENPRO), hospedamos um diretório semente de periódicos regionais validados e de alto impacto, incluindo ARJESS, JMBA e IJEHS, garantindo que as pesquisas científicas locais sejam catalogadas para acesso global de citações."
+    },
+    "contact_page": {
+        "desc": "Tem dúvidas sobre a indexação padrão ou avaliações de métricas? Envie-nos uma mensagem.",
+        "name_label": "Seu Nome",
+        "email_label": "Endereço de E-mail",
+        "subject_label": "Assunto",
+        "message_label": "Mensagem",
+        "btn_send": "Enviar Mensagem"
+    },
+    "methodology_page": {
+        "desc": "Como calculamos os fatores de impacto de citação padrão para periódicos regionais africanos.",
+        "formula_title": "Fator de Impacto do Periódico Africano (AJIF)",
+        "formula_desc": "O Fator de Impacto do Periódico Africano (AJIF) é calculado anualmente através do rastreamento de artigos revisados por pares e contagem de citações registradas no diretório AfriJournal.",
+        "formula_num": "Citações em 2025 para artigos publicados em 2023-2024",
+        "formula_den": "Total de itens citáveis publicados em 2023-2024",
+        "criteria_title": "Critérios de Avaliação Automatizados",
+        "criteria_1": "Consistência de Metadados: Status ISSN/eISSN ativo verificado com registros regionais.",
+        "criteria_2": "Revisão por Pares Aberta: Adesão verificada a fluxos de trabalho transparentes de revisão por pares.",
+        "criteria_3": "Regularidade de Publicação: O periódico deve publicar pelo menos duas edições anualmente, sem interrupções."
+    }
+}

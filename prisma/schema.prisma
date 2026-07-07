@@ -1,0 +1,137 @@
+// Prisma Database Schema for AfriJournal Index
+// Designed for scaling index lookups and citation-based impact factor metrics
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  RESEARCHER
+  PUBLISHER
+  ADMIN
+}
+
+enum SubmissionStatus {
+  PENDING
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
+}
+
+model User {
+  id            String      @id @default(uuid())
+  email         String      @unique
+  passwordHash  String
+  name          String
+  role          Role        @default(RESEARCHER)
+  orcid         String?     @unique
+  institution   String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  // Relations
+  journals      Journal[]   // Journals managed by this publisher
+  submissions   Submission[] // Submissions sent by this user
+  articles      Article[]   // Articles authored by this researcher
+}
+
+model Journal {
+  id            String            @id @default(uuid())
+  name          String
+  issn          String?           @unique
+  eissn         String?           @unique
+  description   String
+  publisherName String
+  country       String
+  frequency     String
+  websiteUrl    String
+  indexedAt     DateTime?
+  qualityGrade  String?           // e.g., "A", "B", "C"
+  isIndexed     Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  
+  // Relations
+  publisherId   String?
+  publisher     User?             @relation(fields: [publisherId], references: [id])
+  submissions   Submission[]
+  articles      Article[]
+  reports       ImpactFactorReport[]
+}
+
+model Submission {
+  id            String            @id @default(uuid())
+  journalName   String
+  issn          String?
+  eissn         String?
+  description   String
+  publisherName String
+  country       String
+  frequency     String
+  websiteUrl    String
+  pdfFileUrl    String?           // Sample issue upload
+  status        SubmissionStatus  @default(PENDING)
+  evaluationLog String?           // Log detailing automated checks
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  // Relations
+  submitterId   String
+  submitter     User              @relation(fields: [submitterId], references: [id])
+  journalId     String?
+  journal       Journal?          @relation(fields: [journalId], references: [id])
+}
+
+model Article {
+  id            String      @id @default(uuid())
+  title         String
+  doi           String?     @unique
+  abstract      String?
+  pdfUrl        String?
+  publishDate   DateTime
+  createdAt     DateTime    @default(now())
+  
+  // Relations
+  journalId     String
+  journal       Journal     @relation(fields: [journalId], references: [id])
+  authors       User[]
+  
+  // Citation mapping
+  citations     Citation[]  @relation("ArticleCitations") // Citations made BY this article
+  citedBy       Citation[]  @relation("ArticleCitedBy")   // Citations pointing TO this article
+}
+
+model Citation {
+  id              String   @id @default(uuid())
+  citedAt         DateTime @default(now())
+  
+  // Relations
+  citingArticleId String   // The article that is CITING
+  citingArticle   Article  @relation("ArticleCitations", fields: [citingArticleId], references: [id])
+  
+  citedArticleId  String   // The article that is CITED
+  citedArticle    Article  @relation("ArticleCitedBy", fields: [citedArticleId], references: [id])
+
+  @@unique([citingArticleId, citedArticleId])
+}
+
+model ImpactFactorReport {
+  id                String   @id @default(uuid())
+  year              Int
+  standardScore     Float    // Standard 2-year window impact score
+  regionalScore     Float?   // Africa-weighted AJIF score (Phase 2)
+  citationCount     Int      // Total citations counted in window
+  articleCount      Int      // Total articles published in window
+  pdfReportUrl      String?  // Link to generated PDF report
+  createdAt         DateTime @default(now())
+
+  // Relations
+  journalId         String
+  journal           Journal  @relation(fields: [journalId], references: [id])
+
+  @@unique([journalId, year])
+}

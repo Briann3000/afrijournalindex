@@ -1,0 +1,139 @@
+{
+    "nav": {
+        "home": "Nyumbani",
+        "browse": "Vinjari Majarida",
+        "submit": "Wasilisha Jarida",
+        "pricing": "Bei",
+        "about": "Kuhusu Sisi",
+        "get_started": "Anza Sasa"
+    },
+    "hero": {
+        "pre_badge": "Jukwaa la Kitaaluma la Kwanza Afrika",
+        "title": "Kukuza Ubora wa Kitaaluma wa Afrika",
+        "subtitle": "Kielelezo cha uwazi na cha bure cha kuorodhesha majarida ya kitaaluma ya Afrika, kilicho na ripoti maalum za athari zilizoundwa kutathmini michango ya utafiti wa ndani.",
+        "cta_submit": "Orodhesha Jarida Lako (Bure)",
+        "cta_explore": "Gundua Majarida",
+        "card_title": "Vipimo Vilivyoangaziwa: ARJESS",
+        "card_if": "AfriJournal Athari",
+        "card_grade": "Daraja la Ubora"
+    },
+    "stats": {
+        "journals": "Majarida Yanayohifadhiwa na KENPRO",
+        "free_indexing": "Uorodheshaji wa Bure wa Majarida",
+        "languages": "Lugha za Kitaaluma za Afrika",
+        "metrics": "Vipimo Maalum vya Tathmini"
+    },
+    "valprop": {
+        "title": "Kuwezesha Uchumi wa Maarifa wa Afrika",
+        "desc": "Kielelezo cha AfriJournal Index kinashinda vizuizi vya kuonekana ambavyo wahariri wa kitaaluma wa Afrika wanakabiliwa navyo kila siku.",
+        "indexing_title": "Uorodheshaji Huru na Wazi",
+        "indexing_text": "Tunaorodhesha majarida yaliyopitiwa na wataalamu yaliyochapishwa katika bara la Afrika bila malipo yoyote, na kufanya utafiti wako ugundulike kirahisi.",
+        "if_title": "Vipimo vya Athari Vinavyoaminika",
+        "if_text": "Pata vipimo sahihi vya athari za nukuu za jarida lako ili kuongeza heshima ya kitaasisi.",
+        "eval_title": "Uthibitishaji wa Kiotomatiki",
+        "eval_text": "Jukwaa letu linaendesha ukaguzi wa kiotomatiki kwenye ISSN, historia ya uchapishaji, na bodi za uhariri uthibitisha ubora mara moja."
+    },
+    "showcase": {
+        "title": "Katalogi ya Kwanza: Majarida ya KENPRO",
+        "desc": "Chunguza katalogi ya kwanza ya majarida yaliyopitiwa na wataalamu yaliyochapishwa na Kenya Projects Organization (KENPRO)."
+    },
+    "cta": {
+        "title": "Uko Tayari Kuorodhesha Jarida Lako la Kitaaluma?",
+        "desc": "Wasilisha chapisho lako kwenye mfumo wetu wa ukaguzi wa kiotomatiki. Pata uthibitisho na upate ripoti za athari zilizopigiwa hesabu leo.",
+        "btn": "Orodheshwa Sasa"
+    },
+    "footer": {
+        "desc": "Kuunganisha majarida ya kitaaluma ya Afrika na jamii ya wasomi ulimwenguni kote kupitia ugunduzi wazi, uorodheshaji wa uwazi, na vipimo thabiti.",
+        "links_head": "Jukwaa",
+        "resources_head": "Nyenzo",
+        "methodology": "Mbinu za Kazi",
+        "contact": "Wasiliana na Huduma"
+    },
+    "submit_page": {
+        "title": "Mlango wa Kuwasilisha Jarida",
+        "desc": "Wasilisha chapisho lako la kitaaluma ili litathminiwe kwa uorodheshaji wa bure katika hifadhidata ya AfriJournal.",
+        "step1_title": "1. Utambulisho wa Jarida",
+        "name_label": "Jina Kamili la Jarida",
+        "scope_label": "Maelezo & Malengo ya Jarida",
+        "scope_placeholder": "Eleza malengo, uwanja, na mada zinazoshughulikiwa na jarida...",
+        "issn_label": "Print ISSN",
+        "eissn_label": "Online eISSN",
+        "publisher_label": "Taasisi Inayochapisha",
+        "country_label": "Nchi Lilikotoka",
+        "frequency_label": "Mzunguko wa Uchapishaji",
+        "btn_next": "Hatua Inayofuata",
+        "step2_title": "2. Maelezo ya Uthibitishaji",
+        "website_label": "Tovuti Rasmi ya Jarida",
+        "upload_label": "Pakia Toleo la Mfano (PDF, Max 10MB)",
+        "upload_sub": "Buruta na uondoshe au chagua faili la PDF",
+        "terms_label": "Ninakubaliana na Sheria na Masharti ya sera ya uorodheshaji ya AfriJournal Index.",
+        "btn_prev": "Nyuma",
+        "btn_submit": "Wasilisha Ombi"
+    },
+    "browse_page": {
+        "title": "Kielelezo cha Majarida Yaliyoorodheshwa",
+        "desc": "Tafuta na ugundue majarida yaliyothibitishwa na kupitiwa na wataalamu yaliyochapishwa katika bara la Afrika.",
+        "search_placeholder": "Tafuta kwa jina, ISSN, mchapishaji...",
+        "filter_all_countries": "Nchi Zote",
+        "filter_all_disciplines": "Nyanja Zote",
+        "no_results": "Hakuna majarida yaliyopatikana yanayolingana na utafutaji wako.",
+        "badge_indexed": "Orodheshwa"
+    },
+    "pricing_page": {
+        "title": "Gharama za Tathmini na Ripoti za Vipimo",
+        "desc": "Uorodheshaji wa majarida ni bure kabisa. Nunua ripoti za tathmini ya kina ya vipimo na athari za jarida ili kuongeza kujulikana kwake.",
+        "free_title": "Uorodheshaji wa Kawaida",
+        "free_price": "KSh 0",
+        "free_sub": "/ Bure milele",
+        "free_desc": "Ujumuishaji wa kimsingi katika orodha ya jarida inayeweza kufikiwa na watafiti na maktaba ulimwenguni kote.",
+        "free_feature1": "Orodha ya Kielelezo cha Umma",
+        "free_feature2": "Hifadhi ya Msingi ya Data ya Jarida",
+        "free_feature3": "Ukaguzi wa Ubora wa Kiotomatiki",
+        "free_feature4": "Uorodheshaji wa Utafutaji wa Jarida",
+        "basic_title": "Ripoti ya Msingi ya Athari",
+        "basic_price": "KSh 12,800",
+        "basic_sub": "/ mara moja",
+        "basic_desc": "Hupiga hesabu ya athari za nukuu za kawaida za miaka 2 na kutoa ukurasa rasmi wa tathmini.",
+        "basic_feature1": "Ukokotoaji wa AJIF wa Kawaida",
+        "basic_feature2": "Picha ya Nembo ya Uthibitishaji",
+        "basic_feature3": "Karatasi ya Mchanganuo wa Nukuu",
+        "basic_feature4": "Nafasi ya Ubora (Kwenye Nyanja)",
+        "premium_title": "Premium ya Kitaasisi",
+        "premium_price": "KSh 45,000",
+        "premium_sub": "/ mara moja",
+        "premium_desc": "Ripoti ya tathmini ya kina iliyo na ramani za nukuu, alama za athari za ndani, na mwongozo wa kuboresha kujulikana.",
+        "premium_feature1": "Athari ya Kitaifa na Mkoa ya Kawaida + Maalum",
+        "premium_feature2": "Ramani Shirikishi za Nukuu",
+        "premium_feature3": "Ripoti ya Ukaguzi wa Wizi wa Maandishi",
+        "premium_feature4": "Mwongozo wa Kuboresha Jarida wa Miezi 12",
+        "btn_order": "Agiza Tathmini",
+        "badge_popular": "INAYOPENDEKEZWA"
+    },
+    "about_page": {
+        "subtitle": "Kuanzisha vipimo vya wazi vya uorodheshaji wa utafiti wa kisayansi wa Afrika.",
+        "mission_title": "Dhumuni Letu",
+        "mission_text1": "Majarida ya kitaaluma yaliyochapishwa barani Afrika mara nyingi yanakabiliwa na vikwazo vya kimfumo ili kujumuishwa katika kanzidata za kimataifa za uorodheshaji. AfriJournal Index ilianzishwa ili kuziba pengo hili, ikitoa jukwaa la uorodheshaji la kiwango cha juu la bure lililoundwa mahsusi kwa majarida yanayochapishwa barani Afrika.",
+        "mission_text2": "Jukwaa letu linatathmini miongozo ya ubora kwa haki, likitumia teknolojia ya kiotomatiki kuthibitisha viwango vya ISSN, muundo wa uhakiki wa wataalamu, mzunguko wa uchapishaji, na michango ya kikanda kwa taaluma ya kitaaluma.",
+        "partner_title": "Ushirikiano na KENPRO",
+        "partner_text": "Kwa ushirikiano na Kenya Projects Organization (KENPRO), tunahifadhi orodha ya kwanza ya majarida ya kikanda yaliyothibitishwa na yenye athari kubwa ikiwa ni pamoja na ARJESS, JMBA, na IJEHS, ili kuhakikisha tafiti za kisayansi za ndani zimeorodheshwa kwa ajili ya kufikiwa kwa nukuu duniani kote."
+    },
+    "contact_page": {
+        "desc": "Una maswali kuhusu uorodheshaji wa kawaida au tathmini ya vipimo vya athari? Wasilisha ujumbe wako.",
+        "name_label": "Jina Lako",
+        "email_label": "Barua Pepe",
+        "subject_label": "Mada",
+        "message_label": "Ujumbe wako",
+        "btn_send": "Wasilisha Ujumbe"
+    },
+    "methodology_page": {
+        "desc": "Jinsi tunavyopiga hesabu ya vipimo vya kawaida vya athari za nukuu kwa majarida ya kikanda ya Afrika.",
+        "formula_title": "Kipimo cha Athari cha Majarida ya Afrika (AJIF)",
+        "formula_desc": "Kipimo cha Athari cha Majarida ya Afrika (AJIF) hupigwa hesabu kila mwaka kwa kufuatilia makala yaliyopitiwa na wataalamu na kuhesabu nukuu zilizorekodiwa katika kielelezo cha AfriJournal.",
+        "formula_num": "Nukuu za mwaka wa 2025 kwa makala yaliyochapishwa mnamo 2023-2024",
+        "formula_den": "Jumla ya makala yanayoweza kunukuliwa yaliyochapishwa mnamo 2023-2024",
+        "criteria_title": "Vigezo vya Tathmini vya Kiotomatiki",
+        "criteria_1": "Uthabiti wa Data ya Jarida: Imethibitisha hali ya ISSN/eISSN inayofanya kazi na sajili za kikanda.",
+        "criteria_2": "Uhakiki Wazi wa Wataalamu: Imethibitishwa kufuata mtiririko wazi wa uhakiki wa uhariri.",
+        "criteria_3": "Uchapishaji wa Kawaida: Jarida lazima lichapishe angalau masuala mawili kila mwaka bila mapungufu."
+    }
+}
