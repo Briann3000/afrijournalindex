@@ -7,6 +7,22 @@ import { useLang } from "../LangContext";
 export default function Pricing() {
   const { lang, setLang, t } = useLang();
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    async function checkUser() {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (data.authenticated) {
+          setUser(data.user);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    checkUser();
+  }, []);
 
   // Checkout modal states
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -206,7 +222,26 @@ export default function Pricing() {
                 <option value="sw">Kiswahili</option>
               </select>
             </div>
-            <a href="/submit" className="btn btn-primary btn-sm">{t.nav.get_started}</a>
+            {user ? (
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <a href={`/researcher?id=${user.id}`} className="btn btn-secondary btn-sm">Profile</a>
+                <button 
+                  onClick={async () => {
+                    await fetch("/api/auth/login", { method: "DELETE" });
+                    window.location.reload();
+                  }}
+                  className="btn btn-secondary btn-sm"
+                  style={{ border: "1px solid rgba(255,74,74,0.3)", color: "#ff4a4a" }}
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <>
+                <a href="/login" className="btn btn-secondary btn-sm" style={{ marginRight: "0.5rem" }}>Login</a>
+                <a href="/submit" className="btn btn-primary btn-sm">{t.nav.get_started}</a>
+              </>
+            )}
             <button className="menu-toggle" id="menuToggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <i className="fa-solid fa-bars"></i>
             </button>
