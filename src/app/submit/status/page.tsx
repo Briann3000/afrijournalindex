@@ -3,6 +3,7 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLang } from "../../LangContext";
+import Header from "../../Header";
 
 function StatusContent() {
   const { lang, setLang, t } = useLang();
@@ -80,25 +81,7 @@ function StatusContent() {
   return (
     <div className="theme-dark">
       {/* Navigation */}
-      <header className="header">
-        <div className="header-container">
-          <a href="/" className="logo">
-            <span className="logo-accent">Afri</span>Journal Index
-          </a>
-          <nav className={`nav-menu ${isMenuOpen ? "active" : ""}`} id="navMenu">
-            <a href="/" className="nav-link">{t.nav.home}</a>
-            <a href="/browse" className="nav-link">{t.nav.browse}</a>
-            <a href="/submit" className="nav-link active">{t.nav.submit}</a>
-            <a href="/pricing" className="nav-link">{t.nav.pricing}</a>
-            <a href="/about" className="nav-link">{t.nav.about}</a>
-          </nav>
-          <div className="header-actions">
-            <button className="menu-toggle" id="menuToggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              <i className="fa-solid fa-bars"></i>
-            </button>
-          </div>
-        </div>
-      </header>
+      <Header activePage="submit" />
 
       <main className="container" style={{ padding: "4rem 0", maxWidth: "900px" }}>
         {/* Banner Card */}
