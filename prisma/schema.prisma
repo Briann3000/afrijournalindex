@@ -37,6 +37,7 @@ model User {
   journals      Journal[]   // Journals managed by this publisher
   submissions   Submission[] // Submissions sent by this user
   articles      Article[]   // Articles authored by this researcher
+  comments      Comment[]
 }
 
 model Journal {
@@ -61,6 +62,7 @@ model Journal {
   submissions   Submission[]
   articles      Article[]
   reports       ImpactFactorReport[]
+  comments      Comment[]
 }
 
 model Submission {
@@ -134,4 +136,16 @@ model ImpactFactorReport {
   journal           Journal  @relation(fields: [journalId], references: [id])
 
   @@unique([journalId, year])
+}
+
+model Comment {
+  id          String   @id @default(uuid())
+  content     String
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  journalId   String
+  journal     Journal  @relation(fields: [journalId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }

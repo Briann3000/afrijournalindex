@@ -67,6 +67,7 @@ function ResearcherProfileContent() {
   }
 
   const { profile, metrics, articles } = data;
+  const maxCitations = articles.length > 0 ? Math.max(...articles.map((a: any) => a.citationsCount), 1) : 1;
 
   return (
     <div className="theme-dark">
@@ -111,6 +112,40 @@ function ResearcherProfileContent() {
             </div>
           </div>
         </div>
+
+        {/* Dynamic Citation Analytics Chart */}
+        {articles.length > 0 && (
+          <div className="glass-card" style={{ padding: "2.5rem", marginBottom: "2rem" }}>
+            <h3 style={{ marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <i className="fa-solid fa-chart-simple" style={{ color: "var(--color-primary)" }}></i> Citation Distribution Analytics
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              {articles.map((art: any, idx: number) => {
+                const percentage = (art.citationsCount / maxCitations) * 100;
+                return (
+                  <div key={idx} style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                    <div style={{ width: "180px", fontSize: "0.85rem", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", color: "var(--color-text-muted)" }}>
+                      Paper #{articles.length - idx}: {art.title}
+                    </div>
+                    <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", height: "20px", borderRadius: "10px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.05)" }}>
+                      <div 
+                        style={{ 
+                          width: `${percentage}%`, 
+                          background: `linear-gradient(90deg, var(--color-primary), var(--color-secondary))`, 
+                          height: "100%", 
+                          transition: "width 1s ease-in-out" 
+                        }}
+                      />
+                    </div>
+                    <div style={{ width: "80px", textAlign: "right", fontSize: "0.85rem", fontWeight: "bold", color: "var(--color-primary)" }}>
+                      {art.citationsCount} {art.citationsCount === 1 ? "cite" : "cites"}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Publications List Section */}
         <h3 style={{ marginBottom: "1.5rem", fontSize: "1.3rem" }}>Authored Publications List</h3>

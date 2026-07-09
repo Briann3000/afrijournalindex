@@ -15,6 +15,71 @@ function StatusContent() {
   const [data, setData] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  const journalId = data?.journal?.id;
+
+  useEffect(() => {
+    async function checkUser() {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (data.authenticated) {
+          setUser(data.user);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    
+    async function fetchComments() {
+      if (!journalId) return;
+      try {
+        const res = await fetch(`/api/comments?journalId=${journalId}`);
+        const data = await res.json();
+        if (data.success) {
+          setComments(data.comments);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    checkUser();
+    fetchComments();
+  }, [journalId]);
+
+  const handlePostComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim() || !journalId) return;
+    setCommentLoading(true);
+    try {
+      const res = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journalId,
+          content: newComment
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setComments((prev) => [data.comment, ...prev]);
+        setNewComment("");
+      } else {
+        alert(data.error || "Failed to post comment.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error posting review comment.");
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!id) {
       setError("No submission ID provided.");
@@ -281,6 +346,76 @@ function StatusContent() {
                 </div>
               );
             })}
+          </div>
+        </div>
+
+        {/* Community Discussion Board */}
+        <div className="glass-card" style={{ padding: "2.5rem", marginBottom: "2rem" }}>
+          <h3 style={{ marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <i className="fa-solid fa-comments" style={{ color: "var(--color-primary)" }}></i> Peer Review & Community Forum
+          </h3>
+
+          {/* Form to submit review comment */}
+          {user ? (
+            <form onSubmit={handlePostComment} style={{ marginBottom: "2rem" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+                <textarea 
+                  required
+                  placeholder="Share indexing status updates, citation inquiries, or general review comments with the AfriJournal community..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  style={{
+                    width: "100%",
+                    minHeight: "80px",
+                    padding: "0.8rem 1rem",
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "4px",
+                    color: "#fff",
+                    fontSize: "0.9rem",
+                    resize: "vertical",
+                    outline: "none"
+                  }}
+                />
+                <button 
+                  type="submit" 
+                  className="btn btn-primary btn-sm"
+                  style={{ alignSelf: "flex-end" }}
+                  disabled={commentLoading}
+                >
+                  {commentLoading ? "Posting..." : "Post Comment"}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div style={{ padding: "1rem", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "4px", marginBottom: "2.0rem", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+              Want to join the discussion? <a href="/login" style={{ color: "var(--color-primary)", textDecoration: "underline" }}>Login with your ORCID iD</a> to post reviews.
+            </div>
+          )}
+
+          {/* Comments List */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            {comments.length === 0 ? (
+              <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", textAlign: "center", margin: "1rem 0" }}>
+                No community discussions recorded for this journal yet. Be the first to start a conversation!
+              </p>
+            ) : (
+              comments.map((comment: any) => (
+                <div key={comment.id} style={{ padding: "1rem", background: "rgba(255,255,255,0.02)", borderLeft: "3px solid var(--color-primary)", borderRadius: "0 4px 4px 0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.4rem", fontSize: "0.85rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                    <span style={{ fontWeight: "bold" }}>
+                      {comment.author.name} <span style={{ fontWeight: "normal", color: "var(--color-text-muted)", fontSize: "0.75rem" }}>({comment.author.institution || "Independent Researcher"})</span>
+                    </span>
+                    <span style={{ color: "var(--color-text-muted)" }}>
+                      {new Date(comment.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: "0.9rem", color: "#e2e2e9", lineHeight: "1.4" }}>
+                    {comment.content}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
