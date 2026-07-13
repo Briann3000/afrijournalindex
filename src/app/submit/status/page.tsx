@@ -4,6 +4,7 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLang } from "../../LangContext";
 import Header from "../../Header";
+import Footer from "../../Footer";
 
 function StatusContent() {
   const { lang, setLang, t } = useLang();
@@ -429,6 +430,9 @@ function StatusContent() {
           </a>
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

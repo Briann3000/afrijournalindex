@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Script from "next/script";
 import { useLang } from "../LangContext";
 import Header from "../Header";
+import Footer from "../Footer";
 
 export default function Pricing() {
   const { lang, setLang, t } = useLang();
@@ -230,6 +231,16 @@ export default function Pricing() {
             <button className="btn btn-secondary" style={{ width: "100%" }} onClick={() => handlePurchaseClick("Premium Institutional", 4500)}>{t.pricing_page.btn_order}</button>
           </div>
         </div>
+
+        {/* FAQ Nudge */}
+        <div style={{ textAlign: "center", padding: "2rem 0 0", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
+            Have questions about pricing or evaluation?{" "}
+            <a href="/faq" style={{ color: "var(--color-primary)" }}>Read our FAQ</a>
+            {" "}or{" "}
+            <a href="/contact" style={{ color: "var(--color-primary)" }}>contact us</a>.
+          </p>
+        </div>
       </main>
 
       {/* IntaSend Checkout Modal */}
@@ -323,31 +334,7 @@ export default function Pricing() {
       )}
 
       {/* Footer */}
-      <footer className="footer">
-        <div className="container footer-grid">
-          <div className="footer-brand">
-            <a href="/" className="logo"><span className="logo-accent">Afri</span>Journal Index</a>
-            <p className="footer-desc">{t.footer.desc}</p>
-          </div>
-          <div className="footer-links">
-            <h4 className="footer-heading">{t.footer.links_head}</h4>
-            <a href="/browse">{t.nav.browse}</a>
-            <a href="/submit">{t.nav.submit}</a>
-            <a href="/pricing">{t.nav.pricing}</a>
-          </div>
-          <div className="footer-links">
-            <h4 className="footer-heading">{t.footer.resources_head}</h4>
-            <a href="/about">{t.nav.about}</a>
-            <a href="/methodology">{t.footer.methodology}</a>
-            <a href="/contact">{t.footer.contact}</a>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <div className="container footer-bottom-flex">
-            <p className="copyright">&copy; 2026 AfriJournal Index. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -5,7 +5,10 @@
         "submit": "Wasilisha Jarida",
         "pricing": "Bei",
         "about": "Kuhusu Sisi",
-        "get_started": "Anza Sasa"
+        "get_started": "Anza Sasa",
+        "rankings": "Viwango",
+        "institution": "Dashibodi ya Taasisi",
+        "faq": "Maswali ya Mara kwa Mara"
     },
     "hero": {
         "pre_badge": "Jukwaa la Kitaaluma la Kwanza Afrika",
@@ -47,7 +50,10 @@
         "links_head": "Jukwaa",
         "resources_head": "Nyenzo",
         "methodology": "Mbinu za Kazi",
-        "contact": "Wasiliana na Huduma"
+        "contact": "Wasiliana na Huduma",
+        "legal_head": "Kisheria",
+        "terms": "Vigezo na Masharti",
+        "privacy": "Sera ya Faragha"
     },
     "submit_page": {
         "title": "Mlango wa Kuwasilisha Jarida",
@@ -135,5 +141,246 @@
         "criteria_1": "Uthabiti wa Data ya Jarida: Imethibitisha hali ya ISSN/eISSN inayofanya kazi na sajili za kikanda.",
         "criteria_2": "Uhakiki Wazi wa Wataalamu: Imethibitishwa kufuata mtiririko wazi wa uhakiki wa uhariri.",
         "criteria_3": "Uchapishaji wa Kawaida: Jarida lazima lichapishe angalau masuala mawili kila mwaka bila mapungufu."
-    }
+    },
+    "terms_page": {
+        "title": "Vigezo na Masharti",
+        "subtitle": "Tafadhali soma vigezo hivi kwa makini kabla ya kutumia AfriJournal Index. Kwa kufikia au kutumia jukwaa letu, unakubali kubanwa na vigezo hivi.",
+        "last_updated": "Ilisasishwa mwisho: Julai 2026",
+        "related_policies": "Sera husika",
+        "sec1_title": "Kukubali Vigezo",
+        "sec1_p1": "Kwa kusajili akaunti, kuwasilisha jarida, au kutumia jukwaa la AfriJournal Index (\"Jukwaa\"), unathibitisha kuwa umesoma, umeelewa, na unakubaliana na Vigezo na Masharti haya pamoja na Sera yetu ya Faragha.",
+        "sec1_p2": "Ikiwa unatumia Jukwaa kwa niaba ya taasisi au shirika la uchapishaji, unawakilisha kwamba una mamlaka ya kuwajibisha chombo hicho kwenye vigezo hivi.",
+        "sec2_title": "Maelezo ya Jukwaa",
+        "sec2_p1": "AfriJournal Index ni jukwaa wazi la kuorodhesha majarida ya kitaaluma ambalo linajumuisha, kuweka viwango, na kufuatilia takwimu za nukuu kwa majarida yaliyopitiwa na wenza yaliyochapishwa kote Afrika. Jukwaa hutoa:",
+        "sec2_li1": "Uwasilishaji wa majarida na tathmini ya kufuata sheria kiotomatiki",
+        "sec2_li2": "Kuweka alama za Impact Factor (alama za kawaida za AJIF na za kikanda)",
+        "sec2_li3": "Wasifu wa watafiti wenye takwimu za h-index",
+        "sec2_li4": "Dashibodi za vipimo vya taasisi",
+        "sec2_li5": "Mabaraza ya jamii ya kupitia kazi za kitaaluma",
+        "sec2_li6": "Orodha ya wazi ya viwango vya majarida",
+        "sec3_title": "Akaunti za Watumiaji na Kustahili",
+        "sec3_p1": "Lazima uwe na angalau umri wa miaka 18 ili kuunda akaunti. Unakubali:",
+        "sec3_li1": "Kutoa maelezo sahihi, kamili na ya sasa ya usajili",
+        "sec3_li2": "Kuhifadhi siri ya sifa za akaunti yako",
+        "sec3_li3": "Kukubali wajibu kwa shughuli zote zinazotokea chini ya akaunti yako",
+        "sec3_li4": "Kutuarifu mara moja kuhusu matumizi yoyote yasiyoruhusiwa ya akaunti yako",
+        "sec3_p2": "Tunahifadhi haki ya kusimamisha au kufunga akaunti zinazotoa taarifa za uongo au kukiuka vigezo hivi.",
+        "sec4_title": "Sheria za Uwasilishaji wa Majarida",
+        "sec4_p1": "Wakati unawasilisha jarida kwa ajili ya tathmini ya kuorodheshwa, unahakikisha kwamba:",
+        "sec4_li1": "Wewe ni mchapishaji au mwakilishi aliyeidhinishwa wa jarida hilo",
+        "sec4_li2": "Taarifa zote zilizowasilishwa (ISSN, tovuti, maelezo ya mchapishaji) ni sahihi",
+        "sec4_li3": "Jarida linaendesha mchakato halisi wa ukaguzi wa rika",
+        "sec4_li4": "Jarida si chapisho la kitapeli au la kupotosha",
+        "sec4_li5": "Tovuti ya jarida inafanya kazi na inapatikana kwa umma",
+        "sec4_p2": "AfriJournal Index inahifadhi haki ya kukataa, kuondoa kwenye orodha, au kuweka alama kwenye jarida lolote ambalo halikidhi viwango vyetu vya uhariri na kufuata sheria, kwa uamuzi wetu pekee.",
+        "sec5_title": "Malipo na Marejesho",
+        "sec5_p1": "Huduma fulani za kiwango cha juu (kama vile tathmini ya haraka) zinahitaji malipo. Kwa kufanya malipo kupitia Jukwaa unakubali kwamba:",
+        "sec5_li1": "Ada zote zimetajwa katika sarafu iliyoonyeshwa na zinajumuisha kodi zote husika",
+        "sec5_li2": "Malipo yanachakatwa kwa usalama kupitia IntaSend (M-Pesa na kadi)",
+        "sec5_li3": "Ada za tathmini ya haraka hazirejeshwi mara tu ukaguzi wa kiotomatiki unapoanza",
+        "sec5_li4": "Ikiwa jarida litakataliwa baada ya tathmini ya haraka iliyolipwa, ada hiyo inagharamia mchakato wenyewe wa tathmini na haitarejeshwa",
+        "sec6_title": "Sheria za Baraza la Jamii",
+        "sec6_p1": "Baraza la kupitia kazi za kitaaluma ni nafasi ya kitaalamu. Watumiaji wanakubali kutoweka maudhui ambayo ni:",
+        "sec6_li1": "Kashfa, unyanyasaji, au ubaguzi",
+        "sec6_li2": "Taka (spam), matangazo, au yasiyo ya mada husika",
+        "sec6_li3": "Ukiukaji wa haki za mali ya kiakili za mtu mwingine yeyote",
+        "sec6_li4": "Madai ya uongo ya kitaaluma au takwimu za nukuu za kutungwa",
+        "sec6_p2": "Tunahifadhi haki ya kuondoa maudhui yoyote na kusimamisha akaunti yoyote inayokiuka viwango hivi vya jamii bila taarifa ya mapema.",
+        "sec7_title": "Mali ya Kiakili",
+        "sec7_p1": "Maudhui yote kwenye jukwaa la AfriJournal Index — pamoja na lakini si tu mbinu za kuweka alama za AJIF, ripoti za impact factor, muundo wa UI, na kodi ya jukwaa — ni mali ya kiakili ya Kenya Projects Organization (KENPRO) isipokuwa ikiwa imeelezwa vinginevyo.",
+        "sec7_p2": "Data ya jarida (jina, ISSN, maelezo) inasalia kuwa mali ya wachapishaji husika. Kwa kuwasilisha data ya jarida kwenye Jukwaa, unaipa AfriJournal Index leseni isiyo ya kipekee, isiyo na malipo ya kuonyesha na kuchapisha data hiyo kwa madhumuni ya kuorodhesha.",
+        "sec8_title": "Ukomo wa Wajibu",
+        "sec8_p1": "AfriJournal Index inatoa Jukwaa kama lilivyo (\"as is\") na linapopatikana. Hatuhakikishii kwamba Jukwaa litakuwa bila kukatizwa, bila makosa, au bila vipengele vyenye madhara.",
+        "sec8_p2": "Kwa kiwango cha juu kinachoruhusiwa na sheria, AfriJournal Index haitawajibika kwa uharibifu wowote usio wa moja kwa moja, wa bahati mbaya, maalum, wa matokeo, au wa adhabu unaotokana na matumizi yako ya Jukwaa, ikiwa ni pamoja na kupoteza hadhi ya kitaaluma, kupoteza data, au kupoteza mapato.",
+        "sec9_title": "Mabadiliko ya Vigezo Hivi",
+        "sec9_p1": "Tunaweza kusasisha Vigezo na Masharti haya mara kwa mara. Mabadiliko makubwa yatawasilishwa kupitia barua pepe au taarifa kwenye jukwaa. Kuendelea kutumia Jukwaa baada ya mabadiliko hayo kunamaanisha unakubali vigezo vilivyorekebishwa.",
+        "sec10_title": "Sheria Inayoongoza na Mawasiliano",
+        "sec10_p1": "Vigezo hivi vinaongozwa na sheria za Jamhuri ya Kenya. Migogoro yoyote itatatuliwa chini ya mamlaka ya mahakama za Kenya.",
+        "sec10_p2": "Kwa maswali kuhusu Vigezo hivi, wasiliana nasi kupitia ukurasa wetu wa mawasiliano au barua pepe legal@afrijournalindex.org."
+    },
+    "privacy_page": {
+        "title": "Sera ya Faragha",
+        "subtitle": "Faragha yako ni muhimu kwetu. Sera hii inaeleza ni data gani tunakusanya, jinsi tunavyoitumia, na haki zako kuhusiana na taarifa zako binafsi.",
+        "last_updated": "Ilisasishwa mwisho: Julai 2026",
+        "sec1_title": "Sisi ni Nani",
+        "sec1_p1": "AfriJournal Index inaendeshwa na Kenya Projects Organization (KENPRO), shirika la utafiti na uchapishaji lenye makao makuu yake Nairobi, Kenya. Sisi ndio dhibiti wa data ya binafsi inayokusanywa kupitia Jukwaa hili. Kwa maswali ya faragha, wasiliana nasi kwa privacy@afrijournalindex.org.",
+        "sec2_title": "Data Tunayokusanya",
+        "sec2_p1": "Tunakusanya makundi yafuatayo ya data binafsi:",
+        "sec2_h1": "Data ya Akaunti",
+        "sec2_li1_1": "Jina kamili na barua pepe (inahitajika kwa usajili)",
+        "sec2_li1_2": "Nenosiri lililosimbwa (kamwe halihifadhiwi katika maandishi wazi)",
+        "sec2_li1_3": "Kitambulisho cha ORCID (si lazima, kwa uhakiki wa uandishi)",
+        "sec2_li1_4": "Uhusiano wa kitaasisi (si lazima)",
+        "sec2_li1_5": "Jukumu la akaunti (Mtafiti au Mchapishaji)",
+        "sec2_h2": "Data ya Uwasilishaji",
+        "sec2_li2_1": "Jina la jarida, ISSN/eISSN, maelezo ya mchapishaji, na URL ya tovuti",
+        "sec2_li2_2": "Nchi ya uchapishaji na mzunguko wa uchapishaji",
+        "sec2_li2_3": "Kumbukumbu za tathmini ya kufuata sheria kiotomatiki",
+        "sec2_h3": "Data ya Matumizi",
+        "sec2_li3_1": "Kurasa zilizotembelewa na vipengele vilivyotumiwa (kwa kuboresha jukwaa)",
+        "sec2_li3_2": "Data ya kuki ya session (kukuweka ukiwa umeingia)",
+        "sec2_li3_3": "Marejeleo ya miamala ya malipo (si data kamili ya kadi — inashughulikiwa na IntaSend)",
+        "sec3_title": "Jinsi Tunavyotumia Data Yako",
+        "sec3_p1": "Tunatumia data yako binafsi kwa madhumuni yafuatayo:",
+        "sec3_li1": "Usimamizi wa akaunti — kuunda na kudumisha wasifu wako wa mtafiti au mchapishaji",
+        "sec3_li2": "Tathmini ya jarida — kuendesha ukaguzi wa kiotomatiki kwenye tovuti za majarida zilizowasilishwa",
+        "sec3_li3": "Vipimo vya athari — kupiga hesabu ya alama za h-index, idadi ya nukuu, na alama za athari za AJIF",
+        "sec3_li4": "Dashibodi za taasisi — kujumuisha matokeo ya utafiti kwa taasisi zilizounganishwa",
+        "sec3_li5": "Baraza la jamii — kuonyesha jina na taasisi yako kwenye maoni ya ukaguzi unayoweka",
+        "sec3_li6": "Uchakataji wa malipo — kuunganisha kumbukumbu za malipo na maombi ya tathmini ya haraka",
+        "sec3_li7": "Uboreshaji wa jukwaa — kuchambua mifumo ya matumizi ili kuboresha vipengele na utendaji",
+        "sec4_title": "Ushiriki wa Data",
+        "sec4_p1": "Hatuuzi data yako binafsi. Tunashiriki data tu chini ya hali zifuatazo:",
+        "sec4_li1": "IntaSend — uchakataji wa malipo kwa huduma za tathmini ya kiwango cha juu. IntaSend huchakata data chini ya sera yao ya faragha.",
+        "sec4_li2": "Data ya wasifu wa umma — jina lako, taasisi, na ORCID (ikiwa imetolewa) huonyeshwa hadharani kwenye wasifu wako na maoni yoyote ya jukwaa.",
+        "sec4_li3": "Utiifu wa kisheria — tunaweza kufichua data ikiwa inahitajika na sheria au amri halali ya mahakama nchini Kenya.",
+        "sec5_title": "Vidakuzi (Cookies) na Vikao (Sessions)",
+        "sec5_p1": "Tunatumia kuki moja ya session (afriJournalSession) kukuweka kwenye mfumo. Kuki hii:",
+        "sec5_li1": "Ni kuki ya HTTP-only (haipatikani na JavaScript)",
+        "sec5_li2": "Inajumuisha tu kitambulisho chako cha mtumiaji — hakuna maelezo binafsi yanayohifadhiwa humo",
+        "sec5_li3": "Muda wake unaisha wakati kikao chako cha kivinjari kinapoisha au unapoondoka kwenye mfumo",
+        "sec5_p2": "Hatutumii kuki za kufuatilia, kuki za matangazo, au kuki za uchambuzi wa wahusika wengine.",
+        "sec6_title": "Uhifadhi wa Data",
+        "sec6_p1": "Tunahifadhi data yako binafsi kwa muda mrefu kama akaunti yako iko hai. Ukiomba kufutwa kwa akaunti, data yako itaondolewa kwenye mfumo wetu ndani ya siku 30, isipokuwa pale ambapo uhifadhi unahitajika kwa kufuata kisheria au kifedha (kama vile kumbukumbu za malipo, ambazo huhifadhiwa kwa miaka 7 chini ya kanuni za kifedha za Kenya).",
+        "sec7_title": "Haki Zako",
+        "sec7_p1": "Una haki zifuatazo kuhusiana na data yako binafsi:",
+        "sec7_li1": "Kufikia — kuomba nakala ya data tuliyonayo kukuhusu",
+        "sec7_li2": "Kusahihisha — kuomba kusahihishwa kwa data isiyo sahihi",
+        "sec7_li3": "Kufuta — kuomba kufutwa kwa akaunti yako na data yako binafsi",
+        "sec7_li4": "Uhamisho wa data — kupokea data yako katika muundo uliopangwa, unaosomeka na mashine",
+        "sec7_li5": "Kupinga — kupinga uchakataji wa data yako kwa madhumuni fulani",
+        "sec7_p2": "Ili kutumia haki hizi, wasiliana nasi kwa privacy@afrijournalindex.org.",
+        "sec8_title": "Usalama",
+        "sec8_p1": "Tunatumia hatua za usalama za kiwango cha tasnia kulinda data yako zikiwemo: usimbaji wa nenosiri kwa bcrypt, usafirishaji wa HTTPS pekee, kuki za session za HTTP-only, na uhakiki wa data kwenye API zote. Ingawa tunachukua hatua zote zinazofaa, hakuna usafirishaji wa mtandaoni ulio salama 100%.",
+        "sec9_title": "Mabadiliko ya Sera Hii",
+        "sec9_p1": "Tunaweza kusasisha Sera hii ya Faragha mara kwa mara. Tunapofanya mabadiliko makubwa, tutawaarifu watumiaji waliosajiliwa kupitia barua pepe na kuonyesha taarifa ya sasisho kwenye Jukwaa. Tarehe iliyo juu ya ukurasa huu inaonyesha ni lini sera hii ilirekebishwa mara ya mwisho."
+    },
+    "faq_page": [
+        {
+            "category": "Jumla",
+            "items": [
+                {
+                    "q": "AfriJournal Index ni nini?",
+                    "a": "AfriJournal Index (AJIF) ni jukwaa la wazi la kuorodhesha majarida ya kitaaluma lililoundwa mahsusi kwa majarida ya utafiti ya Afrika. Tunaorodhesha majarida, kupiga hesabu za alama za impact factor, kufuatilia nukuu, na kutoa wasifu wa watafiti — yote bila malipo."
+                },
+                {
+                    "q": "Je, AfriJournal Index ni bure kutumia?",
+                    "a": "Ndiyo. Vinjari katalogi, tafuta majarida, angalia viwango, na kusajili wasifu wote ni bure kabisa. Tunatoa huduma ya tathmini ya haraka ya premium kwa wachapishaji wanaotaka ukaguzi ndani ya saa 48. Angalia ukurasa wa Bei kwa maelezo."
+                },
+                {
+                    "q": "Nani anaendesha AfriJournal Index?",
+                    "a": "AfriJournal Index inaendeshwa na Kenya Projects Organization (KENPRO), shirika la utafiti na uchapishaji lenye makao makuu Nairobi lenye uzoefu wa miongo mingi katika uchapishaji wa wasomi wa Afrika."
+                },
+                {
+                    "q": "Ni nchi gani zinazohusika?",
+                    "a": "Jukwaa linaorodhesha majarida kutoka nchi zote 54 za Afrika. Alama yetu ya kikanda ya AJIF inatoa uzito unaofaa kwa kiwango cha uchapishaji na upatikanaji wa wazi katika bara hili ili kuhakikisha uwakilishi wa haki."
+                }
+            ]
+        },
+        {
+            "category": "Uwasilishaji wa Jarida",
+            "items": [
+                {
+                    "q": "Jinsi ya kuwasilisha jarida kwa ajili ya kuorodheshwa?",
+                    "a": "Nenda kwenye ukurasa wa Wasilisha, jaza fomu ya hatua 3 yenye maelezo ya jarida lako (jina, ISSN, mchapishaji, nchi, URL ya tovuti) na uwasilishe. Mtambo wetu wa kiotomatiki utakagua tovuti ya jarida lako ndani ya dakika chache na kutoa ripoti."
+                },
+                {
+                    "q": "Je, ukaguzi wa kiotomatiki wa kufuata sheria unatathmini nini?",
+                    "a": "Ukaguzi wetu unaangalia: usimbaji wa HTTPS, upatikanaji wa tovuti, ishara za sera ya ukaguzi wa wenza, orodha ya bodi ya uhariri, kufuata sheria za ufikiaji wazi, na utaratibu wa uchapishaji."
+                },
+                {
+                    "q": "Tathmini inachukua muda gani?",
+                    "a": "Tathmini ya kawaida inakamilika ndani ya dakika 5-10 kwa ukaguzi wa kiotomatiki. Tathmini kamili ya uhariri inaweza kuchukua hadi siku 14 za kazi. Tathmini ya haraka ya premium inakamilika ndani ya saa 48."
+                },
+                {
+                    "q": "Je, ninaweza kufuatilia hali ya uwasilishaji wangu?",
+                    "a": "Ndiyo. Baada ya kuwasilisha, utapokea kitambulisho cha kipekee cha uwasilishaji. Unaweza kuingiza kitambulisho hiki kwenye fomu ya kutafuta hali kwenye ukurasa wa Wasilisha ili kuona kumbukumbu za kufuata sheria."
+                },
+                {
+                    "q": "Jarida langu lilikataliwa. Nifanye nini?",
+                    "a": "Ripoti ya kukataliwa itaeleza kwa kina ni ukaguzi gani uliyofeli. Unaweza kurekebisha masuala hayo kwenye tovuti ya jarida lako na kuwasilisha tena baada ya siku 30."
+                },
+                {
+                    "q": "Je, ninaweza kuwasilisha jarida ambalo halijaanza kuchapisha?",
+                    "a": "Hapana. Tovuti ya jarida lako lazima iwe hai na iwe na angalau toleo moja lililochapishwa kabla ya kuwasilisha. Mtambo wetu wa kiotomatiki utaweka alama kwenye tovuti zisizofanya kazi."
+                }
+            ]
+        },
+        {
+            "category": "Impact Factor na Viwango",
+            "items": [
+                {
+                    "q": "Je, Impact Factor ya AJIF inapigwaje hesabu?",
+                    "a": "Alama ya AJIF inachanganya alama ya kawaida ya nukuu ya miaka 2 na uzito wa kikanda wa Afrika unaozingatia ufikiaji wazi wa majarida katika bara. Mbinu kamili imeainishwa kwenye ukurasa wa Mbinu za Kazi."
+                },
+                {
+                    "q": "Je, viwango vinasasishwa mara ngapi?",
+                    "a": "Orodha ya viwango inatoa takwimu za sasa kutoka kwenye hifadhidata kila wakati ukurasa unapofunguliwa. Ripoti za kila mwaka za Impact Factor zinaundwa mara moja kwa mwaka."
+                },
+                {
+                    "q": "Je, ninaweza kuchuja viwango kwa nchi?",
+                    "a": "Ndiyo. Ukurasa wa Viwango unajumuisha kichungi cha nchi kinachopunguza orodha kuwa ya nchi yoyote mahsusi ya Afrika. Unaweza pia kutafuta vipimo vya taasisi kwenye ukurasa huo huo."
+                }
+            ]
+        },
+        {
+            "category": "Wasifu wa Watafiti",
+            "items": [
+                {
+                    "q": "Ninasajili vipi wasifu wa mtafiti?",
+                    "a": "Jisajili kwenye ukurasa wa Jisajili. Ukishaingia wasifu wako unakuwa hai. Makala yako yanapoorodheshwa, alama zako za h-index na nukuu zitasasishwa kiotomatiki."
+                },
+                {
+                    "q": "Je, h-index yangu inapigwaje hesabu?",
+                    "a": "H-index inapigwa hesabu kwa kutumia ufafanuzi wa kawaida: idadi kubwa h ya machapisho ambayo kila moja lina angalau nukuu h. Hesabu hii inafanyika kila wakati wasifu wako unapofunguliwa."
+                },
+                {
+                    "q": "ORCID ni nini na je nilihitaji?",
+                    "a": "ORCID ni kitambulisho cha kidijitali cha bure kinachokutofautisha na watafiti wengine. Si lazima kwenye AfriJournal Index, lakini husaidia kuunganisha machapisho yako kiotomatiki."
+                },
+                {
+                    "q": "Je, matokeo ya utafiti ya taasisi yangu yanaweza kuonekana?",
+                    "a": "Ndiyo. Dashibodi ya Taasisi inajumuisha alama za h-index, jumla ya machapisho na nukuu kwa watafiti wote walio chini ya chuo husika."
+                }
+            ]
+        },
+        {
+            "category": "Akaunti na Faragha",
+            "items": [
+                {
+                    "q": "Je, nenosiri langu linahifadhiwaje?",
+                    "a": "Nenosiri halihifadhiwi katika maandishi wazi. Tunatumia usimbaji wa bcrypt - mbinu thabiti ya usimbaji wa njia moja. Hakuna yeyote, hata timu yetu, anayeweza kusoma nenosiri lako."
+                },
+                {
+                    "q": "Ni data gani inayoonekana hadharani kwenye wasifu wangu?",
+                    "a": "Jina lako, uhusiano wako wa taasisi, kitambulisho cha ORCID (ikiwa kimetolewa), h-index, jumla ya nukuu na makala uliyochapisha. Barua pepe na nenosiri havionekani kwa umma."
+                },
+                {
+                    "q": "Je, ninaweza kufuta akaunti yangu?",
+                    "a": "Ndiyo. Ili kuomba kufutwa kwa akaunti, wasiliana nasi kupitia barua pepe privacy@afrijournalindex.org. Data yako binafsi itaondolewa ndani ya siku 30, isipokuwa kumbukumbu za malipo."
+                },
+                {
+                    "q": "Je, jukwaa linatumia vidakuzi vya kufuatilia?",
+                    "a": "Hapana. Tunatumia kuki moja tu ya session kwa ajili ya kuingia kwenye mfumo. Hatutumii vidakuzi vya matangazo au ufuatiliaji wa wahusika wengine."
+                }
+            ]
+        },
+        {
+            "category": "Malipo",
+            "items": [
+                {
+                    "q": "Ni njia gani za malipo zinazokubalika?",
+                    "a": "Tunakubali M-Pesa na kadi kuu za mkopo/debit kupitia mfumo wetu wa malipo wa IntaSend, ulioundwa kwa ajili ya soko la Afrika Mashariki."
+                },
+                {
+                    "q": "Je, ada za tathmini ya haraka zinarejeshwa?",
+                    "a": "Ada hazirejeshwi mara tu ukaguzi wa kiotomatiki unapoanza. Ada hiyo inagharamia mchakato mzima wa tathmini."
+                },
+                {
+                    "q": "Je, data ya kadi yangu inahifadhiwa kwenye seva za AfriJournal Index?",
+                    "a": "Hapana. Data yote ya malipo inashughulikiwa na IntaSend. Sisi tunapokea tu rejeleo la muamala lililofanikiwa."
+                }
+            ]
+        }
+    ]
 }

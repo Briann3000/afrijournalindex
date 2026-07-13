@@ -48,7 +48,7 @@ export default function Header({ activePage }: HeaderProps) {
         } : undefined}>
           <a href="/" className={`nav-link ${activePage === "home" ? "active" : ""}`}>{t.nav.home}</a>
           <a href="/browse" className={`nav-link ${activePage === "browse" ? "active" : ""}`}>{t.nav.browse}</a>
-          <a href="/rankings" className={`nav-link ${activePage === "rankings" ? "active" : ""}`}>Rankings</a>
+          <a href="/rankings" className={`nav-link ${activePage === "rankings" ? "active" : ""}`}>{t.nav.rankings || "Rankings"}</a>
           <a href="/submit" className={`nav-link ${activePage === "submit" ? "active" : ""}`}>{t.nav.submit}</a>
           <a href="/pricing" className={`nav-link ${activePage === "pricing" ? "active" : ""}`}>{t.nav.pricing}</a>
           <a href="/about" className={`nav-link ${activePage === "about" ? "active" : ""}`}>{t.nav.about}</a>

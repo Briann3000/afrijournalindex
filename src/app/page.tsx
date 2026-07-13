@@ -17,6 +17,7 @@ type LocalesType = {
 
 import { useLang } from "./LangContext";
 import Header from "./Header";
+import Footer from "./Footer";
 
 export default function Home() {
   const { lang, setLang, t } = useLang();
@@ -202,36 +203,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="footer">
-        <div className="container footer-grid">
-          <div className="footer-brand">
-            <a href="/" className="logo"><span className="logo-accent">Afri</span>Journal Index</a>
-            <p className="footer-desc">{t.footer.desc}</p>
-          </div>
-          <div className="footer-links">
-            <h4 className="footer-heading">{t.footer.links_head}</h4>
-            <a href="/browse">{t.nav.browse}</a>
-            <a href="/submit">{t.nav.submit}</a>
-            <a href="/pricing">{t.nav.pricing}</a>
-          </div>
-          <div className="footer-links">
-            <h4 className="footer-heading">{t.footer.resources_head}</h4>
-            <a href="/about">{t.nav.about}</a>
-            <a href="/methodology">{t.footer.methodology}</a>
-            <a href="/contact">{t.footer.contact}</a>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <div className="container footer-bottom-flex">
-            <p className="copyright">&copy; 2026 AfriJournal Index. All rights reserved.</p>
-            <div className="footer-socials">
-              <a href="#"><i className="fa-brands fa-twitter"></i></a>
-              <a href="#"><i className="fa-brands fa-linkedin"></i></a>
-              <a href="#"><i className="fa-brands fa-orcid"></i></a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

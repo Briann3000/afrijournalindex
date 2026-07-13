@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useLang } from "../LangContext";
 import Header from "../Header";
+import Footer from "../Footer";
 
 interface RankedJournal {
   id: string;
@@ -166,6 +167,9 @@ export default function Rankings() {
           )}
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

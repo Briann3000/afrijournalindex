@@ -183,6 +183,12 @@ export default function Register() {
               >
                 {loading ? "Registering..." : "Create Account"}
               </button>
+              <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textAlign: "center", lineHeight: "1.6" }}>
+                By creating an account, you agree to our{" "}
+                <a href="/terms" style={{ color: "var(--color-primary)" }}>Terms &amp; Conditions</a>
+                {" "}and acknowledge our{" "}
+                <a href="/privacy" style={{ color: "var(--color-primary)" }}>Privacy Policy</a>.
+              </p>
             </form>
           )}
         </div>

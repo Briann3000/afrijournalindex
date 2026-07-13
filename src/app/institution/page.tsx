@@ -3,6 +3,8 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLang } from "../LangContext";
+import Header from "../Header";
+import Footer from "../Footer";
 
 function InstitutionContent() {
   const { lang, setLang, t } = useLang();
@@ -63,30 +65,11 @@ function InstitutionContent() {
 
   return (
     <div className="theme-dark">
-      {/* Navigation */}
-      <header className="header">
-        <div className="header-container">
-          <a href="/" className="logo">
-            <span className="logo-accent">Afri</span>Journal Index
-          </a>
-          <nav className={`nav-menu ${isMenuOpen ? "active" : ""}`} id="navMenu">
-            <a href="/" className="nav-link">{t.nav.home}</a>
-            <a href="/browse" className="nav-link">{t.nav.browse}</a>
-            <a href="/submit" className="nav-link">{t.nav.submit}</a>
-            <a href="/pricing" className="nav-link">{t.nav.pricing}</a>
-            <a href="/about" className="nav-link">{t.nav.about}</a>
-          </nav>
-          <div className="header-actions">
-            <button className="menu-toggle" id="menuToggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              <i className="fa-solid fa-bars"></i>
-            </button>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="container" style={{ padding: "4rem 0", maxWidth: "950px" }}>
         {/* Banner header card */}
-        <div className="glass-card" style={{ padding: "3rem", marginBottom: "2.5rem", borderLeft: "5px solid var(--color-primary)" }}>
+        <div className="glass-card" style={{ padding: "3rem", marginBottom: "2.5rem" }}>
           <span className="journal-tag" style={{ background: "rgba(212,160,74,0.15)", color: "var(--color-primary)", marginBottom: "0.5rem", display: "inline-block" }}>
             Institutional Research Console
           </span>
@@ -157,6 +140,9 @@ function InstitutionContent() {
           )}
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLang } from "../LangContext";
 import Header from "../Header";
+import Footer from "../Footer";
 
 function ResearcherProfileContent() {
   const { lang, setLang, t } = useLang();
@@ -181,6 +182,9 @@ function ResearcherProfileContent() {
           )}
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

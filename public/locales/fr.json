@@ -5,7 +5,10 @@
         "submit": "Soumettre une revue",
         "pricing": "Tarification",
         "about": "À propos",
-        "get_started": "Commencer"
+        "get_started": "Commencer",
+        "rankings": "Rankings",
+        "institution": "Console Institutionnelle",
+        "faq": "FAQ"
     },
     "hero": {
         "pre_badge": "Plateforme scientifique Afrique d'abord",
@@ -47,7 +50,10 @@
         "links_head": "Plateforme",
         "resources_head": "Ressources",
         "methodology": "Méthodologie",
-        "contact": "Contacter le support"
+        "contact": "Contacter le support",
+        "legal_head": "Légal",
+        "terms": "Conditions Générales",
+        "privacy": "Politique de Confidentialité"
     },
     "submit_page": {
         "title": "Portail de soumission de revue",
@@ -135,5 +141,246 @@
         "criteria_1": "Cohérence des métadonnées: Statut ISSN/eISSN actif vérifié auprès des registres régionaux.",
         "criteria_2": "Évaluation ouverte par les pairs: Adhésion vérifiée à des flux de travail d'évaluation par les pairs transparents.",
         "criteria_3": "Régularité des publications: La revue doit publier au moins deux numéros par an sans interruption."
-    }
+    },
+    "terms_page": {
+        "title": "Conditions Générales d'Utilisation",
+        "subtitle": "Veuillez lire attentivement ces conditions avant d'utiliser AfriJournal Index. En accédant ou en utilisant notre plateforme, vous acceptez d'être lié par ces conditions.",
+        "last_updated": "Dernière mise à jour : Juillet 2026",
+        "related_policies": "Politiques connexes",
+        "sec1_title": "Acceptation des Conditions",
+        "sec1_p1": "En créant un compte, en soumettant une revue ou en utilisant la plateforme AfriJournal Index (« la Plateforme »), vous confirmez avoir lu, compris et accepté ces Conditions Générales et notre Politique de Confidentialité.",
+        "sec1_p2": "Si vous utilisez la Plateforme au nom d'une institution ou d'un organisme d'édition, vous déclarez avoir l'autorité nécessaire pour engager cette entité.",
+        "sec2_title": "Description de la Plateforme",
+        "sec2_p1": "AfriJournal Index est un moteur d'indexation académique ouvert qui répertorie, classe et suit les mesures de citation des revues évaluées par des pairs publiées en Afrique. La Plateforme propose :",
+        "sec2_li1": "Soumission de revues et évaluation automatisée de la conformité",
+        "sec2_li2": "Calcul du facteur d'impact (scores AJIF standards et régionaux)",
+        "sec2_li3": "Profils de chercheurs avec analyses de l'indice h",
+        "sec2_li4": "Tableaux de bord des indicateurs institutionnels",
+        "sec2_li5": "Forums communautaires d'évaluation par les pairs",
+        "sec2_li6": "Un classement public des revues",
+        "sec3_title": "Comptes Utilisateurs et Éligibilité",
+        "sec3_p1": "Vous devez avoir au moins 18 ans pour créer un compte. Vous acceptez de :",
+        "sec3_li1": "Fournir des informations d'inscription exactes, complètes et à jour",
+        "sec3_li2": "Maintenir la confidentialité de vos identifiants de compte",
+        "sec3_li3": "Assumer la responsabilité de toute activité survenant sous votre compte",
+        "sec3_li4": "Nous informer immédiatement de toute utilisation non autorisée de votre compte",
+        "sec3_p2": "Nous nous réservons le droit de suspendre ou de fermer les comptes qui fournissent de fausses informations ou violent ces conditions.",
+        "sec4_title": "Règles de Soumission des Revues",
+        "sec4_p1": "En soumettant une revue pour évaluation, vous garantissez que :",
+        "sec4_li1": "Vous êtes l'éditeur ou un représentant autorisé de la revue",
+        "sec4_li2": "Toutes les informations soumises (ISSN, site web, détails de l'éditeur) sont exactes",
+        "sec4_li3": "La revue applique un véritable processus d'évaluation par les pairs",
+        "sec4_li4": "La revue n'est pas une publication prédatrice ou trompeuse",
+        "sec4_li5": "Le site web de la revue est opérationnel et accessible au public",
+        "sec4_p2": "AfriJournal Index se réserve le droit de rejeter, de désindexer ou de signaler toute revue qui ne respecte pas nos normes éditoriales et de conformité, à notre seule discrétion.",
+        "sec5_title": "Paiements et Remboursements",
+        "sec5_p1": "Certains services premium (comme l'évaluation accélérée) nécessitent un paiement. En effectuant un paiement sur la Plateforme, vous acceptez que :",
+        "sec5_li1": "Tous les frais sont indiqués dans la devise affichée et incluent les taxes applicables",
+        "sec5_li2": "Les paiements sont traités de manière sécurisée via IntaSend (M-Pesa et carte)",
+        "sec5_li3": "Les frais d'évaluation accélérée ne sont pas remboursables une fois que l'analyse automatisée a commencé",
+        "sec5_li4": "Si une revue est rejetée après une évaluation payante accélérée, les frais couvrent le processus d'évaluation lui-même et ne sont pas remboursés",
+        "sec6_title": "Règles du Forum Communautaire",
+        "sec6_p1": "Le forum d'évaluation par les pairs est un espace académique professionnel. Les utilisateurs acceptent de ne pas publier de contenu :",
+        "sec6_li1": "Diffamatoire, harcelant ou discriminatoire",
+        "sec6_li2": "Indésirable (spam), promotionnel ou hors sujet",
+        "sec6_li3": "Violant les droits de propriété intellectuelle de tiers",
+        "sec6_li4": "Contenant de fausses affirmations académiques ou des données de citation fabriquées",
+        "sec6_p2": "Nous nous réservons le droit de supprimer tout contenu et de suspendre tout compte qui viole ces normes communautaires sans préavis.",
+        "sec7_title": "Propriété Intellectuelle",
+        "sec7_p1": "Tout le contenu de la plateforme AfriJournal Index — y compris, mais sans s'y limiter, la méthodologie de calcul AJIF, les rapports sur les facteurs d'impact, la conception de l'interface utilisateur et le code de la plateforme — est la propriété intellectuelle de Kenya Projects Organization (KENPRO), sauf indication contraire.",
+        "sec7_p2": "Les métadonnées de la revue (nom, ISSN, description) restent la propriété de leurs éditeurs respectifs. En soumettant des données de revue à la Plateforme, vous accordez à AfriJournal Index une licence non exclusive et libre de redevance pour afficher et publier ces métadonnées à des fins d'indexation.",
+        "sec8_title": "Limitation de Responsabilité",
+        "sec8_p1": "AfriJournal Index fournit la Plateforme « en l'état » et « selon la disponibilité ». Nous ne garantissons pas que la Plateforme sera ininterrompue, exempte d'erreurs ou sans composants nocifs.",
+        "sec8_p2": "Dans la mesure maximale permise par la loi, AfriJournal Index ne saurait être tenu responsable des dommages indirects, accessoires, spéciaux, consécutifs ou punitifs découlant de votre utilisation de la Plateforme, y compris la perte de réputation académique, la perte de données ou la perte de revenus.",
+        "sec9_title": "Modifications de ces Conditions",
+        "sec9_p1": "Nous pouvons mettre à jour ces Conditions Générales de temps à autre. Les modifications importantes vous seront communiquées par e-mail ou via une notification sur la plateforme. L'utilisation continue de la Plateforme après modification constitue votre acceptation des nouvelles conditions.",
+        "sec10_title": "Droit Applicable et Contact",
+        "sec10_p1": "Ces conditions sont régies par les lois de la République du Kenya. Tout litige sera résolu sous la juridiction des tribunaux kenyans.",
+        "sec10_p2": "Pour toute question concernant ces conditions, contactez-nous via notre page de contact ou par e-mail à legal@afrijournalindex.org."
+    },
+    "privacy_page": {
+        "title": "Politique de Confidentialité",
+        "subtitle": "Votre vie privée est importante pour nous. Cette politique explique quelles données nous collectons, comment nous les utilisons et vos droits concernant vos informations personnelles.",
+        "last_updated": "Dernière mise à jour : Juillet 2026",
+        "sec1_title": "Qui Sommes-nous",
+        "sec1_p1": "AfriJournal Index est exploité par Kenya Projects Organization (KENPRO), un organisme de recherche et de publication basé à Nairobi, au Kenya. Nous sommes le responsable du traitement des données personnelles collectées via cette Plateforme. Pour toute question relative à la confidentialité, contactez-nous à privacy@afrijournalindex.org.",
+        "sec2_title": "Données que nous collectons",
+        "sec2_p1": "Nous collectons les catégories de données personnelles suivantes :",
+        "sec2_h1": "Données de compte",
+        "sec2_li1_1": "Nom complet et adresse e-mail (requis pour l'inscription)",
+        "sec2_li1_2": "Mot de passe crypté (jamais stocké en texte clair)",
+        "sec2_li1_3": "Identifiant ORCID (facultatif, pour vérification de paternité)",
+        "sec2_li1_4": "Affiliation institutionnelle (facultatif)",
+        "sec2_li1_5": "Rôle du compte (chercheur ou éditeur)",
+        "sec2_h2": "Données de soumission",
+        "sec2_li2_1": "Nom de la revue, ISSN/eISSN, détails de l'éditeur et URL du site web",
+        "sec2_li2_2": "Pays de publication et fréquence de publication",
+        "sec2_li2_3": "Logs d'évaluation automatisée de la conformité",
+        "sec2_h3": "Données d'utilisation",
+        "sec2_li3_1": "Pages visitées et fonctionnalités utilisées (pour l'amélioration de la plateforme)",
+        "sec2_li3_2": "Données de cookie de session (pour vous maintenir connecté)",
+        "sec2_li3_3": "Références de transaction de paiement (aucune donnée de carte complète — gérée par IntaSend)",
+        "sec3_title": "Comment nous utilisons vos données",
+        "sec3_p1": "Nous utilisons vos données personnelles aux fins suivantes :",
+        "sec3_li1": "Gestion du compte — création et maintenance de votre profil de chercheur ou d'éditeur",
+        "sec3_li2": "Évaluation de revue — exécution d'analyses de conformité automatisées sur les sites soumis",
+        "sec3_li3": "Métriques d'impact — calcul de l'indice h, du nombre de citations et des facteurs d'impact AJIF",
+        "sec3_li4": "Tableaux de bord institutionnels — regroupement des productions scientifiques par institution",
+        "sec3_li5": "Forum communautaire — affichage de votre nom et institution sur les commentaires publiés",
+        "sec3_li6": "Traitement des paiements — liaison des reçus de paiement aux demandes d'évaluation rapide",
+        "sec3_li7": "Amélioration de la plateforme — analyse des habitudes d'utilisation pour optimiser le service",
+        "sec4_title": "Partage des données",
+        "sec4_p1": "Nous ne vendons pas vos données personnelles. Nous partageons vos données uniquement dans les circonstances suivantes :",
+        "sec4_li1": "IntaSend — traitement des paiements pour les services premium. IntaSend traite vos données selon leur propre politique.",
+        "sec4_li2": "Données de profil public — votre nom, institution et ORCID (si fournis) sont affichés publiquement sur votre profil et vos commentaires.",
+        "sec4_li3": "Conformité légale — nous pouvons divulguer des données si la loi ou une décision de justice valide au Kenya l'exige.",
+        "sec5_title": "Cookies et Sessions",
+        "sec5_p1": "Nous utilisons un cookie de session unique (afriJournalSession) pour vous identifier entre les pages. Ce cookie :",
+        "sec5_li1": "Est un cookie HTTP-only (non accessible via JavaScript)",
+        "sec5_li2": "Contient uniquement votre identifiant — aucune donnée personnelle n'est stockée dedans",
+        "sec5_li3": "Expire à la fermeture de la session de votre navigateur ou à votre déconnexion",
+        "sec5_p2": "Nous n'utilisons pas de cookies de suivi, de cookies publicitaires ou de cookies d'analyse tiers.",
+        "sec6_title": "Conservation des données",
+        "sec6_p1": "Nous conservons vos données personnelles tant que votre compte est actif. Si vous demandez la suppression de votre compte, vos données seront supprimées dans les 30 jours, sauf si la conservation est requise pour conformité légale ou financière (les enregistrements de paiement sont conservés pendant 7 ans selon la loi financière kenyane).",
+        "sec7_title": "Vos Droits",
+        "sec7_p1": "Vous disposez des droits suivants concernant vos données personnelles :",
+        "sec7_li1": "Accès — demander une copie des données que nous détenons à votre sujet",
+        "sec7_li2": "Rectification — demander la correction de données inexactes",
+        "sec7_li3": "Suppression — demander la suppression de votre compte et de vos données",
+        "sec7_li4": "Portabilité — recevoir vos données dans un format structuré et lisible par machine",
+        "sec7_li5": "Opposition — s'opposer au traitement de vos données pour certaines finalités",
+        "sec7_p2": "Pour exercer ces droits, contactez-nous à privacy@afrijournalindex.org.",
+        "sec8_title": "Sécurité",
+        "sec8_p1": "Nous mettons en œuvre des mesures de sécurité standard de l'industrie pour protéger vos données : cryptage de mot de passe bcrypt, transmission HTTPS uniquement, cookies de session HTTP-only et validation de toutes les entrées sur nos API. Bien que nous fassions tout pour sécuriser vos données, aucune méthode sur internet n'est sûre à 100 %.",
+        "sec9_title": "Modifications de cette Politique",
+        "sec9_p1": "Nous pouvons mettre à jour cette Politique de Confidentialité de temps à autre. En cas de changement important, nous en informerons les utilisateurs par e-mail et via une notification sur la Plateforme. La date en haut de page indique la dernière révision."
+    },
+    "faq_page": [
+        {
+            "category": "Général",
+            "items": [
+                {
+                    "q": "Qu'est-ce qu'AfriJournal Index ?",
+                    "a": "AfriJournal Index (AJIF) est une plateforme d'indexation académique en libre accès spécialement conçue pour les revues de recherche africaines. Nous répertorions les revues évaluées par des pairs, calculons les facteurs d'impact, suivons les citations et fournissons des profils de chercheurs — le tout sans barrière de paiement."
+                },
+                {
+                    "q": "L'utilisation d'AfriJournal Index est-elle gratuite ?",
+                    "a": "Oui. La recherche de revues, la consultation du classement et la création de profils de chercheurs sont entièrement gratuites. Nous proposons une évaluation express payante en 48 heures pour les éditeurs. Voir les détails sur la page Tarification."
+                },
+                {
+                    "q": "Qui gère AfriJournal Index ?",
+                    "a": "La plateforme est gérée par Kenya Projects Organization (KENPRO), une organisation de recherche et d'édition basée à Nairobi avec des décennies d'expérience dans l'édition savante africaine."
+                },
+                {
+                    "q": "Quels pays sont couverts ?",
+                    "a": "La Plateforme indexe les revues des 54 pays africains. Notre score AJIF régional accorde une importance proportionnelle au volume de publication et d'accès ouvert sur le continent pour une représentation équitable."
+                }
+            ]
+        },
+        {
+            "category": "Soumission de Revue",
+            "items": [
+                {
+                    "q": "Comment soumettre une revue pour indexation ?",
+                    "a": "Allez sur la page Soumettre, remplissez le formulaire en 3 étapes (nom de la revue, ISSN, éditeur, pays, site web) et envoyez. Notre robot d'analyse vérifiera votre site en quelques minutes et générera un rapport de conformité."
+                },
+                {
+                    "q": "Qu'est-ce que l'évaluation automatisée de conformité vérifie ?",
+                    "a": "Elle vérifie : le cryptage HTTPS, l'accessibilité de la page d'accueil, les politiques d'évaluation par les pairs, les listes du comité de rédaction, la conformité au libre accès et la régularité des publications."
+                },
+                {
+                    "q": "Combien de temps prend l'évaluation ?",
+                    "a": "L'analyse automatisée prend 5 à 10 minutes. L'évaluation éditoriale complète prend jusqu'à 14 jours ouvrables. L'évaluation rapide premium est réalisée en 48 heures."
+                },
+                {
+                    "q": "Puis-je suivre le statut de ma soumission ?",
+                    "a": "Oui. Lors de la soumission, vous recevez un identifiant unique. Entrez cet identifiant (ou l'ISSN) dans le formulaire de recherche de la page Soumettre pour voir le journal de conformité en temps réel."
+                },
+                {
+                    "q": "Ma revue a été rejetée. Que puis-je faire ?",
+                    "a": "Le rapport de rejet détaillera les vérifications ayant échoué. Vous pouvez corriger ces points sur votre site et soumettre à nouveau après 30 jours."
+                },
+                {
+                    "q": "Puis-je soumettre une revue qui n'est pas encore active ?",
+                    "a": "Non. Le site web de votre revue doit être actif et contenir au moins un numéro publié. Le robot d'analyse signalera les sites inactifs ou inaccessibles."
+                }
+            ]
+        },
+        {
+            "category": "Facteur d'impact et classements",
+            "items": [
+                {
+                    "q": "Comment le facteur d'impact AJIF est-il calculé ?",
+                    "a": "Le score combine une fenêtre de citation standard de 2 ans et une pondération régionale africaine basée sur l'accès ouvert. La méthodologie complète est expliquée sur la page Méthodologie."
+                },
+                {
+                    "q": "À quelle fréquence les classements sont-ils mis à jour ?",
+                    "a": "Le classement est mis à jour en temps réel à chaque chargement de page. Les rapports annuels de facteur d'impact sont générés une fois par an."
+                },
+                {
+                    "q": "Puis-je filtrer les classements par pays ?",
+                    "a": "Oui. La page Rankings permet de filtrer le classement par pays. Vous pouvez également rechercher des indicateurs institutionnels via la recherche rapide sur la même page."
+                }
+            ]
+        },
+        {
+            "category": "Profils de Chercheurs",
+            "items": [
+                {
+                    "q": "Comment créer un profil de chercheur ?",
+                    "a": "Inscrivez-vous sur la page d'inscription. Une fois connecté, votre profil est actif. Dès que vos articles sont indexés, vos indicateurs (indice h et citations) sont mis à jour automatiquement."
+                },
+                {
+                    "q": "Comment mon indice h est-il calculé ?",
+                    "a": "L'indice h est calculé selon la définition standard : le nombre h de publications ayant chacune au moins h citations. Le calcul est effectué dynamiquement à chaque consultation du profil."
+                },
+                {
+                    "q": "Qu'est-ce que l'ORCID, est-il nécessaire ?",
+                    "a": "L'ORCID est un identifiant numérique persistant gratuit pour distinguer les chercheurs. Il est facultatif mais recommandé pour lier automatiquement vos articles et vos citations."
+                },
+                {
+                    "q": "Les publications de mon université sont-elles visibles ?",
+                    "a": "Oui. La console institutionnelle regroupe l'indice h, le total des publications et des citations de tous les chercheurs affiliés à une université."
+                }
+            ]
+        },
+        {
+            "category": "Comptes et Confidentialité",
+            "items": [
+                {
+                    "q": "Comment mon mot de passe est-il sécurisé ?",
+                    "a": "Nous utilisons le hachage bcrypt, un algorithme de hachage unidirectionnel standard de l'industrie. Personne, pas même notre équipe, ne peut lire votre mot de passe."
+                },
+                {
+                    "q": "Quelles données sont publiques sur mon profil ?",
+                    "a": "Votre nom, votre affiliation, votre ORCID (si fourni), votre indice h, vos citations et vos publications sont publics. Votre e-mail et vos identifiants ne sont jamais visibles."
+                },
+                {
+                    "q": "Puis-je supprimer mon compte ?",
+                    "a": "Oui. Pour supprimer votre compte, contactez privacy@afrijournalindex.org. Vos données seront effacées sous 30 jours, sauf les reçus de paiement qui sont conservés pour des obligations légales."
+                },
+                {
+                    "q": "La plateforme utilise-t-elle des cookies de suivi ?",
+                    "a": "No. Nous utilisons un seul cookie de session technique pour la connexion. Nous n'utilisons aucun cookie publicitaire ou de suivi tiers."
+                }
+            ]
+        },
+        {
+            "category": "Paiements",
+            "items": [
+                {
+                    "q": "Quels modes de paiement sont acceptés ?",
+                    "a": "Nous acceptons M-Pesa et les cartes de crédit/débit via notre passerelle de paiement intégrée IntaSend, conçue pour l'Afrique de l'Est."
+                },
+                {
+                    "q": "Les frais d'évaluation rapide sont-ils remboursables ?",
+                    "a": "Non, ils ne sont pas remboursables une fois l'analyse automatique commencée. Ils couvrent le processus d'évaluation."
+                },
+                {
+                    "q": "Mes données de carte sont-elles stockées par AfriJournal Index ?",
+                    "a": "Non. Les transactions sont gérées à 100 % par IntaSend. Nous ne recevons et ne stockons qu'une référence de paiement de transaction réussie."
+                }
+            ]
+        }
+    ]
 }

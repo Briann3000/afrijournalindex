@@ -31,7 +31,7 @@
         "if_title": "Credible Impact Factors",
         "if_text": "Access rigorous, calculations of your journal's citation impact factor to increase institutional prestige.",
         "eval_title": "Automated Verification",
-        "eval_text": "Our platform runs automated checks on ISSN, publication history, and editorial boards to verify quality status instantly."
+        "eval_text": "Our platform runs automated checks on ISSN, publication history and editorial boards to verify quality status instantly."
     },
     "showcase": {
         "title": "Seed Directory: KENPRO Journals",
@@ -43,7 +43,7 @@
         "btn": "Get Indexed Now"
     },
     "footer": {
-        "desc": "Connecting African academic journals with the global scholarly community through open discovery, transparent indexing, and rigorous metrics.",
+        "desc": "Connecting African academic journals with the global scholarly community through open discovery, transparent indexing and rigorous metrics.",
         "links_head": "Platform",
         "resources_head": "Resources",
         "methodology": "Methodology",
@@ -55,7 +55,7 @@
         "step1_title": "1. Journal Identification",
         "name_label": "Journal Full Name",
         "scope_label": "Journal Description & Scope",
-        "scope_placeholder": "Describe the aims, scope, and topics covered by the journal...",
+        "scope_placeholder": "Describe the aims, scope and topics covered by the journal...",
         "issn_label": "Print ISSN",
         "eissn_label": "Online eISSN",
         "publisher_label": "Publisher Organization",
@@ -101,7 +101,7 @@
         "premium_title": "Premium Institutional",
         "premium_price": "$349",
         "premium_sub": "/ one-time",
-        "premium_desc": "Comprehensive evaluation report with citation path maps, local impact scoring, and improvement guide.",
+        "premium_desc": "Comprehensive evaluation report with citation path maps, local impact scoring and improvement guide.",
         "premium_feature1": "Standard + Custom Regional IF",
         "premium_feature2": "Interactive Citation Maps",
         "premium_feature3": "Plagiarism Compliance Report",
@@ -113,9 +113,9 @@
         "subtitle": "Establishing transparent indexing metrics for African scientific research.",
         "mission_title": "Our Mission",
         "mission_text1": "Scholarly journals published in Africa frequently face structural barriers to inclusion in global indexing databases. AfriJournal Index was founded to bridge this gap, providing a free, high-standard indexing platform specifically designed for journals hosted across Africa.",
-        "mission_text2": "Our platform evaluates quality guidelines fairly, using automation to verify ISSN standards, peer-review structures, publication frequency, and regional contributions to academic scholarship.",
+        "mission_text2": "Our platform evaluates quality guidelines fairly, using automation to verify ISSN standards, peer-review structures, publication frequency and regional contributions to academic scholarship.",
         "partner_title": "Partnering with KENPRO",
-        "partner_text": "In partnership with Kenya Projects Organization (KENPRO), we host a seed directory of verified, high-impact regional journals including ARJESS, JMBA, and IJEHS, ensuring local scientific inquiries are cataloged for global citation access."
+        "partner_text": "In partnership with Kenya Projects Organization (KENPRO), we host a seed directory of verified, high-impact regional journals including ARJESS, JMBA and IJEHS, ensuring local scientific inquiries are cataloged for global citation access."
     },
     "contact_page": {
         "desc": "Have questions about standard indexing or metric evaluations? Send us a message.",

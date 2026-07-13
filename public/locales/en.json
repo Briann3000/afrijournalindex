@@ -5,7 +5,10 @@
         "submit": "Submit Journal",
         "pricing": "Pricing",
         "about": "About Us",
-        "get_started": "Get Started"
+        "get_started": "Get Started",
+        "rankings": "Rankings",
+        "institution": "Institutional Console",
+        "faq": "FAQ"
     },
     "hero": {
         "pre_badge": "Africa-First Scholarly Platform",
@@ -47,7 +50,10 @@
         "links_head": "Platform",
         "resources_head": "Resources",
         "methodology": "Methodology",
-        "contact": "Contact Support"
+        "contact": "Contact Support",
+        "legal_head": "Legal",
+        "terms": "Terms & Conditions",
+        "privacy": "Privacy Policy"
     },
     "submit_page": {
         "title": "Journal Submission Portal",
@@ -135,5 +141,246 @@
         "criteria_1": "Metadata Consistency: Verified active ISSN/eISSN status with regional registries.",
         "criteria_2": "Open Peer-Review: Verified adherence to transparent editorial peer-review workflows.",
         "criteria_3": "Publishing Regularity: The journal must publish at least two issues annually without gaps."
-    }
+    },
+    "terms_page": {
+        "title": "Terms & Conditions",
+        "subtitle": "Please read these terms carefully before using AfriJournal Index. By accessing or using our platform, you agree to be bound by these terms.",
+        "last_updated": "Last updated: July 2026",
+        "related_policies": "Related policies",
+        "sec1_title": "Acceptance of Terms",
+        "sec1_p1": "By registering an account, submitting a journal, or otherwise using the AfriJournal Index platform (\"the Platform\"), you confirm that you have read, understood, and agree to these Terms & Conditions and our Privacy Policy.",
+        "sec1_p2": "If you are using the Platform on behalf of an institution or publishing organisation, you represent that you have the authority to bind that entity to these terms.",
+        "sec2_title": "Platform Description",
+        "sec2_p1": "AfriJournal Index is an open academic indexing engine that catalogs, ranks, and tracks citation metrics for peer-reviewed journals published across Africa. The Platform provides:",
+        "sec2_li1": "Journal submission and automated compliance evaluation",
+        "sec2_li2": "Impact Factor scoring (AJIF standard and regional scores)",
+        "sec2_li3": "Researcher profiles with h-index analytics",
+        "sec2_li4": "Institutional metrics dashboards",
+        "sec2_li5": "Community peer review forums",
+        "sec2_li6": "A public rankings leaderboard",
+        "sec3_title": "User Accounts & Eligibility",
+        "sec3_p1": "You must be at least 18 years old to create an account. You agree to:",
+        "sec3_li1": "Provide accurate, complete, and current registration information",
+        "sec3_li2": "Maintain the confidentiality of your account credentials",
+        "sec3_li3": "Accept responsibility for all activity occurring under your account",
+        "sec3_li4": "Notify us immediately of any unauthorised use of your account",
+        "sec3_p2": "We reserve the right to suspend or terminate accounts that provide false information or violate these terms.",
+        "sec4_title": "Journal Submission Rules",
+        "sec4_p1": "When submitting a journal for indexing evaluation, you warrant that:",
+        "sec4_li1": "You are the publisher or an authorised representative of the journal",
+        "sec4_li2": "All submitted information (ISSN, website, publisher details) is accurate",
+        "sec4_li3": "The journal operates a genuine peer-review process",
+        "sec4_li4": "The journal is not a predatory or deceptive publication",
+        "sec4_li5": "The journal website is operational and publicly accessible",
+        "sec4_p2": "AfriJournal Index reserves the right to reject, de-index, or flag any journal that does not meet our editorial and compliance standards, at our sole discretion.",
+        "sec5_title": "Payments & Refunds",
+        "sec5_p1": "Certain premium services (such as fast-track evaluation) require payment. By making a payment through the Platform you agree that:",
+        "sec5_li1": "All fees are quoted in the displayed currency and are inclusive of applicable taxes",
+        "sec5_li2": "Payments are processed securely via IntaSend (M-Pesa and card)",
+        "sec5_li3": "Fast-track evaluation fees are non-refundable once the automated compliance crawl has commenced",
+        "sec5_li4": "If a journal is rejected after a paid fast-track evaluation, the fee covers the evaluation process itself and is not refunded",
+        "sec6_title": "Community Forum Rules",
+        "sec6_p1": "The peer review forum is a professional academic space. Users agree not to post content that is:",
+        "sec6_li1": "Defamatory, harassing, or discriminatory",
+        "sec6_li2": "Spam, promotional, or off-topic",
+        "sec6_li3": "In violation of any third-party intellectual property rights",
+        "sec6_li4": "False academic claims or fabricated citation data",
+        "sec6_p2": "We reserve the right to remove any content and suspend any account that violates these community standards without prior notice.",
+        "sec7_title": "Intellectual Property",
+        "sec7_p1": "All content on the AfriJournal Index platform — including but not limited to the AJIF scoring methodology, impact factor reports, UI design, and platform code — is the intellectual property of Kenya Projects Organization (KENPRO) unless otherwise stated.",
+        "sec7_p2": "Journal metadata (name, ISSN, description) remains the property of the respective publishers. By submitting journal data to the Platform, you grant AfriJournal Index a non-exclusive, royalty-free licence to display and publish that metadata for indexing purposes.",
+        "sec8_title": "Limitation of Liability",
+        "sec8_p1": "AfriJournal Index provides the Platform on an \"as is\" and \"as available\" basis. We do not warrant that the Platform will be uninterrupted, error-free, or free of harmful components.",
+        "sec8_p2": "To the fullest extent permitted by law, AfriJournal Index shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Platform, including but not limited to loss of academic standing, loss of data, or loss of revenue.",
+        "sec9_title": "Changes to These Terms",
+        "sec9_p1": "We may update these Terms & Conditions from time to time. Material changes will be communicated via email or an in-platform notice. Continued use of the Platform after changes constitutes your acceptance of the revised terms.",
+        "sec10_title": "Governing Law & Contact",
+        "sec10_p1": "These Terms are governed by the laws of the Republic of Kenya. Any disputes shall be resolved under the jurisdiction of Kenyan courts.",
+        "sec10_p2": "For questions about these Terms, contact us at our contact page or email legal@afrijournalindex.org."
+    },
+    "privacy_page": {
+        "title": "Privacy Policy",
+        "subtitle": "Your privacy matters to us. This policy explains what data we collect, how we use it, and your rights regarding your personal information.",
+        "last_updated": "Last updated: July 2026",
+        "sec1_title": "Who We Are",
+        "sec1_p1": "AfriJournal Index is operated by Kenya Projects Organization (KENPRO), a research and publication organisation based in Nairobi, Kenya. We are the data controller for personal data collected through this Platform. For privacy enquiries, contact us at privacy@afrijournalindex.org.",
+        "sec2_title": "Data We Collect",
+        "sec2_p1": "We collect the following categories of personal data:",
+        "sec2_h1": "Account Data",
+        "sec2_li1_1": "Full name and email address (required for registration)",
+        "sec2_li1_2": "Encrypted password hash (never stored in plain text)",
+        "sec2_li1_3": "ORCID identifier (optional, for authorship verification)",
+        "sec2_li1_4": "Institutional affiliation (optional)",
+        "sec2_li1_5": "Account role (Researcher or Publisher)",
+        "sec2_h2": "Submission Data",
+        "sec2_li2_1": "Journal name, ISSN/eISSN, publisher details, and website URL",
+        "sec2_li2_2": "Country of publication and publication frequency",
+        "sec2_li2_3": "Automated compliance evaluation logs",
+        "sec2_h3": "Usage Data",
+        "sec2_li3_1": "Pages visited and features used (for platform improvement)",
+        "sec2_li3_2": "Session cookie data (to keep you logged in)",
+        "sec2_li3_3": "Payment transaction references (not full card data — handled by IntaSend)",
+        "sec3_title": "How We Use Your Data",
+        "sec3_p1": "We use your personal data for the following purposes:",
+        "sec3_li1": "Account management — creating and maintaining your researcher or publisher profile",
+        "sec3_li2": "Journal evaluation — running automated compliance crawls on submitted journal websites",
+        "sec3_li3": "Impact metrics — computing h-index scores, citation counts, and AJIF impact factors",
+        "sec3_li4": "Institutional dashboards — aggregating research outputs by affiliated institution",
+        "sec3_li5": "Community forum — displaying your name and institution on peer review comments you post",
+        "sec3_li6": "Payment processing — linking payment records to fast-track evaluation requests",
+        "sec3_li7": "Platform improvement — analysing usage patterns to improve features and performance",
+        "sec4_title": "Data Sharing",
+        "sec4_p1": "We do not sell your personal data. We share data only in the following circumstances:",
+        "sec4_li1": "IntaSend — payment processing for premium evaluation services. IntaSend processes payment data under their own privacy policy.",
+        "sec4_li2": "Public profile data — your name, institution, and ORCID (if provided) are displayed publicly on your researcher profile and on any forum comments you post.",
+        "sec4_li3": "Legal compliance — we may disclose data if required by law or a valid court order in Kenya.",
+        "sec5_title": "Cookies & Sessions",
+        "sec5_p1": "We use a single session cookie (afriJournalSession) to keep you authenticated between page visits. This cookie:",
+        "sec5_li1": "Is an HTTP-only cookie (not accessible to JavaScript)",
+        "sec5_li2": "Contains only your user ID — no personal details are stored in the cookie itself",
+        "sec5_li3": "Expires when your browser session ends or when you log out",
+        "sec5_p2": "We do not use tracking cookies, advertising cookies, or third-party analytics cookies.",
+        "sec6_title": "Data Retention",
+        "sec6_p1": "We retain your personal data for as long as your account is active. If you request account deletion, your personal data will be removed from our database within 30 days, except where retention is required for legal or financial compliance (such as payment records, which are retained for 7 years under Kenyan financial regulations).",
+        "sec7_title": "Your Rights",
+        "sec7_p1": "You have the following rights regarding your personal data:",
+        "sec7_li1": "Access — request a copy of the data we hold about you",
+        "sec7_li2": "Correction — request correction of inaccurate data",
+        "sec7_li3": "Deletion — request deletion of your account and personal data",
+        "sec7_li4": "Portability — receive your data in a structured, machine-readable format",
+        "sec7_li5": "Objection — object to processing of your data for certain purposes",
+        "sec7_p2": "To exercise any of these rights, contact us at privacy@afrijournalindex.org.",
+        "sec8_title": "Security",
+        "sec8_p1": "We implement industry-standard security measures to protect your data including: bcrypt password hashing, HTTPS-only transmission, HTTP-only session cookies, and server-side input validation on all API endpoints. While we take all reasonable steps to protect your data, no internet transmission is 100% secure and we cannot guarantee absolute security.",
+        "sec9_title": "Changes to This Policy",
+        "sec9_p1": "We may update this Privacy Policy from time to time. When we make significant changes, we will notify registered users via email and display an update notice on the Platform. The date at the top of this page indicates when the policy was last revised."
+    },
+    "faq_page": [
+        {
+            "category": "General",
+            "items": [
+                {
+                    "q": "What is AfriJournal Index?",
+                    "a": "AfriJournal Index (AJIF) is an open-access academic indexing platform built specifically for African research journals. We catalog peer-reviewed journals, compute impact factor scores, track citations, and provide researcher profile dashboards — all without paywalls."
+                },
+                {
+                    "q": "Is AfriJournal Index free to use?",
+                    "a": "Yes. Browsing the catalog, searching journals, viewing rankings, and registering a researcher profile are all completely free. We offer a premium fast-track evaluation tier for publishers who want accelerated review within 48 hours. See our Pricing page for details."
+                },
+                {
+                    "q": "Who runs AfriJournal Index?",
+                    "a": "AfriJournal Index is operated by Kenya Projects Organization (KENPRO), a Nairobi-based academic research and publishing organisation with decades of experience in African scholarly publishing."
+                },
+                {
+                    "q": "Which countries are covered?",
+                    "a": "The Platform indexes journals from all 54 African countries. Our regional AJIF score gives proportional weight to publication volume and open access availability within the continent, ensuring journals from smaller research ecosystems are fairly represented."
+                }
+            ]
+        },
+        {
+            "category": "Journal Submission",
+            "items": [
+                {
+                    "q": "How do I submit a journal for indexing?",
+                    "a": "Navigate to the Submit page, complete the 3-step form with your journal details (name, ISSN, publisher, country, website URL), and submit. Our automated compliance engine will crawl your journal's website within minutes and generate a full evaluation report."
+                },
+                {
+                    "q": "What does the automated compliance check evaluate?",
+                    "a": "Our crawl checks for: HTTPS encryption on your domain, homepage reachability, peer-review policy signals, editorial board listings, open access compliance markers, and publication frequency consistency."
+                },
+                {
+                    "q": "How long does evaluation take?",
+                    "a": "Standard evaluation typically completes within 5–10 minutes for the automated crawl. The full editorial review (which determines final acceptance) may take up to 14 business days. Premium fast-track evaluation is completed within 48 hours."
+                },
+                {
+                    "q": "Can I track my submission status?",
+                    "a": "Yes. After submitting, you will receive a unique submission ID. You can enter this ID (or your journal's ISSN) on the Submit page's status lookup form to view real-time compliance logs and your current evaluation status."
+                },
+                {
+                    "q": "My journal was rejected. What can I do?",
+                    "a": "The rejection report will detail which compliance checks failed. You can address those issues on your journal's website and re-submit after 30 days. Rejections are not permanent — they reflect the state of your submission at evaluation time."
+                },
+                {
+                    "q": "Can I submit a journal that is not yet active?",
+                    "a": "No. Your journal's website must be live, accessible, and contain at least one published issue before you can submit for evaluation. Our compliance crawler will flag journals with inactive or unreachable websites."
+                }
+            ]
+        },
+        {
+            "category": "Impact Factor & Rankings",
+            "items": [
+                {
+                    "q": "How is the AJIF Impact Factor calculated?",
+                    "a": "The AJIF score combines a standard 2-year citation window score (aligned with global impact factor methodology) and a regional Africa-weighted score that accounts for open access publication volume within the continent. Full methodology is documented on our Methodology page."
+                },
+                {
+                    "q": "How often are rankings updated?",
+                    "a": "The rankings leaderboard pulls live data from the database on every page load, so scores reflect the most current citation data available. Annual Impact Factor Reports are generated once per year for each indexed journal."
+                },
+                {
+                    "q": "Can I filter the rankings by country?",
+                    "a": "Yes. The Rankings page includes a country filter that narrows the leaderboard to journals from any specific African country. You can also search for institutional metrics from the Quick Search box on the same page."
+                }
+            ]
+        },
+        {
+            "category": "Researcher Profiles",
+            "items": [
+                {
+                    "q": "How do I create a researcher profile?",
+                    "a": "Register for an account on the Register page. Once registered and logged in, your profile is immediately accessible. As your articles are indexed into the platform, your h-index and citation metrics will update automatically."
+                },
+                {
+                    "q": "How is my h-index calculated?",
+                    "a": "Your h-index is computed using the standard definition: the largest number h such that h of your publications each have at least h citations. The calculation runs dynamically from your citation records in the database every time your profile is viewed."
+                },
+                {
+                    "q": "What is ORCID and do I need one?",
+                    "a": "ORCID is a free, persistent digital identifier that distinguishes you from every other researcher. While optional on AfriJournal Index, providing your ORCID helps us automatically link your publications and verify authorship claims. You can get one free at orcid.org."
+                },
+                {
+                    "q": "Can my institution's research output be viewed?",
+                    "a": "Yes. The Institutional Console aggregates h-index scores, total publications, and citation counts for all researchers affiliated with a given university. Visit the Institution page or use the Quick Search on the Rankings page to find your institution."
+                }
+            ]
+        },
+        {
+            "category": "Accounts & Privacy",
+            "items": [
+                {
+                    "q": "How is my password stored?",
+                    "a": "Passwords are never stored in plain text. We use bcrypt hashing — an industry-standard one-way hashing algorithm — to store a salted hash of your password. Not even our team can read your password."
+                },
+                {
+                    "q": "What data is publicly visible on my profile?",
+                    "a": "Your name, institutional affiliation, ORCID iD (if provided), h-index, total citations, and authored articles are displayed publicly on your researcher profile. Your email address and password hash are never visible publicly."
+                },
+                {
+                    "q": "Can I delete my account?",
+                    "a": "Yes. To request account deletion, contact us at privacy@afrijournalindex.org. Your personal data will be removed within 30 days, except payment records which are retained for legal compliance purposes. See our Privacy Policy for full details."
+                },
+                {
+                    "q": "Does the platform use tracking cookies?",
+                    "a": "No. We use only a single session authentication cookie to keep you logged in. We do not use advertising cookies, third-party tracking pixels, or analytics cookies. See our Privacy Policy for details."
+                }
+            ]
+        },
+        {
+            "category": "Payments",
+            "items": [
+                {
+                    "q": "What payment methods are accepted?",
+                    "a": "We accept M-Pesa and major credit/debit cards through our IntaSend payment integration, which is built for the East African market."
+                },
+                {
+                    "q": "Are fast-track evaluation fees refundable?",
+                    "a": "Fast-track fees are non-refundable once the automated compliance crawl has commenced. The fee covers the evaluation process itself. If your journal is rejected, you may address the compliance issues and re-submit, but the original fee is not returned."
+                },
+                {
+                    "q": "Is my card data stored on AfriJournal Index servers?",
+                    "a": "No. Card and payment data is handled entirely by IntaSend. AfriJournal Index only receives a payment reference ID confirming a successful transaction. We never store full card numbers or M-Pesa PINs."
+                }
+            ]
+        }
+    ]
 }
