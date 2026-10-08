@@ -3,9 +3,7 @@ import { prisma } from "../../../../lib/db";
 
 export async function GET() {
   try {
-    const journals = await prisma.journal.findMany({
-      select: { id: true, name: true, issn: true }
-    });
+    const journals = await prisma.journal.findMany();
     return NextResponse.json({ success: true, journals });
   } catch (error: any) {
     console.error("List journals error:", error);

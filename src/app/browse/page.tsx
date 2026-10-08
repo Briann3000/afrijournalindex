@@ -63,19 +63,79 @@ const seedJournals: Journal[] = [
   }
 ];
 
+function getDisciplines(name: string, description: string): string[] {
+  const text = `${name} ${description}`.toLowerCase();
+  const disciplines: string[] = [];
+  if (text.includes("education") || text.includes("teaching") || text.includes("pedagog")) {
+    disciplines.push("Education");
+  }
+  if (text.includes("social") || text.includes("humanit") || text.includes("sociolog") || text.includes("histor") || text.includes("philosoph") || text.includes("religio")) {
+    disciplines.push("Social Sciences");
+  }
+  if (text.includes("management") || text.includes("business") || text.includes("admin") || text.includes("econom")) {
+    disciplines.push("Management");
+    disciplines.push("Business");
+  }
+  if (text.includes("environment") || text.includes("ecolog") || text.includes("geograph") || text.includes("agri")) {
+    disciplines.push("Environment");
+  }
+  if (text.includes("health") || text.includes("medic") || text.includes("biomed") || text.includes("clinical") || text.includes("pharmac")) {
+    disciplines.push("Health Sciences");
+  }
+  if (disciplines.length === 0) {
+    disciplines.push("Multidisciplinary");
+  }
+  return Array.from(new Set(disciplines));
+}
+
 export default function Browse() {
-  const { lang, setLang, t } = useLang();
+  const { t } = useLang();
   
-  // Search and Filter State
+  // State
+  const [journals, setJournals] = useState<Journal[]>(seedJournals);
+  const [countries, setCountries] = useState<string[]>(["Kenya"]);
   const [search, setSearch] = useState<string>("");
   const [countryFilter, setCountryFilter] = useState<string>("");
   const [disciplineFilter, setDisciplineFilter] = useState<string>("");
   const [filteredJournals, setFilteredJournals] = useState<Journal[]>(seedJournals);
 
+  // Fetch journals on mount
+  useEffect(() => {
+    async function loadJournals() {
+      try {
+        const res = await fetch("/api/journals/list");
+        const data = await res.json();
+        if (data.success && Array.isArray(data.journals) && data.journals.length > 0) {
+          const dbJournals = data.journals.map((j: any) => {
+            return {
+              name: j.name,
+              issn: j.issn || "Pending",
+              publisher: j.publisherName || "Unknown Publisher",
+              country: j.country || "Kenya",
+              frequency: j.frequency || "Quarterly",
+              disciplines: getDisciplines(j.name, j.description || ""),
+              link: j.websiteUrl || ""
+            };
+          });
+          setJournals(dbJournals);
+          
+          // Compute unique countries
+          const uniqueCountries = Array.from(new Set(dbJournals.map((j: any) => j.country)))
+            .filter((c): c is string => typeof c === 'string' && c.trim().length > 0)
+            .sort();
+          setCountries(uniqueCountries);
+        }
+      } catch (err) {
+        console.error("Failed to load journals from database:", err);
+      }
+    }
+    loadJournals();
+  }, []);
+
   // Handle Search & Filter logic
   useEffect(() => {
     const query = search.toLowerCase();
-    const result = seedJournals.filter(j => {
+    const result = journals.filter(j => {
       const matchesSearch = j.name.toLowerCase().includes(query) || 
                            j.issn.toLowerCase().includes(query) || 
                            j.publisher.toLowerCase().includes(query);
@@ -86,7 +146,7 @@ export default function Browse() {
       return matchesSearch && matchesCountry && matchesDiscipline;
     });
     setFilteredJournals(result);
-  }, [search, countryFilter, disciplineFilter]);
+  }, [search, countryFilter, disciplineFilter, journals]);
 
   const handleViewStatus = async (query: string) => {
     if (query === "Pending" || !query) {
@@ -147,7 +207,9 @@ export default function Browse() {
                 style={{ height: "45px" }}
               >
                 <option value="">{t.browse_page.filter_all_countries}</option>
-                <option value="Kenya">Kenya</option>
+                {countries.map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
               </select>
             </div>
             <div>
@@ -164,6 +226,7 @@ export default function Browse() {
                 <option value="Business">Business</option>
                 <option value="Environment">Environment</option>
                 <option value="Health Sciences">Health Sciences</option>
+                <option value="Multidisciplinary">Multidisciplinary</option>
               </select>
             </div>
           </div>
@@ -195,7 +258,7 @@ export default function Browse() {
                 <div className="journal-footer" style={{ display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", width: "100%" }}>
                   {journal.link ? (
                     <a href={journal.link} target="_blank" rel="noopener noreferrer" className="journal-link" style={{ marginRight: "auto" }}>
-                      {journal.link.replace("https://", "")} <i className="fa-solid fa-up-right-from-square"></i>
+                      {journal.link.replace("https://", "").replace("http://", "").split('/')[0]} <i className="fa-solid fa-up-right-from-square"></i>
                     </a>
                   ) : (
                     <span className="journal-link-placeholder" style={{ marginRight: "auto" }}>kenpro.org</span>
@@ -219,8 +282,6 @@ export default function Browse() {
                   >
                     <i className="fa-solid fa-chart-column"></i> View Report
                   </button>
-
-                  <span className="journal-badge badge-indexed"><i className="fa-solid fa-check-double"></i> {t.browse_page.badge_indexed}</span>
                 </div>
               </div>
             ))
@@ -228,7 +289,6 @@ export default function Browse() {
         </div>
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   );

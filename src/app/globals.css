@@ -436,8 +436,8 @@ a {
 
 .journals-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
 }
 
 .journal-card {
@@ -446,6 +446,7 @@ a {
     border-radius: var(--border-radius);
     padding: 2rem;
     display: flex;
+    min-width: 0;                  
     flex-direction: column;
     justify-content: space-between;
     transition: var(--transition);
@@ -458,7 +459,8 @@ a {
 
 .journal-meta {
     display: flex;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     margin-bottom: 1.2rem;
 }
 

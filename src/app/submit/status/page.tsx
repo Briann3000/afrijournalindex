@@ -405,7 +405,7 @@ function StatusContent() {
                 <div key={comment.id} style={{ padding: "1rem", background: "rgba(255,255,255,0.02)", borderLeft: "3px solid var(--color-primary)", borderRadius: "0 4px 4px 0" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.4rem", fontSize: "0.85rem", flexWrap: "wrap", gap: "0.5rem" }}>
                     <span style={{ fontWeight: "bold" }}>
-                      {comment.author.name} <span style={{ fontWeight: "normal", color: "var(--color-text-muted)", fontSize: "0.75rem" }}>({comment.author.institution || "Independent Researcher"})</span>
+                      {comment.author.name} <span style={{ fontWeight: "normal", color: "var(--color-text-muted)", fontSize: "0.75rem" }}>({comment.author.institution || "Researcher"})</span>
                     </span>
                     <span style={{ color: "var(--color-text-muted)" }}>
                       {new Date(comment.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}

@@ -92,7 +92,7 @@ function ResearcherProfileContent() {
               </div>
               <h1 style={{ fontSize: "2.4rem", margin: "0.5rem 0" }}>{profile.name}</h1>
               <p style={{ color: "var(--color-text-muted)", fontSize: "1.1rem", margin: "0.5rem 0 0" }}>
-                <i className="fa-solid fa-building-columns" style={{ marginRight: "0.5rem" }}></i> {profile.institution || "Independent Researcher"}
+                <i className="fa-solid fa-building-columns" style={{ marginRight: "0.5rem" }}></i> {profile.institution || "Researcher"}
               </p>
             </div>
 
