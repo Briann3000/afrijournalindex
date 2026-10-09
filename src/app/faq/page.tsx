@@ -16,14 +16,18 @@ export default function FAQ() {
   const faqData = t.faq_page || [];
 
   return (
-    <div className="theme-dark">
+    <div className="page-wrapper" style={{ padding: 0 }}>
       <Header />
 
-      <main className="container" style={{ padding: "4rem 0", maxWidth: "820px" }}>
+      <main className="container reading-container" style={{ padding: "3.5rem 0 6rem" }}>
         {/* Page Header */}
-        <div className="section-header" style={{ textAlign: "center", marginBottom: "3rem" }}>
-          <h1 className="section-title">{t.nav.faq || "Frequently Asked Questions"}</h1>
-          <p className="section-desc">
+        <div className="page-header" style={{ textAlign: "center", marginBottom: "3rem" }}>
+          <span className="badge-featured" style={{ marginBottom: "0.8rem" }}>
+            <i className="fa-solid fa-circle-question"></i>
+            Knowledge Base
+          </span>
+          <h1 className="page-title">{t.nav.faq || "Frequently Asked Questions"}</h1>
+          <p className="page-subtitle" style={{ maxWidth: "680px", margin: "0.5rem auto 0" }}>
             {lang === "fr" 
               ? "Tout ce que vous devez savoir sur l'utilisation d'AfriJournal Index." 
               : lang === "pt" 
@@ -37,15 +41,15 @@ export default function FAQ() {
         </div>
 
         {/* FAQ Sections */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "3rem" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "2.5rem" }}>
           {faqData.map((section: any) => (
             <div key={section.category}>
               {/* Category heading */}
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
-                <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--color-primary)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.2rem" }}>
+                <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--color-primary)" }}>
                   {section.category}
                 </h2>
-                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.07)" }} />
+                <div style={{ flex: 1, height: "1px", background: "var(--color-border)" }} />
               </div>
 
               {/* FAQ items */}
@@ -56,11 +60,12 @@ export default function FAQ() {
                   return (
                     <div
                       key={key}
-                      className="glass-card"
+                      className="card-surface"
                       style={{
+                        padding: 0,
                         overflow: "hidden",
-                        border: isOpen ? "1px solid rgba(212,160,74,0.25)" : "1px solid rgba(255,255,255,0.05)",
-                        transition: "border-color 0.2s"
+                        borderColor: isOpen ? "var(--color-primary)" : "var(--color-border)",
+                        transition: "all 0.2s"
                       }}
                     >
                       <button
@@ -70,37 +75,36 @@ export default function FAQ() {
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "center",
-                          padding: "1.25rem 1.75rem",
-                          background: "transparent",
+                          padding: "1.25rem 1.5rem",
+                          background: isOpen ? "var(--color-primary-light)" : "transparent",
                           border: "none",
                           cursor: "pointer",
                           textAlign: "left",
                           gap: "1rem"
                         }}
                       >
-                        <span style={{ fontWeight: 600, fontSize: "0.95rem", color: isOpen ? "var(--color-primary)" : "#e2e2e9", lineHeight: "1.4" }}>
+                        <span style={{ fontWeight: 700, fontSize: "0.95rem", color: isOpen ? "var(--color-primary)" : "var(--color-text-main)", lineHeight: "1.4" }}>
                           {item.q}
                         </span>
                         <i
                           className={`fa-solid ${isOpen ? "fa-chevron-up" : "fa-chevron-down"}`}
                           style={{
-                            color: "var(--color-text-muted)",
-                            fontSize: "0.8rem",
-                            flexShrink: 0,
-                            transition: "transform 0.2s"
+                            color: isOpen ? "var(--color-primary)" : "var(--color-text-muted)",
+                            fontSize: "0.85rem",
+                            flexShrink: 0
                           }}
                         />
                       </button>
 
                       {isOpen && (
                         <div style={{
-                          padding: "0 1.75rem 1.5rem",
-                          color: "var(--color-text-muted)",
-                          lineHeight: "1.75",
-                          fontSize: "0.9rem",
-                          borderTop: "1px solid rgba(255,255,255,0.04)"
+                          padding: "1rem 1.5rem 1.5rem",
+                          color: "var(--color-text-body)",
+                          lineHeight: "1.8",
+                          fontSize: "0.92rem",
+                          borderTop: "1px solid var(--color-border)"
                         }}>
-                          <p style={{ margin: "1rem 0 0" }}>{item.a}</p>
+                          <p style={{ margin: 0 }}>{item.a}</p>
                         </div>
                       )}
                     </div>
@@ -113,19 +117,20 @@ export default function FAQ() {
 
         {/* Still have questions CTA */}
         <div
-          className="glass-card"
+          className="card-surface"
           style={{
             textAlign: "center",
             padding: "3rem",
-            marginTop: "3rem",
-            background: "linear-gradient(135deg, rgba(212,160,74,0.07), rgba(212,100,200,0.05))"
+            marginTop: "3.5rem",
+            background: "linear-gradient(135deg, #eff6ff, #f8fafc)",
+            border: "1px solid #bfdbfe"
           }}
         >
           <i className="fa-solid fa-circle-question" style={{ fontSize: "2.5rem", color: "var(--color-primary)", marginBottom: "1rem", display: "block" }} />
-          <h3 style={{ marginBottom: "0.5rem" }}>
+          <h3 style={{ marginBottom: "0.5rem", fontSize: "1.3rem", color: "var(--color-text-main)" }}>
             {lang === "fr" ? "Vous avez encore des questions ?" : lang === "pt" ? "Ainda tem perguntas?" : lang === "ar" ? "هل لديك أسئلة أخرى؟" : lang === "sw" ? "Bado una maswali?" : "Still have questions?"}
           </h3>
-          <p style={{ color: "var(--color-text-muted)", marginBottom: "1.5rem" }}>
+          <p style={{ color: "var(--color-text-muted)", marginBottom: "1.5rem", fontSize: "0.95rem" }}>
             {lang === "fr" 
               ? "Vous ne trouvez pas ce que vous cherchez ? Notre équipe se fera un plaisir de vous aider." 
               : lang === "pt" 
@@ -134,23 +139,11 @@ export default function FAQ() {
               ? "ألم تجد ما تبحث عنه؟ يسعد فريقنا تقديم المساعدة."
               : lang === "sw"
               ? "Huwezi kupata unachotafuta? Timu yetu inafurahi kukusaidia."
-              : "Can't find what you're looking for? Our team is happy to help."}
+              : "Can't find what you're looking for? Our academic support team is happy to help."}
           </p>
           <a href="/contact" className="btn btn-primary">
             {t.footer.contact || "Contact Us"}
           </a>
-        </div>
-
-        {/* Quick links footer */}
-        <div style={{ textAlign: "center", marginTop: "3rem", padding: "2rem", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", marginBottom: "1rem" }}>
-            {t.terms_page.related_policies}
-          </p>
-          <div style={{ display: "flex", gap: "1.5rem", justifyContent: "center", flexWrap: "wrap" }}>
-            <a href="/terms" className="btn btn-secondary btn-sm">{t.footer.terms || "Terms & Conditions"}</a>
-            <a href="/privacy" className="btn btn-secondary btn-sm">{t.footer.privacy || "Privacy Policy"}</a>
-            <a href="/contact" className="btn btn-secondary btn-sm">{t.footer.contact || "Contact Us"}</a>
-          </div>
         </div>
       </main>
 

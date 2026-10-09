@@ -57,38 +57,41 @@ export default function RankingsPage() {
     fetchRankings();
   }, [countryFilter, disciplineFilter]);
 
-  const quartileStyles: Record<string, { bg: string; text: string }> = {
-    Q1: { bg: "rgba(212,160,74,0.18)", text: "#d4a04a" },
-    Q2: { bg: "rgba(37,99,235,0.18)", text: "#60a5fa" },
-    Q3: { bg: "rgba(5,150,105,0.18)", text: "#34d399" },
-    Q4: { bg: "rgba(107,114,128,0.18)", text: "#9ca3af" }
+  const quartileStyles: Record<string, { bg: string; text: string; border: string }> = {
+    Q1: { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" },
+    Q2: { bg: "#ecfdf5", text: "#047857", border: "#a7f3d0" },
+    Q3: { bg: "#fffbeb", text: "#b45309", border: "#fde68a" },
+    Q4: { bg: "#f1f5f9", text: "#475569", border: "#cbd5e1" }
   };
 
   return (
-    <div className="theme-dark">
+    <div className="page-wrapper" style={{ padding: 0 }}>
       <Header activePage="rankings" />
 
-      <main className="container" style={{ padding: "4rem 0", maxWidth: "1050px" }}>
-        <div className="section-header" style={{ textAlign: "center", marginBottom: "3rem" }}>
-          <h1 className="section-title">AJIF Journal Rankings & Quartiles</h1>
-          <p className="section-desc">Real-time leaderboard of African research journals classified into subject quartiles (Q1–Q4) and sorted by standard AJIF impact scores.</p>
+      <main className="container" style={{ padding: "3.5rem 0 6rem", maxWidth: "1100px" }}>
+        <div className="page-header" style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+          <h1 className="page-title">AJIF Journal Rankings &amp; Quartiles</h1>
+          <p className="page-subtitle" style={{ maxWidth: "720px", margin: "0.5rem auto 0" }}>
+            Real-time leaderboard of African research journals classified into subject quartiles (Q1–Q4) and ranked by verified AJIF impact indicators.
+          </p>
         </div>
 
-        {/* Filter Controls */}
-        <div className="glass-card" style={{ padding: "1.5rem 2rem", marginBottom: "2rem" }}>
-          <div style={{ display: "flex", gap: "1.5rem", alignItems: "flex-end", flexWrap: "wrap" }}>
+        {/* Filter & Analytics Card */}
+        <div className="card-surface" style={{ padding: "1.75rem", marginBottom: "2rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.25rem", alignItems: "flex-end" }}>
             
             {/* Country Filter */}
-            <div style={{ flex: 1, minWidth: "180px" }}>
-              <label htmlFor="countryFilter" style={{ display: "block", fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "0.4rem" }}>Filter by Country:</label>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label htmlFor="countryFilter" className="form-label">
+                <i className="fa-solid fa-earth-africa" style={{ color: "var(--color-primary)" }}></i> Filter by Country
+              </label>
               <select
                 id="countryFilter"
-                className="lang-selector"
-                style={{ height: "40px", width: "100%" }}
+                className="form-select"
                 value={countryFilter}
                 onChange={(e) => setCountryFilter(e.target.value)}
               >
-                <option value="">All Countries</option>
+                <option value="">All African Countries</option>
                 {countries.map((country) => (
                   <option key={country} value={country}>
                     {country}
@@ -98,16 +101,17 @@ export default function RankingsPage() {
             </div>
 
             {/* Discipline Filter */}
-            <div style={{ flex: 1, minWidth: "220px" }}>
-              <label htmlFor="disciplineFilter" style={{ display: "block", fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "0.4rem" }}>Filter by Subject Discipline:</label>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label htmlFor="disciplineFilter" className="form-label">
+                <i className="fa-solid fa-graduation-cap" style={{ color: "var(--color-primary)" }}></i> Subject Discipline
+              </label>
               <select
                 id="disciplineFilter"
-                className="lang-selector"
-                style={{ height: "40px", width: "100%" }}
+                className="form-select"
                 value={disciplineFilter}
                 onChange={(e) => setDisciplineFilter(e.target.value)}
               >
-                <option value="">All Disciplines</option>
+                <option value="">All Subject Fields</option>
                 {disciplines.map((disc) => (
                   <option key={disc} value={disc}>
                     {disc}
@@ -117,7 +121,10 @@ export default function RankingsPage() {
             </div>
 
             {/* University Search */}
-            <div style={{ flex: 1.5, minWidth: "250px" }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label htmlFor="instInput" className="form-label">
+                <i className="fa-solid fa-building-columns" style={{ color: "var(--color-primary)" }}></i> University Search
+              </label>
               <form onSubmit={(e) => {
                 e.preventDefault();
                 const input = (e.target as HTMLFormElement & {
@@ -128,59 +135,54 @@ export default function RankingsPage() {
                 if (input) {
                   window.location.href = `/institution?name=${encodeURIComponent(input)}`;
                 }
-              }}>
-                <label htmlFor="instInput" style={{ display: "block", fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "0.4rem" }}>University Analytics Console:</label>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <input
-                    type="text"
-                    id="instInput"
-                    placeholder="e.g. University of Nairobi"
-                    style={{
-                      flex: 1,
-                      padding: "0.5rem 1rem",
-                      background: "rgba(255,255,255,0.05)",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: "4px",
-                      color: "#fff",
-                      fontSize: "0.9rem"
-                    }}
-                  />
-                  <button type="submit" className="btn btn-secondary" style={{ padding: "0.5rem 1rem", height: "40px" }}>Search</button>
-                </div>
+              }} style={{ display: "flex", gap: "0.5rem" }}>
+                <input
+                  type="text"
+                  id="instInput"
+                  placeholder="e.g. University of Nairobi"
+                  className="form-control"
+                />
+                <button type="submit" className="btn btn-secondary" style={{ padding: "0 1rem", whiteSpace: "nowrap" }}>
+                  Analyze
+                </button>
               </form>
             </div>
           </div>
 
-          <div style={{ marginTop: "1.2rem", fontSize: "0.85rem", color: "var(--color-text-muted)", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "0.8rem" }}>
-            <span>Featured Institution Metrics: </span>
-            <a href="/institution?name=University+of+Nairobi" style={{ color: "var(--color-primary)", marginLeft: "0.5rem", textDecoration: "underline" }}>University of Nairobi</a>
-            <span style={{ margin: "0 0.5rem" }}>•</span>
-            <a href="/institution?name=Makerere+University" style={{ color: "var(--color-primary)", textDecoration: "underline" }}>Makerere University</a>
+          <div style={{ marginTop: "1.2rem", fontSize: "0.85rem", color: "var(--color-text-muted)", borderTop: "1px solid var(--color-border)", paddingTop: "0.85rem", display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
+            <span style={{ fontWeight: 600 }}>Quick Institutional Analytics:</span>
+            <a href="/institution?name=University+of+Nairobi" style={{ color: "var(--color-primary)", fontWeight: 600 }}>University of Nairobi</a>
+            <span>•</span>
+            <a href="/institution?name=Makerere+University" style={{ color: "var(--color-primary)", fontWeight: 600 }}>Makerere University</a>
+            <span>•</span>
+            <a href="/institution?name=University+of+Cape+Town" style={{ color: "var(--color-primary)", fontWeight: 600 }}>University of Cape Town</a>
           </div>
         </div>
 
         {/* Rankings Table */}
-        <div className="glass-card" style={{ padding: "2rem", overflowX: "auto" }}>
+        <div className="table-wrapper">
           {loading ? (
-            <div style={{ textAlign: "center", padding: "3rem 0", color: "var(--color-text-muted)" }}>
+            <div style={{ textAlign: "center", padding: "4rem 0", color: "var(--color-text-muted)" }}>
               <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)", marginBottom: "1rem" }}></i>
-              <p>Fetching rankings and quartile metrics...</p>
+              <p>Calculating live quartiles and regional impact coefficients...</p>
             </div>
           ) : rankings.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "3rem 0", color: "var(--color-text-muted)" }}>
-              No ranked journals found matching filter constraints.
+            <div style={{ textAlign: "center", padding: "4rem 2rem", color: "var(--color-text-muted)" }}>
+              <i className="fa-solid fa-filter-circle-xmark" style={{ fontSize: "2.5rem", color: "var(--color-text-lighter)", marginBottom: "1rem" }}></i>
+              <h3 style={{ fontSize: "1.2rem", color: "var(--color-text-main)", marginBottom: "0.4rem" }}>No Ranked Journals Found</h3>
+              <p>Try adjusting your country or subject discipline filter criteria.</p>
             </div>
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "800px" }}>
+            <table className="academic-table">
               <thead>
-                <tr style={{ borderBottom: "2px solid rgba(255,255,255,0.05)", textAlign: "left" }}>
-                  <th style={{ padding: "1rem", color: "var(--color-text-muted)" }}>Rank</th>
-                  <th style={{ padding: "1rem", color: "var(--color-text-muted)" }}>Journal Name</th>
-                  <th style={{ padding: "1rem", color: "var(--color-text-muted)" }}>Discipline</th>
-                  <th style={{ padding: "1rem", color: "var(--color-text-muted)", textAlign: "center" }}>Quartile</th>
-                  <th style={{ padding: "1rem", color: "var(--color-text-muted)", textAlign: "right" }}>AJIF Score</th>
-                  <th style={{ padding: "1rem", color: "var(--color-text-muted)", textAlign: "right" }}>Regional</th>
-                  <th style={{ padding: "1rem", color: "var(--color-text-muted)", textAlign: "right" }}>Citations</th>
+                <tr>
+                  <th style={{ width: "70px", textAlign: "center" }}>Rank</th>
+                  <th>Journal Information</th>
+                  <th>Discipline</th>
+                  <th style={{ textAlign: "center", width: "90px" }}>Quartile</th>
+                  <th style={{ textAlign: "right", width: "110px" }}>AJIF Score</th>
+                  <th style={{ textAlign: "right", width: "110px" }}>Regional</th>
+                  <th style={{ textAlign: "right", width: "90px" }}>Citations</th>
                 </tr>
               </thead>
               <tbody>
@@ -189,39 +191,47 @@ export default function RankingsPage() {
                   const qColor = quartileStyles[q] || quartileStyles["Q2"];
 
                   return (
-                    <tr key={journal.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", transition: "background 0.2s" }}>
-                      <td style={{ padding: "1rem", fontWeight: "bold" }}>
-                        {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`}
+                    <tr key={journal.id}>
+                      <td style={{ textAlign: "center", fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.95rem" }}>
+                        {idx === 0 ? "🥇 1" : idx === 1 ? "🥈 2" : idx === 2 ? "🥉 3" : `#${idx + 1}`}
                       </td>
-                      <td style={{ padding: "1rem" }}>
-                        <a href={`/journal/${journal.id}`} style={{ color: "#fff", fontWeight: 600, textDecoration: "none" }}>
+                      <td>
+                        <a href={`/journal/${journal.id}`} style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "0.98rem" }}>
                           {journal.name}
                         </a>
-                        <div style={{ display: "flex", gap: "0.8rem", fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.3rem" }}>
-                          <span>ISSN: {journal.issn || "Pending"}</span>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem", fontSize: "0.8rem", color: "var(--color-text-muted)", marginTop: "0.25rem" }}>
+                          <span><strong>ISSN:</strong> {journal.issn || "Pending"}</span>
                           <span>•</span>
                           <span>{journal.country}</span>
                           <span>•</span>
                           <span>{journal.publisherName}</span>
                         </div>
                       </td>
-                      <td style={{ padding: "1rem" }}>
-                        <span className="journal-tag" style={{ background: "rgba(255,255,255,0.05)", fontSize: "0.75rem" }}>
+                      <td>
+                        <span className="journal-tag">
                           {journal.primaryDiscipline || "Multidisciplinary"}
                         </span>
                       </td>
-                      <td style={{ padding: "1rem", textAlign: "center" }}>
-                        <span style={{ padding: "0.25rem 0.6rem", borderRadius: "4px", background: qColor.bg, color: qColor.text, fontSize: "0.8rem", fontWeight: "bold" }}>
+                      <td style={{ textAlign: "center" }}>
+                        <span style={{
+                          padding: "0.3rem 0.65rem",
+                          borderRadius: "6px",
+                          background: qColor.bg,
+                          color: qColor.text,
+                          border: `1px solid ${qColor.border}`,
+                          fontSize: "0.8rem",
+                          fontWeight: 700
+                        }}>
                           {q}
                         </span>
                       </td>
-                      <td style={{ padding: "1rem", textAlign: "right", fontWeight: "bold", color: "var(--color-primary)" }}>
+                      <td style={{ textAlign: "right", fontWeight: 700, color: "var(--color-primary)", fontSize: "1rem" }}>
                         {journal.score.toFixed(3)}
                       </td>
-                      <td style={{ padding: "1rem", textAlign: "right", color: "#e2e2e9", fontSize: "0.9rem" }}>
+                      <td style={{ textAlign: "right", color: "var(--color-text-body)", fontSize: "0.9rem", fontWeight: 600 }}>
                         {journal.regionalScore.toFixed(3)}
                       </td>
-                      <td style={{ padding: "1rem", textAlign: "right", color: "var(--color-text-muted)" }}>
+                      <td style={{ textAlign: "right", color: "var(--color-text-muted)", fontWeight: 600 }}>
                         {journal.citationCount}
                       </td>
                     </tr>

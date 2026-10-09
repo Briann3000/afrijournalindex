@@ -159,7 +159,7 @@ export default function Pricing() {
   };
 
   return (
-    <div className="theme-dark">
+    <div className="page-wrapper" style={{ padding: 0 }}>
       {/* IntaSend Inline SDK */}
       <Script 
         src="https://unpkg.com/intasend-inlinejs-sdk@4.0.5/build/intasend-inline.js" 
@@ -169,63 +169,74 @@ export default function Pricing() {
       {/* Header */}
       <Header activePage="pricing" />
 
-      <main className="container" style={{ padding: "4rem 0" }}>
-        <div className="section-header">
-          <h1 className="section-title">{t.pricing_page.title}</h1>
-          <p className="section-desc">{t.pricing_page.desc}</p>
+      <main className="container" style={{ padding: "3.5rem 0 6rem" }}>
+        <div className="page-header" style={{ textAlign: "center", marginBottom: "3rem" }}>
+          <span className="badge-featured" style={{ marginBottom: "0.8rem" }}>
+            <i className="fa-solid fa-tags"></i>
+            Transparent Scholarly Pricing
+          </span>
+          <h1 className="page-title">{t.pricing_page.title}</h1>
+          <p className="page-subtitle" style={{ maxWidth: "680px", margin: "0.5rem auto 0" }}>
+            {t.pricing_page.desc}
+          </p>
         </div>
 
         <div className="valprop-grid" style={{ alignItems: "stretch", marginBottom: "4rem" }}>
           {/* Free Indexing Tier */}
-          <div className="glass-card valprop-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", borderColor: "rgba(255,255,255,0.05)" }}>
+          <div className="card-surface valprop-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
             <div>
-              <h3 className="card-title" style={{ color: "var(--color-accent-green)" }}>{t.pricing_page.free_title}</h3>
-              <div style={{ fontSize: "2.2rem", fontWeight: 700, margin: "1rem 0", fontFamily: "var(--font-heading)" }}>
-                {t.pricing_page.free_price} <span style={{ fontSize: "1rem", fontFamily: "var(--font-ui)", color: "var(--color-text-muted)" }}>{t.pricing_page.free_sub}</span>
+              <span className="badge badge-emerald" style={{ marginBottom: "0.8rem" }}>Open Access</span>
+              <h3 className="card-title" style={{ color: "#047857", fontSize: "1.3rem" }}>{t.pricing_page.free_title}</h3>
+              <div style={{ fontSize: "2.4rem", fontWeight: 800, margin: "0.8rem 0", color: "var(--color-text-main)" }}>
+                {t.pricing_page.free_price} <span style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", fontWeight: 500 }}>{t.pricing_page.free_sub}</span>
               </div>
               <p className="card-text" style={{ marginBottom: "1.5rem" }}>{t.pricing_page.free_desc}</p>
-              <ul style={{ listStyle: "none", marginBottom: "2rem", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-                <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-accent-green)", marginRight: "0.5rem" }}></i> {t.pricing_page.free_feature1}</li>
-                <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-accent-green)", marginRight: "0.5rem" }}></i> {t.pricing_page.free_feature2}</li>
-                <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-accent-green)", marginRight: "0.5rem" }}></i> {t.pricing_page.free_feature3}</li>
-                <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-accent-green)", marginRight: "0.5rem" }}></i> {t.pricing_page.free_feature4}</li>
+              <ul style={{ listStyle: "none", marginBottom: "2rem", color: "var(--color-text-body)", fontSize: "0.9rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#059669" }}></i> {t.pricing_page.free_feature1}</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#059669" }}></i> {t.pricing_page.free_feature2}</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#059669" }}></i> {t.pricing_page.free_feature3}</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#059669" }}></i> {t.pricing_page.free_feature4}</li>
               </ul>
             </div>
             <a href="/submit" className="btn btn-secondary" style={{ width: "100%" }}>{t.nav.get_started}</a>
           </div>
 
           {/* Basic Impact Report */}
-          <div className="glass-card valprop-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", borderColor: "var(--color-primary)", position: "relative" }}>
-            <div style={{ position: "absolute", top: "-12px", right: "20px", backgroundColor: "var(--color-primary)", color: "var(--color-bg-dark)", fontSize: "0.75rem", fontWeight: 700, padding: "0.2rem 0.8rem", borderRadius: "50px" }}>{t.pricing_page.badge_popular}</div>
+          <div className="card-surface valprop-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", border: "2px solid var(--color-primary)", position: "relative", boxShadow: "var(--card-shadow-hover)" }}>
+            <div style={{ position: "absolute", top: "-12px", right: "20px", backgroundColor: "var(--color-primary)", color: "#ffffff", fontSize: "0.75rem", fontWeight: 700, padding: "0.25rem 0.85rem", borderRadius: "50px" }}>
+              {t.pricing_page.badge_popular}
+            </div>
             <div>
-              <h3 className="card-title" style={{ color: "var(--color-primary)" }}>{t.pricing_page.basic_title}</h3>
-              <div style={{ fontSize: "2.2rem", fontWeight: 700, margin: "1rem 0", fontFamily: "var(--font-heading)" }}>
-                {t.pricing_page.basic_price} <span style={{ fontSize: "1rem", fontFamily: "var(--font-ui)", color: "var(--color-text-muted)" }}>{t.pricing_page.basic_sub}</span>
+              <span className="badge badge-blue" style={{ marginBottom: "0.8rem" }}>Standard Metrics</span>
+              <h3 className="card-title" style={{ color: "var(--color-primary)", fontSize: "1.3rem" }}>{t.pricing_page.basic_title}</h3>
+              <div style={{ fontSize: "2.4rem", fontWeight: 800, margin: "0.8rem 0", color: "var(--color-text-main)" }}>
+                {t.pricing_page.basic_price} <span style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", fontWeight: 500 }}>{t.pricing_page.basic_sub}</span>
               </div>
               <p className="card-text" style={{ marginBottom: "1.5rem" }}>{t.pricing_page.basic_desc}</p>
-              <ul style={{ listStyle: "none", marginBottom: "2rem", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-                <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-primary)", marginRight: "0.5rem" }}></i> {t.pricing_page.basic_feature1}</li>
-                <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-primary)", marginRight: "0.5rem" }}></i> {t.pricing_page.basic_feature2}</li>
-                <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-primary)", marginRight: "0.5rem" }}></i> {t.pricing_page.basic_feature3}</li>
-                <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-primary)", marginRight: "0.5rem" }}></i> {t.pricing_page.basic_feature4}</li>
+              <ul style={{ listStyle: "none", marginBottom: "2rem", color: "var(--color-text-body)", fontSize: "0.9rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-primary)" }}></i> {t.pricing_page.basic_feature1}</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-primary)" }}></i> {t.pricing_page.basic_feature2}</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-primary)" }}></i> {t.pricing_page.basic_feature3}</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-primary)" }}></i> {t.pricing_page.basic_feature4}</li>
               </ul>
             </div>
             <button className="btn btn-primary" style={{ width: "100%" }} onClick={() => handlePurchaseClick("Basic Impact", 1500)}>{t.pricing_page.btn_order}</button>
           </div>
 
           {/* Premium Institutional Report */}
-          <div className="glass-card valprop-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", borderColor: "rgba(255,255,255,0.05)" }}>
+          <div className="card-surface valprop-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
             <div>
-              <h3 className="card-title" style={{ color: "var(--color-secondary)" }}>{t.pricing_page.premium_title}</h3>
-              <div style={{ fontSize: "2.2rem", fontWeight: 700, margin: "1rem 0", fontFamily: "var(--font-heading)" }}>
-                {t.pricing_page.premium_price} <span style={{ fontSize: "1rem", fontFamily: "var(--font-ui)", color: "var(--color-text-muted)" }}>{t.pricing_page.premium_sub}</span>
+              <span className="badge badge-amber" style={{ marginBottom: "0.8rem" }}>Institutional Benchmark</span>
+              <h3 className="card-title" style={{ color: "#0284c7", fontSize: "1.3rem" }}>{t.pricing_page.premium_title}</h3>
+              <div style={{ fontSize: "2.4rem", fontWeight: 800, margin: "0.8rem 0", color: "var(--color-text-main)" }}>
+                {t.pricing_page.premium_price} <span style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", fontWeight: 500 }}>{t.pricing_page.premium_sub}</span>
               </div>
               <p className="card-text" style={{ marginBottom: "1.5rem" }}>{t.pricing_page.premium_desc}</p>
-              <ul style={{ listStyle: "none", marginBottom: "2rem", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-                <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-secondary)", marginRight: "0.5rem" }}></i> {t.pricing_page.premium_feature1}</li>
-                <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-secondary)", marginRight: "0.5rem" }}></i> {t.pricing_page.premium_feature2}</li>
-                <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-secondary)", marginRight: "0.5rem" }}></i> {t.pricing_page.premium_feature3}</li>
-                <li style={{ marginBottom: "0.6rem" }}><i className="fa-solid fa-check" style={{ color: "var(--color-secondary)", marginRight: "0.5rem" }}></i> {t.pricing_page.premium_feature4}</li>
+              <ul style={{ listStyle: "none", marginBottom: "2rem", color: "var(--color-text-body)", fontSize: "0.9rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#0284c7" }}></i> {t.pricing_page.premium_feature1}</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#0284c7" }}></i> {t.pricing_page.premium_feature2}</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#0284c7" }}></i> {t.pricing_page.premium_feature3}</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#0284c7" }}></i> {t.pricing_page.premium_feature4}</li>
               </ul>
             </div>
             <button className="btn btn-secondary" style={{ width: "100%" }} onClick={() => handlePurchaseClick("Premium Institutional", 4500)}>{t.pricing_page.btn_order}</button>
@@ -233,12 +244,12 @@ export default function Pricing() {
         </div>
 
         {/* FAQ Nudge */}
-        <div style={{ textAlign: "center", padding: "2rem 0 0", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-            Have questions about pricing or evaluation?{" "}
-            <a href="/faq" style={{ color: "var(--color-primary)" }}>Read our FAQ</a>
+        <div style={{ textAlign: "center", padding: "2.5rem 0 0", borderTop: "1px solid var(--color-border)" }}>
+          <p style={{ color: "var(--color-text-muted)", fontSize: "0.92rem" }}>
+            Have questions about pricing, evaluation or bulk university licenses?{" "}
+            <a href="/faq" style={{ color: "var(--color-primary)", fontWeight: 600 }}>Read our FAQ</a>
             {" "}or{" "}
-            <a href="/contact" style={{ color: "var(--color-primary)" }}>contact us</a>.
+            <a href="/contact" style={{ color: "var(--color-primary)", fontWeight: 600 }}>contact our team</a>.
           </p>
         </div>
       </main>
@@ -251,59 +262,54 @@ export default function Pricing() {
           left: 0,
           width: "100%",
           height: "100%",
-          background: "rgba(0,0,0,0.8)",
+          background: "rgba(15, 23, 42, 0.75)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          zIndex: 1000
+          zIndex: 1000,
+          padding: "1.5rem"
         }}>
-          <div className="glass-card" style={{ maxWidth: "450px", width: "90%", padding: "2.5rem", position: "relative" }}>
+          <div className="card-surface" style={{ maxWidth: "480px", width: "100%", padding: "2.5rem", position: "relative", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}>
             <button 
-              style={{ position: "absolute", top: "15px", right: "20px", background: "none", border: "none", color: "#fff", fontSize: "1.5rem", cursor: "pointer" }}
+              style={{ position: "absolute", top: "1.25rem", right: "1.25rem", background: "none", border: "none", color: "var(--color-text-muted)", fontSize: "1.4rem", cursor: "pointer" }}
               onClick={() => setShowModal(false)}
             >
-              &times;
+              <i className="fa-solid fa-xmark"></i>
             </button>
-            <h3 style={{ marginBottom: "1.5rem", color: "var(--color-primary)" }}>
-              <i className="fa-solid fa-credit-card" style={{ marginRight: "0.5rem" }}></i> Premium Metrics Setup
+            <h3 style={{ marginBottom: "0.5rem", color: "var(--color-text-main)", fontSize: "1.3rem", fontWeight: 800 }}>
+              <i className="fa-solid fa-credit-card" style={{ color: "var(--color-primary)", marginRight: "0.5rem" }}></i> 
+              Premium Metrics Setup
             </h3>
-            <p style={{ fontSize: "0.9rem", color: "var(--color-text-muted)", marginBottom: "1.5rem" }}>
+            <p style={{ fontSize: "0.88rem", color: "var(--color-text-muted)", marginBottom: "1.5rem" }}>
               Order <strong>{selectedTier}</strong> metrics report evaluation for your journal. Payments processed securely via IntaSend.
             </p>
 
             <div className="form-group" style={{ marginBottom: "1.5rem" }}>
-              <label htmlFor="modalJournalSelect" style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.85rem" }}>Select Target Journal</label>
+              <label htmlFor="modalJournalSelect" className="form-label">Select Target Journal</label>
               {journals.length > 0 ? (
                 <select 
                   id="modalJournalSelect"
                   value={selectedJournalId}
                   onChange={(e) => setSelectedJournalId(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "0.8rem",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "#fff",
-                    borderRadius: "4px"
-                  }}
+                  className="form-select"
                 >
                   {journals.map(j => (
-                    <option key={j.id} value={j.id} style={{ background: "#121217" }}>
+                    <option key={j.id} value={j.id}>
                       {j.name} {j.issn ? `(${j.issn})` : ""}
                     </option>
                   ))}
                 </select>
               ) : (
-                <div style={{ fontSize: "0.85rem", color: "#ff4a4a" }}>
-                  No journals found. Please <a href="/submit" style={{ color: "var(--color-primary)" }}>submit a journal</a> first.
+                <div style={{ fontSize: "0.85rem", color: "#dc2626" }}>
+                  No journals found. Please <a href="/submit" style={{ color: "var(--color-primary)", fontWeight: 600 }}>submit a journal</a> first.
                 </div>
               )}
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "1.5rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--color-border)", paddingTop: "1.25rem" }}>
               <div>
-                <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>Total Due:</span>
-                <div style={{ fontSize: "1.4rem", fontWeight: "bold" }}>KES {price.toLocaleString()}</div>
+                <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 600 }}>Total Due:</span>
+                <div style={{ fontSize: "1.5rem", fontWeight: "bold", color: "var(--color-primary)" }}>KES {price.toLocaleString()}</div>
               </div>
               <button 
                 type="button" 
@@ -315,7 +321,7 @@ export default function Pricing() {
               </button>
             </div>
 
-            <div style={{ marginTop: "1.5rem", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "1rem", textAlign: "center" }}>
+            <div style={{ marginTop: "1.25rem", borderTop: "1px solid var(--color-border)", paddingTop: "1rem", textAlign: "center" }}>
               <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block", marginBottom: "0.5rem" }}>
                 IntaSend Sandbox offline?
               </span>

@@ -18,7 +18,6 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
@@ -46,36 +45,39 @@ export default function Register() {
           window.location.href = "/login";
         }, 2000);
       } else {
-        setError(result.error || "Registration failed.");
+        setError(result.error || "Registration failed. Please review your details.");
       }
     } catch (err) {
       console.error(err);
-      setError("Failed to register. Please check database connection status.");
+      setError("Failed to register. Please check your network connection.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="theme-dark">
+    <div className="page-wrapper" style={{ padding: 0 }}>
       {/* Navigation */}
       <Header />
 
-      <main className="container" style={{ padding: "4rem 0", maxWidth: "550px" }}>
-        <div className="section-header" style={{ textAlign: "center" }}>
-          <h1 className="section-title">Create Account</h1>
-          <p className="section-desc">Join AfriJournal Index as a researcher or publisher to manage indexing profiles.</p>
+      <main className="container" style={{ padding: "4rem 0 6rem", maxWidth: "560px" }}>
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <h1 className="page-title" style={{ fontSize: "2rem" }}>Create Account</h1>
+          <p className="page-subtitle" style={{ fontSize: "0.95rem" }}>
+            Join AfriJournal Index as a researcher or publisher to manage indexing profiles.
+          </p>
         </div>
 
-        <div className="glass-card" style={{ padding: "2.5rem 3rem" }}>
+        <div className="glass-card" style={{ padding: "2.5rem" }}>
           {success ? (
             <div style={{ textAlign: "center", padding: "2rem 0" }}>
               <div style={{
-                width: "60px",
-                height: "60px",
+                width: "64px",
+                height: "64px",
                 borderRadius: "50%",
-                background: "rgba(62,142,98,0.15)",
-                color: "var(--color-accent-green)",
+                background: "#ecfdf5",
+                color: "#059669",
+                border: "1px solid #a7f3d0",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -84,13 +86,26 @@ export default function Register() {
               }}>
                 <i className="fa-solid fa-check"></i>
               </div>
-              <h3>Success!</h3>
-              <p style={{ color: "var(--color-text-muted)", marginTop: "0.5rem" }}>Account registered. Redirecting to login...</p>
+              <h3 style={{ fontSize: "1.4rem", color: "var(--color-text-main)" }}>Registration Successful</h3>
+              <p style={{ color: "var(--color-text-muted)", marginTop: "0.5rem", fontSize: "0.95rem" }}>
+                Your account has been created. Redirecting to login...
+              </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {error && (
-                <div style={{ background: "rgba(255,74,74,0.1)", border: "1px solid rgba(255,74,74,0.3)", padding: "0.8rem 1rem", borderRadius: "4px", color: "#ff4a4a", fontSize: "0.85rem" }}>
+                <div style={{
+                  background: "#fef2f2",
+                  border: "1px solid #fecaca",
+                  color: "#b91c1c",
+                  padding: "0.85rem 1rem",
+                  borderRadius: "8px",
+                  fontSize: "0.9rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px"
+                }}>
+                  <i className="fa-solid fa-circle-exclamation"></i>
                   {error}
                 </div>
               )}
@@ -138,8 +153,7 @@ export default function Register() {
                 <label htmlFor="role" className="form-label">Account Role</label>
                 <select 
                   id="role" 
-                  className="form-control"
-                  style={{ background: "#121217", color: "#fff" }}
+                  className="form-select"
                   value={formData.role}
                   onChange={handleChange}
                 >
@@ -158,8 +172,8 @@ export default function Register() {
                   value={formData.orcid}
                   onChange={handleChange}
                 />
-                <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.25rem", display: "block" }}>
-                  Connecting your ORCID helps verify authorship automatically.
+                <span className="form-hint">
+                  Connecting your ORCID helps verify African research authorship automatically.
                 </span>
               </div>
 
@@ -178,17 +192,25 @@ export default function Register() {
               <button 
                 type="submit" 
                 className="btn btn-primary" 
-                style={{ width: "100%", marginTop: "1rem", padding: "0.9rem" }}
+                style={{ width: "100%", marginTop: "0.75rem", padding: "0.85rem" }}
                 disabled={loading}
               >
-                {loading ? "Registering..." : "Create Account"}
+                {loading ? "Registering..." : "Create Free Account"}
               </button>
-              <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textAlign: "center", lineHeight: "1.6" }}>
+              
+              <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textAlign: "center", lineHeight: "1.6" }}>
                 By creating an account, you agree to our{" "}
-                <a href="/terms" style={{ color: "var(--color-primary)" }}>Terms &amp; Conditions</a>
+                <a href="/terms" style={{ color: "var(--color-primary)", fontWeight: 600 }}>Terms &amp; Conditions</a>
                 {" "}and acknowledge our{" "}
-                <a href="/privacy" style={{ color: "var(--color-primary)" }}>Privacy Policy</a>.
+                <a href="/privacy" style={{ color: "var(--color-primary)", fontWeight: 600 }}>Privacy Policy</a>.
               </p>
+
+              <div style={{ textAlign: "center", marginTop: "0.25rem", fontSize: "0.9rem", color: "var(--color-text-muted)" }}>
+                Already registered?{" "}
+                <a href="/login" style={{ color: "var(--color-primary)", fontWeight: 600 }}>
+                  Log in here
+                </a>
+              </div>
             </form>
           )}
         </div>

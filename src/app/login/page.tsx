@@ -13,7 +13,7 @@ export default function Login() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -27,6 +27,7 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMsg(null);
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -36,10 +37,12 @@ export default function Login() {
       });
       const result = await res.json();
       if (result.success) {
-        alert("Login successful!");
-        window.location.href = `/researcher?id=${result.user.id}`;
+        setSuccessMsg("Authentication successful. Redirecting to your dashboard...");
+        setTimeout(() => {
+          window.location.href = `/researcher?id=${result.user.id}`;
+        }, 1000);
       } else {
-        setError(result.error || "Authentication failed.");
+        setError(result.error || "Authentication failed. Please verify your credentials.");
       }
     } catch (err) {
       console.error(err);
@@ -50,26 +53,60 @@ export default function Login() {
   };
 
   return (
-    <div className="theme-dark">
+    <div className="page-wrapper" style={{ padding: 0 }}>
       {/* Navigation */}
       <Header />
 
-      <main className="container" style={{ padding: "4rem 0", maxWidth: "480px" }}>
-        <div className="section-header" style={{ textAlign: "center" }}>
-          <h1 className="section-title">Account Login</h1>
-          <p className="section-desc">Log in to view researcher profiles and indexing metrics dashboards.</p>
+      <main className="container" style={{ padding: "4rem 0 6rem", maxWidth: "480px" }}>
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <h1 className="page-title" style={{ fontSize: "2rem" }}>Account Login</h1>
+          <p className="page-subtitle" style={{ fontSize: "0.95rem" }}>
+            Log in to manage journal submissions, researcher profiles, and indexing metrics.
+          </p>
         </div>
 
-        <div className="glass-card" style={{ padding: "2.5rem 3rem" }}>
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-            {error && (
-              <div style={{ background: "rgba(255,74,74,0.1)", border: "1px solid rgba(255,74,74,0.3)", padding: "0.8rem 1rem", borderRadius: "4px", color: "#ff4a4a", fontSize: "0.85rem" }}>
-                {error}
-              </div>
-            )}
+        <div className="glass-card" style={{ padding: "2.5rem" }}>
+          {successMsg && (
+            <div style={{
+              background: "#ecfdf5",
+              border: "1px solid #a7f3d0",
+              color: "#065f46",
+              padding: "0.85rem 1rem",
+              borderRadius: "8px",
+              fontSize: "0.9rem",
+              marginBottom: "1.2rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px"
+            }}>
+              <i className="fa-solid fa-circle-check"></i>
+              {successMsg}
+            </div>
+          )}
 
+          {error && (
+            <div style={{
+              background: "#fef2f2",
+              border: "1px solid #fecaca",
+              color: "#b91c1c",
+              padding: "0.85rem 1rem",
+              borderRadius: "8px",
+              fontSize: "0.9rem",
+              marginBottom: "1.2rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px"
+            }}>
+              <i className="fa-solid fa-circle-exclamation"></i>
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
             <div className="form-group">
-              <label htmlFor="email" className="form-label">Email Address</label>
+              <label htmlFor="email" className="form-label">
+                <i className="fa-regular fa-envelope" style={{ color: "var(--color-primary)" }}></i> Email Address
+              </label>
               <input 
                 type="email" 
                 id="email" 
@@ -82,7 +119,9 @@ export default function Login() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="password" className="form-label">Password</label>
+              <label htmlFor="password" className="form-label">
+                <i className="fa-solid fa-lock" style={{ color: "var(--color-primary)" }}></i> Password
+              </label>
               <input 
                 type="password" 
                 id="password" 
@@ -97,14 +136,17 @@ export default function Login() {
             <button 
               type="submit" 
               className="btn btn-primary" 
-              style={{ width: "100%", marginTop: "1rem", padding: "0.9rem" }}
-              disabled={loading}
+              style={{ width: "100%", marginTop: "0.75rem", padding: "0.85rem" }}
+              disabled={loading || !!successMsg}
             >
-              {loading ? "Authenticating..." : "Login"}
+              {loading ? "Authenticating..." : "Sign In to Dashboard"}
             </button>
 
-            <div style={{ textAlign: "center", marginTop: "0.5rem", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-              Don't have an account? <a href="/register" style={{ color: "var(--color-primary)" }}>Register here</a>.
+            <div style={{ textAlign: "center", marginTop: "0.5rem", fontSize: "0.9rem", color: "var(--color-text-muted)" }}>
+              Don't have an account?{" "}
+              <a href="/register" style={{ color: "var(--color-primary)", fontWeight: 600 }}>
+                Register here
+              </a>
             </div>
           </form>
         </div>
