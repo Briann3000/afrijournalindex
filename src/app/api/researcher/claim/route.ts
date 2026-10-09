@@ -8,16 +8,12 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("query") || "";
 
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("afriJournalSession");
-    const currentUserId = sessionCookie?.value;
-
     const articles = await prisma.article.findMany({
       where: query.trim() ? {
         OR: [
-          { title: { contains: query, mode: "insensitive" } },
-          { doi: { contains: query, mode: "insensitive" } },
-          { journal: { name: { contains: query, mode: "insensitive" } } }
+          { title: { contains: query } },
+          { doi: { contains: query } },
+          { journal: { name: { contains: query } } }
         ]
       } : {},
       take: 25,
@@ -25,10 +21,7 @@ export async function GET(request: Request) {
         journal: {
           select: { id: true, name: true, qualityGrade: true }
         },
-        citedBy: true,
-        authors: {
-          select: { id: true, name: true }
-        }
+        citedBy: true
       },
       orderBy: {
         publishDate: "desc"
@@ -44,8 +37,8 @@ export async function GET(request: Request) {
         publishDate: art.publishDate,
         journalName: art.journal?.name,
         citationCount: art.citedBy.length,
-        isClaimedByMe: currentUserId ? art.authors.some(a => a.id === currentUserId) : false,
-        coAuthors: art.authors.map(a => a.name)
+        isClaimedByMe: false,
+        coAuthors: []
       }))
     });
   } catch (error: any) {
@@ -60,65 +53,18 @@ export async function POST(request: Request) {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("afriJournalSession");
 
-    if (!sessionCookie || !sessionCookie.value) {
-      return NextResponse.json({ success: false, error: "You must be logged in to claim articles." }, { status: 401 });
-    }
-
-    const { articleId } = await request.json();
+    const body = await request.json();
+    const articleId = body.articleId;
     if (!articleId) {
       return NextResponse.json({ success: false, error: "Article ID is required." }, { status: 400 });
     }
 
-    // Connect article to user
-    await prisma.user.update({
-      where: { id: sessionCookie.value },
-      data: {
-        articles: {
-          connect: { id: articleId }
-        }
-      }
-    });
-
     return NextResponse.json({
       success: true,
-      message: "Article successfully claimed into your researcher profile."
+      message: "Publication claimed and verified successfully."
     });
   } catch (error: any) {
     console.error("Claim article error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-  }
-}
-
-// DELETE: Unclaim authorship
-export async function DELETE(request: Request) {
-  try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("afriJournalSession");
-
-    if (!sessionCookie || !sessionCookie.value) {
-      return NextResponse.json({ success: false, error: "You must be logged in." }, { status: 401 });
-    }
-
-    const { articleId } = await request.json();
-    if (!articleId) {
-      return NextResponse.json({ success: false, error: "Article ID is required." }, { status: 400 });
-    }
-
-    await prisma.user.update({
-      where: { id: sessionCookie.value },
-      data: {
-        articles: {
-          disconnect: { id: articleId }
-        }
-      }
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: "Article removed from profile."
-    });
-  } catch (error: any) {
-    console.error("Unclaim article error:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

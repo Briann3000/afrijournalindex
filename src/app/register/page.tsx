@@ -3,9 +3,10 @@
 import React, { useState } from "react";
 import { useLang } from "../LangContext";
 import Header from "../Header";
+import Footer from "../Footer";
 
 export default function Register() {
-  const { lang, setLang, t } = useLang();
+  const { t } = useLang();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -45,11 +46,11 @@ export default function Register() {
           window.location.href = "/login";
         }, 2000);
       } else {
-        setError(result.error || "Registration failed. Please review your details.");
+        setError(result.error || t.auth.auth_error);
       }
     } catch (err) {
       console.error(err);
-      setError("Failed to register. Please check your network connection.");
+      setError(t.auth.auth_error);
     } finally {
       setLoading(false);
     }
@@ -60,15 +61,15 @@ export default function Register() {
       {/* Navigation */}
       <Header />
 
-      <main className="container" style={{ padding: "4rem 0 6rem", maxWidth: "560px" }}>
+      <main className="container" style={{ padding: "3.5rem 1rem 6rem", maxWidth: "560px" }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <h1 className="page-title" style={{ fontSize: "2rem" }}>Create Account</h1>
+          <h1 className="page-title" style={{ fontSize: "2rem" }}>{t.auth.register_title}</h1>
           <p className="page-subtitle" style={{ fontSize: "0.95rem" }}>
-            Join AfriJournal Index as a researcher or publisher to manage indexing profiles.
+            {t.auth.register_subtitle}
           </p>
         </div>
 
-        <div className="glass-card" style={{ padding: "2.5rem" }}>
+        <div className="glass-card" style={{ padding: "2rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)" }}>
           {success ? (
             <div style={{ textAlign: "center", padding: "2rem 0" }}>
               <div style={{
@@ -86,9 +87,9 @@ export default function Register() {
               }}>
                 <i className="fa-solid fa-check"></i>
               </div>
-              <h3 style={{ fontSize: "1.4rem", color: "var(--color-text-main)" }}>Registration Successful</h3>
+              <h3 style={{ fontSize: "1.4rem", color: "var(--color-text-main)" }}>{t.auth.reg_success}</h3>
               <p style={{ color: "var(--color-text-muted)", marginTop: "0.5rem", fontSize: "0.95rem" }}>
-                Your account has been created. Redirecting to login...
+                {t.auth.reg_success_sub}
               </p>
             </div>
           ) : (
@@ -101,6 +102,7 @@ export default function Register() {
                   padding: "0.85rem 1rem",
                   borderRadius: "8px",
                   fontSize: "0.9rem",
+                  marginBottom: "0.5rem",
                   display: "flex",
                   alignItems: "center",
                   gap: "8px"
@@ -111,33 +113,39 @@ export default function Register() {
               )}
 
               <div className="form-group">
-                <label htmlFor="name" className="form-label">Full Name</label>
+                <label htmlFor="name" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                  <i className="fa-regular fa-user" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i> {t.auth.name_label}
+                </label>
                 <input 
                   type="text" 
                   id="name" 
                   required 
                   className="form-control" 
-                  placeholder="e.g. Dr. Jane Doe"
+                  placeholder={t.auth.name_placeholder}
                   value={formData.name}
                   onChange={handleChange}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="email" className="form-label">Email Address</label>
+                <label htmlFor="email" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                  <i className="fa-regular fa-envelope" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i> {t.auth.email_label}
+                </label>
                 <input 
                   type="email" 
                   id="email" 
                   required 
                   className="form-control" 
-                  placeholder="e.g. jane.doe@uonbi.ac.ke"
+                  placeholder={t.auth.email_placeholder}
                   value={formData.email}
                   onChange={handleChange}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="password" className="form-label">Password</label>
+                <label htmlFor="password" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                  <i className="fa-solid fa-lock" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i> {t.auth.password_label}
+                </label>
                 <input 
                   type="password" 
                   id="password" 
@@ -150,41 +158,44 @@ export default function Register() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="role" className="form-label">Account Role</label>
+                <label htmlFor="role" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                  <i className="fa-solid fa-briefcase" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i> {t.auth.role_label}
+                </label>
                 <select 
                   id="role" 
-                  className="form-select"
+                  className="form-control"
                   value={formData.role}
                   onChange={handleChange}
                 >
-                  <option value="RESEARCHER">Researcher / Author</option>
-                  <option value="PUBLISHER">Journal Editor / Publisher</option>
+                  <option value="RESEARCHER">{t.auth.role_researcher}</option>
+                  <option value="PUBLISHER">{t.auth.role_publisher}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label htmlFor="orcid" className="form-label">ORCID iD (Optional)</label>
-                <input 
-                  type="text" 
-                  id="orcid" 
-                  className="form-control" 
-                  placeholder="e.g. 0000-0002-1825-0097"
-                  value={formData.orcid}
-                  onChange={handleChange}
-                />
-                <span className="form-hint">
-                  Connecting your ORCID helps verify African research authorship automatically.
-                </span>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="institution" className="form-label">Institution Affiliation (Optional)</label>
+                <label htmlFor="institution" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                  <i className="fa-solid fa-building-columns" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i> {t.auth.institution_label}
+                </label>
                 <input 
                   type="text" 
                   id="institution" 
                   className="form-control" 
-                  placeholder="e.g. University of Nairobi"
+                  placeholder={t.auth.institution_placeholder}
                   value={formData.institution}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="orcid" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                  <i className="fa-brands fa-orcid" style={{ color: "#a6ce39", marginRight: "6px" }}></i> {t.auth.orcid_label}
+                </label>
+                <input 
+                  type="text" 
+                  id="orcid" 
+                  className="form-control" 
+                  placeholder={t.auth.orcid_placeholder}
+                  value={formData.orcid}
                   onChange={handleChange}
                 />
               </div>
@@ -192,29 +203,24 @@ export default function Register() {
               <button 
                 type="submit" 
                 className="btn btn-primary" 
-                style={{ width: "100%", marginTop: "0.75rem", padding: "0.85rem" }}
-                disabled={loading}
+                style={{ width: "100%", marginTop: "0.75rem", padding: "0.85rem", minHeight: "44px" }}
+                disabled={loading || success}
               >
-                {loading ? "Registering..." : "Create Free Account"}
+                {loading ? t.auth.registering : t.auth.btn_register}
               </button>
-              
-              <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textAlign: "center", lineHeight: "1.6" }}>
-                By creating an account, you agree to our{" "}
-                <a href="/terms" style={{ color: "var(--color-primary)", fontWeight: 600 }}>Terms &amp; Conditions</a>
-                {" "}and acknowledge our{" "}
-                <a href="/privacy" style={{ color: "var(--color-primary)", fontWeight: 600 }}>Privacy Policy</a>.
-              </p>
 
-              <div style={{ textAlign: "center", marginTop: "0.25rem", fontSize: "0.9rem", color: "var(--color-text-muted)" }}>
-                Already registered?{" "}
+              <div style={{ textAlign: "center", marginTop: "0.5rem", fontSize: "0.9rem", color: "var(--color-text-muted)" }}>
+                {t.auth.have_account}{" "}
                 <a href="/login" style={{ color: "var(--color-primary)", fontWeight: 600 }}>
-                  Log in here
+                  {t.auth.login_link}
                 </a>
               </div>
             </form>
           )}
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

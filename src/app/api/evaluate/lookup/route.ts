@@ -18,7 +18,7 @@ export async function GET(request: Request) {
         OR: [
           { issn: trimmedQuery },
           { eissn: trimmedQuery },
-          { journalName: { contains: trimmedQuery, mode: "insensitive" } }
+          { journalName: { contains: trimmedQuery } }
         ]
       },
       orderBy: {

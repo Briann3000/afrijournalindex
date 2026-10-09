@@ -4,9 +4,10 @@ import React, { useState } from "react";
 import { useLang } from "../LangContext";
 import Header from "../Header";
 import Footer from "../Footer";
+import { ALL_AFRICAN_COUNTRIES } from "../data/african-countries";
 
 export default function Submit() {
-  const { lang, setLang, t } = useLang();
+  const { t } = useLang();
   const [step, setStep] = useState<number>(1);
 
   // Controlled form state to preserve input values across step changes
@@ -16,7 +17,7 @@ export default function Submit() {
     issn: "",
     eissn: "",
     publisher: "",
-    country: "",
+    country: "Kenya",
     frequency: "Quarterly",
     website: ""
   });
@@ -42,7 +43,7 @@ export default function Submit() {
       if (data.success) {
         window.location.href = `/submit/status?id=${data.submissionId}`;
       } else {
-        setLookupError(data.error || "No matching journal evaluation record found.");
+        setLookupError(data.error || t.submit_status_page.status_badge_failed);
       }
     } catch (err) {
       console.error(err);
@@ -68,7 +69,7 @@ export default function Submit() {
       return;
     }
     if (!formData.publisher.trim()) {
-      setFormError("Please provide the Publisher or Institutional Affiliation.");
+      setFormError("Please provide the Publisher Organization.");
       return;
     }
     setStep(2);
@@ -98,7 +99,7 @@ export default function Submit() {
         }));
         setOjsFeedback({
           type: "success",
-          msg: `Identified "${data.repository?.repositoryName || "Journal"}" and synced ${data.totalHarvested || 0} published records.`
+          msg: `Synced "${data.repository?.repositoryName || "Journal"}" (${data.totalHarvested || 0} published records).`
         });
       } else {
         setOjsFeedback({ type: "error", msg: data.error || "Failed to harvest OAI endpoint." });
@@ -155,11 +156,11 @@ export default function Submit() {
       {/* Navigation Bar */}
       <Header activePage="submit" />
 
-      <main className="container" style={{ padding: "3.5rem 0 6rem", maxWidth: "800px" }}>
+      <main className="container" style={{ padding: "3.5rem 1rem 6rem", maxWidth: "800px" }}>
         <div className="page-header" style={{ textAlign: "center", marginBottom: "2.5rem" }}>
           <span className="badge-featured" style={{ marginBottom: "0.8rem" }}>
             <i className="fa-solid fa-paper-plane"></i>
-            Journal Evaluation Portal
+            {t.nav.indexing_portal}
           </span>
           <h1 className="page-title">{t.submit_page.title}</h1>
           <p className="page-subtitle" style={{ maxWidth: "600px", margin: "0.5rem auto 0" }}>
@@ -168,30 +169,30 @@ export default function Submit() {
         </div>
 
         {/* Status Lookup Search Block */}
-        <div className="card-surface" style={{ marginBottom: "2rem", padding: "1.75rem" }}>
+        <div className="card-surface" style={{ marginBottom: "2rem", padding: "1.75rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
           <form onSubmit={handleLookup}>
-            <label htmlFor="lookupInput" className="form-label" style={{ marginBottom: "0.5rem" }}>
-              <i className="fa-solid fa-magnifying-glass" style={{ color: "var(--color-primary)" }}></i>
-              Track Existing Submission Status &amp; Metrics
+            <label htmlFor="lookupInput" className="form-label" style={{ marginBottom: "0.5rem", fontSize: "0.85rem", fontWeight: 700 }}>
+              <i className="fa-solid fa-magnifying-glass" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i>
+              {t.submit_status_page.lookup_label}
             </label>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               <input 
                 type="text" 
                 id="lookupInput" 
                 required
-                placeholder="Enter Journal Full Name or ISSN (e.g. 2312-0134)" 
+                placeholder={t.submit_status_page.lookup_placeholder} 
                 value={lookupQuery}
                 onChange={(e) => setLookupQuery(e.target.value)}
                 className="form-control"
-                style={{ flex: 1, minWidth: "240px" }}
+                style={{ flex: "1 1 240px" }}
               />
               <button 
                 type="submit" 
                 className="btn btn-secondary" 
                 disabled={lookupLoading}
-                style={{ whiteSpace: "nowrap" }}
+                style={{ whiteSpace: "nowrap", minHeight: "44px" }}
               >
-                {lookupLoading ? "Searching..." : "Track Status"}
+                {lookupLoading ? t.common.loading : t.submit_status_page.lookup_btn}
               </button>
             </div>
             {lookupError && (
@@ -204,7 +205,7 @@ export default function Submit() {
         </div>
 
         {/* Step Indicator */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <span style={{
               width: "32px",
@@ -222,7 +223,7 @@ export default function Submit() {
               {step > 1 ? <i className="fa-solid fa-check"></i> : "1"}
             </span>
             <span style={{ fontWeight: step === 1 ? 700 : 500, color: step === 1 ? "var(--color-text-main)" : "var(--color-text-muted)", fontSize: "0.9rem" }}>
-              Metadata &amp; Scope
+              {t.submit_page.step1_title}
             </span>
           </div>
 
@@ -245,13 +246,13 @@ export default function Submit() {
               2
             </span>
             <span style={{ fontWeight: step === 2 ? 700 : 500, color: step === 2 ? "var(--color-text-main)" : "var(--color-text-muted)", fontSize: "0.9rem" }}>
-              Audit Verification
+              {t.submit_page.step2_title}
             </span>
           </div>
         </div>
 
         {/* Main Form Card */}
-        <div className="card-surface" style={{ padding: "2.5rem" }}>
+        <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
           {formError && (
             <div style={{
               background: "#fef2f2",
@@ -281,9 +282,9 @@ export default function Submit() {
                     <strong style={{ fontSize: "0.92rem", color: "var(--color-primary)" }}>1-Click OJS / OAI-PMH Auto-Import</strong>
                   </div>
                   <p style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", margin: "0 0 0.8rem", lineHeight: "1.5" }}>
-                    If your university journal runs on Open Journal Systems (PKP OJS), enter your OAI endpoint to auto-fill metadata and pull all published issues.
+                    If your journal runs on Open Journal Systems (PKP OJS), enter your OAI endpoint to auto-sync volumes and metadata.
                   </p>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                     <input 
                       type="url" 
                       placeholder="e.g. https://arjess.org/index.php/oai" 
@@ -291,178 +292,203 @@ export default function Submit() {
                       value={ojsInput}
                       onChange={e => setOjsInput(e.target.value)}
                       className="form-control"
-                      style={{ fontSize: "0.88rem" }}
+                      style={{ fontSize: "0.88rem", flex: "1 1 200px" }}
                     />
                     <button 
                       type="button" 
                       className="btn btn-secondary btn-sm"
                       onClick={handleOjsSync}
                       disabled={ojsLoading}
-                      style={{ padding: "0 1.2rem", fontSize: "0.85rem", whiteSpace: "nowrap" }}
+                      style={{ whiteSpace: "nowrap" }}
                     >
-                      {ojsLoading ? "Syncing..." : "Sync OJS"}
+                      {ojsLoading ? t.common.loading : "Auto-Fill"}
                     </button>
                   </div>
                   {ojsFeedback && (
-                    <div style={{
-                      marginTop: "0.75rem",
-                      fontSize: "0.82rem",
-                      fontWeight: 600,
-                      color: ojsFeedback.type === "success" ? "#047857" : "#b91c1c"
-                    }}>
-                      <i className={`fa-solid ${ojsFeedback.type === "success" ? "fa-circle-check" : "fa-circle-xmark"}`} style={{ marginRight: "0.35rem" }}></i>
+                    <div style={{ marginTop: "0.5rem", fontSize: "0.82rem", color: ojsFeedback.type === "success" ? "#16a34a" : "#dc2626", fontWeight: 600 }}>
+                      <i className={`fa-solid ${ojsFeedback.type === "success" ? "fa-circle-check" : "fa-circle-exclamation"}`} style={{ marginRight: "4px" }}></i>
                       {ojsFeedback.msg}
                     </div>
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="jName" className="form-label">{t.submit_page.name_label}</label>
-                  <input 
-                    type="text" 
-                    id="jName" 
-                    required 
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder="e.g. African Research Journal of Education and Social Sciences" 
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="jScope" className="form-label">{t.submit_page.scope_label}</label>
-                  <textarea 
-                    id="jScope" 
-                    rows={4} 
-                    required 
-                    value={formData.scope}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder={t.submit_page.scope_placeholder}
-                  ></textarea>
-                </div>
-                
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
                   <div className="form-group">
-                    <label htmlFor="jIssn" className="form-label">{t.submit_page.issn_label}</label>
+                    <label htmlFor="jName" className="form-label">
+                      {t.submit_page.name_label} *
+                    </label>
                     <input 
                       type="text" 
-                      id="jIssn" 
-                      value={formData.issn}
-                      onChange={handleChange}
-                      className="form-control"
-                      placeholder="e.g. 2312-0134" 
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="jEissn" className="form-label">{t.submit_page.eissn_label}</label>
-                    <input 
-                      type="text" 
-                      id="jEissn" 
-                      value={formData.eissn}
-                      onChange={handleChange}
-                      className="form-control"
-                      placeholder="xxxx-xxxx" 
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="jPublisher" className="form-label">{t.submit_page.publisher_label}</label>
-                  <input 
-                    type="text" 
-                    id="jPublisher" 
-                    required 
-                    value={formData.publisher}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder="e.g. Kenya Projects Organization (KENPRO)" 
-                  />
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
-                  <div className="form-group">
-                    <label htmlFor="jCountry" className="form-label">{t.submit_page.country_label}</label>
-                    <input 
-                      type="text" 
-                      id="jCountry" 
+                      id="jName" 
                       required 
-                      value={formData.country}
-                      onChange={handleChange}
                       className="form-control"
-                      placeholder="e.g. Kenya" 
+                      placeholder={t.submit_page.name_placeholder}
+                      value={formData.name}
+                      onChange={handleChange}
                     />
                   </div>
-                  <div className="form-group">
-                    <label htmlFor="jFrequency" className="form-label">{t.submit_page.frequency_label}</label>
-                    <select 
-                      id="jFrequency"
-                      value={formData.frequency}
-                      onChange={handleChange}
-                      className="form-select"
-                    >
-                      <option>Quarterly</option>
-                      <option>Semi-Annually</option>
-                      <option>Annually</option>
-                      <option>Continuous</option>
-                    </select>
-                  </div>
-                </div>
 
-                <div style={{ marginTop: "2rem", display: "flex", justifyContent: "flex-end" }}>
-                  <button type="button" className="btn btn-primary" onClick={handleNextStep}>
-                    {t.submit_page.btn_next} <i className="fa-solid fa-arrow-right" style={{ marginLeft: "0.5rem" }}></i>
+                  <div className="form-group">
+                    <label htmlFor="jScope" className="form-label">
+                      {t.submit_page.scope_label}
+                    </label>
+                    <textarea 
+                      id="jScope" 
+                      rows={3} 
+                      className="form-control"
+                      placeholder={t.submit_page.scope_placeholder}
+                      value={formData.scope}
+                      onChange={handleChange}
+                    ></textarea>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+                    <div className="form-group">
+                      <label htmlFor="jIssn" className="form-label">
+                        {t.submit_page.issn_label}
+                      </label>
+                      <input 
+                        type="text" 
+                        id="jIssn" 
+                        className="form-control"
+                        placeholder="2312-0134"
+                        value={formData.issn}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="jEissn" className="form-label">
+                        {t.submit_page.eissn_label}
+                      </label>
+                      <input 
+                        type="text" 
+                        id="jEissn" 
+                        className="form-control"
+                        placeholder="2520-4106"
+                        value={formData.eissn}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="jPublisher" className="form-label">
+                      {t.submit_page.publisher_label} *
+                    </label>
+                    <input 
+                      type="text" 
+                      id="jPublisher" 
+                      required 
+                      className="form-control"
+                      placeholder={t.submit_page.publisher_placeholder}
+                      value={formData.publisher}
+                      onChange={handleChange}
+                    />
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+                    <div className="form-group">
+                      <label htmlFor="jCountry" className="form-label">
+                        {t.submit_page.country_label} *
+                      </label>
+                      <select 
+                        id="jCountry" 
+                        required 
+                        className="form-control"
+                        value={formData.country}
+                        onChange={handleChange}
+                      >
+                        {ALL_AFRICAN_COUNTRIES.map(c => (
+                          <option key={c.name} value={c.name}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="jFrequency" className="form-label">
+                        {t.submit_page.frequency_label}
+                      </label>
+                      <select 
+                        id="jFrequency" 
+                        className="form-control"
+                        value={formData.frequency}
+                        onChange={handleChange}
+                      >
+                        <option value="Quarterly">Quarterly (4 issues/yr)</option>
+                        <option value="Biannual">Biannual (2 issues/yr)</option>
+                        <option value="Monthly">Monthly (12 issues/yr)</option>
+                        <option value="Continuous">Continuous Open Access</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <button 
+                    type="button" 
+                    className="btn btn-primary" 
+                    style={{ width: "100%", marginTop: "1rem", minHeight: "44px" }}
+                    onClick={handleNextStep}
+                  >
+                    {t.submit_page.btn_next} <i className="fa-solid fa-arrow-right" style={{ marginLeft: "6px" }}></i>
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Step 2: Verification & Review */}
+            {/* Step 2: Verification Details */}
             {step === 2 && (
-              <div>
-                <h3 style={{ marginBottom: "1.5rem", color: "var(--color-primary)", fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <i className="fa-solid fa-shield-halved"></i> {t.submit_page.step2_title}
-                </h3>
-
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
                 <div className="form-group">
-                  <label htmlFor="jWebsite" className="form-label">{t.submit_page.website_label}</label>
+                  <label htmlFor="jWebsite" className="form-label">
+                    {t.submit_page.website_label} *
+                  </label>
                   <input 
                     type="url" 
                     id="jWebsite" 
                     required 
+                    className="form-control"
+                    placeholder={t.submit_page.website_placeholder}
                     value={formData.website}
                     onChange={handleChange}
-                    className="form-control"
-                    placeholder="https://arjess.org" 
                   />
-                  <span className="form-hint">Must be the canonical homepage showing published articles, editorial board, and author guidelines.</span>
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="jUpload" className="form-label">{t.submit_page.upload_label}</label>
-                  <div style={{ border: "1px dashed var(--color-border)", borderRadius: "var(--border-radius-sm)", padding: "1.5rem", textAlign: "center", background: "var(--color-bg-base)" }}>
-                    <input type="file" id="jUpload" accept=".pdf" style={{ margin: "0 auto", display: "block" }} />
-                    <p style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", marginTop: "0.5rem" }}>{t.submit_page.upload_sub}</p>
+                  <label className="form-label">
+                    {t.submit_page.upload_label}
+                  </label>
+                  <div className="file-upload-wrapper" style={{ width: "100%" }}>
+                    <i className="fa-solid fa-cloud-arrow-up" style={{ fontSize: "2rem", color: "var(--color-primary)", marginBottom: "0.5rem" }}></i>
+                    <p style={{ fontWeight: 600, color: "var(--color-text-main)", margin: "0 0 0.2rem" }}>
+                      {t.submit_page.upload_sub}
+                    </p>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>PDF sample issue up to 10MB</span>
                   </div>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", margin: "1.75rem 0" }}>
-                  <input type="checkbox" id="jTerms" required style={{ width: "18px", height: "18px", marginTop: "2px", cursor: "pointer" }} />
-                  <label htmlFor="jTerms" style={{ cursor: "pointer", fontSize: "0.88rem", color: "var(--color-text-body)", lineHeight: "1.5" }}>
+                {/* Terms agreement */}
+                <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start", marginTop: "0.5rem" }}>
+                  <input type="checkbox" id="termsCheck" required style={{ marginTop: "4px", width: "18px", height: "18px" }} />
+                  <label htmlFor="termsCheck" style={{ fontSize: "0.85rem", color: "var(--color-text-body)", cursor: "pointer", lineHeight: "1.5" }}>
                     {t.submit_page.terms_label}
                   </label>
                 </div>
 
-                <div style={{ marginTop: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <button type="button" className="btn btn-secondary" onClick={() => setStep(1)}>
-                    <i className="fa-solid fa-arrow-left" style={{ marginRight: "0.5rem" }}></i> {t.submit_page.btn_prev}
+                <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", flexWrap: "wrap" }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    style={{ flex: 1, minHeight: "44px" }}
+                    onClick={() => setStep(1)}
+                  >
+                    <i className="fa-solid fa-arrow-left" style={{ marginRight: "6px" }}></i> {t.submit_page.btn_prev}
                   </button>
-                  <button type="submit" className="btn btn-primary" disabled={submitting}>
-                    {submitting ? "Initiating Automated Audit..." : (
-                      <>
-                        {t.submit_page.btn_submit} <i className="fa-solid fa-paper-plane" style={{ marginLeft: "0.5rem" }}></i>
-                      </>
-                    )}
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary" 
+                    style={{ flex: 2, minHeight: "44px" }}
+                    disabled={submitting}
+                  >
+                    {submitting ? t.submit_page.submitting : t.submit_page.btn_submit}
                   </button>
                 </div>
               </div>
@@ -471,7 +497,6 @@ export default function Submit() {
         </div>
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   );

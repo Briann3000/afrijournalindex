@@ -1,23 +1,24 @@
-import { Pool } from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
+import mariadb from "mariadb";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-let prismaInstance: PrismaClient;
+const pool = mariadb.createPool({
+  host: process.env.DB_HOST || "localhost",
+  port: parseInt(process.env.DB_PORT || "3306", 10),
+  user: process.env.DB_USERNAME || "root",
+  password: process.env.DB_PASSWORD || "",
+  database: process.env.DB_DATABASE || "afrijournalindex",
+  connectionLimit: 15
+});
 
-if (!globalForPrisma.prisma) {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error("DATABASE_URL is not set in environment variables");
-  }
-  const pool = new Pool({ connectionString });
-  const adapter = new PrismaPg(pool);
-  globalForPrisma.prisma = new PrismaClient({ adapter });
+const adapter = new PrismaMariaDb(pool as any);
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
 }
-
-prismaInstance = globalForPrisma.prisma;
-
-export const prisma = prismaInstance;

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useLang } from "../LangContext";
 import Header from "../Header";
 import Footer from "../Footer";
 
@@ -18,6 +19,7 @@ interface UniversityRankItem {
 }
 
 function InstitutionContent() {
+  const { t } = useLang();
   const searchParams = useSearchParams();
   const router = useRouter();
   const nameParam = searchParams.get("name");
@@ -78,49 +80,55 @@ function InstitutionContent() {
         const result = await res.json();
         if (result.success && result.leaderboard) {
           setLeaderboard(result.leaderboard);
-          if (result.countries && countries.length === 0) {
-            setCountries(result.countries);
-          }
+          if (result.countries) setCountries(result.countries);
         }
       } catch (err) {
-        console.error("Failed to load leaderboard:", err);
+        console.error("Failed to load institution leaderboard:", err);
       } finally {
         setLoadingLeaderboard(false);
       }
     }
 
-    fetchLeaderboard();
-  }, [selectedCountry, selectedDiscipline, sortBy, tableSearch]);
+    if (activeTab === "leaderboard") {
+      fetchLeaderboard();
+    }
+  }, [activeTab, selectedCountry, selectedDiscipline, sortBy, tableSearch]);
 
-  // Fetch Single Profile
-  useEffect(() => {
-    if (!currentUnivName) return;
-
-    async function fetchProfile() {
-      setLoadingProfile(true);
-      setProfileError(null);
-      try {
-        const res = await fetch(`/api/institutions/metrics?name=${encodeURIComponent(currentUnivName)}&detail=true`);
-        const result = await res.json();
-        if (result.success && result.institution) {
-          setProfileData(result.institution);
-        } else {
-          setProfileError(result.error || "Failed to load institutional profile.");
-        }
-      } catch (err) {
-        console.error(err);
-        setProfileError("Error connecting to metrics services.");
-      } finally {
-        setLoadingProfile(false);
+  // Fetch University Profile Drilldown
+  const loadUniversityProfile = async (univName: string) => {
+    setLoadingProfile(true);
+    setProfileError(null);
+    try {
+      const res = await fetch(`/api/institutions/metrics?name=${encodeURIComponent(univName)}`);
+      const result = await res.json();
+      if (result.success && result.data) {
+        setProfileData(result.data);
+      } else {
+        setProfileError(result.error || "University record not found in index.");
       }
+    } catch (err) {
+      console.error(err);
+      setProfileError("Could not connect to database.");
+    } finally {
+      setLoadingProfile(false);
     }
+  };
 
-    if (activeTab === "profile") {
-      fetchProfile();
+  useEffect(() => {
+    if (activeTab === "profile" && currentUnivName) {
+      loadUniversityProfile(currentUnivName);
     }
-  }, [currentUnivName, activeTab]);
+  }, [activeTab, currentUnivName]);
 
-  // Handle drill down to a university
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      setCurrentUnivName(searchQuery.trim());
+      setActiveTab("profile");
+      router.push(`/institution?name=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   const handleSelectUniversity = (univName: string) => {
     setCurrentUnivName(univName);
     setSearchQuery(univName);
@@ -128,36 +136,29 @@ function InstitutionContent() {
     router.push(`/institution?name=${encodeURIComponent(univName)}`);
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      handleSelectUniversity(searchQuery.trim());
-    }
-  };
-
   return (
     <div className="page-wrapper" style={{ padding: 0 }}>
-      <Header />
+      <Header activePage="rankings" />
 
-      <main className="container" style={{ padding: "3.5rem 0 6rem", maxWidth: "1100px" }}>
+      <main className="container" style={{ padding: "3.5rem 0 6rem", maxWidth: "1140px" }}>
         
         {/* Page Header */}
         <div className="page-header" style={{ textAlign: "center", marginBottom: "2.5rem" }}>
           <span className="badge-featured" style={{ marginBottom: "0.8rem" }}>
-            <i className="fa-solid fa-ranking-star"></i>
-            African Academic Authority
+            <i className="fa-solid fa-building-columns"></i>
+            {t.top_institutions.title}
           </span>
           <h1 className="page-title">
-            African University Research League Table
+            {t.institution_page.title}
           </h1>
           <p className="page-subtitle" style={{ maxWidth: "750px", margin: "0.5rem auto 0" }}>
-            Continental benchmarking portal measuring aggregated scholarly output, CrossRef citation impact, and institutional $h$-index across African universities.
+            {t.institution_page.subtitle}
           </p>
         </div>
 
         {/* Tab Navigation */}
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "2rem" }}>
-          <div style={{ background: "#ffffff", padding: "0.35rem", borderRadius: "10px", border: "1px solid var(--color-border)", display: "flex", gap: "0.4rem", boxShadow: "var(--card-shadow)" }}>
+          <div style={{ background: "#ffffff", padding: "0.35rem", borderRadius: "12px", border: "1px solid var(--color-border)", display: "flex", gap: "0.4rem", boxShadow: "var(--card-shadow)", flexWrap: "wrap", justifyContent: "center" }}>
             <button
               onClick={() => {
                 setActiveTab("leaderboard");
@@ -179,7 +180,7 @@ function InstitutionContent() {
               }}
             >
               <i className="fa-solid fa-list-ol"></i>
-              Continental Leaderboard
+              {t.institution_page.tab_leaderboard}
             </button>
             <button
               onClick={() => setActiveTab("profile")}
@@ -199,7 +200,7 @@ function InstitutionContent() {
               }}
             >
               <i className="fa-solid fa-building-columns"></i>
-              University Profile Console
+              {t.institution_page.tab_profile}
             </button>
           </div>
         </div>
@@ -209,7 +210,7 @@ function InstitutionContent() {
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             
             {/* Filter Bar */}
-            <div className="card-surface" style={{ padding: "1.5rem" }}>
+            <div className="card-surface" style={{ padding: "1.5rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", alignItems: "center" }}>
                 
                 {/* Search query */}
@@ -219,7 +220,7 @@ function InstitutionContent() {
                     type="text"
                     value={tableSearch}
                     onChange={e => setTableSearch(e.target.value)}
-                    placeholder="Search university or country..."
+                    placeholder={t.institution_page.search_table}
                     className="form-control"
                     style={{ paddingLeft: "2.4rem" }}
                   />
@@ -230,9 +231,9 @@ function InstitutionContent() {
                   <select
                     value={selectedCountry}
                     onChange={e => setSelectedCountry(e.target.value)}
-                    className="form-select"
+                    className="form-control"
                   >
-                    <option value="All">All African Nations</option>
+                    <option value="All">{t.rankings_page.all_countries}</option>
                     {countries.map(c => (
                       <option key={c} value={c}>{c}</option>
                     ))}
@@ -244,10 +245,10 @@ function InstitutionContent() {
                   <select
                     value={selectedDiscipline}
                     onChange={e => setSelectedDiscipline(e.target.value)}
-                    className="form-select"
+                    className="form-control"
                   >
                     {disciplinesList.map(d => (
-                      <option key={d} value={d}>{d === "All" ? "All Disciplines" : d}</option>
+                      <option key={d} value={d}>{d === "All" ? t.rankings_page.all_disciplines : d}</option>
                     ))}
                   </select>
                 </div>
@@ -257,42 +258,42 @@ function InstitutionContent() {
                   <select
                     value={sortBy}
                     onChange={e => setSortBy(e.target.value)}
-                    className="form-select"
+                    className="form-control"
                     style={{ fontWeight: 600, color: "var(--color-primary)" }}
                   >
-                    <option value="rank">Sort: Overall Rank</option>
-                    <option value="hIndex">Sort: Institutional h-Index</option>
-                    <option value="citations">Sort: Total Citations</option>
-                    <option value="publications">Sort: Indexed Output</option>
+                    <option value="rank">{t.institution_page.sort_by}: {t.top_institutions.rank}</option>
+                    <option value="hIndex">{t.institution_page.sort_by}: {t.top_institutions.h_index}</option>
+                    <option value="citations">{t.institution_page.sort_by}: {t.top_institutions.citations}</option>
+                    <option value="publications">{t.institution_page.sort_by}: {t.top_institutions.publications}</option>
                   </select>
                 </div>
 
               </div>
             </div>
 
-            {/* Leaderboard Table */}
-            <div className="table-wrapper">
+            {/* Leaderboard Table with Horizontal Scroll Support for Mobile */}
+            <div className="table-responsive" style={{ background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)", overflowX: "auto" }}>
               {loadingLeaderboard ? (
                 <div style={{ padding: "4rem", textAlign: "center" }}>
                   <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)", marginBottom: "1rem" }}></i>
-                  <p style={{ color: "var(--color-text-muted)" }}>Calculating continental university rankings...</p>
+                  <p style={{ color: "var(--color-text-muted)" }}>{t.rankings_page.loading}</p>
                 </div>
               ) : leaderboard.length === 0 ? (
                 <div style={{ padding: "4rem", textAlign: "center", color: "var(--color-text-muted)" }}>
-                  <i className="fa-solid fa-filter-circle-xmark" style={{ fontSize: "2.5rem", marginBottom: "1rem" }}></i>
-                  <p>No African institutions match the selected filter criteria.</p>
+                  <i className="fa-solid fa-filter-circle-xmark" style={{ fontSize: "2.5rem", marginBottom: "1rem", color: "var(--color-text-muted)" }}></i>
+                  <p>{t.institution_page.no_results}</p>
                 </div>
               ) : (
-                <table className="academic-table">
+                <table className="academic-table" style={{ width: "100%", minWidth: "720px", borderCollapse: "collapse", textAlign: "left" }}>
                   <thead>
-                    <tr>
-                      <th style={{ width: "80px", textAlign: "center" }}>Rank</th>
-                      <th>Institution &amp; Country</th>
-                      <th style={{ textAlign: "center" }}>Primary Focus</th>
-                      <th style={{ textAlign: "right" }}>Publications</th>
-                      <th style={{ textAlign: "right" }}>Citations</th>
-                      <th style={{ textAlign: "center", width: "120px" }}>Inst. h-Index</th>
-                      <th style={{ textAlign: "right" }}>Action</th>
+                    <tr style={{ background: "var(--color-bg-alt)", borderBottom: "1px solid var(--color-border)" }}>
+                      <th style={{ width: "80px", textAlign: "center", padding: "1rem" }}>{t.institution_page.col_rank}</th>
+                      <th style={{ padding: "1rem" }}>{t.institution_page.col_institution}</th>
+                      <th style={{ textAlign: "center", padding: "1rem" }}>{t.institution_page.col_top_discipline}</th>
+                      <th style={{ textAlign: "right", padding: "1rem" }}>{t.institution_page.col_publications}</th>
+                      <th style={{ textAlign: "right", padding: "1rem" }}>{t.institution_page.col_citations}</th>
+                      <th style={{ textAlign: "center", width: "120px", padding: "1rem" }}>{t.institution_page.col_hindex}</th>
+                      <th style={{ textAlign: "right", padding: "1rem" }}>{t.institution_page.col_action}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -302,8 +303,8 @@ function InstitutionContent() {
                       const rankBadgeColor = item.rank === 1 ? "var(--color-primary)" : item.rank === 2 ? "#475569" : item.rank === 3 ? "#b45309" : "var(--color-text-muted)";
 
                       return (
-                        <tr key={item.name}>
-                          <td style={{ textAlign: "center" }}>
+                        <tr key={item.name} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.2s" }} className="hover-row">
+                          <td style={{ textAlign: "center", padding: "1rem" }}>
                             <span style={{ 
                               display: "inline-flex", 
                               alignItems: "center", 
@@ -321,7 +322,7 @@ function InstitutionContent() {
                             </span>
                           </td>
 
-                          <td>
+                          <td style={{ padding: "1rem" }}>
                             <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.98rem" }}>
                               {item.name}
                             </div>
@@ -331,39 +332,39 @@ function InstitutionContent() {
                               {item.affiliatedJournalsCount > 0 && (
                                 <>
                                   <span>•</span>
-                                  <span>{item.affiliatedJournalsCount} Hosted Journals</span>
+                                  <span>{item.affiliatedJournalsCount} {t.showcase.title}</span>
                                 </>
                               )}
                             </div>
                           </td>
 
-                          <td style={{ textAlign: "center" }}>
+                          <td style={{ textAlign: "center", padding: "1rem" }}>
                             <span className="journal-tag" style={{ fontSize: "0.75rem" }}>
                               {item.topDiscipline}
                             </span>
                           </td>
 
-                          <td style={{ textAlign: "right", fontWeight: 600, color: "var(--color-text-main)" }}>
+                          <td style={{ textAlign: "right", fontWeight: 600, color: "var(--color-text-main)", padding: "1rem" }}>
                             {item.totalPublications.toLocaleString()}
                           </td>
 
-                          <td style={{ textAlign: "right", fontWeight: 700, color: "var(--color-primary)" }}>
+                          <td style={{ textAlign: "right", fontWeight: 700, color: "var(--color-primary)", padding: "1rem" }}>
                             {item.totalCitations.toLocaleString()}
                           </td>
 
-                          <td style={{ textAlign: "center" }}>
-                            <span className="badge badge-blue">
-                              {item.institutionalHIndex}
+                          <td style={{ textAlign: "center", padding: "1rem" }}>
+                            <span style={{ background: "#eff6ff", color: "#1d4ed8", padding: "0.25rem 0.65rem", borderRadius: "8px", fontWeight: 700, fontSize: "0.85rem" }}>
+                              h-{item.institutionalHIndex}
                             </span>
                           </td>
 
-                          <td style={{ textAlign: "right" }}>
+                          <td style={{ textAlign: "right", padding: "1rem" }}>
                             <button
                               onClick={() => handleSelectUniversity(item.name)}
                               className="btn btn-secondary btn-sm"
                               style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem" }}
                             >
-                              Drill-Down <i className="fa-solid fa-chevron-right" style={{ marginLeft: "0.25rem", fontSize: "0.7rem" }}></i>
+                              {t.institution_page.view_details} <i className="fa-solid fa-chevron-right" style={{ marginLeft: "0.25rem", fontSize: "0.7rem" }}></i>
                             </button>
                           </td>
                         </tr>
@@ -381,33 +382,33 @@ function InstitutionContent() {
           <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
             
             {/* Search & Selector Card */}
-            <div className="card-surface" style={{ padding: "1.75rem" }}>
+            <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
               <form onSubmit={handleSearchSubmit} style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-                <div style={{ flex: 1, minWidth: "280px", position: "relative" }}>
+                <div style={{ flex: 1, minWidth: "260px", position: "relative" }}>
                   <i className="fa-solid fa-building-columns" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--color-primary)" }}></i>
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Search African University (e.g. Makerere University, University of Nairobi...)"
+                    placeholder={t.institution_page.search_univ_placeholder}
                     className="form-control"
                     style={{ paddingLeft: "2.6rem" }}
                   />
                 </div>
-                <button type="submit" className="btn btn-primary" style={{ padding: "0.75rem 1.5rem" }}>
-                  Analyze Institution
+                <button type="submit" className="btn btn-primary" style={{ padding: "0.75rem 1.5rem", minHeight: "44px" }}>
+                  {t.common.search}
                 </button>
               </form>
 
               {/* Quick links */}
               <div style={{ marginTop: "1.2rem", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem", fontSize: "0.82rem" }}>
-                <span style={{ color: "var(--color-text-muted)", fontWeight: 600 }}>Quick Select:</span>
+                <span style={{ color: "var(--color-text-muted)", fontWeight: 600 }}>{t.institution_page.featured_label}</span>
                 {featuredUniversities.map(univ => (
                   <button
                     key={univ}
                     onClick={() => handleSelectUniversity(univ)}
                     style={{
-                      background: currentUnivName === univ ? "var(--badge-bg)" : "#ffffff",
+                      background: currentUnivName === univ ? "#eff6ff" : "#ffffff",
                       border: currentUnivName === univ ? "1px solid var(--color-primary)" : "1px solid var(--color-border)",
                       color: currentUnivName === univ ? "var(--color-primary)" : "var(--color-text-muted)",
                       padding: "0.25rem 0.7rem",
@@ -426,27 +427,27 @@ function InstitutionContent() {
             {loadingProfile ? (
               <div className="glass-card" style={{ padding: "4rem", textAlign: "center" }}>
                 <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)", marginBottom: "1rem" }}></i>
-                <p style={{ color: "var(--color-text-muted)" }}>Compiling institutional research rankings and citation impact...</p>
+                <p style={{ color: "var(--color-text-muted)" }}>{t.rankings_page.loading}</p>
               </div>
             ) : profileError || !profileData ? (
               <div className="glass-card" style={{ padding: "4rem", textAlign: "center" }}>
                 <i className="fa-solid fa-building-columns" style={{ fontSize: "3rem", color: "var(--color-text-muted)", marginBottom: "1rem" }}></i>
-                <h2 style={{ color: "var(--color-text-main)" }}>Institution Metrics Not Found</h2>
-                <p style={{ color: "var(--color-text-muted)", margin: "0.5rem 0 1.5rem" }}>{profileError || "No indexed records found for this university."}</p>
+                <h2 style={{ color: "var(--color-text-main)" }}>{t.institution_page.no_results}</h2>
+                <p style={{ color: "var(--color-text-muted)", margin: "0.5rem 0 1.5rem" }}>{profileError || t.institution_page.no_results}</p>
                 <button onClick={() => setActiveTab("leaderboard")} className="btn btn-secondary">
-                  Return to Leaderboard
+                  {t.institution_page.back_to_leaderboard}
                 </button>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
                 
                 {/* Institution Header Banner */}
-                <div className="card-surface" style={{ padding: "2rem" }}>
+                <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
                     <div>
                       <span className="badge-featured" style={{ marginBottom: "0.8rem" }}>
                         <i className="fa-solid fa-graduation-cap"></i>
-                        Institutional Research Benchmark Console
+                        {t.institution_page.tab_profile}
                       </span>
                       <h1 style={{ fontSize: "2rem", margin: "0.2rem 0 0.5rem", color: "var(--color-text-main)", fontWeight: 800 }}>{profileData.name}</h1>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
@@ -460,63 +461,59 @@ function InstitutionContent() {
                       className="btn btn-secondary btn-sm"
                       style={{ fontSize: "0.82rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
                     >
-                      <i className="fa-solid fa-arrow-left"></i> Back to Leaderboard
+                      <i className="fa-solid fa-arrow-left"></i> {t.institution_page.back_to_leaderboard}
                     </button>
                   </div>
                 </div>
 
                 {/* Metrics 4-Grid */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem" }}>
-                  <div className="card-surface" style={{ padding: "1.5rem", textAlign: "center" }}>
-                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Indexed Publications</span>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
+                  <div className="card-surface" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.institution_page.stats_pubs}</span>
                     <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-text-main)", margin: "0.4rem 0 0.2rem" }}>
                       {profileData.totalPublications.toLocaleString()}
                     </div>
-                    <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>Affiliated Faculty Papers</span>
                   </div>
 
-                  <div className="card-surface" style={{ padding: "1.5rem", textAlign: "center" }}>
-                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Total Citations</span>
+                  <div className="card-surface" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.institution_page.stats_cites}</span>
                     <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-primary)", margin: "0.4rem 0 0.2rem" }}>
                       {profileData.totalCitations.toLocaleString()}
                     </div>
-                    <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>Verified CrossRef References</span>
                   </div>
 
-                  <div className="card-surface" style={{ padding: "1.5rem", textAlign: "center" }}>
-                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Avg. Citations / Paper</span>
+                  <div className="card-surface" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.researcher_page.avg_citations}</span>
                     <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-text-main)", margin: "0.4rem 0 0.2rem" }}>
                       {profileData.averageCitations}
                     </div>
-                    <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>Citation Velocity Index</span>
                   </div>
 
-                  <div className="card-surface" style={{ padding: "1.5rem", textAlign: "center" }}>
-                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Institutional h-Index</span>
+                  <div className="card-surface" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.institution_page.stats_hindex}</span>
                     <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "#0284c7", margin: "0.4rem 0 0.2rem" }}>
-                      {profileData.institutionalHIndex || 1}
+                      h-{profileData.institutionalHIndex || 1}
                     </div>
-                    <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>High-Impact Threshold</span>
                   </div>
                 </div>
 
                 {/* Discipline Research Distribution */}
                 {profileData.disciplineBreakdown && profileData.disciplineBreakdown.length > 0 && (
-                  <div className="card-surface" style={{ padding: "2rem" }}>
+                  <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
                     <h3 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "0 0 1.25rem", color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
                       <i className="fa-solid fa-chart-pie" style={{ color: "var(--color-primary)" }}></i>
-                      Discipline Research Output Distribution
+                      {t.institution_page.departments_heading}
                     </h3>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
                       {profileData.disciplineBreakdown.map((item: any) => (
                         <div key={item.discipline} style={{ background: "var(--color-bg-base)", padding: "1.25rem", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)" }}>
                           <div style={{ fontWeight: 600, color: "var(--color-text-main)", fontSize: "0.95rem", marginBottom: "0.5rem" }}>
                             {item.discipline}
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-                            <span>Publications: <strong style={{ color: "var(--color-text-main)" }}>{item.publications}</strong></span>
-                            <span>Citations: <strong style={{ color: "var(--color-primary)" }}>{item.citations}</strong></span>
+                            <span>{t.top_institutions.publications}: <strong style={{ color: "var(--color-text-main)" }}>{item.publications}</strong></span>
+                            <span>{t.top_institutions.citations}: <strong style={{ color: "var(--color-primary)" }}>{item.citations}</strong></span>
                           </div>
                         </div>
                       ))}
@@ -526,10 +523,10 @@ function InstitutionContent() {
 
                 {/* Affiliated Journals / Publications */}
                 {profileData.affiliatedJournals && profileData.affiliatedJournals.length > 0 && (
-                  <div className="card-surface" style={{ padding: "2rem" }}>
+                  <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
                     <h3 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "0 0 1.25rem", color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
                       <i className="fa-solid fa-book-journal-whills" style={{ color: "var(--color-primary)" }}></i>
-                      Primary Affiliated &amp; Published Journals
+                      {t.institution_page.affiliated_journals}
                     </h3>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -540,15 +537,15 @@ function InstitutionContent() {
                               {j.name}
                             </a>
                             <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", marginTop: "0.2rem" }}>
-                              AJIF Score: <strong style={{ color: "var(--color-primary)" }}>{j.ajifScore?.toFixed(3) || "0.000"}</strong>
+                              {t.browse_page.score}: <strong style={{ color: "var(--color-primary)" }}>{j.ajifScore?.toFixed(3) || "0.000"}</strong>
                             </div>
                           </div>
                           <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
                             <span className="journal-tag">
-                              {j.articlesCount} Publications
+                              {j.articlesCount} {t.top_institutions.publications}
                             </span>
                             <a href={`/journal/${j.id}`} className="btn btn-secondary btn-sm" style={{ fontSize: "0.8rem" }}>
-                              View Journal
+                              {t.browse_page.view_details}
                             </a>
                           </div>
                         </div>

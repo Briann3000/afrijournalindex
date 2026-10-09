@@ -24,7 +24,7 @@ export async function GET(
             { id: cleanId },
             { issn: cleanId },
             { eissn: cleanId },
-            { name: { contains: cleanId, mode: "insensitive" } }
+            { name: { contains: cleanId } }
           ]
         },
         include: {

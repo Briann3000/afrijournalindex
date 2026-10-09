@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useLang } from "./LangContext";
 import africaPaths from "./data/africa-nations-paths.json";
 import { COUNTRY_META_MAP, ALL_AFRICAN_COUNTRIES, AfricanCountryMeta } from "./data/african-countries";
 
@@ -12,6 +13,7 @@ interface CountryLiveStats {
 }
 
 export default function AfricaMap() {
+  const { t } = useLang();
   const router = useRouter();
   
   // Real database metrics state
@@ -98,105 +100,50 @@ export default function AfricaMap() {
     const live = liveCountryStats[name] || liveCountryStats[name.toLowerCase()];
     const count = live?.journals || 0;
 
-    if (count === 0) return "#e2e8f0"; // Clean slate gray for 0 indexed journals (true data)
-    if (count >= 50) return "#0f2f57"; // Deep academic navy
-    if (count >= 15) return "#2271b1"; // Medium primary blue
-    if (count >= 5) return "#38bdf8";  // Light bright blue
-    return "#93c5fd"; // Soft blue (1-4 active journals)
+    if (count > 25) return "#1e3a8a"; // Deep Royal Navy (Major Hubs: Kenya, South Africa, Nigeria)
+    if (count > 10) return "#2271b1"; // Medium Brand Blue
+    if (count > 3)  return "#60a5fa"; // Light Blue
+    if (count > 0)  return "#93c5fd"; // Soft Accent Blue
+    return "#e2e8f0"; // Neutral Slate 200 for unindexed nations
   };
 
-  // Dynamic Regional Distribution calculation based on live database records
+  // Calculate real Regional Percentages
   const regionalBreakdown = useMemo(() => {
     const regionCounts: Record<string, number> = {
-      "East Africa": 0,
-      "Southern Africa": 0,
-      "West Africa": 0,
-      "North Africa": 0,
-      "Central Africa": 0
+      East: 0,
+      West: 0,
+      South: 0,
+      North: 0,
+      Central: 0
     };
 
-    ALL_AFRICAN_COUNTRIES.forEach(c => {
+    ALL_AFRICAN_COUNTRIES.forEach((c) => {
       const stats = liveCountryStats[c.name] || liveCountryStats[c.name.toLowerCase()];
-      const count = stats?.journals || 0;
-      const rKey = `${c.region} Africa`;
-      if (regionCounts[rKey] !== undefined) {
-        regionCounts[rKey] += count;
+      if (stats && stats.journals > 0) {
+        regionCounts[c.region] = (regionCounts[c.region] || 0) + stats.journals;
       }
     });
 
-    const total = Math.max(totalLiveJournals, 1);
-
+    const total = totalLiveJournals || 1;
     return [
-      { region: "East Africa", count: regionCounts["East Africa"], percentage: Math.round((regionCounts["East Africa"] / total) * 100), icon: "fa-compass", color: "#2271b1" },
-      { region: "Southern Africa", count: regionCounts["Southern Africa"], percentage: Math.round((regionCounts["Southern Africa"] / total) * 100), icon: "fa-earth-africa", color: "#0284c7" },
-      { region: "West Africa", count: regionCounts["West Africa"], percentage: Math.round((regionCounts["West Africa"] / total) * 100), icon: "fa-sun", color: "#16a34a" },
-      { region: "North Africa", count: regionCounts["North Africa"], percentage: Math.round((regionCounts["North Africa"] / total) * 100), icon: "fa-landmark", color: "#ca8a04" },
-      { region: "Central Africa", count: regionCounts["Central Africa"], percentage: Math.round((regionCounts["Central Africa"] / total) * 100), icon: "fa-tree", color: "#9333ea" }
+      { region: "East Africa", count: regionCounts.East, percentage: Math.round((regionCounts.East / total) * 100), color: "#2271b1", icon: "fa-compass" },
+      { region: "West Africa", count: regionCounts.West, percentage: Math.round((regionCounts.West / total) * 100), color: "#0284c7", icon: "fa-sun" },
+      { region: "Southern Africa", count: regionCounts.South, percentage: Math.round((regionCounts.South / total) * 100), color: "#10b981", icon: "fa-mountain-sun" },
+      { region: "North Africa", count: regionCounts.North, percentage: Math.round((regionCounts.North / total) * 100), color: "#f59e0b", icon: "fa-landmark" },
+      { region: "Central Africa", count: regionCounts.Central, percentage: Math.round((regionCounts.Central / total) * 100), color: "#8b5cf6", icon: "fa-tree" }
     ];
   }, [liveCountryStats, totalLiveJournals]);
 
   return (
-    <div className="glass-card" style={{ padding: "2.5rem 2rem", margin: "0 auto", overflow: "hidden" }}>
+    <div className="africa-map-wrapper" style={{ width: "100%", margin: "0 auto" }}>
       
-      {/* Section Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem", marginBottom: "2rem" }}>
-        <div>
-          <span className="badge-featured" style={{ marginBottom: "0.5rem" }}>
-            <i className="fa-solid fa-map-location-dot"></i>
-            Continental Scholarly Footprint
-          </span>
-          <h2 style={{ fontSize: "1.85rem", fontWeight: 900, color: "var(--color-navy)", margin: "0 0 0.4rem", letterSpacing: "-0.02em" }}>
-            Pan-African Journal Distribution Map
-          </h2>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "0.95rem", margin: 0 }}>
-            Interactive choropleth density map showing verified peer-reviewed publications and editorial hubs across Africa (Live Database Metrics).
-          </p>
-        </div>
-
-        {/* AJOL-Style Choropleth Density Legend */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", fontSize: "0.82rem", color: "var(--color-text-muted)", background: "#f8fafc", padding: "0.5rem 1rem", borderRadius: "8px", border: "1px solid var(--color-border)" }}>
-          <span style={{ fontWeight: 700, color: "var(--color-navy)", marginRight: "0.2rem" }}>Live Database Volume:</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-            <span style={{ width: "12px", height: "12px", borderRadius: "3px", background: "#0f2f57", display: "inline-block" }}></span>
-            50+
-          </span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-            <span style={{ width: "12px", height: "12px", borderRadius: "3px", background: "#2271b1", display: "inline-block" }}></span>
-            15–49
-          </span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-            <span style={{ width: "12px", height: "12px", borderRadius: "3px", background: "#38bdf8", display: "inline-block" }}></span>
-            5–14
-          </span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-            <span style={{ width: "12px", height: "12px", borderRadius: "3px", background: "#93c5fd", display: "inline-block" }}></span>
-            1–4
-          </span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-            <span style={{ width: "12px", height: "12px", borderRadius: "3px", background: "#e2e8f0", display: "inline-block", border: "1px solid #cbd5e1" }}></span>
-            0 (Unindexed)
-          </span>
-        </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1.15fr 0.85fr", gap: "2.5rem", alignItems: "center" }}>
+      {/* Interactive Map Canvas Grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "2rem", alignItems: "center" }}>
         
-        {/* Left Column: Authentic Vector Africa Choropleth Map with Real Country Borders */}
-        <div 
-          style={{ 
-            position: "relative", 
-            minHeight: "460px", 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center", 
-            background: "#f8fafc", 
-            borderRadius: "16px", 
-            border: "1px solid var(--color-border)", 
-            padding: "1.5rem" 
-          }}
-        >
+        {/* Left Column: True D3 Topology Vector Map */}
+        <div style={{ position: "relative", background: "#ffffff", borderRadius: "16px", padding: "1.5rem", border: "1px solid var(--color-border)", boxShadow: "0 4px 20px -4px rgba(15, 23, 42, 0.06)" }}>
           <svg
-            viewBox="0 0 700 700"
+            viewBox="0 0 520 540"
             style={{ width: "100%", height: "auto", maxHeight: "450px", filter: "drop-shadow(0 8px 16px rgba(15, 23, 42, 0.08))" }}
           >
             <g>
@@ -245,7 +192,7 @@ export default function AfricaMap() {
                       }
                     }}
                   >
-                    <title>{item.name} ({liveCount} Active Journals)</title>
+                    <title>{item.name} ({liveCount} {t.stats.journals})</title>
                   </path>
                 );
               })}
@@ -253,9 +200,9 @@ export default function AfricaMap() {
           </svg>
 
           {/* Map Overlay Prompt */}
-          <div style={{ position: "absolute", bottom: "14px", left: "18px", fontSize: "0.82rem", color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div style={{ position: "relative", marginTop: "10px", fontSize: "0.82rem", color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: "center" }}>
             <i className="fa-solid fa-hand-pointer" style={{ color: "var(--color-primary)" }}></i>
-            <span>Hover over any nation for verified registry data. Click to browse.</span>
+            <span>{t.map_section.hint}</span>
           </div>
         </div>
 
@@ -264,7 +211,7 @@ export default function AfricaMap() {
           
           {/* Active Highlight Card */}
           <div style={{ background: "#ffffff", border: "1px solid var(--color-primary)", borderRadius: "16px", padding: "1.8rem", boxShadow: "0 10px 25px -5px rgba(34, 113, 177, 0.15)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                 <span style={{ fontSize: "1.8rem" }}>{currentMeta.flag}</span>
                 <div>
@@ -272,7 +219,7 @@ export default function AfricaMap() {
                     {currentMeta.name}
                   </h3>
                   <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                    {currentMeta.region} Africa Regional Hub
+                    {currentMeta.region} {t.map_section.active_countries}
                   </span>
                 </div>
               </div>
@@ -283,7 +230,7 @@ export default function AfricaMap() {
                   className="btn btn-primary btn-sm"
                   style={{ fontSize: "0.78rem" }}
                 >
-                  Browse Journals <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.7rem", marginLeft: "0.3rem" }}></i>
+                  {t.map_section.view_country_journals} <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.7rem", marginLeft: "0.3rem" }}></i>
                 </button>
               ) : (
                 <a
@@ -291,21 +238,21 @@ export default function AfricaMap() {
                   className="btn btn-secondary btn-sm"
                   style={{ fontSize: "0.78rem" }}
                 >
-                  Submit Journal <i className="fa-solid fa-cloud-arrow-up" style={{ fontSize: "0.7rem", marginLeft: "0.3rem" }}></i>
+                  {t.nav.submit} <i className="fa-solid fa-cloud-arrow-up" style={{ fontSize: "0.7rem", marginLeft: "0.3rem" }}></i>
                 </a>
               )}
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.2rem" }}>
               <div style={{ background: "var(--color-bg-card-subtle)", padding: "1rem", borderRadius: "10px", border: "1px solid var(--color-border)" }}>
-                <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", display: "block", fontWeight: 600 }}>Indexed Journals</span>
+                <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", display: "block", fontWeight: 600 }}>{t.map_section.journals_count}</span>
                 <span style={{ fontSize: "1.6rem", fontWeight: 900, color: currentLive.journals > 0 ? "var(--color-primary)" : "var(--color-text-muted)" }}>
                   {currentLive.journals}
                 </span>
               </div>
 
               <div style={{ background: "var(--color-bg-card-subtle)", padding: "1rem", borderRadius: "10px", border: "1px solid var(--color-border)" }}>
-                <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", display: "block", fontWeight: 600 }}>Cataloged Articles</span>
+                <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", display: "block", fontWeight: 600 }}>{t.journal_page.citable_articles}</span>
                 <span style={{ fontSize: "1.6rem", fontWeight: 900, color: currentLive.articles > 0 ? "var(--color-navy)" : "var(--color-text-muted)" }}>
                   {currentLive.articles.toLocaleString()}
                 </span>
@@ -313,9 +260,9 @@ export default function AfricaMap() {
             </div>
 
             <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-              <strong>Status / Discipline:</strong>{" "}
+              <strong>{t.rankings_page.col_discipline}:</strong>{" "}
               <span style={{ color: currentLive.journals > 0 ? "var(--color-navy)" : "var(--color-text-muted)", fontWeight: 600 }}>
-                {currentLive.journals > 0 ? currentLive.topDiscipline : "No Indexed Journals Cataloged Yet"}
+                {currentLive.journals > 0 ? currentLive.topDiscipline : "Emerging Research Hub"}
               </span>
             </div>
           </div>
@@ -324,7 +271,7 @@ export default function AfricaMap() {
           <div style={{ background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", borderRadius: "16px", padding: "1.5rem" }}>
             <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <i className="fa-solid fa-chart-pie" style={{ color: "var(--color-primary)" }}></i>
-              Live Regional Publishing Distribution
+              {t.valprop.regional_title}
             </h4>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -336,7 +283,7 @@ export default function AfricaMap() {
                       {item.region}
                     </span>
                     <span style={{ color: "var(--color-text-muted)" }}>
-                      <strong style={{ color: "var(--color-navy)" }}>{item.count}</strong> journals ({item.percentage}%)
+                      <strong style={{ color: "var(--color-navy)" }}>{item.count}</strong> {t.stats.journals} ({item.percentage}%)
                     </span>
                   </div>
                   <div style={{ height: "6px", background: "#e2e8f0", borderRadius: "3px", overflow: "hidden" }}>

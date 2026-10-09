@@ -8,7 +8,7 @@ import Footer from "./Footer";
 import AfricaMap from "./AfricaMap";
 
 export default function Home() {
-  const { lang, t } = useLang();
+  const { t } = useLang();
   const router = useRouter();
   const [heroSearch, setHeroSearch] = useState("");
 
@@ -22,13 +22,13 @@ export default function Home() {
   };
 
   const disciplinesMarquee = [
-    { name: "Health Sciences & Medicine", icon: "fa-stethoscope", journals: "95+ Journals" },
-    { name: "Social Sciences & Humanities", icon: "fa-book-open-reader", journals: "110+ Journals" },
-    { name: "STEM & Engineering", icon: "fa-microchip", journals: "65+ Journals" },
-    { name: "Agricultural & Environmental", icon: "fa-leaf", journals: "58+ Journals" },
-    { name: "Business, Economics & Finance", icon: "fa-chart-pie", journals: "42+ Journals" },
-    { name: "Education & Pedagogy", icon: "fa-graduation-cap", journals: "70+ Journals" },
-    { name: "Law, Governance & Public Policy", icon: "fa-scale-balanced", journals: "35+ Journals" }
+    { name: t.disciplines.health, icon: "fa-stethoscope", count: "95+ " + t.disciplines.journals_count },
+    { name: t.disciplines.social, icon: "fa-book-open-reader", count: "110+ " + t.disciplines.journals_count },
+    { name: t.disciplines.stem, icon: "fa-microchip", count: "65+ " + t.disciplines.journals_count },
+    { name: t.disciplines.agri, icon: "fa-leaf", count: "58+ " + t.disciplines.journals_count },
+    { name: t.disciplines.business, icon: "fa-chart-pie", count: "42+ " + t.disciplines.journals_count },
+    { name: t.disciplines.education, icon: "fa-graduation-cap", count: "70+ " + t.disciplines.journals_count },
+    { name: t.disciplines.law, icon: "fa-scale-balanced", count: "35+ " + t.disciplines.journals_count }
   ];
 
   const top5Universities = [
@@ -45,61 +45,61 @@ export default function Home() {
       <Header activePage="home" />
 
       <main>
-        
         {/* 2. Authority Hero Section */}
         <section className="hero-section">
           <div className="container hero-container">
-            
             <div className="hero-content">
               <div className="badge-featured">
                 <i className="fa-solid fa-certificate"></i>
-                Pan-African Scholarly Index & Bibliometric Authority
+                {t.hero.pre_badge}
               </div>
 
               <h1 className="hero-title">
-                Elevating African Academic <span style={{ color: "var(--color-primary)" }}>Excellence</span> Through Verified Indexation
+                {t.hero.title}
               </h1>
 
               <p className="hero-subtitle">
-                An open, transparent indexing directory and citation metrics engine designed to value African scientific research, eliminate predatory barriers, and calculate verified regional impact factors.
+                {t.hero.subtitle}
               </p>
 
               {/* Instant Hero Search Bar */}
               <form onSubmit={handleSearchSubmit} style={{ width: "100%", maxWidth: "540px", marginBottom: "1.8rem" }}>
-                <div style={{ position: "relative", display: "flex", gap: "0.5rem" }}>
-                  <input
-                    type="text"
-                    value={heroSearch}
-                    onChange={(e) => setHeroSearch(e.target.value)}
-                    placeholder="Search 300+ indexed journals, universities or DOIs..."
-                    style={{
-                      width: "100%",
-                      padding: "0.85rem 1rem 0.85rem 2.6rem",
-                      background: "#ffffff",
-                      border: "2px solid #cbd5e1",
-                      borderRadius: "12px",
-                      fontSize: "0.95rem",
-                      color: "var(--color-navy)",
-                      outline: "none",
-                      boxShadow: "0 4px 12px rgba(15, 23, 42, 0.05)"
-                    }}
-                  />
-                  <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "1rem", top: "1.1rem", color: "#64748b" }}></i>
-                  <button type="submit" className="btn btn-primary" style={{ padding: "0 1.5rem", borderRadius: "12px", flexShrink: 0 }}>
-                    Search Index
+                <div style={{ position: "relative", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <div style={{ position: "relative", flex: "1 1 260px" }}>
+                    <input
+                      type="text"
+                      value={heroSearch}
+                      onChange={(e) => setHeroSearch(e.target.value)}
+                      placeholder={t.hero.search_placeholder}
+                      style={{
+                        width: "100%",
+                        padding: "0.85rem 1rem 0.85rem 2.6rem",
+                        background: "#ffffff",
+                        border: "2px solid #cbd5e1",
+                        borderRadius: "12px",
+                        fontSize: "0.95rem",
+                        color: "var(--color-navy)",
+                        outline: "none",
+                        boxShadow: "0 4px 12px rgba(15, 23, 42, 0.05)"
+                      }}
+                    />
+                    <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "1rem", top: "1.1rem", color: "#64748b" }}></i>
+                  </div>
+                  <button type="submit" className="btn btn-primary" style={{ padding: "0 1.5rem", borderRadius: "12px", flexShrink: 0, minHeight: "44px" }}>
+                    {t.hero.search_btn}
                   </button>
                 </div>
               </form>
 
               {/* Hero CTA Group */}
-              <div className="hero-cta-group">
+              <div className="hero-cta-group" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
                 <a href="/submit" className="btn btn-primary btn-lg">
                   <i className="fa-solid fa-plus-circle"></i>
-                  Index Your Journal (Free)
+                  {t.hero.cta_submit}
                 </a>
                 <a href="/institution" className="btn btn-secondary btn-lg">
                   <i className="fa-solid fa-ranking-star"></i>
-                  University League Table
+                  {t.hero.cta_institution}
                 </a>
               </div>
             </div>
@@ -112,7 +112,7 @@ export default function Home() {
                   <span className="dot" style={{ background: "#f59e0b" }}></span>
                   <span className="dot" style={{ background: "#10b981" }}></span>
                   <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginLeft: "auto", fontWeight: 600 }}>
-                    Official Journal Benchmark
+                    {t.hero.card_title}
                   </span>
                 </div>
 
@@ -122,27 +122,27 @@ export default function Home() {
                       Q1 Category Quartile
                     </span>
                     <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--color-navy)", margin: "0.2rem 0" }}>
-                      African Research Journal of Education and Social Sciences
+                      African Research Journal of Education and Social Sciences (ARJESS)
                     </h3>
                     <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
-                      ISSN: 2312-0134 • Kenya Projects Organization
+                      ISSN: 2312-0134 • Kenya Projects Organization (KENPRO)
                     </span>
                   </div>
 
                   <div className="metric-highlight">
-                    <span className="metric-label">Verified Bibliometric Metrics</span>
-                    <div className="metric-row">
+                    <span className="metric-label">{t.valprop.if_title}</span>
+                    <div className="metric-row" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(80px, 1fr))", gap: "0.5rem" }}>
                       <div className="metric-item">
                         <div className="metric-value">0.842</div>
-                        <div className="metric-name">Standard AJIF IF</div>
+                        <div className="metric-name">{t.hero.card_if}</div>
                       </div>
                       <div className="metric-item">
                         <div className="metric-value" style={{ color: "#16a34a" }}>Grade A</div>
-                        <div className="metric-name">Quality Audit Seal</div>
+                        <div className="metric-name">{t.hero.card_grade}</div>
                       </div>
                       <div className="metric-item">
                         <div className="metric-value" style={{ color: "#0284c7" }}>#1</div>
-                        <div className="metric-name">Education Rank</div>
+                        <div className="metric-name">Rank</div>
                       </div>
                     </div>
                   </div>
@@ -150,7 +150,7 @@ export default function Home() {
                   {/* 2-Year Citation Velocity Trend */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
                     <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase" }}>
-                      2-Year Citation Window Velocity
+                      {t.methodology_page.formula_title}
                     </span>
                     <span style={{ fontSize: "0.75rem", color: "var(--color-primary)", fontWeight: 700 }}>
                       +38.4% YoY
@@ -168,10 +168,9 @@ export default function Home() {
                 </div>
               </div>
             </div>
-
           </div>
 
-          {/* 3. Connected 3-Step Process Track (KDAnalytiks Inspired) */}
+          {/* 3. Connected 3-Step Process Track */}
           <div className="container">
             <div className="step-track-light">
               <div className="step-node-light">
@@ -179,10 +178,10 @@ export default function Home() {
                   <i className="fa-solid fa-bolt"></i>
                 </div>
                 <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.4rem" }}>
-                  1. Auto-Harvest from OJS
+                  1. {t.valprop.indexing_title}
                 </h4>
                 <p style={{ fontSize: "0.88rem", color: "var(--color-text-muted)", margin: 0 }}>
-                  Editors paste their OAI-PMH endpoint to auto-sync volumes, DOIs, and author records with zero manual entry.
+                  {t.valprop.indexing_text}
                 </p>
               </div>
 
@@ -191,10 +190,10 @@ export default function Home() {
                   <i className="fa-solid fa-shield-halved"></i>
                 </div>
                 <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.4rem" }}>
-                  2. 6-Point Integrity Audit
+                  2. {t.valprop.eval_title}
                 </h4>
                 <p style={{ fontSize: "0.88rem", color: "var(--color-text-muted)", margin: 0 }}>
-                  Automated checks verify ISSN registry, CC-BY open-access policy, and enforce a &lt;20% self-citation firewall.
+                  {t.valprop.eval_text}
                 </p>
               </div>
 
@@ -203,10 +202,10 @@ export default function Home() {
                   <i className="fa-solid fa-chart-line"></i>
                 </div>
                 <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.4rem" }}>
-                  3. Calibrated AJIF & Quartiles
+                  3. {t.valprop.if_title}
                 </h4>
                 <p style={{ fontSize: "0.88rem", color: "var(--color-text-muted)", margin: 0 }}>
-                  Receive formal impact score reports, Q1–Q4 ranking quartiles, and single-page official academic certificates.
+                  {t.valprop.if_text}
                 </p>
               </div>
             </div>
@@ -218,19 +217,19 @@ export default function Home() {
           <div className="container stats-grid">
             <div className="stat-card">
               <div className="stat-num">300+</div>
-              <div className="stat-label">Cataloged African Journals</div>
+              <div className="stat-label">{t.stats.journals}</div>
             </div>
             <div className="stat-card">
               <div className="stat-num">100%</div>
-              <div className="stat-label">Free Open-Access Indexing</div>
+              <div className="stat-label">{t.stats.free_indexing}</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num">20+</div>
-              <div className="stat-label">African Nations Represented</div>
+              <div className="stat-num">54</div>
+              <div className="stat-label">{t.stats.countries_covered}</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num">Q1–Q4</div>
-              <div className="stat-label">Calibrated Quartiles</div>
+              <div className="stat-num">5</div>
+              <div className="stat-label">{t.stats.languages}</div>
             </div>
           </div>
         </section>
@@ -248,8 +247,8 @@ export default function Home() {
                     <h5 style={{ fontSize: "0.88rem", fontWeight: 800, color: "var(--color-navy)", margin: 0 }}>
                       {disc.name}
                     </h5>
-                    <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
-                      {disc.journals}
+                    <span style={{ fontSize: "0.75rem", color: "var(--color-primary)", fontWeight: 700 }}>
+                      {disc.count}
                     </span>
                   </div>
                 </div>
@@ -258,248 +257,184 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 6. Interactive African Continental Journal Distribution Map */}
-        <section style={{ padding: "5rem 0" }}>
+        {/* 6. Interactive African Research Map Section */}
+        <section style={{ padding: "4rem 0 2rem", background: "var(--color-bg-alt)" }}>
           <div className="container">
+            <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--color-navy)" }}>
+                {t.map_section.title}
+              </h2>
+              <p style={{ color: "var(--color-text-muted)", maxWidth: "680px", margin: "0.5rem auto 0" }}>
+                {t.map_section.subtitle}
+              </p>
+            </div>
+
             <AfricaMap />
           </div>
         </section>
 
-        {/* 7. Four Strategic Core Pillars Grid */}
-        <section className="valprop-section" style={{ background: "var(--color-bg-card-subtle)", borderTop: "1px solid var(--color-border)", borderBottom: "1px solid var(--color-border)" }}>
+        {/* 7. Institutional Research Leaderboard Preview */}
+        <section style={{ padding: "4.5rem 0", background: "#ffffff", borderTop: "1px solid var(--color-border)" }}>
           <div className="container">
-            <div className="section-header">
-              <span className="badge-featured">Strategic Innovation</span>
-              <h2 className="section-title">Built for the African Academic Enterprise</h2>
-              <p className="section-desc">
-                AfriJournal Index overcomes the visibility and structural barriers African scholarly journals face, establishing a trusted continental citation standard.
-              </p>
-            </div>
-
-            <div className="valprop-grid">
-              <div className="glass-card valprop-card">
-                <div className="card-icon"><i className="fa-solid fa-cloud-arrow-down"></i></div>
-                <h3 className="card-title">1-Click OJS Auto-Harvester</h3>
-                <p className="card-text">
-                  Direct OAI-PMH interoperability pulls past volumes, article DOIs, abstracts, and author affiliations automatically without tedious manual data entry.
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
+              <div>
+                <span className="journal-tag" style={{ marginBottom: "0.5rem" }}>{t.nav.institution}</span>
+                <h2 style={{ fontSize: "1.85rem", fontWeight: 800, color: "var(--color-navy)", margin: "0.3rem 0" }}>
+                  {t.top_institutions.title}
+                </h2>
+                <p style={{ color: "var(--color-text-muted)", fontSize: "0.95rem" }}>
+                  {t.top_institutions.subtitle}
                 </p>
               </div>
-
-              <div className="glass-card valprop-card">
-                <div className="card-icon"><i className="fa-solid fa-scale-balanced"></i></div>
-                <h3 className="card-title">Calibrated Q1–Q4 Quartiles</h3>
-                <p className="card-text">
-                  Strict thresholding eliminates the &quot;Sea of Zeros&quot; distortion, ensuring subject quartiles reflect genuine citation velocity and academic impact.
-                </p>
-              </div>
-
-              <div className="glass-card valprop-card">
-                <div className="card-icon"><i className="fa-solid fa-shield-halved"></i></div>
-                <h3 className="card-title">Anti-Predatory Audit Seal</h3>
-                <p className="card-text">
-                  Automated 6-point verification protocols screen ISSN authenticity, editorial faculty credibility, and cap self-citations strictly below 20%.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 8. Top 5 African Universities League Table Teaser */}
-        <section style={{ padding: "5rem 0" }}>
-          <div className="container">
-            <div className="glass-card" style={{ padding: "2.5rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem", marginBottom: "1.8rem" }}>
-                <div>
-                  <span className="badge-featured" style={{ marginBottom: "0.5rem" }}>
-                    <i className="fa-solid fa-building-columns"></i> Institutional Benchmarking
-                  </span>
-                  <h2 style={{ fontSize: "1.85rem", fontWeight: 900, color: "var(--color-navy)", margin: 0 }}>
-                    Top African Universities League Table
-                  </h2>
-                  <p style={{ color: "var(--color-text-muted)", fontSize: "0.92rem", margin: "0.2rem 0 0" }}>
-                    Continental rankings aggregated by cataloged research output, CrossRef citation volume, and institutional $h$-index.
-                  </p>
-                </div>
-
-                <a href="/institution" className="btn btn-primary btn-sm">
-                  View Full 30+ Leaderboard <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.75rem", marginLeft: "0.3rem" }}></i>
-                </a>
-              </div>
-
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
-                  <thead>
-                    <tr style={{ background: "var(--color-bg-card-subtle)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-muted)", fontSize: "0.8rem", textTransform: "uppercase" }}>
-                      <th style={{ padding: "1rem 1.2rem", width: "70px", textAlign: "center" }}>Rank</th>
-                      <th style={{ padding: "1rem 1.2rem" }}>Institution & Country</th>
-                      <th style={{ padding: "1rem 1rem", textAlign: "right" }}>Publications</th>
-                      <th style={{ padding: "1rem 1rem", textAlign: "right" }}>Citations</th>
-                      <th style={{ padding: "1rem 1.2rem", textAlign: "center" }}>Inst. h-Index</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {top5Universities.map((univ) => (
-                      <tr key={univ.name} style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
-                        <td style={{ padding: "1rem 1.2rem", textAlign: "center" }}>
-                          <span style={{ 
-                            display: "inline-flex", 
-                            alignItems: "center", 
-                            justifyContent: "center", 
-                            width: "30px", 
-                            height: "30px", 
-                            borderRadius: "50%", 
-                            background: univ.rank === 1 ? "#eff6ff" : "var(--color-bg-card-subtle)", 
-                            color: univ.rank === 1 ? "var(--color-primary)" : "var(--color-navy)", 
-                            fontWeight: 800,
-                            fontSize: "0.85rem",
-                            border: univ.rank === 1 ? "1px solid var(--color-primary)" : "none"
-                          }}>
-                            {univ.rank}
-                          </span>
-                        </td>
-                        <td style={{ padding: "1rem 1.2rem" }}>
-                          <a href={`/institution?name=${encodeURIComponent(univ.name)}`} style={{ fontWeight: 700, color: "var(--color-navy)", textDecoration: "none" }}>
-                            {univ.name}
-                          </a>
-                          <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
-                            <i className="fa-solid fa-location-dot" style={{ color: "var(--color-primary)", marginRight: "0.3rem" }}></i>
-                            {univ.country}
-                          </div>
-                        </td>
-                        <td style={{ padding: "1rem 1rem", textAlign: "right", fontWeight: 600, color: "var(--color-navy)" }}>
-                          {univ.publications.toLocaleString()}
-                        </td>
-                        <td style={{ padding: "1rem 1rem", textAlign: "right", fontWeight: 700, color: "var(--color-primary)" }}>
-                          {univ.citations.toLocaleString()}
-                        </td>
-                        <td style={{ padding: "1rem 1.2rem", textAlign: "center" }}>
-                          <span style={{ padding: "0.2rem 0.6rem", borderRadius: "12px", background: "rgba(2, 132, 199, 0.1)", color: "#0284c7", fontWeight: 800, fontSize: "0.82rem" }}>
-                            {univ.hIndex}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 9. Featured African Research Journals Showcase */}
-        <section className="journals-showcase-section">
-          <div className="container">
-            <div className="section-header">
-              <span className="badge-featured">Peer-Reviewed Directory</span>
-              <h2 className="section-title">Featured Indexed Journals</h2>
-              <p className="section-desc">
-                Explore actively cataloged academic journals with verified DOI records, impact factors, and single-page academic certificates.
-              </p>
-            </div>
-
-            <div className="journals-grid">
-              {/* Journal 1 */}
-              <div className="journal-card">
-                <div className="journal-meta">
-                  <span className="journal-tag">Education</span>
-                  <span className="journal-tag">Social Sciences</span>
-                </div>
-                <h3 className="journal-name">
-                  <a href="/journal/arjess" style={{ color: "inherit", textDecoration: "none" }}>
-                    African Research Journal of Education and Social Sciences (ARJESS)
-                  </a>
-                </h3>
-                <div className="journal-details">
-                  <p><strong>ISSN:</strong> 2312-0134</p>
-                  <p><strong>Publisher:</strong> Kenya Projects Organization</p>
-                  <p><strong>Frequency:</strong> Quarterly</p>
-                </div>
-                <div className="journal-footer">
-                  <a href="/journal/arjess" className="journal-link">
-                    View Impact Profile <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i>
-                  </a>
-                  <span className="journal-badge badge-indexed"><i className="fa-solid fa-check-double"></i> Verified Q1</span>
-                </div>
-              </div>
-
-              {/* Journal 2 */}
-              <div className="journal-card">
-                <div className="journal-meta">
-                  <span className="journal-tag">Management</span>
-                  <span className="journal-tag">Business</span>
-                </div>
-                <h3 className="journal-name">
-                  <a href="/journal/jmba" style={{ color: "inherit", textDecoration: "none" }}>
-                    Journal of Management and Business Administration (JMBA)
-                  </a>
-                </h3>
-                <div className="journal-details">
-                  <p><strong>ISSN:</strong> 2519-0016</p>
-                  <p><strong>Publisher:</strong> Kenya Projects Organization</p>
-                  <p><strong>Frequency:</strong> Quarterly</p>
-                </div>
-                <div className="journal-footer">
-                  <a href="/journal/jmba" className="journal-link">
-                    View Impact Profile <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i>
-                  </a>
-                  <span className="journal-badge badge-indexed"><i className="fa-solid fa-check-double"></i> Verified Q2</span>
-                </div>
-              </div>
-
-              {/* Journal 3 */}
-              <div className="journal-card">
-                <div className="journal-meta">
-                  <span className="journal-tag">Environment</span>
-                  <span className="journal-tag">Health Sciences</span>
-                </div>
-                <h3 className="journal-name">
-                  <a href="/journal/ijehs" style={{ color: "inherit", textDecoration: "none" }}>
-                    International Journal of Environmental and Health Sciences (IJEHS)
-                  </a>
-                </h3>
-                <div className="journal-details">
-                  <p><strong>ISSN:</strong> Pending</p>
-                  <p><strong>Publisher:</strong> Kenya Projects Organization</p>
-                  <p><strong>Frequency:</strong> Semi-Annually</p>
-                </div>
-                <div className="journal-footer">
-                  <a href="/journal/ijehs" className="journal-link">
-                    View Impact Profile <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i>
-                  </a>
-                  <span className="journal-badge badge-indexed"><i className="fa-solid fa-check-double"></i> Verified Q2</span>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ textAlign: "center", marginTop: "3rem" }}>
-              <a href="/browse" className="btn btn-secondary btn-lg">
-                Explore Full 300+ Journal Directory <i className="fa-solid fa-arrow-right" style={{ marginLeft: "0.4rem" }}></i>
+              <a href="/institution" className="btn btn-secondary btn-sm" style={{ padding: "0.65rem 1.25rem", borderRadius: "10px", flexShrink: 0 }}>
+                {t.top_institutions.view_all} <i className="fa-solid fa-arrow-right" style={{ marginLeft: "5px" }}></i>
               </a>
             </div>
+
+            <div className="table-responsive" style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid var(--color-border)", overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.92rem" }}>
+                <thead>
+                  <tr style={{ background: "var(--color-bg-alt)", borderBottom: "1px solid var(--color-border)" }}>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", width: "80px" }}>{t.top_institutions.rank}</th>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>{t.top_institutions.institution}</th>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>{t.top_institutions.country}</th>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>{t.top_institutions.publications}</th>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>{t.top_institutions.citations}</th>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>{t.top_institutions.h_index}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {top5Universities.map((univ) => (
+                    <tr key={univ.rank} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.2s" }} className="hover-row">
+                      <td style={{ padding: "1rem 1.25rem", fontWeight: 800, color: univ.rank <= 3 ? "var(--color-primary)" : "var(--color-navy)" }}>
+                        #{univ.rank}
+                      </td>
+                      <td style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>
+                        <a href={`/institution?name=${encodeURIComponent(univ.name)}`} style={{ color: "var(--color-navy)" }} className="hover-primary">
+                          {univ.name}
+                        </a>
+                      </td>
+                      <td style={{ padding: "1rem 1.25rem", color: "var(--color-text-muted)" }}>
+                        <i className="fa-solid fa-location-dot" style={{ marginRight: "6px", color: "var(--color-primary)" }}></i>
+                        {univ.country}
+                      </td>
+                      <td style={{ padding: "1rem 1.25rem", textAlign: "center", fontWeight: 600 }}>
+                        {univ.publications.toLocaleString()}
+                      </td>
+                      <td style={{ padding: "1rem 1.25rem", textAlign: "center", fontWeight: 700, color: "var(--color-primary)" }}>
+                        {univ.citations.toLocaleString()}
+                      </td>
+                      <td style={{ padding: "1rem 1.25rem", textAlign: "center" }}>
+                        <span style={{ background: "#eff6ff", color: "#1d4ed8", padding: "0.25rem 0.65rem", borderRadius: "8px", fontWeight: 700, fontSize: "0.85rem" }}>
+                          h-{univ.hIndex}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 
-        {/* 10. Call to Action Banner */}
+        {/* 8. Verified KENPRO Seed Showcase */}
+        <section style={{ padding: "4.5rem 0", background: "var(--color-bg-alt)" }}>
+          <div className="container">
+            <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+              <span className="journal-tag">{t.showcase.badge_verified}</span>
+              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--color-navy)", marginTop: "0.5rem" }}>
+                {t.showcase.title}
+              </h2>
+              <p style={{ color: "var(--color-text-muted)", maxWidth: "620px", margin: "0.5rem auto 0" }}>
+                {t.showcase.desc}
+              </p>
+            </div>
+
+            <div className="journals-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem" }}>
+              {/* Journal Card 1: ARJESS */}
+              <div className="glass-card" style={{ padding: "1.75rem", background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+                  <span className="journal-tag">Q1 Quartile</span>
+                  <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: 700, background: "#dcfce7", padding: "0.2rem 0.6rem", borderRadius: "6px" }}>
+                    {t.showcase.badge_verified}
+                  </span>
+                </div>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.5rem" }}>
+                  African Research Journal of Education and Social Sciences (ARJESS)
+                </h3>
+                <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.2rem", lineHeight: "1.5" }}>
+                  Peer-reviewed scholarly forum publishing original empirical research across pedagogy, sociology, humanities, and African social development.
+                </p>
+                <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "0.8rem", color: "#64748b" }}>ISSN: 2312-0134</span>
+                  <a href="/browse" className="btn btn-primary btn-sm">{t.showcase.view_journal}</a>
+                </div>
+              </div>
+
+              {/* Journal Card 2: JMBA */}
+              <div className="glass-card" style={{ padding: "1.75rem", background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+                  <span className="journal-tag">Q2 Quartile</span>
+                  <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: 700, background: "#dcfce7", padding: "0.2rem 0.6rem", borderRadius: "6px" }}>
+                    {t.showcase.badge_verified}
+                  </span>
+                </div>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.5rem" }}>
+                  Journal of Management and Business Administration (JMBA)
+                </h3>
+                <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.2rem", lineHeight: "1.5" }}>
+                  Dedicated to African business innovations, microfinance systems, public sector leadership, and commercial economics.
+                </p>
+                <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "0.8rem", color: "#64748b" }}>ISSN: 2520-4106</span>
+                  <a href="/browse" className="btn btn-primary btn-sm">{t.showcase.view_journal}</a>
+                </div>
+              </div>
+
+              {/* Journal Card 3: IJEHS */}
+              <div className="glass-card" style={{ padding: "1.75rem", background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+                  <span className="journal-tag">Q1 Quartile</span>
+                  <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: 700, background: "#dcfce7", padding: "0.2rem 0.6rem", borderRadius: "6px" }}>
+                    {t.showcase.badge_verified}
+                  </span>
+                </div>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.5rem" }}>
+                  International Journal of Environmental and Health Sciences (IJEHS)
+                </h3>
+                <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.2rem", lineHeight: "1.5" }}>
+                  Focusing on tropical epidemiology, climate resilience in sub-Saharan Africa, sanitation policy, and community health.
+                </p>
+                <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "0.8rem", color: "#64748b" }}>ISSN: 2617-6432</span>
+                  <a href="/browse" className="btn btn-primary btn-sm">{t.showcase.view_journal}</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 9. Final High-Conversion CTA Banner */}
         <section className="cta-section">
           <div className="container cta-container">
-            <h2 className="cta-title">Ready to Elevate Your Academic Journal?</h2>
+            <h2 className="cta-title">
+              {t.cta.title}
+            </h2>
             <p className="cta-text">
-              Submit your peer-reviewed publication to our automated review harvester. Establish international visibility, verify compliance, and receive calculated impact factor reports.
+              {t.cta.desc}
             </p>
             <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
               <a href="/submit" className="btn btn-primary btn-lg">
-                <i className="fa-solid fa-bolt"></i> Start Free OJS Auto-Import
+                <i className="fa-solid fa-circle-check"></i> {t.cta.btn}
               </a>
-              <a href="/about" className="btn btn-secondary btn-lg" style={{ background: "#ffffff", color: "var(--color-navy)", borderColor: "var(--color-border)" }}>
-                Learn About AJIF Methodology
+              <a href="/submit/status" className="btn btn-secondary btn-lg" style={{ background: "rgba(255,255,255,0.1)", color: "#ffffff", border: "1px solid rgba(255,255,255,0.2)" }}>
+                <i className="fa-solid fa-magnifying-glass"></i> {t.cta.btn_status}
               </a>
             </div>
           </div>
         </section>
-
       </main>
 
-      {/* 11. Midnight Navy Footer */}
       <Footer />
     </div>
   );

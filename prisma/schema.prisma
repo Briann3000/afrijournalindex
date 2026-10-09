@@ -1,8 +1,8 @@
-// Prisma Database Schema for AfriJournal Index
-// Designed for scaling index lookups and citation-based impact factor metrics
+// Prisma Database Schema for AfriJournal Index (MySQL Native)
+// Optimized for cPanel and production MySQL deployments
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
 }
 
 generator client {
@@ -24,34 +24,33 @@ enum SubmissionStatus {
 
 model User {
   id            String      @id @default(uuid())
-  email         String      @unique
-  passwordHash  String
-  name          String
+  email         String      @unique @db.VarChar(191)
+  passwordHash  String      @db.VarChar(255)
+  name          String      @db.VarChar(255)
   role          Role        @default(RESEARCHER)
-  orcid         String?     @unique
-  institution   String?
+  orcid         String?     @unique @db.VarChar(191)
+  institution   String?     @db.VarChar(255)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   
   // Relations
-  journals      Journal[]   // Journals managed by this publisher
-  submissions   Submission[] // Submissions sent by this user
-  articles      Article[]   // Articles authored by this researcher
+  journals      Journal[]
+  submissions   Submission[]
   comments      Comment[]
 }
 
 model Journal {
   id            String            @id @default(uuid())
-  name          String
-  issn          String?           @unique
-  eissn         String?           @unique
-  description   String
-  publisherName String
-  country       String
-  frequency     String
-  websiteUrl    String
+  name          String            @db.VarChar(500)
+  issn          String?           @unique @db.VarChar(50)
+  eissn         String?           @unique @db.VarChar(50)
+  description   String?           @db.Text
+  publisherName String            @db.VarChar(500)
+  country       String            @db.VarChar(100)
+  frequency     String            @default("Quarterly") @db.VarChar(100)
+  websiteUrl    String?           @db.Text
   indexedAt     DateTime?
-  qualityGrade  String?           // e.g., "A", "B", "C"
+  qualityGrade  String?           @db.VarChar(10) // e.g. "A+", "A", "B", "C"
   isIndexed     Boolean           @default(false)
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
@@ -63,25 +62,27 @@ model Journal {
   articles      Article[]
   reports       ImpactFactorReport[]
   comments      Comment[]
+
+  @@index([country])
+  @@index([name])
 }
 
 model Submission {
   id            String            @id @default(uuid())
-  journalName   String
-  issn          String?
-  eissn         String?
-  description   String
-  publisherName String
-  country       String
-  frequency     String
-  websiteUrl    String
-  pdfFileUrl    String?           // Sample issue upload
+  journalName   String            @db.VarChar(500)
+  issn          String?           @db.VarChar(50)
+  eissn         String?           @db.VarChar(50)
+  description   String            @db.Text
+  publisherName String            @db.VarChar(500)
+  country       String            @db.VarChar(100)
+  frequency     String            @db.VarChar(100)
+  websiteUrl    String            @db.Text
+  pdfFileUrl    String?           @db.Text
   status        SubmissionStatus  @default(PENDING)
-  evaluationLog String?           // Log detailing automated checks
+  evaluationLog String?           @db.Text
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
-  // Relations
   submitterId   String
   submitter     User              @relation(fields: [submitterId], references: [id])
   journalId     String?
@@ -90,60 +91,59 @@ model Submission {
 
 model Article {
   id            String      @id @default(uuid())
-  title         String
-  doi           String?     @unique
-  abstract      String?
-  pdfUrl        String?
+  title         String      @db.Text
+  doi           String?     @unique @db.VarChar(255)
+  abstract      String?     @db.LongText
+  pdfUrl        String?     @db.Text
   publishDate   DateTime
   createdAt     DateTime    @default(now())
   
-  // Relations
   journalId     String
-  journal       Journal     @relation(fields: [journalId], references: [id])
-  authors       User[]
+  journal       Journal     @relation(fields: [journalId], references: [id], onDelete: Cascade)
   
-  // Citation mapping
-  citations     Citation[]  @relation("ArticleCitations") // Citations made BY this article
-  citedBy       Citation[]  @relation("ArticleCitedBy")   // Citations pointing TO this article
+  citations     Citation[]  @relation("ArticleCitations")
+  citedBy       Citation[]  @relation("ArticleCitedBy")
+
+  @@index([journalId])
+  @@index([publishDate])
 }
 
 model Citation {
   id              String   @id @default(uuid())
   citedAt         DateTime @default(now())
   
-  // Relations
-  citingArticleId String   // The article that is CITING
-  citingArticle   Article  @relation("ArticleCitations", fields: [citingArticleId], references: [id])
+  citingArticleId String
+  citingArticle   Article  @relation("ArticleCitations", fields: [citingArticleId], references: [id], onDelete: Cascade)
   
-  citedArticleId  String   // The article that is CITED
-  citedArticle    Article  @relation("ArticleCitedBy", fields: [citedArticleId], references: [id])
+  citedArticleId  String
+  citedArticle    Article  @relation("ArticleCitedBy", fields: [citedArticleId], references: [id], onDelete: Cascade)
 
   @@unique([citingArticleId, citedArticleId])
+  @@index([citedArticleId])
 }
 
 model ImpactFactorReport {
   id                String   @id @default(uuid())
   year              Int
-  standardScore     Float    // Standard 2-year window impact score
-  regionalScore     Float?   // Africa-weighted AJIF score (Phase 2)
-  citationCount     Int      // Total citations counted in window
-  articleCount      Int      // Total articles published in window
-  pdfReportUrl      String?  // Link to generated PDF report
+  standardScore     Float
+  regionalScore     Float?
+  citationCount     Int
+  articleCount      Int
+  pdfReportUrl      String?  @db.Text
   createdAt         DateTime @default(now())
 
-  // Relations
   journalId         String
-  journal           Journal  @relation(fields: [journalId], references: [id])
+  journal           Journal  @relation(fields: [journalId], references: [id], onDelete: Cascade)
 
   @@unique([journalId, year])
+  @@index([year])
 }
 
 model Comment {
   id          String   @id @default(uuid())
-  content     String
+  content     String   @db.Text
   createdAt   DateTime @default(now())
   
-  // Relations
   journalId   String
   journal     Journal  @relation(fields: [journalId], references: [id], onDelete: Cascade)
   authorId    String

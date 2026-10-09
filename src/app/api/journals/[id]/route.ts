@@ -23,7 +23,7 @@ export async function GET(
           { id: id },
           { issn: id },
           { eissn: id },
-          { name: { contains: id, mode: "insensitive" } }
+          { name: { contains: id } }
         ]
       },
       include: {

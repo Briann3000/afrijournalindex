@@ -3,9 +3,10 @@
 import React, { useState } from "react";
 import { useLang } from "../LangContext";
 import Header from "../Header";
+import Footer from "../Footer";
 
 export default function Login() {
-  const { lang, setLang, t } = useLang();
+  const { t } = useLang();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -37,16 +38,16 @@ export default function Login() {
       });
       const result = await res.json();
       if (result.success) {
-        setSuccessMsg("Authentication successful. Redirecting to your dashboard...");
+        setSuccessMsg(t.auth.auth_success);
         setTimeout(() => {
           window.location.href = `/researcher?id=${result.user.id}`;
         }, 1000);
       } else {
-        setError(result.error || "Authentication failed. Please verify your credentials.");
+        setError(result.error || t.auth.auth_error);
       }
     } catch (err) {
       console.error(err);
-      setError("Login failed. Check server status.");
+      setError(t.auth.auth_error);
     } finally {
       setLoading(false);
     }
@@ -57,15 +58,15 @@ export default function Login() {
       {/* Navigation */}
       <Header />
 
-      <main className="container" style={{ padding: "4rem 0 6rem", maxWidth: "480px" }}>
+      <main className="container" style={{ padding: "3.5rem 1rem 6rem", maxWidth: "480px" }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <h1 className="page-title" style={{ fontSize: "2rem" }}>Account Login</h1>
+          <h1 className="page-title" style={{ fontSize: "2rem" }}>{t.auth.login_title}</h1>
           <p className="page-subtitle" style={{ fontSize: "0.95rem" }}>
-            Log in to manage journal submissions, researcher profiles, and indexing metrics.
+            {t.auth.login_subtitle}
           </p>
         </div>
 
-        <div className="glass-card" style={{ padding: "2.5rem" }}>
+        <div className="glass-card" style={{ padding: "2rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)" }}>
           {successMsg && (
             <div style={{
               background: "#ecfdf5",
@@ -104,23 +105,23 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
             <div className="form-group">
-              <label htmlFor="email" className="form-label">
-                <i className="fa-regular fa-envelope" style={{ color: "var(--color-primary)" }}></i> Email Address
+              <label htmlFor="email" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                <i className="fa-regular fa-envelope" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i> {t.auth.email_label}
               </label>
               <input 
                 type="email" 
                 id="email" 
                 required 
                 className="form-control" 
-                placeholder="e.g. jane.doe@uonbi.ac.ke"
+                placeholder={t.auth.email_placeholder}
                 value={formData.email}
                 onChange={handleChange}
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="password" className="form-label">
-                <i className="fa-solid fa-lock" style={{ color: "var(--color-primary)" }}></i> Password
+              <label htmlFor="password" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                <i className="fa-solid fa-lock" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i> {t.auth.password_label}
               </label>
               <input 
                 type="password" 
@@ -136,21 +137,23 @@ export default function Login() {
             <button 
               type="submit" 
               className="btn btn-primary" 
-              style={{ width: "100%", marginTop: "0.75rem", padding: "0.85rem" }}
+              style={{ width: "100%", marginTop: "0.75rem", padding: "0.85rem", minHeight: "44px" }}
               disabled={loading || !!successMsg}
             >
-              {loading ? "Authenticating..." : "Sign In to Dashboard"}
+              {loading ? t.auth.logging_in : t.auth.btn_login}
             </button>
 
             <div style={{ textAlign: "center", marginTop: "0.5rem", fontSize: "0.9rem", color: "var(--color-text-muted)" }}>
-              Don't have an account?{" "}
+              {t.auth.no_account}{" "}
               <a href="/register" style={{ color: "var(--color-primary)", fontWeight: 600 }}>
-                Register here
+                {t.auth.register_link}
               </a>
             </div>
           </form>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

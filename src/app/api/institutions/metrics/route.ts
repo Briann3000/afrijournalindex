@@ -187,33 +187,21 @@ export async function GET(request: Request) {
     // 2. INDIVIDUAL INSTITUTION DRILL-DOWN MODE
     const institutionName = (name || "University of Nairobi").trim();
 
-    // Fetch all articles authored by researchers matching this institution or published by it
+    // Fetch all articles published by or affiliated with this institution
     const articles = await prisma.article.findMany({
       where: {
         OR: [
           {
-            authors: {
-              some: {
-                institution: {
-                  contains: institutionName,
-                  mode: "insensitive"
-                }
-              }
-            }
-          },
-          {
             journal: {
               publisherName: {
-                contains: institutionName,
-                mode: "insensitive"
+                contains: institutionName
               }
             }
           },
           {
             journal: {
               name: {
-                contains: institutionName,
-                mode: "insensitive"
+                contains: institutionName
               }
             }
           }
@@ -232,13 +220,6 @@ export async function GET(request: Request) {
             }
           }
         },
-        authors: {
-          select: {
-            id: true,
-            name: true,
-            institution: true
-          }
-        },
         citedBy: true
       }
     });
@@ -247,44 +228,28 @@ export async function GET(request: Request) {
     const faculty = await prisma.user.findMany({
       where: {
         institution: {
-          contains: institutionName,
-          mode: "insensitive"
+          contains: institutionName
         }
       },
       select: {
         id: true,
         name: true,
         orcid: true,
-        institution: true,
-        articles: {
-          select: {
-            id: true,
-            citedBy: true
-          }
-        }
+        institution: true
       }
     });
 
-    // Compute faculty h-index
+    // Compute faculty metrics
     const facultyLeaderboard = faculty.map(f => {
-      const citationsPerArticle = f.articles.map(a => a.citedBy.length).sort((a, b) => b - a);
-      let hIndex = 0;
-      for (let i = 0; i < citationsPerArticle.length; i++) {
-        if (citationsPerArticle[i] >= i + 1) {
-          hIndex = i + 1;
-        } else {
-          break;
-        }
-      }
       return {
         id: f.id,
         name: f.name,
         orcid: f.orcid,
-        articlesCount: f.articles.length,
-        totalCitations: citationsPerArticle.reduce((sum, c) => sum + c, 0),
-        hIndex
+        articlesCount: 0,
+        totalCitations: 0,
+        hIndex: 0
       };
-    }).sort((a, b) => b.hIndex - a.hIndex || b.totalCitations - a.totalCitations);
+    });
 
     // Benchmark match fallback
     const benchmarkMatch = CONTINENTAL_BENCHMARKS.find(b => b.name.toLowerCase().includes(institutionName.toLowerCase()) || institutionName.toLowerCase().includes(b.name.toLowerCase()));
