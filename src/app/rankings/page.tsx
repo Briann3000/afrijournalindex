@@ -156,7 +156,9 @@ export default function Rankings() {
                       {idx === 0 ? "??" : idx === 1 ? "??" : idx === 2 ? "??" : `#${idx + 1}`}
                     </td>
                     <td style={{ padding: "1rem" }}>
-                      <a href={`/submit/status?id=${journal.id}`} style={{ color: "#fff", fontWeight: 600 }}>{journal.name}</a>
+                      <a href={`/journal/${journal.id}`} style={{ color: "#fff", fontWeight: 600, textDecoration: "none" }}>
+                        {journal.name}
+                      </a>
                       <span style={{ display: "block", fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.2rem" }}>
                         ISSN: {journal.issn || "Pending"} | Publisher: {journal.publisherName}
                       </span>

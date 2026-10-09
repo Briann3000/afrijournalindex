@@ -382,5 +382,39 @@
                 }
             ]
         }
-    ]
+    ],
+    "journal_page": {
+        "back_to_browse": "Voltar ao Diretório",
+        "indexed_badge": "Periódico Indexado Verificado",
+        "unindexed_badge": "Avaliação Pendente",
+        "grade": "Classificação de Qualidade",
+        "publisher": "Editora",
+        "country": "País de Origem",
+        "frequency": "Periodicidade de Publicação",
+        "issn_print": "ISSN Impresso",
+        "issn_electronic": "ISSN Eletrônico",
+        "visit_website": "Visitar Site Oficial",
+        "impact_metrics_title": "Métricas de Impacto AJIF",
+        "impact_metrics_desc": "Calculado com janela de citação de 2 anos e multiplicador regional ponderado para a África",
+        "standard_ajif": "Pontuação AJIF Padrão",
+        "regional_ajif": "Pontuação Regional Ponderada",
+        "citable_articles": "Artigos Citáveis",
+        "citations_received": "Citações Recebidas",
+        "scope_title": "Escopo e Foco Editorial",
+        "articles_title": "Artigos e Publicações Indexados",
+        "articles_desc": "Artigos catalogados no repositório de indexação com registros DOI verificados e contagem de citações",
+        "no_articles": "Nenhum artigo registrado no período de citação até o momento.",
+        "citations": "Citações",
+        "view_doi": "Ver Artigo / DOI",
+        "reviews_title": "Revisão por Pares e Discussões",
+        "reviews_desc": "Discussões acadêmicas, pareceres de revisão por pares e notas de indexação",
+        "no_reviews": "Nenhuma discussão registrada para este periódico. Seja o primeiro a publicar uma avaliação!",
+        "leave_comment": "Deixar uma Avaliação ou Comentário",
+        "post_comment": "Publicar Avaliação",
+        "posting": "Publicando...",
+        "must_login": "Você precisa estar logado para participar das discussões.",
+        "login_btn": "Fazer Login para Participar",
+        "not_found_title": "Periódico Não Encontrado",
+        "not_found_desc": "O periódico solicitado não foi encontrado no registro AfriJournal Index."
+    }
 }

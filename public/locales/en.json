@@ -382,5 +382,39 @@
                 }
             ]
         }
-    ]
+    ],
+    "journal_page": {
+        "back_to_browse": "Back to Browse Directory",
+        "indexed_badge": "Verified Indexed Journal",
+        "unindexed_badge": "Pending Evaluation",
+        "grade": "Quality Grade",
+        "publisher": "Publisher",
+        "country": "Country of Origin",
+        "frequency": "Publication Frequency",
+        "issn_print": "Print ISSN",
+        "issn_electronic": "Electronic ISSN",
+        "visit_website": "Visit Official Website",
+        "impact_metrics_title": "AJIF Impact Metrics",
+        "impact_metrics_desc": "Calculated using 2-year citation window with Africa-weighted regional multiplier",
+        "standard_ajif": "Standard AJIF Score",
+        "regional_ajif": "Regional Weighted Score",
+        "citable_articles": "Citable Articles",
+        "citations_received": "Citations Received",
+        "scope_title": "Scope & Editorial Focus",
+        "articles_title": "Indexed Articles & Publications",
+        "articles_desc": "Articles cataloged in the indexing repository with verified DOI records and citation counts",
+        "no_articles": "No articles registered in the citation window yet.",
+        "citations": "Citations",
+        "view_doi": "View Article / DOI",
+        "reviews_title": "Peer Review & Community Discussions",
+        "reviews_desc": "Academic discussions, peer review feedback, and indexing notes from verified researchers",
+        "no_reviews": "No discussions recorded yet for this journal. Be the first to post a review!",
+        "leave_comment": "Leave a Review or Comment",
+        "post_comment": "Post Review",
+        "posting": "Posting...",
+        "must_login": "You must be logged in to participate in peer discussions.",
+        "login_btn": "Log In to Participate",
+        "not_found_title": "Journal Not Found",
+        "not_found_desc": "The requested journal could not be located in the AfriJournal Index registry."
+    }
 }

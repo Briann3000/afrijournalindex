@@ -382,5 +382,39 @@
                 }
             ]
         }
-    ]
+    ],
+    "journal_page": {
+        "back_to_browse": "Rudi kwenye Orodha ya Majarida",
+        "indexed_badge": "Jarida Lililohakikiwa na Kuorodheshwa",
+        "unindexed_badge": "Inasubiri Tathmini",
+        "grade": "Kiwango cha Ubora",
+        "publisher": "Mchapishaji",
+        "country": "Nchi ya Asili",
+        "frequency": "Mzunguko wa Uchapishaji",
+        "issn_print": "ISSN ya Kuchapishwa",
+        "issn_electronic": "ISSN ya Kidijitali",
+        "visit_website": "Tembelea Tovuti Rasmi",
+        "impact_metrics_title": "Vipimo vya Athari za AJIF",
+        "impact_metrics_desc": "Inapigwa hesabu kwa kipindi cha nukuu cha miaka 2 chenye uzito maalum wa kikanda wa Afrika",
+        "standard_ajif": "Alama ya Kawaida ya AJIF",
+        "regional_ajif": "Alama ya Kikanda Iliyopimwa",
+        "citable_articles": "Makala Zinazonukuliwa",
+        "citations_received": "Nukuu Zilizopokelewa",
+        "scope_title": "Upeo na Malengo ya Uhariri",
+        "articles_title": "Makala Yaliyoorodheshwa",
+        "articles_desc": "Makala yaliyosajiliwa katika hifadhidata ya fahirisi yenye nambari rasmi za DOI na idadi ya nukuu",
+        "no_articles": "Hakuna makala yaliyosajiliwa katika kipindi hiki cha nukuu.",
+        "citations": "Nukuu",
+        "view_doi": "Tazama Makala / DOI",
+        "reviews_title": "Ukaguzi wa Wenza na Mijadala ya Jamii",
+        "reviews_desc": "Mijadala ya kitaaluma, maoni ya ukaguzi wa wenza, na maelezo ya fahirisi kutoka kwa watafiti walioidhinishwa",
+        "no_reviews": "Hakuna mijadala iliyorekodiwa kwa jarida hili bado. Kuwa wa kwanza kutoa maoni!",
+        "leave_comment": "Acha Maoni au Ukaguzi",
+        "post_comment": "Tuma Maoni",
+        "posting": "Inatuma...",
+        "must_login": "Lazima uwe umeingia kwenye mfumo ili kushiriki katika mijadala ya wenza.",
+        "login_btn": "Ingia ili Kushiriki",
+        "not_found_title": "Jarida Halipatikani",
+        "not_found_desc": "Jarida lililoombwa halikupatikana katika sajili ya AfriJournal Index."
+    }
 }

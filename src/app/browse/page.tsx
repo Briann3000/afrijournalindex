@@ -6,6 +6,7 @@ import Header from "../Header";
 import Footer from "../Footer";
 
 interface Journal {
+  id?: string;
   name: string;
   issn: string;
   publisher: string;
@@ -17,6 +18,7 @@ interface Journal {
 
 const seedJournals: Journal[] = [
   {
+    id: "arjess",
     name: "African Research Journal of Education and Social Sciences (ARJESS)",
     issn: "2312-0134",
     publisher: "Kenya Projects Organization (KENPRO)",
@@ -26,6 +28,7 @@ const seedJournals: Journal[] = [
     link: "https://arjess.org"
   },
   {
+    id: "jmba",
     name: "Journal of Management and Business Administration (JMBA)",
     issn: "2519-0016",
     publisher: "Kenya Projects Organization (KENPRO)",
@@ -35,6 +38,7 @@ const seedJournals: Journal[] = [
     link: ""
   },
   {
+    id: "ijehs",
     name: "International Journal of Environmental and Health Sciences (IJEHS)",
     issn: "Pending",
     publisher: "Kenya Projects Organization (KENPRO)",
@@ -44,6 +48,7 @@ const seedJournals: Journal[] = [
     link: ""
   },
   {
+    id: "jede",
     name: "Journal of Education in Developing Economies (JEDE)",
     issn: "Pending",
     publisher: "Kenya Projects Organization (KENPRO)",
@@ -53,6 +58,7 @@ const seedJournals: Journal[] = [
     link: ""
   },
   {
+    id: "ajrs",
     name: "African Journal of Religious Studies (AJRS)",
     issn: "Pending",
     publisher: "Writers Bureau Centre / KENPRO",
@@ -108,6 +114,7 @@ export default function Browse() {
         if (data.success && Array.isArray(data.journals) && data.journals.length > 0) {
           const dbJournals = data.journals.map((j: any) => {
             return {
+              id: j.id,
               name: j.name,
               issn: j.issn || "Pending",
               publisher: j.publisherName || "Unknown Publisher",
@@ -249,7 +256,14 @@ export default function Browse() {
                     {journal.country}
                   </span>
                 </div>
-                <h3 className="journal-name">{journal.name}</h3>
+                <h3 className="journal-name">
+                  <a 
+                    href={`/journal/${journal.id || journal.issn}`}
+                    style={{ color: "inherit", textDecoration: "none" }}
+                  >
+                    {journal.name}
+                  </a>
+                </h3>
                 <div className="journal-details">
                   <p><strong>ISSN:</strong> {journal.issn}</p>
                   <p><strong>Publisher:</strong> {journal.publisher}</p>
@@ -257,31 +271,31 @@ export default function Browse() {
                 </div>
                 <div className="journal-footer" style={{ display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", width: "100%" }}>
                   {journal.link ? (
-                    <a href={journal.link} target="_blank" rel="noopener noreferrer" className="journal-link" style={{ marginRight: "auto" }}>
+                    <a href={journal.link.startsWith("http") ? journal.link : `https://${journal.link}`} target="_blank" rel="noopener noreferrer" className="journal-link" style={{ marginRight: "auto" }}>
                       {journal.link.replace("https://", "").replace("http://", "").split('/')[0]} <i className="fa-solid fa-up-right-from-square"></i>
                     </a>
                   ) : (
                     <span className="journal-link-placeholder" style={{ marginRight: "auto" }}>kenpro.org</span>
                   )}
                   
-                  <button 
-                    onClick={() => handleViewStatus(journal.issn)} 
+                  <a 
+                    href={`/journal/${journal.id || journal.issn}`}
                     style={{
-                      background: "rgba(212,160,74,0.1)",
+                      background: "rgba(212,160,74,0.12)",
                       border: "1px solid rgba(212,160,74,0.3)",
                       color: "var(--color-primary)",
-                      padding: "0.3rem 0.8rem",
+                      padding: "0.4rem 0.9rem",
                       borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "0.8rem",
+                      textDecoration: "none",
+                      fontSize: "0.85rem",
                       fontWeight: 600,
-                      display: "flex",
+                      display: "inline-flex",
                       alignItems: "center",
                       gap: "0.4rem"
                     }}
                   >
-                    <i className="fa-solid fa-chart-column"></i> View Report
-                  </button>
+                    <i className="fa-solid fa-chart-line"></i> View Profile
+                  </a>
                 </div>
               </div>
             ))

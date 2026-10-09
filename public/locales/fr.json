@@ -382,5 +382,39 @@
                 }
             ]
         }
-    ]
+    ],
+    "journal_page": {
+        "back_to_browse": "Retour au Répertoire",
+        "indexed_badge": "Revue Indexée Vérifiée",
+        "unindexed_badge": "Évaluation en Attente",
+        "grade": "Niveau de Qualité",
+        "publisher": "Éditeur",
+        "country": "Pays d'Origine",
+        "frequency": "Périodicité de Publication",
+        "issn_print": "ISSN Imprimé",
+        "issn_electronic": "ISSN Électronique",
+        "visit_website": "Visiter le Site Officiel",
+        "impact_metrics_title": "Métriques d'Impact AJIF",
+        "impact_metrics_desc": "Calculé sur une fenêtre de citation de 2 ans avec coefficient régional pour l'Afrique",
+        "standard_ajif": "Score AJIF Standard",
+        "regional_ajif": "Score Régional Pondéré",
+        "citable_articles": "Articles Citables",
+        "citations_received": "Citations Reçues",
+        "scope_title": "Portée et Ligne Éditoriale",
+        "articles_title": "Articles et Publications Indexés",
+        "articles_desc": "Articles répertoriés dans le système d'indexation avec identifiant DOI vérifié et nombre de citations",
+        "no_articles": "Aucun article enregistré pour cette période de citation.",
+        "citations": "Citations",
+        "view_doi": "Voir l'Article / DOI",
+        "reviews_title": "Évaluation par les Pairs et Discussions",
+        "reviews_desc": "Discussions académiques, avis d'évaluation par les pairs et notes d'indexation",
+        "no_reviews": "Aucune discussion enregistrée pour cette revue. Soyez le premier à donner votre avis !",
+        "leave_comment": "Laisser un Avis ou Commentaire",
+        "post_comment": "Publier l'Avis",
+        "posting": "Publication en cours...",
+        "must_login": "Vous devez être connecté pour participer aux discussions des pairs.",
+        "login_btn": "Se Connecter pour Participer",
+        "not_found_title": "Revue Introuvable",
+        "not_found_desc": "La revue demandée n'a pas pu être trouvée dans le registre AfriJournal Index."
+    }
 }
