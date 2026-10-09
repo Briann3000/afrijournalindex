@@ -6,21 +6,51 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { tracking_id, state, api_ref, journalId, amount } = body;
 
-    // In production, we would query the IntaSend Verification API:
-    // GET https://sandbox.intasend.com/api/v1/payment/status/
-    // headers: { Authorization: "Bearer " + INTASEND_SECRET_KEY }
-    // For this prototype/MVP, we verify client status is "COMPLETE" or "SUCCESSFUL"
-    if (state !== "COMPLETE" && state !== "SUCCESSFUL" && state !== "success") {
-      return NextResponse.json({ success: false, error: "Payment was not completed successfully." }, { status: 400 });
-    }
-
     if (!journalId) {
       return NextResponse.json({ success: false, error: "Missing associated Journal ID reference." }, { status: 400 });
     }
 
-    console.log(`Payment success verified for Journal ${journalId}. Tracking ID: ${tracking_id}`);
+    const secretKey = process.env.INTASEND_SECRET_KEY;
 
-    // 1. Mark the journal as premium-verified (e.g. updating quality grade or flags)
+    // Production IntaSend server-to-server verification check
+    if (secretKey && tracking_id) {
+      try {
+        const isTest = process.env.INTASEND_TEST_MODE === "true" || process.env.NODE_ENV !== "production";
+        const verifyUrl = isTest 
+          ? `https://sandbox.intasend.com/api/v1/payment/status/`
+          : `https://payment.intasend.com/api/v1/payment/status/`;
+
+        const verifyResponse = await fetch(verifyUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${secretKey}`
+          },
+          body: JSON.stringify({ tracking_id })
+        });
+
+        if (verifyResponse.ok) {
+          const verifyData = await verifyResponse.json();
+          const invoiceState = verifyData?.invoice?.state?.toUpperCase();
+          if (invoiceState !== "COMPLETE" && invoiceState !== "SUCCESSFUL") {
+            return NextResponse.json({ success: false, error: "IntaSend payment status not verified as COMPLETE." }, { status: 400 });
+          }
+        }
+      } catch (verifyErr) {
+        console.warn("IntaSend API verification warning:", verifyErr);
+        // Fall back to client payload validation in dev or if network timeout occurs
+      }
+    }
+
+    // Baseline validation check
+    const normalizedState = (state || "").toUpperCase();
+    if (normalizedState !== "COMPLETE" && normalizedState !== "SUCCESSFUL" && normalizedState !== "SUCCESS") {
+      return NextResponse.json({ success: false, error: "Payment was not completed successfully." }, { status: 400 });
+    }
+
+    console.log(`Payment success confirmed for Journal ${journalId}. Tracking ID: ${tracking_id || "N/A"}`);
+
+    // 1. Mark the journal as premium-indexed
     const journal = await prisma.journal.update({
       where: { id: journalId },
       data: {
@@ -64,7 +94,7 @@ export async function POST(request: Request) {
     const regionalScore = parseFloat((standardScore * 1.15).toFixed(3)); // Africa-weighted scaling
 
     // Save report
-    const report = await prisma.impactFactorReport.upsert({
+    await prisma.impactFactorReport.upsert({
       where: {
         journalId_year: {
           journalId: journal.id,
@@ -92,7 +122,7 @@ export async function POST(request: Request) {
       where: { journalId: journal.id },
       data: {
         status: "ACCEPTED",
-        evaluationLog: `Payment confirmed. Tracking ID: ${tracking_id}. Metrics Report generated successfully for year 2025.`
+        evaluationLog: `Payment confirmed. Tracking ID: ${tracking_id || "N/A"}. Metrics Report generated successfully for year 2025.`
       }
     });
 

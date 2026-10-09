@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
+import { verifyPassword, createSessionToken } from "../../../../lib/auth";
 
 export async function POST(request: Request) {
   try {
@@ -14,11 +15,13 @@ export async function POST(request: Request) {
       where: { email }
     });
 
-    if (!user || user.passwordHash !== `sim_hash_${password}`) {
+    if (!user || !verifyPassword(password, user.passwordHash)) {
       return NextResponse.json({ success: false, error: "Invalid email or password." }, { status: 401 });
     }
 
-    // Set a session cookie containing the user ID for simplicity in Next App Router
+    // Generate cryptographic HMAC-SHA256 signed session token
+    const sessionToken = createSessionToken(user.id);
+
     const response = NextResponse.json({
       success: true,
       message: "Authenticated successfully.",
@@ -31,9 +34,10 @@ export async function POST(request: Request) {
       }
     });
 
-    // Set cookie valid for 7 days
-    response.cookies.set("afriJournalSession", user.id, {
+    // Set signed cookie valid for 7 days with secure production settings
+    response.cookies.set("afriJournalSession", sessionToken, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
       sameSite: "lax"

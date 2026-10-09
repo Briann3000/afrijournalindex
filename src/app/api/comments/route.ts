@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "../../../lib/db";
+import { verifySessionToken } from "../../../lib/auth";
 
 // GET: Retrieve comments for a specific journal
 export async function GET(request: Request) {
@@ -54,6 +55,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "You must be logged in to post comments." }, { status: 401 });
     }
 
+    const userId = verifySessionToken(sessionCookie.value);
+    if (!userId) {
+      return NextResponse.json({ success: false, error: "Invalid or expired session. Please log in again." }, { status: 401 });
+    }
+
     const body = await request.json();
     const { journalId, content } = body;
 
@@ -63,7 +69,7 @@ export async function POST(request: Request) {
 
     // Verify user exists
     const user = await prisma.user.findUnique({
-      where: { id: sessionCookie.value }
+      where: { id: userId }
     });
 
     if (!user) {

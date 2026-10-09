@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "../../../../lib/db";
+import { verifySessionToken } from "../../../../lib/auth";
 
 export async function GET() {
   try {
@@ -11,8 +12,13 @@ export async function GET() {
       return NextResponse.json({ success: false, authenticated: false, error: "Not authenticated." }, { status: 401 });
     }
 
+    const userId = verifySessionToken(sessionCookie.value);
+    if (!userId) {
+      return NextResponse.json({ success: false, authenticated: false, error: "Invalid or expired session token." }, { status: 401 });
+    }
+
     const user = await prisma.user.findUnique({
-      where: { id: sessionCookie.value },
+      where: { id: userId },
       select: {
         id: true,
         email: true,

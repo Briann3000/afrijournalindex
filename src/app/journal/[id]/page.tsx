@@ -177,11 +177,12 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
     Q1: { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" },
     Q2: { bg: "#f0fdf4", text: "#15803d", border: "#bbf7d0" },
     Q3: { bg: "#fef3c7", text: "#b45309", border: "#fde68a" },
-    Q4: { bg: "#f1f5f9", text: "#475569", border: "#cbd5e1" }
+    Q4: { bg: "#f1f5f9", text: "#475569", border: "#cbd5e1" },
+    Unrated: { bg: "#f8fafc", text: "#64748b", border: "#e2e8f0" }
   };
 
-  const currentQuartile = journal?.quartile || "Q2";
-  const qStyle = quartileColors[currentQuartile];
+  const currentQuartile = journal?.quartile || "Unrated";
+  const qStyle = quartileColors[currentQuartile] || quartileColors["Unrated"];
 
   return (
     <div className="page-wrapper">
@@ -308,6 +309,45 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     <span>Official Certificate</span>
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* Claim & Official Evaluation Callout Banner (Monetization Engine) */}
+            <div 
+              style={{ 
+                background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", 
+                borderRadius: "12px", 
+                padding: "1.6rem 2rem", 
+                color: "#ffffff",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "1.2rem",
+                boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.2)"
+              }}
+            >
+              <div style={{ flex: 1, minWidth: "280px" }}>
+                <span style={{ fontSize: "0.75rem", background: "#f59e0b", color: "#0f172a", padding: "0.2rem 0.6rem", borderRadius: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.5px", display: "inline-block", marginBottom: "0.5rem" }}>
+                  Publisher &amp; Editorial Portal
+                </span>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: "0 0 0.35rem", color: "#ffffff" }}>
+                  Are you the editor or publisher of {journal.name}?
+                </h3>
+                <p style={{ margin: 0, fontSize: "0.85rem", color: "#94a3b8", lineHeight: "1.5" }}>
+                  Claim this official profile, submit your latest volumes for verified citation harvesting, and receive your accredited 2026 Academic Impact Certificate &amp; Gold Badge.
+                </p>
+              </div>
+
+              <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                <a 
+                  href={`/submit?journal=${encodeURIComponent(journal.name)}&issn=${encodeURIComponent(journal.issn || "")}`}
+                  className="btn btn-primary"
+                  style={{ backgroundColor: "#f59e0b", color: "#0f172a", borderColor: "#f59e0b", fontWeight: 800, padding: "0.6rem 1.4rem", fontSize: "0.88rem" }}
+                >
+                  <i className="fa-solid fa-certificate" style={{ marginRight: "0.4rem" }}></i>
+                  Claim &amp; Certify ($199)
+                </a>
               </div>
             </div>
 

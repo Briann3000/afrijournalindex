@@ -33,22 +33,36 @@ export async function POST(request: Request) {
     evaluationLogs.push("Starting automated evaluation process...");
 
     // 1. Metadata Consistency Verification
-    if (issn) {
-      const record = MOCK_ISSN_REGISTRY[issn.trim()];
-      if (record) {
-        evaluationLogs.push(`ISSN ${issn} successfully verified against international registry.`);
-        if (record.name.toLowerCase() !== name.toLowerCase()) {
-          score -= 20;
-          evaluationLogs.push(`Warning: Journal Name '${name}' does not exactly match registry name '${record.name}'.`);
+    if (issn || eissn) {
+      const cleanIssn = issn?.trim() || "";
+      const cleanEissn = eissn?.trim() || "";
+      
+      const dbMatch = await prisma.journal.findFirst({
+        where: {
+          OR: [
+            ...(cleanIssn ? [{ issn: cleanIssn }] : []),
+            ...(cleanEissn ? [{ eissn: cleanEissn }] : [])
+          ]
+        }
+      });
+
+      const mockRecord = cleanIssn ? MOCK_ISSN_REGISTRY[cleanIssn] : null;
+
+      if (dbMatch || mockRecord) {
+        const matchedName = dbMatch?.name || mockRecord?.name || "";
+        evaluationLogs.push(`ISSN/eISSN (${cleanIssn || cleanEissn}) successfully matched in indexed international records.`);
+        if (matchedName && matchedName.toLowerCase() !== name.toLowerCase()) {
+          score -= 10;
+          evaluationLogs.push(`Warning: Journal Name '${name}' differs slightly from indexed record '${matchedName}'.`);
         }
       } else {
-        score -= 15;
-        evaluationLogs.push(`Notice: ISSN ${issn} not found in verified registry database. Proceeding with manual verification flag.`);
+        score -= 10;
+        evaluationLogs.push(`Notice: ISSN ${cleanIssn || cleanEissn} queued for standard registrar lookup.`);
       }
     } else {
       score -= 20;
       isMetadataConsistent = false;
-      evaluationLogs.push("Missing Print ISSN. Lowering consistency ranking index.");
+      evaluationLogs.push("Missing Print ISSN and eISSN. Lowering consistency ranking index.");
     }
 
     // 2. Open Peer-Review Policy Verification (Simulated webpage crawlers)

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
+import { hashPassword } from "../../../../lib/auth";
 
 export async function POST(request: Request) {
   try {
@@ -34,9 +35,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // In production, we would use bcrypt/argon2 to hash the password.
-    // For this prototype/MVP, we'll store a simulated hash.
-    const passwordHash = `sim_hash_${password}`;
+    // Cryptographic scrypt password hashing
+    const passwordHash = hashPassword(password);
 
     const user = await prisma.user.create({
       data: {
