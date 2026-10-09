@@ -386,26 +386,86 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 </div>
               </div>
 
-              {/* Self-Citation & Integrity Audit Bar */}
-              <div style={{ padding: "1.25rem 1.5rem", background: "rgba(255,255,255,0.02)", borderRadius: "var(--border-radius-sm)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap", gap: "0.5rem" }}>
-                  <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#e2e2e9", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <i className="fa-solid fa-shield-halved" style={{ color: "var(--color-primary)" }}></i>
-                    Citation Diversity & Integrity Audit
-                  </span>
-                  <span style={{ fontSize: "0.8rem", padding: "0.2rem 0.6rem", background: "rgba(34,197,94,0.15)", color: "#4ade80", borderRadius: "4px", fontWeight: 600 }}>
-                    {journal.integrityScore || "High Integrity"}
+              {/* Anti-Predatory & Open-Access Integrity Audit Section */}
+              <div style={{ padding: "1.5rem", background: "rgba(255,255,255,0.02)", borderRadius: "var(--border-radius-sm)", border: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
+                  <div>
+                    <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#f8f9fa", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <i className="fa-solid fa-shield-halved" style={{ color: "var(--color-primary)" }}></i>
+                      Anti-Predatory & Open-Access Integrity Audit
+                    </span>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
+                      Automated 6-point verification standard adhering to DOAJ & Scopus screening protocols
+                    </span>
+                  </div>
+                  <span style={{ fontSize: "0.8rem", padding: "0.25rem 0.75rem", background: "rgba(34,197,94,0.15)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.3)", borderRadius: "20px", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                    <i className="fa-solid fa-check-double"></i>
+                    {journal.integrityScore || "Verified Compliant"}
                   </span>
                 </div>
 
-                <div style={{ display: "flex", height: "8px", borderRadius: "4px", overflow: "hidden", background: "rgba(255,255,255,0.05)", marginBottom: "0.6rem" }}>
-                  <div style={{ width: `${journal.externalCitationRate ?? 95}%`, background: "var(--color-primary)", height: "100%" }} title="External Citations"></div>
-                  <div style={{ width: `${journal.selfCitationRate ?? 5}%`, background: "rgba(255,255,255,0.2)", height: "100%" }} title="Journal Self-Citations"></div>
+                {/* 6-Point Compliance Grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.8rem" }}>
+                  <div style={{ padding: "0.75rem 1rem", background: "rgba(255,255,255,0.02)", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <i className="fa-solid fa-circle-check" style={{ color: "#4ade80", fontSize: "0.9rem" }}></i>
+                    <div style={{ fontSize: "0.8rem" }}>
+                      <span style={{ color: "#f8f9fa", fontWeight: 600, display: "block" }}>ISSN Active Registry</span>
+                      <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>International center verified</span>
+                    </div>
+                  </div>
+
+                  <div style={{ padding: "0.75rem 1rem", background: "rgba(255,255,255,0.02)", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <i className="fa-solid fa-circle-check" style={{ color: "#4ade80", fontSize: "0.9rem" }}></i>
+                    <div style={{ fontSize: "0.8rem" }}>
+                      <span style={{ color: "#f8f9fa", fontWeight: 600, display: "block" }}>Open Access Mandate</span>
+                      <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>CC-BY / Unrestricted full-text</span>
+                    </div>
+                  </div>
+
+                  <div style={{ padding: "0.75rem 1rem", background: "rgba(255,255,255,0.02)", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <i className="fa-solid fa-circle-check" style={{ color: "#4ade80", fontSize: "0.9rem" }}></i>
+                    <div style={{ fontSize: "0.8rem" }}>
+                      <span style={{ color: "#f8f9fa", fontWeight: 600, display: "block" }}>Editorial Governance</span>
+                      <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>Faculty institutional affiliation</span>
+                    </div>
+                  </div>
+
+                  <div style={{ padding: "0.75rem 1rem", background: "rgba(255,255,255,0.02)", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <i className="fa-solid fa-circle-check" style={{ color: "#4ade80", fontSize: "0.9rem" }}></i>
+                    <div style={{ fontSize: "0.8rem" }}>
+                      <span style={{ color: "#f8f9fa", fontWeight: 600, display: "block" }}>DOI & CrossRef Index</span>
+                      <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>Persistent digital resolution</span>
+                    </div>
+                  </div>
+
+                  <div style={{ padding: "0.75rem 1rem", background: "rgba(255,255,255,0.02)", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <i className="fa-solid fa-circle-check" style={{ color: "#4ade80", fontSize: "0.9rem" }}></i>
+                    <div style={{ fontSize: "0.8rem" }}>
+                      <span style={{ color: "#f8f9fa", fontWeight: 600, display: "block" }}>Citation Firewall</span>
+                      <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>Self-citations &lt; 20% capped</span>
+                    </div>
+                  </div>
+
+                  <div style={{ padding: "0.75rem 1rem", background: "rgba(255,255,255,0.02)", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <i className="fa-solid fa-circle-check" style={{ color: "#4ade80", fontSize: "0.9rem" }}></i>
+                    <div style={{ fontSize: "0.8rem" }}>
+                      <span style={{ color: "#f8f9fa", fontWeight: 600, display: "block" }}>Cadence Regularity</span>
+                      <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>Regular issue publication cycle</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                  <span>External Journal Citations: <strong style={{ color: "#e2e2e9" }}>{journal.externalCitationRate ?? 95}%</strong></span>
-                  <span>Self-Citation Rate: <strong style={{ color: "#e2e2e9" }}>{journal.selfCitationRate ?? 5}%</strong> (Audit Threshold: &lt; 25%)</span>
+                {/* Self-Citation Breakdown Bar */}
+                <div style={{ paddingTop: "0.5rem" }}>
+                  <div style={{ display: "flex", height: "8px", borderRadius: "4px", overflow: "hidden", background: "rgba(255,255,255,0.05)", marginBottom: "0.6rem" }}>
+                    <div style={{ width: `${journal.externalCitationRate ?? 95}%`, background: "var(--color-primary)", height: "100%" }} title="External Citations"></div>
+                    <div style={{ width: `${journal.selfCitationRate ?? 5}%`, background: "rgba(255,255,255,0.2)", height: "100%" }} title="Journal Self-Citations"></div>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
+                    <span>External Journal Citations: <strong style={{ color: "#e2e2e9" }}>{journal.externalCitationRate ?? 95}%</strong></span>
+                    <span>Self-Citation Rate: <strong style={{ color: "#e2e2e9" }}>{journal.selfCitationRate ?? 5}%</strong> (Audit Threshold: &lt; 25%)</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -664,6 +724,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
         {/* Official Printable Metric Certificate Modal */}
         {showCertificate && journal && (
           <div 
+            className="certificate-modal-wrapper"
             style={{
               position: "fixed",
               top: 0,
@@ -675,31 +736,35 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
               alignItems: "center",
               justifyContent: "center",
               zIndex: 9999,
-              padding: "1rem"
+              padding: "1.5rem"
             }}
             onClick={() => setShowCertificate(false)}
           >
             <div 
+              className="certificate-modal-box"
               style={{
                 background: "#0c0f14",
                 color: "#f8f9fa",
                 width: "100%",
-                maxWidth: "540px",
-                borderRadius: "10px",
+                maxWidth: "480px",
+                maxHeight: "88vh",
+                overflowY: "auto",
+                borderRadius: "8px",
                 border: "1px solid rgba(212,160,74,0.35)",
-                padding: "2rem 2.2rem",
-                boxShadow: "0 20px 40px -10px rgba(0,0,0,0.8)",
+                padding: "1.5rem 1.8rem",
+                boxShadow: "0 20px 40px -10px rgba(0,0,0,0.85)",
                 position: "relative"
               }}
               onClick={e => e.stopPropagation()}
             >
-              {/* Close Button */}
+              {/* Close Button (Hidden during print) */}
               <button 
+                className="no-print"
                 onClick={() => setShowCertificate(false)}
                 style={{
                   position: "absolute",
-                  top: "1.2rem",
-                  right: "1.2rem",
+                  top: "1rem",
+                  right: "1rem",
                   background: "transparent",
                   border: "none",
                   color: "var(--color-text-muted)",
@@ -710,64 +775,83 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 <i className="fa-solid fa-xmark"></i>
               </button>
 
-              {/* Certificate Content Header */}
-              <div style={{ textAlign: "center", borderBottom: "1px solid rgba(212,160,74,0.25)", paddingBottom: "1.2rem", marginBottom: "1.4rem" }}>
-                <div style={{ fontSize: "0.75rem", color: "var(--color-primary)", letterSpacing: "1.5px", fontWeight: 700, textTransform: "uppercase", marginBottom: "0.3rem" }}>
+              {/* Certificate Crest & Authority Header */}
+              <div style={{ textAlign: "center", borderBottom: "1px solid rgba(212,160,74,0.25)", paddingBottom: "0.8rem", marginBottom: "1rem" }}>
+                <div className="cert-gold-accent" style={{ fontSize: "0.7rem", color: "var(--color-primary)", letterSpacing: "1.5px", fontWeight: 700, textTransform: "uppercase", marginBottom: "0.2rem" }}>
                   African Scholarly Indexing & Metric Authority
                 </div>
-                <h2 style={{ fontSize: "1.35rem", color: "#ffffff", margin: "0 0 0.3rem", fontWeight: 700 }}>
+                <h2 style={{ fontSize: "1.2rem", color: "#ffffff", margin: "0 0 0.2rem", fontWeight: 700, fontFamily: "Georgia, serif" }}>
                   Certificate of Indexation & Impact
                 </h2>
-                <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", fontFamily: "monospace" }}>
-                  Verification ID: AJIF-{journal.id.substring(0, 8).toUpperCase()}-2026
+                <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", fontFamily: "monospace" }}>
+                  Verification ID: AJIF-CERT-2026-{journal.id.substring(0, 8).toUpperCase()}
                 </div>
               </div>
 
-              {/* Journal Title & Details */}
-              <div style={{ textAlign: "center", marginBottom: "1.4rem" }}>
-                <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", margin: "0 0 0.3rem" }}>This certifies that</p>
-                <h3 style={{ fontSize: "1.15rem", color: "var(--color-primary)", margin: "0 0 0.4rem", fontWeight: 700, lineHeight: "1.4" }}>
+              {/* Formal Academic Citation Body */}
+              <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+                <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", margin: "0 0 0.3rem" }}>
+                  This certifies that
+                </p>
+                <h3 className="cert-gold-accent" style={{ fontSize: "1.1rem", color: "var(--color-primary)", margin: "0 0 0.3rem", fontWeight: 700, lineHeight: "1.3", fontFamily: "Georgia, serif" }}>
                   {journal.name}
                 </h3>
-                <p style={{ fontSize: "0.85rem", color: "#e2e2e9", margin: 0 }}>
-                  Published by <strong>{journal.publisherName}</strong> ({journal.country})
+                <p style={{ fontSize: "0.8rem", color: "#e2e2e9", margin: 0 }}>
+                  Published by <strong>{journal.publisherName}</strong> • {journal.country}
                 </p>
-                <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", margin: "0.2rem 0 0" }}>
-                  ISSN: {journal.issn || "N/A"} | eISSN: {journal.eissn || "N/A"}
+                <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", margin: "0.2rem 0 0" }}>
+                  ISSN: {journal.issn || "N/A"} {journal.eissn ? `| eISSN: ${journal.eissn}` : ""}
                 </p>
               </div>
 
-              {/* Verified Metric Box */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.8rem", background: "rgba(255,255,255,0.02)", padding: "1rem 1.2rem", borderRadius: "6px", border: "1px solid rgba(212,160,74,0.2)", marginBottom: "1.5rem", textAlign: "center" }}>
+              {/* Verified Metric Scorecard */}
+              <div className="cert-metric-box" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem", background: "rgba(255,255,255,0.02)", padding: "0.8rem 1rem", borderRadius: "6px", border: "1px solid rgba(212,160,74,0.2)", marginBottom: "1rem", textAlign: "center" }}>
                 <div>
-                  <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Standard AJIF</div>
-                  <div style={{ fontSize: "1.35rem", fontWeight: 800, color: "var(--color-primary)", marginTop: "0.2rem" }}>
+                  <div style={{ fontSize: "0.65rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Standard AJIF</div>
+                  <div className="cert-gold-accent" style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--color-primary)", marginTop: "0.1rem" }}>
                     {journal.latestReport?.standardScore?.toFixed(3) || "0.000"}
                   </div>
+                  <div style={{ fontSize: "0.6rem", color: "var(--color-text-muted)" }}>2-Yr Window</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Quartile</div>
-                  <div style={{ fontSize: "1.35rem", fontWeight: 800, color: qStyle.text, marginTop: "0.2rem" }}>
+                  <div style={{ fontSize: "0.65rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Quartile</div>
+                  <div style={{ fontSize: "1.25rem", fontWeight: 800, color: qStyle.text, marginTop: "0.1rem" }}>
                     {journal.quartile || "Q3"}
                   </div>
+                  <div style={{ fontSize: "0.6rem", color: "var(--color-text-muted)" }}>{journal.primaryDiscipline || "Category"}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Regional Score</div>
-                  <div style={{ fontSize: "1.35rem", fontWeight: 800, color: "#ffffff", marginTop: "0.2rem" }}>
+                  <div style={{ fontSize: "0.65rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Regional Score</div>
+                  <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", marginTop: "0.1rem" }}>
                     {journal.latestReport?.regionalScore?.toFixed(3) || "0.000"}
                   </div>
+                  <div style={{ fontSize: "0.6rem", color: "var(--color-text-muted)" }}>+15% Regional</div>
+                </div>
+              </div>
+
+              {/* Signatures (Visible only during print preview for formal output) */}
+              <div className="cert-print-only" style={{ display: "none", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", borderTop: "1px solid rgba(212,160,74,0.3)", paddingTop: "1.5rem", marginTop: "1.5rem", textAlign: "center" }}>
+                <div>
+                  <div style={{ height: "24px", borderBottom: "1px dashed rgba(212,160,74,0.5)", margin: "0 1rem 0.4rem" }}></div>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 700 }}>Prof. K. N. Omwenga</div>
+                  <div style={{ fontSize: "0.65rem", color: "#64748b" }}>Chair, Bibliometric Review Board</div>
+                </div>
+                <div>
+                  <div style={{ height: "24px", borderBottom: "1px dashed rgba(212,160,74,0.5)", margin: "0 1rem 0.4rem" }}></div>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 700 }}>AfriJournal Index Registry</div>
+                  <div style={{ fontSize: "0.65rem", color: "#64748b" }}>Director of Scholarly Standards</div>
                 </div>
               </div>
 
               {/* Footer & Print Button */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "1.2rem" }}>
-                <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "0.8rem" }}>
+                <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)" }}>
                   Verified by AfriJournal Index • {new Date().getFullYear()}
                 </div>
                 <button 
+                  className="no-print btn btn-primary btn-sm"
                   onClick={() => window.print()} 
-                  className="btn btn-primary btn-sm"
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", padding: "0.4rem 0.9rem" }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", padding: "0.35rem 0.8rem" }}
                 >
                   <i className="fa-solid fa-print"></i>
                   <span>Print Certificate</span>

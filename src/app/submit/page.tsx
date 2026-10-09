@@ -150,6 +150,58 @@ export default function Submit() {
             {/* Step 1: Basic Metadata */}
             {step === 1 && (
               <div className="form-step active" id="step1">
+                {/* OJS Auto-Import Card */}
+                <div style={{ background: "rgba(212,160,74,0.06)", border: "1px dashed rgba(212,160,74,0.3)", borderRadius: "var(--border-radius-sm)", padding: "1.2rem", marginBottom: "1.5rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
+                    <i className="fa-solid fa-bolt" style={{ color: "var(--color-primary)" }}></i>
+                    <strong style={{ fontSize: "0.9rem", color: "var(--color-primary)" }}>1-Click OJS / OAI-PMH Auto-Import</strong>
+                  </div>
+                  <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", margin: "0 0 0.8rem" }}>
+                    If your university journal runs on Open Journal Systems (PKP OJS), paste your OAI endpoint to auto-fill metadata and pull all published issues.
+                  </p>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <input 
+                      type="url" 
+                      placeholder="e.g. https://arjess.org/index.php/oai" 
+                      id="ojsInput"
+                      style={{ flex: 1, padding: "0.6rem 0.8rem", fontSize: "0.85rem" }}
+                    />
+                    <button 
+                      type="button" 
+                      className="btn btn-secondary btn-sm"
+                      onClick={async () => {
+                        const input = (document.getElementById("ojsInput") as HTMLInputElement)?.value.trim();
+                        if (!input) return alert("Please enter an OAI-PMH URL.");
+                        try {
+                          const res = await fetch("/api/harvester/oai", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ oaiUrl: input })
+                          });
+                          const data = await res.json();
+                          if (data.success) {
+                            setFormData(prev => ({
+                              ...prev,
+                              name: data.repository?.repositoryName || prev.name,
+                              publisher: data.articles?.[0]?.publisher || prev.publisher,
+                              scope: data.articles?.[0]?.description || prev.scope,
+                              website: data.repository?.baseURL ? new URL(data.repository.baseURL).origin : prev.website
+                            }));
+                            alert(`Success! Identified "${data.repository?.repositoryName}" and retrieved ${data.totalHarvested} published articles.`);
+                          } else {
+                            alert(data.error || "Failed to harvest OAI endpoint.");
+                          }
+                        } catch {
+                          alert("Error contacting OJS server.");
+                        }
+                      }}
+                      style={{ padding: "0.6rem 1rem", fontSize: "0.8rem", whiteSpace: "nowrap" }}
+                    >
+                      Sync OJS
+                    </button>
+                  </div>
+                </div>
+
                 <h3 style={{ marginBottom: "1.5rem", color: "var(--color-primary)" }}>
                   <i className="fa-solid fa-circle-info" style={{ marginRight: "0.5rem" }}></i> {t.submit_page.step1_title}
                 </h3>

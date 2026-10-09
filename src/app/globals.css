@@ -765,3 +765,76 @@ a {
     border-color: var(--color-primary);
     background: rgba(212, 160, 74, 0.02);
 }
+
+/* -------------------------------------------------------------
+   Dedicated Print Stylesheet for Metric Certificates
+------------------------------------------------------------- */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 10mm 12mm;
+    }
+
+    html, body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Hide website headers, footers, and normal UI during print */
+    .header,
+    .footer,
+    main > div:not(.certificate-modal-wrapper),
+    .no-print,
+    .btn,
+    .journal-tag,
+    nav,
+    footer,
+    header,
+    button {
+        display: none !important;
+    }
+
+    .certificate-modal-wrapper {
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        background: transparent !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+
+    .certificate-modal-box {
+        position: static !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        box-shadow: none !important;
+        padding: 20mm 16mm !important;
+        border: 4px double #b8860b !important;
+        outline: 1px solid #d4af37 !important;
+        outline-offset: -8px !important;
+        border-radius: 4px !important;
+        page-break-inside: avoid !important;
+        page-break-after: avoid !important;
+        margin: 0 auto !important;
+    }
+
+    .certificate-modal-box * {
+        color: #0f172a !important;
+        text-shadow: none !important;
+    }
+
+    .certificate-modal-box .cert-gold-accent {
+        color: #996515 !important;
+    }
+
+    .certificate-modal-box .cert-metric-box {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+}
