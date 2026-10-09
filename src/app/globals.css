@@ -858,7 +858,7 @@ a {
    Call To Action (CTA Banner)
 ------------------------------------------------------------- */
 .cta-section {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     color: #ffffff;
     padding: 5rem 0;
     text-align: center;
@@ -875,14 +875,18 @@ a {
     font-size: 2.6rem;
     font-weight: 800;
     margin-bottom: 1rem;
-    color: #ffffff;
+    color: #ffffff !important;
     letter-spacing: -0.02em;
 }
 
 .cta-text {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     margin-bottom: 2.2rem;
-    color: #cbd5e1;
+    color: #e2e8f0 !important;
+    line-height: 1.7;
+    max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .cta-section .btn-primary {
@@ -902,9 +906,9 @@ a {
    Footer
 ------------------------------------------------------------- */
 .footer {
-    background-color: #111827;
-    color: #9ca3af;
-    border-top: 1px solid #1f2937;
+    background-color: #0f172a;
+    color: #cbd5e1;
+    border-top: 1px solid #1e293b;
     padding: 4.5rem 0 2rem;
 }
 
@@ -918,12 +922,12 @@ a {
 .footer-brand .logo {
     display: inline-block;
     margin-bottom: 1.2rem;
-    color: #ffffff;
+    color: #ffffff !important;
 }
 
 .footer-desc {
-    color: #9ca3af;
-    font-size: 0.9rem;
+    color: #cbd5e1 !important;
+    font-size: 0.92rem;
     max-width: 320px;
     line-height: 1.65;
 }
@@ -934,7 +938,7 @@ a {
     margin-bottom: 1.2rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #ffffff;
+    color: #ffffff !important;
 }
 
 .footer-links {
@@ -944,16 +948,17 @@ a {
 }
 
 .footer-links a {
-    color: #9ca3af;
+    color: #cbd5e1 !important;
     font-size: 0.9rem;
+    transition: color 0.15s ease;
 }
 
 .footer-links a:hover {
-    color: #ffffff;
+    color: #38bdf8 !important;
 }
 
 .footer-bottom {
-    border-top: 1px solid #1f2937;
+    border-top: 1px solid #1e293b;
     padding-top: 1.8rem;
 }
 
@@ -961,7 +966,7 @@ a {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: #9ca3af;
+    color: #94a3b8 !important;
     font-size: 0.85rem;
 }
 

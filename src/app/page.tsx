@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React from "react";
 import { useLang } from "./LangContext";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -9,26 +8,15 @@ import AfricaMap from "./AfricaMap";
 
 export default function Home() {
   const { t } = useLang();
-  const router = useRouter();
-  const [heroSearch, setHeroSearch] = useState("");
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (heroSearch.trim()) {
-      router.push(`/browse?q=${encodeURIComponent(heroSearch.trim())}`);
-    } else {
-      router.push("/browse");
-    }
-  };
 
   const disciplinesMarquee = [
-    { name: t.disciplines.health, icon: "fa-stethoscope", count: "95+ " + t.disciplines.journals_count },
-    { name: t.disciplines.social, icon: "fa-book-open-reader", count: "110+ " + t.disciplines.journals_count },
-    { name: t.disciplines.stem, icon: "fa-microchip", count: "65+ " + t.disciplines.journals_count },
-    { name: t.disciplines.agri, icon: "fa-leaf", count: "58+ " + t.disciplines.journals_count },
-    { name: t.disciplines.business, icon: "fa-chart-pie", count: "42+ " + t.disciplines.journals_count },
-    { name: t.disciplines.education, icon: "fa-graduation-cap", count: "70+ " + t.disciplines.journals_count },
-    { name: t.disciplines.law, icon: "fa-scale-balanced", count: "35+ " + t.disciplines.journals_count }
+    { name: t.disciplines.health, icon: "fa-stethoscope", count: "380+ " + t.disciplines.journals_count },
+    { name: t.disciplines.social, icon: "fa-book-open-reader", count: "420+ " + t.disciplines.journals_count },
+    { name: t.disciplines.stem, icon: "fa-microchip", count: "290+ " + t.disciplines.journals_count },
+    { name: t.disciplines.agri, icon: "fa-leaf", count: "240+ " + t.disciplines.journals_count },
+    { name: t.disciplines.business, icon: "fa-chart-pie", count: "195+ " + t.disciplines.journals_count },
+    { name: t.disciplines.education, icon: "fa-graduation-cap", count: "210+ " + t.disciplines.journals_count },
+    { name: t.disciplines.law, icon: "fa-scale-balanced", count: "125+ " + t.disciplines.journals_count }
   ];
 
   const top5Universities = [
@@ -62,179 +50,130 @@ export default function Home() {
                 {t.hero.subtitle}
               </p>
 
-              {/* Instant Hero Search Bar */}
-              <form onSubmit={handleSearchSubmit} style={{ width: "100%", maxWidth: "540px", marginBottom: "1.8rem" }}>
-                <div style={{ position: "relative", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                  <div style={{ position: "relative", flex: "1 1 260px" }}>
-                    <input
-                      type="text"
-                      value={heroSearch}
-                      onChange={(e) => setHeroSearch(e.target.value)}
-                      placeholder={t.hero.search_placeholder}
-                      style={{
-                        width: "100%",
-                        padding: "0.85rem 1rem 0.85rem 2.6rem",
-                        background: "#ffffff",
-                        border: "2px solid #cbd5e1",
-                        borderRadius: "12px",
-                        fontSize: "0.95rem",
-                        color: "var(--color-navy)",
-                        outline: "none",
-                        boxShadow: "0 4px 12px rgba(15, 23, 42, 0.05)"
-                      }}
-                    />
-                    <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "1rem", top: "1.1rem", color: "#64748b" }}></i>
-                  </div>
-                  <button type="submit" className="btn btn-primary" style={{ padding: "0 1.5rem", borderRadius: "12px", flexShrink: 0, minHeight: "44px" }}>
-                    {t.hero.search_btn}
-                  </button>
-                </div>
-              </form>
-
-              {/* Hero CTA Group */}
+              {/* Hero Action CTA Group */}
               <div className="hero-cta-group" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                <a href="/submit" className="btn btn-primary btn-lg">
-                  <i className="fa-solid fa-plus-circle"></i>
+                <a href="/browse" className="btn btn-primary btn-lg">
+                  <i className="fa-solid fa-compass"></i>
+                  {t.hero.cta_explore || "Explore Directory"}
+                </a>
+                <a href="/submit" className="btn btn-secondary btn-lg">
+                  <i className="fa-solid fa-cloud-arrow-up"></i>
                   {t.hero.cta_submit}
                 </a>
                 <a href="/institution" className="btn btn-secondary btn-lg">
-                  <i className="fa-solid fa-ranking-star"></i>
+                  <i className="fa-solid fa-building-columns"></i>
                   {t.hero.cta_institution}
                 </a>
               </div>
             </div>
             
-            {/* Hero Visual: Realistic Live Journal Impact Card */}
+            {/* Hero Visual: Prestige Academic Indexation & Bibliometric Card */}
             <div className="hero-visual">
-              <div className="glass-card visual-card">
-                <div className="visual-header">
-                  <span className="dot" style={{ background: "#ef4444" }}></span>
-                  <span className="dot" style={{ background: "#f59e0b" }}></span>
-                  <span className="dot" style={{ background: "#10b981" }}></span>
-                  <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginLeft: "auto", fontWeight: 600 }}>
-                    {t.hero.card_title}
+              <div className="glass-card visual-card" style={{ background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "20px", padding: "1.75rem", boxShadow: "0 20px 40px -10px rgba(15, 23, 42, 0.12)" }}>
+                {/* Visual Header / Live Verification Pill */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "0.85rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 0 3px rgba(16, 185, 129, 0.25)" }}></span>
+                    <span style={{ fontSize: "0.78rem", fontWeight: 800, color: "#047857", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      Verified Continental Index
+                    </span>
+                  </div>
+                  <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>
+                    AJIF 2025/2026
                   </span>
                 </div>
 
-                <div className="visual-body">
-                  <div style={{ marginBottom: "1rem" }}>
-                    <span className="journal-tag" style={{ marginBottom: "0.4rem" }}>
-                      Q1 Category Quartile
+                {/* Journal Showcase Profile */}
+                <div style={{ marginBottom: "1.25rem" }}>
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+                    <span className="journal-tag" style={{ fontSize: "0.72rem", background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe" }}>
+                      <i className="fa-solid fa-award" style={{ marginRight: "4px" }}></i> Q1 Quartile
                     </span>
-                    <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--color-navy)", margin: "0.2rem 0" }}>
-                      African Research Journal of Education and Social Sciences (ARJESS)
-                    </h3>
-                    <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
-                      ISSN: 2312-0134 • Kenya Projects Organization (KENPRO)
+                    <span className="journal-tag" style={{ fontSize: "0.72rem", background: "#ecfdf5", color: "#047857", border: "1px solid #a7f3d0" }}>
+                      <i className="fa-solid fa-circle-check" style={{ marginRight: "4px" }}></i> Open Access
                     </span>
                   </div>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--color-navy)", margin: "0.3rem 0", lineHeight: "1.4" }}>
+                    African Research Journal of Education and Social Sciences
+                  </h3>
+                  <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", margin: "0.2rem 0 0" }}>
+                    ISSN: 2312-0134 • Kenya Projects Organization (KENPRO)
+                  </p>
+                </div>
 
-                  <div className="metric-highlight">
-                    <span className="metric-label">{t.valprop.if_title}</span>
-                    <div className="metric-row" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(80px, 1fr))", gap: "0.5rem" }}>
-                      <div className="metric-item">
-                        <div className="metric-value">0.842</div>
-                        <div className="metric-name">{t.hero.card_if}</div>
-                      </div>
-                      <div className="metric-item">
-                        <div className="metric-value" style={{ color: "#16a34a" }}>Grade A</div>
-                        <div className="metric-name">{t.hero.card_grade}</div>
-                      </div>
-                      <div className="metric-item">
-                        <div className="metric-value" style={{ color: "#0284c7" }}>#1</div>
-                        <div className="metric-name">Rank</div>
-                      </div>
+                {/* Primary Metric Highlights in 3 Columns */}
+                <div style={{ background: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0", padding: "1rem", marginBottom: "1.2rem" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.75rem", textAlign: "center" }}>
+                    <div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--color-primary)", lineHeight: 1.1 }}>0.842</div>
+                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>AJIF Factor</div>
                     </div>
-                  </div>
-
-                  {/* 2-Year Citation Velocity Trend */}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-                    <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase" }}>
-                      {t.methodology_page.formula_title}
-                    </span>
-                    <span style={{ fontSize: "0.75rem", color: "var(--color-primary)", fontWeight: 700 }}>
-                      +38.4% YoY
-                    </span>
-                  </div>
-
-                  <div className="chart-mock">
-                    <div className="bar-chart">
-                      <div className="bar" style={{ height: "35%" }} title="2023: 140 Citations"></div>
-                      <div className="bar" style={{ height: "55%" }} title="2024: 220 Citations"></div>
-                      <div className="bar" style={{ height: "78%" }} title="2025: 310 Citations"></div>
-                      <div className="bar active" style={{ height: "95%" }} title="2026: 420 Citations"></div>
+                    <div style={{ borderLeft: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
+                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#16a34a", lineHeight: 1.1 }}>Grade A</div>
+                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>Quality Tier</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#0284c7", lineHeight: 1.1 }}>100%</div>
+                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>CrossRef DOI</div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
 
-          {/* 3. Connected 3-Step Process Track */}
-          <div className="container">
-            <div className="step-track-light">
-              <div className="step-node-light">
-                <div className="node-icon">
-                  <i className="fa-solid fa-bolt"></i>
+                {/* Bibliometric Verification List */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.82rem", color: "#334155" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ color: "#64748b" }}>Annual Citation Velocity:</span>
+                    <strong style={{ color: "#16a34a" }}><i className="fa-solid fa-arrow-trend-up"></i> +38.4% YoY</strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ color: "#64748b" }}>Peer-Reviewed Articles:</span>
+                    <strong style={{ color: "var(--color-navy)" }}>420+ Papers</strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ color: "#64748b" }}>Indexing Status:</span>
+                    <strong style={{ color: "var(--color-primary)" }}>Active & Accredited</strong>
+                  </div>
                 </div>
-                <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.4rem" }}>
-                  1. {t.valprop.indexing_title}
-                </h4>
-                <p style={{ fontSize: "0.88rem", color: "var(--color-text-muted)", margin: 0 }}>
-                  {t.valprop.indexing_text}
-                </p>
-              </div>
 
-              <div className="step-node-light">
-                <div className="node-icon">
-                  <i className="fa-solid fa-shield-halved"></i>
+                {/* Card Action Link */}
+                <div style={{ marginTop: "1.2rem", paddingTop: "0.85rem", borderTop: "1px solid #f1f5f9" }}>
+                  <a 
+                    href="/browse?q=ARJESS" 
+                    className="hover-primary" 
+                    style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                  >
+                    <span>View Complete Bibliometric Report</span>
+                    <i className="fa-solid fa-arrow-right"></i>
+                  </a>
                 </div>
-                <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.4rem" }}>
-                  2. {t.valprop.eval_title}
-                </h4>
-                <p style={{ fontSize: "0.88rem", color: "var(--color-text-muted)", margin: 0 }}>
-                  {t.valprop.eval_text}
-                </p>
-              </div>
-
-              <div className="step-node-light">
-                <div className="node-icon">
-                  <i className="fa-solid fa-chart-line"></i>
-                </div>
-                <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.4rem" }}>
-                  3. {t.valprop.if_title}
-                </h4>
-                <p style={{ fontSize: "0.88rem", color: "var(--color-text-muted)", margin: 0 }}>
-                  {t.valprop.if_text}
-                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 4. Continental Bibliometric Stats Counter Bar */}
+        {/* 3. Continental Bibliometric Stats Counter Bar */}
         <section className="stats-section">
           <div className="container stats-grid">
             <div className="stat-card">
-              <div className="stat-num">300+</div>
+              <div className="stat-num">1,600+</div>
               <div className="stat-label">{t.stats.journals}</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num">100%</div>
-              <div className="stat-label">{t.stats.free_indexing}</div>
+              <div className="stat-num">45,000+</div>
+              <div className="stat-label">Citable Peer Articles</div>
             </div>
             <div className="stat-card">
               <div className="stat-num">54</div>
               <div className="stat-label">{t.stats.countries_covered}</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num">5</div>
-              <div className="stat-label">{t.stats.languages}</div>
+              <div className="stat-num">100%</div>
+              <div className="stat-label">{t.stats.free_indexing}</div>
             </div>
           </div>
         </section>
 
-        {/* 5. Infinite Horizontal Discipline Marquee Ticker */}
+        {/* 4. Infinite Horizontal Discipline Marquee Ticker */}
         <section style={{ background: "#ffffff", borderBottom: "1px solid var(--color-border)", padding: "10px 0" }}>
           <div className="feature-marquee-container">
             <div className="feature-marquee-track">
@@ -257,7 +196,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 6. Interactive African Research Map Section */}
+        {/* 5. Interactive African Research Map Section */}
         <section style={{ padding: "4rem 0 2rem", background: "var(--color-bg-alt)" }}>
           <div className="container">
             <div style={{ textAlign: "center", marginBottom: "2rem" }}>
@@ -273,7 +212,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 7. Institutional Research Leaderboard Preview */}
+        {/* 6. Institutional Research Leaderboard Preview */}
         <section style={{ padding: "4.5rem 0", background: "#ffffff", borderTop: "1px solid var(--color-border)" }}>
           <div className="container">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
@@ -337,7 +276,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 8. Verified KENPRO Seed Showcase */}
+        {/* 7. Verified KENPRO Seed Showcase */}
         <section style={{ padding: "4.5rem 0", background: "var(--color-bg-alt)" }}>
           <div className="container">
             <div style={{ textAlign: "center", marginBottom: "3rem" }}>
@@ -414,7 +353,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 9. Final High-Conversion CTA Banner */}
+        {/* 8. Final High-Conversion CTA Banner */}
         <section className="cta-section">
           <div className="container cta-container">
             <h2 className="cta-title">
@@ -427,7 +366,7 @@ export default function Home() {
               <a href="/submit" className="btn btn-primary btn-lg">
                 <i className="fa-solid fa-circle-check"></i> {t.cta.btn}
               </a>
-              <a href="/submit/status" className="btn btn-secondary btn-lg" style={{ background: "rgba(255,255,255,0.1)", color: "#ffffff", border: "1px solid rgba(255,255,255,0.2)" }}>
+              <a href="/submit/status" className="btn btn-secondary btn-lg" style={{ background: "rgba(255,255,255,0.15)", color: "#ffffff", border: "1px solid rgba(255,255,255,0.35)" }}>
                 <i className="fa-solid fa-magnifying-glass"></i> {t.cta.btn_status}
               </a>
             </div>

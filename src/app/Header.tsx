@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useLang } from "./LangContext";
 
 interface HeaderProps {
@@ -9,11 +10,20 @@ interface HeaderProps {
 
 export default function Header({ activePage }: HeaderProps) {
   const { lang, setLang, t } = useLang();
+  const router = useRouter();
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
 
+  // Expandable Header Quick Search State
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [mobileSearchQuery, setMobileSearchQuery] = useState<string>("");
+
   const navRef = useRef<HTMLDivElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function checkUser() {
@@ -30,16 +40,31 @@ export default function Header({ activePage }: HeaderProps) {
     checkUser();
   }, []);
 
-  // Close dropdown on outside click
+  // Close dropdown or search on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (navRef.current && !navRef.current.contains(event.target as Node)) {
         setOpenDropdown(null);
       }
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        if (!searchQuery.trim()) {
+          setIsSearchOpen(false);
+        }
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [searchQuery]);
+
+  // Focus search input when opened
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchOpen]);
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -55,6 +80,26 @@ export default function Header({ activePage }: HeaderProps) {
 
   const toggleDropdown = (name: string) => {
     setOpenDropdown(openDropdown === name ? null : name);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/browse?q=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push("/browse");
+    }
+    setIsSearchOpen(false);
+  };
+
+  const handleMobileSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mobileSearchQuery.trim()) {
+      router.push(`/browse?q=${encodeURIComponent(mobileSearchQuery.trim())}`);
+    } else {
+      router.push("/browse");
+    }
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -217,7 +262,105 @@ export default function Header({ activePage }: HeaderProps) {
         </nav>
         
         {/* Right Header Actions */}
-        <div className="header-actions" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <div className="header-actions" style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+          
+          {/* Expandable Desktop Quick Search */}
+          <div ref={searchContainerRef} className="header-search-container" style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            {isSearchOpen ? (
+              <form 
+                onSubmit={handleSearchSubmit} 
+                style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  background: "#1e293b", 
+                  border: "1px solid #38bdf8", 
+                  borderRadius: "20px", 
+                  padding: "2px 6px 2px 10px",
+                  boxShadow: "0 0 0 3px rgba(56, 189, 248, 0.2)",
+                  transition: "all 0.25s ease",
+                  width: "280px"
+                }}
+              >
+                <i className="fa-solid fa-magnifying-glass" style={{ color: "#38bdf8", fontSize: "0.82rem", marginRight: "6px" }}></i>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t.hero.search_placeholder || "Search journals, articles..."}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      setIsSearchOpen(false);
+                    }
+                  }}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    color: "#ffffff",
+                    fontSize: "0.85rem",
+                    width: "100%",
+                    padding: "4px 0"
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (searchQuery) {
+                      setSearchQuery("");
+                    } else {
+                      setIsSearchOpen(false);
+                    }
+                  }}
+                  title="Close Search"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#94a3b8",
+                    cursor: "pointer",
+                    padding: "4px 6px",
+                    fontSize: "0.85rem",
+                    display: "flex",
+                    alignItems: "center"
+                  }}
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+                className="header-search-trigger"
+                title="Search Journals & Articles"
+                aria-label="Open Search"
+                style={{
+                  background: "#1e293b",
+                  border: "1px solid #334155",
+                  color: "#cbd5e1",
+                  borderRadius: "8px",
+                  width: "36px",
+                  height: "36px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#38bdf8";
+                  e.currentTarget.style.color = "#38bdf8";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "#334155";
+                  e.currentTarget.style.color = "#cbd5e1";
+                }}
+              >
+                <i className="fa-solid fa-magnifying-glass" style={{ fontSize: "0.85rem" }}></i>
+              </button>
+            )}
+          </div>
+
           {/* Language Switcher */}
           <div className="lang-selector-wrapper">
             <select 
@@ -314,10 +457,33 @@ export default function Header({ activePage }: HeaderProps) {
               overflowY: "auto",
               display: "flex",
               flexDirection: "column",
-              gap: "1.25rem",
+              gap: "1.1rem",
               boxShadow: "-10px 0 30px rgba(0,0,0,0.5)"
             }}
           >
+            {/* Mobile Quick Search Bar */}
+            <form onSubmit={handleMobileSearchSubmit} style={{ width: "100%", marginBottom: "0.5rem" }}>
+              <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                <input
+                  type="text"
+                  value={mobileSearchQuery}
+                  onChange={(e) => setMobileSearchQuery(e.target.value)}
+                  placeholder={t.hero.search_placeholder || "Search journals, DOIs..."}
+                  style={{
+                    width: "100%",
+                    padding: "0.65rem 0.85rem 0.65rem 2.2rem",
+                    background: "#1e293b",
+                    border: "1px solid #334155",
+                    borderRadius: "10px",
+                    color: "#ffffff",
+                    fontSize: "0.9rem",
+                    outline: "none"
+                  }}
+                />
+                <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "0.75rem", color: "#38bdf8", fontSize: "0.85rem" }}></i>
+              </div>
+            </form>
+
             {/* Direct Links */}
             <a 
               href="/" 

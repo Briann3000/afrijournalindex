@@ -101,8 +101,9 @@ function InstitutionContent() {
     try {
       const res = await fetch(`/api/institutions/metrics?name=${encodeURIComponent(univName)}`);
       const result = await res.json();
-      if (result.success && result.data) {
-        setProfileData(result.data);
+      const instData = result.data || result.institution;
+      if (result.success && instData) {
+        setProfileData(instData);
       } else {
         setProfileError(result.error || "University record not found in index.");
       }

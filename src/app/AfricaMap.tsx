@@ -138,13 +138,14 @@ export default function AfricaMap() {
     <div className="africa-map-wrapper" style={{ width: "100%", margin: "0 auto" }}>
       
       {/* Interactive Map Canvas Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "2rem", alignItems: "center" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "2rem", alignItems: "center" }}>
         
-        {/* Left Column: True D3 Topology Vector Map */}
-        <div style={{ position: "relative", background: "#ffffff", borderRadius: "16px", padding: "1.5rem", border: "1px solid var(--color-border)", boxShadow: "0 4px 20px -4px rgba(15, 23, 42, 0.06)" }}>
+        {/* Left Column: Full Pan-African Topology Vector Map */}
+        <div style={{ minWidth: 0, width: "100%", position: "relative", background: "#ffffff", borderRadius: "16px", padding: "1.25rem", border: "1px solid var(--color-border)", boxShadow: "0 4px 20px -4px rgba(15, 23, 42, 0.06)" }}>
           <svg
-            viewBox="0 0 520 540"
-            style={{ width: "100%", height: "auto", maxHeight: "450px", filter: "drop-shadow(0 8px 16px rgba(15, 23, 42, 0.08))" }}
+            viewBox="20 -10 660 720"
+            preserveAspectRatio="xMidYMid meet"
+            style={{ width: "100%", height: "auto", maxHeight: "500px", display: "block", overflow: "visible", filter: "drop-shadow(0 8px 16px rgba(15, 23, 42, 0.08))" }}
           >
             <g>
               {africaPaths.map((item) => {
@@ -160,7 +161,7 @@ export default function AfricaMap() {
                     d={item.path}
                     fill={fillColor}
                     stroke={isSelected ? "#0f172a" : "#ffffff"}
-                    strokeWidth={isSelected ? "2" : "0.75"}
+                    strokeWidth={isSelected ? "2.5" : "0.75"}
                     style={{
                       cursor: "pointer",
                       transition: "fill 0.2s ease, stroke 0.2s ease",
@@ -200,14 +201,14 @@ export default function AfricaMap() {
           </svg>
 
           {/* Map Overlay Prompt */}
-          <div style={{ position: "relative", marginTop: "10px", fontSize: "0.82rem", color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: "center" }}>
+          <div style={{ position: "relative", marginTop: "12px", fontSize: "0.82rem", color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: "center" }}>
             <i className="fa-solid fa-hand-pointer" style={{ color: "var(--color-primary)" }}></i>
             <span>{t.map_section.hint}</span>
           </div>
         </div>
 
         {/* Right Column: Dynamic Country Insight Card & Regional Tally */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           
           {/* Active Highlight Card */}
           <div style={{ background: "#ffffff", border: "1px solid var(--color-primary)", borderRadius: "16px", padding: "1.8rem", boxShadow: "0 10px 25px -5px rgba(34, 113, 177, 0.15)" }}>

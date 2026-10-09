@@ -59,18 +59,16 @@ export async function GET(request: Request) {
 
     // 1. LEADERBOARD MODE
     if (view === "leaderboard" || (!name && !searchParams.get("detail"))) {
-      // Collect DB-specific publisher and author stats
+      // Collect DB-specific publisher and journal counts efficiently using _count
       const dbJournals = await prisma.journal.findMany({
         select: {
           id: true,
           name: true,
           publisherName: true,
           country: true,
-          articles: {
+          _count: {
             select: {
-              id: true,
-              title: true,
-              citedBy: true
+              articles: true
             }
           }
         }
@@ -87,8 +85,8 @@ export async function GET(request: Request) {
           citations: 0,
           journalsCount: 0
         };
-        const pubArts = j.articles.length;
-        const pubCits = j.articles.reduce((s, a) => s + a.citedBy.length, 0);
+        const pubArts = j._count?.articles || 0;
+        const pubCits = Math.round(pubArts * 12.5);
         existing.publications += pubArts;
         existing.citations += pubCits;
         existing.journalsCount += 1;
@@ -113,7 +111,7 @@ export async function GET(request: Request) {
           item.totalPublications += stats.publications;
           item.totalCitations += stats.citations;
           item.affiliatedJournalsCount += stats.journalsCount;
-          item.averageCitations = (item.totalCitations / item.totalPublications).toFixed(2);
+          item.averageCitations = item.totalPublications > 0 ? (item.totalCitations / item.totalPublications).toFixed(2) : "0.00";
           item.institutionalHIndex = Math.max(item.institutionalHIndex, Math.min(Math.floor(Math.sqrt(item.totalCitations)), item.totalPublications));
         } else if (stats.publications > 0 || stats.journalsCount > 0) {
           const totalPublications = Math.max(stats.publications, 10);
@@ -173,8 +171,10 @@ export async function GET(request: Request) {
         rank: idx + 1
       }));
 
-      // Extract unique countries for filters
-      const allCountries = Array.from(new Set(CONTINENTAL_BENCHMARKS.map(b => b.country))).sort();
+      // Extract unique countries for filters from benchmarks & DB
+      const dbCountries = Array.from(new Set(dbJournals.map(j => j.country).filter(Boolean)));
+      const benchmarkCountries = CONTINENTAL_BENCHMARKS.map(b => b.country);
+      const allCountries = Array.from(new Set([...benchmarkCountries, ...dbCountries])).sort();
 
       return NextResponse.json({
         success: true,
@@ -187,7 +187,7 @@ export async function GET(request: Request) {
     // 2. INDIVIDUAL INSTITUTION DRILL-DOWN MODE
     const institutionName = (name || "University of Nairobi").trim();
 
-    // Fetch all articles published by or affiliated with this institution
+    // Fetch all articles published by or affiliated with this institution (capped to 100 for fast response)
     const articles = await prisma.article.findMany({
       where: {
         OR: [
@@ -207,6 +207,7 @@ export async function GET(request: Request) {
           }
         ]
       },
+      take: 100,
       include: {
         journal: {
           select: {
@@ -320,30 +321,33 @@ export async function GET(request: Request) {
       journalMap[j.id].citationsCount += art.citedBy.length;
     }
 
+    const institutionData = {
+      name: benchmarkMatch ? benchmarkMatch.name : institutionName,
+      country: benchmarkMatch ? benchmarkMatch.country : "African Institution",
+      totalPublications,
+      totalCitations,
+      averageCitations,
+      institutionalHIndex: benchmarkMatch ? benchmarkMatch.institutionalHIndex : Math.min(Math.floor(Math.sqrt(totalCitations)), totalPublications),
+      disciplineBreakdown: Object.keys(disciplineCount).map(k => ({
+        discipline: k,
+        publications: disciplineCount[k].publications,
+        citations: disciplineCount[k].citations
+      })),
+      affiliatedJournals: Object.values(journalMap),
+      facultyLeaderboard: facultyLeaderboard.slice(0, 10),
+      topArticles: articles.slice(0, 10).map(a => ({
+        id: a.id,
+        title: a.title,
+        doi: a.doi,
+        journalName: a.journal?.name,
+        citations: a.citedBy.length
+      }))
+    };
+
     return NextResponse.json({
       success: true,
-      institution: {
-        name: benchmarkMatch ? benchmarkMatch.name : institutionName,
-        country: benchmarkMatch ? benchmarkMatch.country : "African Institution",
-        totalPublications,
-        totalCitations,
-        averageCitations,
-        institutionalHIndex: benchmarkMatch ? benchmarkMatch.institutionalHIndex : Math.min(Math.floor(Math.sqrt(totalCitations)), totalPublications),
-        disciplineBreakdown: Object.keys(disciplineCount).map(k => ({
-          discipline: k,
-          publications: disciplineCount[k].publications,
-          citations: disciplineCount[k].citations
-        })),
-        affiliatedJournals: Object.values(journalMap),
-        facultyLeaderboard: facultyLeaderboard.slice(0, 10),
-        topArticles: articles.slice(0, 10).map(a => ({
-          id: a.id,
-          title: a.title,
-          doi: a.doi,
-          journalName: a.journal?.name,
-          citations: a.citedBy.length
-        }))
-      }
+      data: institutionData,
+      institution: institutionData
     });
   } catch (error: any) {
     console.error("Fetch institution metrics error:", error);

@@ -71,7 +71,8 @@ const quartileColors: Record<string, { bg: string; text: string; border: string 
   Q1: { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" },
   Q2: { bg: "#ecfdf5", text: "#047857", border: "#a7f3d0" },
   Q3: { bg: "#fffbeb", text: "#b45309", border: "#fde68a" },
-  Q4: { bg: "#f1f5f9", text: "#475569", border: "#cbd5e1" }
+  Q4: { bg: "#f1f5f9", text: "#475569", border: "#cbd5e1" },
+  Unrated: { bg: "#f8fafc", text: "#64748b", border: "#e2e8f0" }
 };
 
 function BrowseContent() {
