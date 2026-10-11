@@ -407,6 +407,12 @@ export default function Header({ activePage }: HeaderProps) {
           <div className="desktop-actions" style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
             {user ? (
               <>
+                {user.role === "ADMIN" && (
+                  <Link href="/admin" className="btn btn-sm" style={{ background: "rgba(56, 189, 248, 0.15)", color: "#38bdf8", border: "1px solid rgba(56, 189, 248, 0.4)" }}>
+                    <i className="fa-solid fa-shield-halved" style={{ marginRight: "5px" }}></i>
+                    Admin Console
+                  </Link>
+                )}
                 <a href={`/researcher?id=${user.id}`} className="btn btn-secondary btn-sm" style={{ background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}>
                   <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`} style={{ marginRight: "5px" }}></i>
                   {user.role === "PUBLISHER" ? "Editor & Scholar Profile" : t.nav.profile}
@@ -703,6 +709,16 @@ export default function Header({ activePage }: HeaderProps) {
             <div style={{ borderTop: "1px solid #1e293b", paddingTop: "1.2rem", marginTop: "auto", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               {user ? (
                 <>
+                  {user.role === "ADMIN" && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="btn btn-sm"
+                      style={{ width: "100%", justifyContent: "center", background: "rgba(56, 189, 248, 0.15)", color: "#38bdf8", border: "1px solid rgba(56, 189, 248, 0.4)", padding: "0.6rem 1rem" }}
+                    >
+                      <i className="fa-solid fa-shield-halved"></i> Chief Admin Console
+                    </Link>
+                  )}
                   <Link 
                     href={`/researcher?id=${user.id}`} 
                     onClick={() => setIsMobileMenuOpen(false)}
