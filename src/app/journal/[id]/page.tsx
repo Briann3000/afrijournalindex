@@ -341,12 +341,12 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
 
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                 <a 
-                  href={`/submit?journal=${encodeURIComponent(journal.name)}&issn=${encodeURIComponent(journal.issn || "")}`}
+                  href={`/pricing?journalId=${journal.id}&journal=${encodeURIComponent(journal.name)}&tier=Basic`}
                   className="btn btn-primary"
                   style={{ backgroundColor: "#f59e0b", color: "#0f172a", borderColor: "#f59e0b", fontWeight: 800, padding: "0.6rem 1.4rem", fontSize: "0.88rem" }}
                 >
                   <i className="fa-solid fa-certificate" style={{ marginRight: "0.4rem" }}></i>
-                  Claim &amp; Certify ($199)
+                  Claim &amp; Certify (from $99)
                 </a>
               </div>
             </div>
@@ -787,20 +787,42 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 background: "#ffffff",
                 color: "#0f172a",
                 width: "100%",
-                maxWidth: "520px",
+                maxWidth: "540px",
                 maxHeight: "88vh",
                 overflowY: "auto",
-                borderRadius: "12px",
+                borderRadius: "14px",
                 border: "2px solid #b45309",
                 outline: "4px solid rgba(180, 83, 9, 0.15)",
                 outlineOffset: "3px",
                 padding: "2rem 2.2rem",
                 boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.4)",
-                position: "relative"
+                position: "relative",
+                overflow: "hidden"
               }}
               onClick={e => e.stopPropagation()}
             >
-              {/* Close Button (Hidden during print) */}
+              {/* Prominent Diagonal SAMPLE Watermark */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: "45%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%) rotate(-30deg)",
+                  fontSize: "3.2rem",
+                  fontWeight: 900,
+                  color: "rgba(220, 38, 38, 0.08)",
+                  letterSpacing: "4px",
+                  whiteSpace: "nowrap",
+                  pointerEvents: "none",
+                  userSelect: "none",
+                  zIndex: 1,
+                  textTransform: "uppercase"
+                }}
+              >
+                UNVERIFIED PREVIEW
+              </div>
+
+              {/* Close Button */}
               <button 
                 className="no-print"
                 onClick={() => setShowCertificate(false)}
@@ -812,14 +834,15 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   border: "none",
                   color: "var(--color-text-muted)",
                   fontSize: "1.2rem",
-                  cursor: "pointer"
+                  cursor: "pointer",
+                  zIndex: 2
                 }}
               >
                 <i className="fa-solid fa-xmark"></i>
               </button>
 
               {/* Certificate Crest & Authority Header */}
-              <div style={{ textAlign: "center", borderBottom: "2px solid #f1f5f9", paddingBottom: "1rem", marginBottom: "1.2rem" }}>
+              <div style={{ textAlign: "center", borderBottom: "2px solid #f1f5f9", paddingBottom: "1rem", marginBottom: "1.2rem", position: "relative", zIndex: 2 }}>
                 <div className="cert-gold-accent" style={{ fontSize: "0.72rem", color: "#b45309", letterSpacing: "1.5px", fontWeight: 700, textTransform: "uppercase", marginBottom: "0.25rem" }}>
                   African Scholarly Indexing &amp; Metric Authority
                 </div>
@@ -827,14 +850,14 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   Certificate of Indexation &amp; Impact
                 </h2>
                 <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", fontFamily: "monospace" }}>
-                  Verification ID: AJIF-CERT-2026-{journal.id.substring(0, 8).toUpperCase()}
+                  Verification Status: <span style={{ color: "#d97706", fontWeight: 700 }}>Unverified Baseline Sample</span>
                 </div>
               </div>
 
               {/* Formal Academic Citation Body */}
-              <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
+              <div style={{ textAlign: "center", marginBottom: "1.2rem", position: "relative", zIndex: 2 }}>
                 <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", margin: "0 0 0.35rem" }}>
-                  This certifies that
+                  This preview document references
                 </p>
                 <h3 className="cert-gold-accent" style={{ fontSize: "1.2rem", color: "var(--color-primary)", margin: "0 0 0.35rem", fontWeight: 700, lineHeight: "1.35", fontFamily: "Georgia, serif" }}>
                   {journal.name}
@@ -848,7 +871,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
               </div>
 
               {/* Verified Metric Scorecard */}
-              <div className="cert-metric-box" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem", background: "var(--color-bg-base)", padding: "1rem", borderRadius: "8px", border: "1px solid var(--color-border)", marginBottom: "1.2rem", textAlign: "center" }}>
+              <div className="cert-metric-box" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem", background: "#f8fafc", padding: "1rem", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "1.2rem", textAlign: "center", position: "relative", zIndex: 2 }}>
                 <div>
                   <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Standard AJIF</div>
                   <div className="cert-gold-accent" style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--color-primary)", marginTop: "0.15rem" }}>
@@ -859,7 +882,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 <div>
                   <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Quartile</div>
                   <div style={{ fontSize: "1.3rem", fontWeight: 800, color: qStyle.text, marginTop: "0.15rem" }}>
-                    {journal.quartile || "Q3"}
+                    {journal.quartile || "Unrated"}
                   </div>
                   <div style={{ fontSize: "0.65rem", color: "var(--color-text-muted)" }}>{journal.primaryDiscipline || "Category"}</div>
                 </div>
@@ -872,33 +895,58 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 </div>
               </div>
 
-              {/* Signatures (Visible only during print preview for formal output) */}
-              <div className="cert-print-only" style={{ display: "none", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", borderTop: "1px solid #cbd5e1", paddingTop: "1.5rem", marginTop: "1.5rem", textAlign: "center" }}>
-                <div>
-                  <div style={{ height: "24px", borderBottom: "1px dashed #94a3b8", margin: "0 1rem 0.4rem" }}></div>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#0f172a" }}>Prof. K. N. Omwenga</div>
-                  <div style={{ fontSize: "0.65rem", color: "#64748b" }}>Chair, Bibliometric Review Board</div>
+              {/* Paid Feature Gate Lock Banner */}
+              <div 
+                style={{ 
+                  background: "#fffbeb", 
+                  border: "1px solid #fde68a", 
+                  borderRadius: "8px", 
+                  padding: "1rem", 
+                  marginBottom: "1.2rem",
+                  textAlign: "center",
+                  position: "relative",
+                  zIndex: 2
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", color: "#b45309", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.3rem" }}>
+                  <i className="fa-solid fa-lock"></i>
+                  Official Accredited Certificate Locked
                 </div>
-                <div>
-                  <div style={{ height: "24px", borderBottom: "1px dashed #94a3b8", margin: "0 1rem 0.4rem" }}></div>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#0f172a" }}>AfriJournal Index Registry</div>
-                  <div style={{ fontSize: "0.65rem", color: "#64748b" }}>Director of Scholarly Standards</div>
+                <p style={{ fontSize: "0.78rem", color: "#78350f", margin: "0 0 0.8rem", lineHeight: "1.4" }}>
+                  The formal high-resolution PDF certificate with verified QR-code validation and official board signatures requires an active <strong>Evaluation Package</strong>.
+                </p>
+                <div style={{ display: "flex", justifyContent: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+                  <a 
+                    href={`/pricing?journalId=${journal.id}&journal=${encodeURIComponent(journal.name)}&tier=Basic`}
+                    className="btn btn-primary btn-sm"
+                    style={{ backgroundColor: "#b45309", borderColor: "#b45309", color: "#ffffff", fontWeight: 700, fontSize: "0.82rem", padding: "0.45rem 1.2rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
+                  >
+                    <i className="fa-solid fa-unlock"></i>
+                    Unlock Official Certificate ($99)
+                  </a>
+                  <a 
+                    href={`/verify/${journal.id}`}
+                    className="btn btn-secondary btn-sm"
+                    style={{ fontSize: "0.8rem", padding: "0.45rem 0.9rem" }}
+                  >
+                    <i className="fa-solid fa-shield-halved" style={{ marginRight: "0.3rem" }}></i>
+                    Verification Portal
+                  </a>
                 </div>
               </div>
 
-              {/* Footer & Print Button */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--color-border)", paddingTop: "0.9rem" }}>
+              {/* Footer */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #e2e8f0", paddingTop: "0.9rem", position: "relative", zIndex: 2 }}>
                 <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
-                  Verified by AfriJournal Index • {new Date().getFullYear()}
+                  AfriJournal Index Preview • {new Date().getFullYear()}
                 </div>
-                <button 
-                  className="no-print btn btn-primary btn-sm"
-                  onClick={() => window.print()} 
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.82rem", padding: "0.4rem 0.9rem" }}
+                <span 
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", color: "#94a3b8", cursor: "not-allowed" }}
+                  title="Official printable certificate is locked. Upgrade to unlock."
                 >
-                  <i className="fa-solid fa-print"></i>
-                  <span>Print Certificate</span>
-                </button>
+                  <i className="fa-solid fa-lock"></i>
+                  <span>Print Disabled in Preview</span>
+                </span>
               </div>
             </div>
           </div>

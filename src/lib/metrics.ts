@@ -3,7 +3,7 @@
  * Designed to prevent "Sea of Zeros" inflation and small-sample distortions.
  */
 
-export type Quartile = "Q1" | "Q2" | "Q3" | "Q4";
+export type Quartile = "Q1" | "Q2" | "Q3" | "Q4" | "Unrated";
 
 export interface CategorizedJournal {
   id: string;
@@ -50,32 +50,27 @@ export function getDisciplines(name: string = "", description: string = ""): str
 }
 
 /**
- * Assign Q1, Q2, Q3, Q4 quartiles to a list of scored journals within the same category.
- * Implements strict bibliometric quality gates:
- * - Journals with score 0.000 or no citation activity are strictly Q4 (Baseline).
- * - Q1 requires score >= 0.600 (or top 25% among active non-zero cohort).
- * - Q2 requires score >= 0.300.
- * - Q3 covers emerging citation velocity (0 < score < 0.300).
- * - Q4 covers unreferenced or baseline journals.
+ * Assign Q1, Q2, Q3, Q4, or Unrated status to journals within a discipline group.
+ * - Journals with score 0.000 or uncalculated are marked "Unrated" (Baseline).
+ * - Q1: Score >= 0.500 (Elite regional citation velocity).
+ * - Q2: Score >= 0.250 (Strong regional citation velocity).
+ * - Q3: Score >= 0.080 (Moderate active citation velocity).
+ * - Q4: Score > 0.000 (Emerging citations).
  */
 export function assignQuartiles<T extends { score: number; articleCount?: number }>(items: T[]): (T & { quartile: Quartile; rank: number; totalInGroup: number })[] {
   const sorted = [...items].sort((a, b) => b.score - a.score);
   const n = sorted.length;
 
   return sorted.map((item, idx) => {
-    let quartile: Quartile = "Q4";
+    let quartile: Quartile = "Unrated";
 
     if (item.score <= 0) {
-      // Zero citation impact is strictly Q4 (Baseline)
-      quartile = "Q4";
-    } else if (item.score >= 0.600) {
-      // High citation velocity for African regional context
+      quartile = "Unrated";
+    } else if (item.score >= 0.500) {
       quartile = "Q1";
-    } else if (item.score >= 0.300) {
-      // Solid citation velocity
+    } else if (item.score >= 0.250) {
       quartile = "Q2";
-    } else if (item.score > 0) {
-      // Emerging citation velocity (e.g. 0.100)
+    } else if (item.score >= 0.080) {
       quartile = "Q3";
     } else {
       quartile = "Q4";

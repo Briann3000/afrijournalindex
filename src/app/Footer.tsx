@@ -15,6 +15,11 @@ export default function Footer() {
             <span style={{ color: "#38bdf8", fontWeight: 800, fontSize: "1.25rem" }}>Journal Index</span>
           </a>
           <p className="footer-desc">{t.footer.desc}</p>
+          <div style={{ marginTop: "0.8rem" }}>
+            <a href="mailto:afrijournalindex@gmail.com" style={{ color: "#38bdf8", fontSize: "0.86rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+              <i className="fa-regular fa-envelope"></i> afrijournalindex@gmail.com
+            </a>
+          </div>
         </div>
         
         <div className="footer-links">

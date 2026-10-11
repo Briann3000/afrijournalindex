@@ -21,6 +21,8 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet" />
         {/* FontAwesome for Icons */}
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+        {/* IntaSend Inline Payment SDK */}
+        <script src="https://unpkg.com/intasend-inlinejs-sdk@4.0.5/build/intasend-inline.js" async></script>
       </head>
       <body>
         <LangProvider>

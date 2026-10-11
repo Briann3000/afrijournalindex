@@ -36,6 +36,9 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  experimental: {
+    cpus: 2
+  },
   async headers() {
     return [
       {

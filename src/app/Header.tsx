@@ -108,7 +108,7 @@ export default function Header({ activePage }: HeaderProps) {
         {/* Brand Logo */}
         <a href="/" className="logo" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.25rem" }}>Afri</span>
-          <span style={{ color: "#38bdf8", fontWeight: 800, fontSize: "1.25rem" }}>Journal Index</span>
+          <span style={{ color: "#38bdf8", fontWeight: 800, fontSize: "1.25rem" }}>Journal Indexing</span>
         </a>
         
         {/* Clustered Desktop Navigation Menu */}

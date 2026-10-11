@@ -20,13 +20,35 @@ export default function Contact() {
       <Header />
 
       <main className="container" style={{ padding: "3.5rem 0 6rem", maxWidth: "620px" }}>
-        <div className="page-header" style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+        <div className="page-header" style={{ textAlign: "center", marginBottom: "2rem" }}>
           <span className="badge-featured" style={{ marginBottom: "0.8rem" }}>
             <i className="fa-solid fa-headset"></i>
-            Support &amp; Inquiries
+            Support &amp; Editorial Inquiries
           </span>
           <h1 className="page-title">{t.footer.contact}</h1>
           <p className="page-subtitle">{t.contact_page.desc}</p>
+
+          <div style={{ marginTop: "1.2rem" }}>
+            <a 
+              href="mailto:afrijournalindex@gmail.com" 
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "0.5rem 1.2rem",
+                background: "var(--color-bg-card)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "30px",
+                color: "var(--color-primary)",
+                fontWeight: 700,
+                fontSize: "0.92rem",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
+              }}
+            >
+              <i className="fa-regular fa-envelope" style={{ color: "var(--color-primary)" }}></i>
+              afrijournalindex@gmail.com
+            </a>
+          </div>
         </div>
 
         <div className="card-surface" style={{ padding: "2.5rem" }}>

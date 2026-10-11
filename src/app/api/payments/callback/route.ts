@@ -4,10 +4,25 @@ import { prisma } from "../../../../lib/db";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { tracking_id, state, api_ref, journalId, amount } = body;
+
+    // Handle IntaSend Webhook Challenge / Handshake test
+    if (body.challenge) {
+      return NextResponse.json({ challenge: body.challenge }, { status: 200 });
+    }
+
+    const tracking_id = body.tracking_id || body.invoice_id;
+    const state = body.state || body.status;
+    const api_ref = body.api_ref || body.account;
+    
+    // Extract journalId from explicit field or api_ref (e.g., "AJIF_journal-id-here" or direct id)
+    const journalId = body.journalId || (api_ref?.startsWith("AJIF_") ? api_ref.replace("AJIF_", "") : api_ref);
 
     if (!journalId) {
-      return NextResponse.json({ success: false, error: "Missing associated Journal ID reference." }, { status: 400 });
+      // In webhook tests where no specific journal is referenced, acknowledge receipt
+      if (body.event === "test" || !tracking_id) {
+        return NextResponse.json({ success: true, message: "Webhook ping received" });
+      }
+      return NextResponse.json({ success: false, error: "Missing associated Journal ID or api_ref reference." }, { status: 400 });
     }
 
     const secretKey = process.env.INTASEND_SECRET_KEY;
@@ -15,7 +30,7 @@ export async function POST(request: Request) {
     // Production IntaSend server-to-server verification check
     if (secretKey && tracking_id) {
       try {
-        const isTest = process.env.INTASEND_TEST_MODE === "true" || process.env.NODE_ENV !== "production";
+        const isTest = secretKey.includes("_sandbox_") || process.env.INTASEND_TEST_MODE === "true";
         const verifyUrl = isTest 
           ? `https://sandbox.intasend.com/api/v1/payment/status/`
           : `https://payment.intasend.com/api/v1/payment/status/`;
