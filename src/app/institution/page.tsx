@@ -141,7 +141,7 @@ function InstitutionContent() {
     <div className="page-wrapper" style={{ padding: 0 }}>
       <Header activePage="rankings" />
 
-      <main className="container" style={{ padding: "3.5rem 0 6rem", maxWidth: "1140px" }}>
+      <main className="container institution-page-container" style={{ maxWidth: "1140px" }}>
         
         {/* Page Header */}
         <div className="page-header" style={{ textAlign: "center", marginBottom: "2.5rem" }}>
@@ -159,14 +159,15 @@ function InstitutionContent() {
 
         {/* Tab Navigation */}
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "2rem" }}>
-          <div style={{ background: "#ffffff", padding: "0.35rem", borderRadius: "12px", border: "1px solid var(--color-border)", display: "flex", gap: "0.4rem", boxShadow: "var(--card-shadow)", flexWrap: "wrap", justifyContent: "center" }}>
+          <div className="institution-tabs-wrapper" style={{ background: "#ffffff", padding: "0.35rem", borderRadius: "12px", border: "1px solid var(--color-border)", display: "flex", gap: "0.4rem", boxShadow: "var(--card-shadow)", width: "100%", maxWidth: "440px" }}>
             <button
               onClick={() => {
                 setActiveTab("leaderboard");
                 router.push("/institution");
               }}
               style={{
-                padding: "0.6rem 1.4rem",
+                flex: 1,
+                padding: "0.6rem 1rem",
                 borderRadius: "8px",
                 border: "none",
                 background: activeTab === "leaderboard" ? "var(--color-primary)" : "transparent",
@@ -176,17 +177,19 @@ function InstitutionContent() {
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
+                justifyContent: "center",
                 gap: "0.5rem",
                 transition: "all 0.2s"
               }}
             >
               <i className="fa-solid fa-list-ol"></i>
-              {t.institution_page.tab_leaderboard}
+              <span>{t.institution_page.tab_leaderboard}</span>
             </button>
             <button
               onClick={() => setActiveTab("profile")}
               style={{
-                padding: "0.6rem 1.4rem",
+                flex: 1,
+                padding: "0.6rem 1rem",
                 borderRadius: "8px",
                 border: "none",
                 background: activeTab === "profile" ? "var(--color-primary)" : "transparent",
@@ -196,12 +199,13 @@ function InstitutionContent() {
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
+                justifyContent: "center",
                 gap: "0.5rem",
                 transition: "all 0.2s"
               }}
             >
               <i className="fa-solid fa-building-columns"></i>
-              {t.institution_page.tab_profile}
+              <span>{t.institution_page.tab_profile}</span>
             </button>
           </div>
         </div>
@@ -272,109 +276,214 @@ function InstitutionContent() {
               </div>
             </div>
 
-            {/* Leaderboard Table with Horizontal Scroll Support for Mobile */}
-            <div className="table-responsive" style={{ background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)", overflowX: "auto" }}>
-              {loadingLeaderboard ? (
-                <div style={{ padding: "4rem", textAlign: "center" }}>
-                  <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)", marginBottom: "1rem" }}></i>
-                  <p style={{ color: "var(--color-text-muted)" }}>{t.rankings_page.loading}</p>
-                </div>
-              ) : leaderboard.length === 0 ? (
-                <div style={{ padding: "4rem", textAlign: "center", color: "var(--color-text-muted)" }}>
-                  <i className="fa-solid fa-filter-circle-xmark" style={{ fontSize: "2.5rem", marginBottom: "1rem", color: "var(--color-text-muted)" }}></i>
-                  <p>{t.institution_page.no_results}</p>
-                </div>
-              ) : (
-                <table className="academic-table" style={{ width: "100%", minWidth: "720px", borderCollapse: "collapse", textAlign: "left" }}>
-                  <thead>
-                    <tr style={{ background: "var(--color-bg-alt)", borderBottom: "1px solid var(--color-border)" }}>
-                      <th style={{ width: "80px", textAlign: "center", padding: "1rem" }}>{t.institution_page.col_rank}</th>
-                      <th style={{ padding: "1rem" }}>{t.institution_page.col_institution}</th>
-                      <th style={{ textAlign: "center", padding: "1rem" }}>{t.institution_page.col_top_discipline}</th>
-                      <th style={{ textAlign: "right", padding: "1rem" }}>{t.institution_page.col_publications}</th>
-                      <th style={{ textAlign: "right", padding: "1rem" }}>{t.institution_page.col_citations}</th>
-                      <th style={{ textAlign: "center", width: "120px", padding: "1rem" }}>{t.institution_page.col_hindex}</th>
-                      <th style={{ textAlign: "right", padding: "1rem" }}>{t.institution_page.col_action}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leaderboard.map((item) => {
-                      const isTop3 = item.rank <= 3;
-                      const rankBadgeBg = item.rank === 1 ? "#eff6ff" : item.rank === 2 ? "#f1f5f9" : item.rank === 3 ? "#fef3c7" : "var(--color-bg-card-subtle)";
-                      const rankBadgeColor = item.rank === 1 ? "var(--color-primary)" : item.rank === 2 ? "#475569" : item.rank === 3 ? "#b45309" : "var(--color-text-muted)";
+            {/* Leaderboard Table / Cards Container */}
+            {loadingLeaderboard ? (
+              <div style={{ background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)", padding: "4rem", textAlign: "center" }}>
+                <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)", marginBottom: "1rem" }}></i>
+                <p style={{ color: "var(--color-text-muted)" }}>{t.rankings_page.loading}</p>
+              </div>
+            ) : leaderboard.length === 0 ? (
+              <div style={{ background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)", padding: "4rem", textAlign: "center", color: "var(--color-text-muted)" }}>
+                <i className="fa-solid fa-filter-circle-xmark" style={{ fontSize: "2.5rem", marginBottom: "1rem", color: "var(--color-text-muted)" }}></i>
+                <p>{t.institution_page.no_results}</p>
+              </div>
+            ) : (
+              <>
+                {/* 1. Mobile Cards View (Shown on screens <= 768px) */}
+                <div className="institution-mobile-cards" style={{ display: "none", flexDirection: "column", gap: "0.85rem" }}>
+                  {leaderboard.map((item) => {
+                    const isTop3 = item.rank <= 3;
+                    const rankIcon = item.rank === 1 ? "🥇 1" : item.rank === 2 ? "🥈 2" : item.rank === 3 ? "🥉 3" : `#${item.rank}`;
+                    const rankBadgeBg = item.rank === 1 ? "#eff6ff" : item.rank === 2 ? "#f1f5f9" : item.rank === 3 ? "#fef3c7" : "var(--color-bg-base)";
+                    const rankBadgeColor = item.rank === 1 ? "var(--color-primary)" : item.rank === 2 ? "#475569" : item.rank === 3 ? "#b45309" : "var(--color-text-muted)";
 
-                      return (
-                        <tr key={item.name} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.2s" }} className="hover-row">
-                          <td style={{ textAlign: "center", padding: "1rem" }}>
-                            <span style={{ 
-                              display: "inline-flex", 
-                              alignItems: "center", 
-                              justifyContent: "center", 
-                              width: "32px", 
-                              height: "32px", 
-                              borderRadius: "50%", 
-                              background: rankBadgeBg, 
-                              color: rankBadgeColor, 
-                              fontWeight: 800, 
+                    return (
+                      <div
+                        key={item.name}
+                        className="card-surface"
+                        style={{
+                          padding: "1.15rem",
+                          borderRadius: "14px",
+                          border: isTop3 ? "1.5px solid rgba(13, 148, 136, 0.3)" : "1px solid var(--color-border)",
+                          boxShadow: "var(--card-shadow)",
+                          background: "#ffffff"
+                        }}
+                      >
+                        {/* Header: Rank + University + Country + h-Index */}
+                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.6rem", marginBottom: "0.85rem" }}>
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem", flex: 1 }}>
+                            <span style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              padding: "0.25rem 0.55rem",
+                              borderRadius: "8px",
+                              background: rankBadgeBg,
+                              color: rankBadgeColor,
+                              fontWeight: 800,
                               fontSize: "0.85rem",
-                              border: isTop3 ? `1px solid ${rankBadgeColor}` : "none"
+                              whiteSpace: "nowrap"
                             }}>
-                              {item.rank}
+                              {rankIcon}
                             </span>
-                          </td>
-
-                          <td style={{ padding: "1rem" }}>
-                            <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.98rem" }}>
-                              {item.name}
+                            <div>
+                              <div 
+                                onClick={() => handleSelectUniversity(item.name)}
+                                style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.98rem", lineHeight: 1.35, cursor: "pointer" }}
+                              >
+                                {item.name}
+                              </div>
+                              <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "0.25rem" }}>
+                                <i className="fa-solid fa-location-dot" style={{ color: "var(--color-primary)", fontSize: "0.72rem" }}></i>
+                                <span>{item.country}</span>
+                                {item.affiliatedJournalsCount > 0 && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{item.affiliatedJournalsCount} {t.showcase.title}</span>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.2rem", fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                              <i className="fa-solid fa-location-dot" style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>
-                              <span>{item.country}</span>
-                              {item.affiliatedJournalsCount > 0 && (
-                                <>
-                                  <span>•</span>
-                                  <span>{item.affiliatedJournalsCount} {t.showcase.title}</span>
-                                </>
-                              )}
+                          </div>
+                          <span style={{ background: "#eff6ff", color: "#1d4ed8", padding: "0.25rem 0.6rem", borderRadius: "8px", fontWeight: 700, fontSize: "0.8rem", whiteSpace: "nowrap" }}>
+                            h-{item.institutionalHIndex}
+                          </span>
+                        </div>
+
+                        {/* Metrics Grid */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.5rem", background: "var(--color-bg-base)", padding: "0.65rem 0.8rem", borderRadius: "10px", marginBottom: "0.85rem", textAlign: "center" }}>
+                          <div>
+                            <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 600 }}>{t.institution_page.col_publications}</div>
+                            <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.92rem", marginTop: "2px" }}>
+                              {item.totalPublications.toLocaleString()}
                             </div>
-                          </td>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 600 }}>{t.institution_page.col_citations}</div>
+                            <div style={{ fontWeight: 700, color: "var(--color-primary)", fontSize: "0.92rem", marginTop: "2px" }}>
+                              {item.totalCitations.toLocaleString()}
+                            </div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 600 }}>{t.institution_page.col_avg_citations}</div>
+                            <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.92rem", marginTop: "2px" }}>
+                              {item.averageCitations}
+                            </div>
+                          </div>
+                        </div>
 
-                          <td style={{ textAlign: "center", padding: "1rem" }}>
-                            <span className="journal-tag" style={{ fontSize: "0.75rem" }}>
-                              {item.topDiscipline}
-                            </span>
-                          </td>
+                        {/* Footer: Lead Field & Action Button */}
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem", flexWrap: "wrap" }}>
+                          <span className="journal-tag" style={{ fontSize: "0.75rem", padding: "0.22rem 0.55rem" }}>
+                            {item.topDiscipline}
+                          </span>
+                          <button
+                            onClick={() => handleSelectUniversity(item.name)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ fontSize: "0.8rem", padding: "0.4rem 0.85rem", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+                          >
+                            <span>{t.institution_page.view_details}</span>
+                            <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.68rem" }}></i>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
-                          <td style={{ textAlign: "right", fontWeight: 600, color: "var(--color-text-main)", padding: "1rem" }}>
-                            {item.totalPublications.toLocaleString()}
-                          </td>
+                {/* 2. Desktop Table View (Shown on screens > 768px) */}
+                <div className="institution-desktop-table table-responsive" style={{ background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)", overflowX: "auto" }}>
+                  <table className="academic-table" style={{ width: "100%", minWidth: "720px", borderCollapse: "collapse", textAlign: "left" }}>
+                    <thead>
+                      <tr style={{ background: "var(--color-bg-alt)", borderBottom: "1px solid var(--color-border)" }}>
+                        <th style={{ width: "80px", textAlign: "center", padding: "1rem" }}>{t.institution_page.col_rank}</th>
+                        <th style={{ padding: "1rem" }}>{t.institution_page.col_institution}</th>
+                        <th style={{ textAlign: "center", padding: "1rem" }}>{t.institution_page.col_top_discipline}</th>
+                        <th style={{ textAlign: "right", padding: "1rem" }}>{t.institution_page.col_publications}</th>
+                        <th style={{ textAlign: "right", padding: "1rem" }}>{t.institution_page.col_citations}</th>
+                        <th style={{ textAlign: "center", width: "120px", padding: "1rem" }}>{t.institution_page.col_hindex}</th>
+                        <th style={{ textAlign: "right", padding: "1rem" }}>{t.institution_page.col_action}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leaderboard.map((item) => {
+                        const isTop3 = item.rank <= 3;
+                        const rankBadgeBg = item.rank === 1 ? "#eff6ff" : item.rank === 2 ? "#f1f5f9" : item.rank === 3 ? "#fef3c7" : "var(--color-bg-card-subtle)";
+                        const rankBadgeColor = item.rank === 1 ? "var(--color-primary)" : item.rank === 2 ? "#475569" : item.rank === 3 ? "#b45309" : "var(--color-text-muted)";
 
-                          <td style={{ textAlign: "right", fontWeight: 700, color: "var(--color-primary)", padding: "1rem" }}>
-                            {item.totalCitations.toLocaleString()}
-                          </td>
+                        return (
+                          <tr key={item.name} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.2s" }} className="hover-row">
+                            <td style={{ textAlign: "center", padding: "1rem" }}>
+                              <span style={{ 
+                                display: "inline-flex", 
+                                alignItems: "center", 
+                                justifyContent: "center", 
+                                width: "32px", 
+                                height: "32px", 
+                                borderRadius: "50%", 
+                                background: rankBadgeBg, 
+                                color: rankBadgeColor, 
+                                fontWeight: 800, 
+                                fontSize: "0.85rem",
+                                border: isTop3 ? `1px solid ${rankBadgeColor}` : "none"
+                              }}>
+                                {item.rank}
+                              </span>
+                            </td>
 
-                          <td style={{ textAlign: "center", padding: "1rem" }}>
-                            <span style={{ background: "#eff6ff", color: "#1d4ed8", padding: "0.25rem 0.65rem", borderRadius: "8px", fontWeight: 700, fontSize: "0.85rem" }}>
-                              h-{item.institutionalHIndex}
-                            </span>
-                          </td>
+                            <td style={{ padding: "1rem" }}>
+                              <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.98rem" }}>
+                                {item.name}
+                              </div>
+                              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.2rem", fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
+                                <i className="fa-solid fa-location-dot" style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>
+                                <span>{item.country}</span>
+                                {item.affiliatedJournalsCount > 0 && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{item.affiliatedJournalsCount} {t.showcase.title}</span>
+                                  </>
+                                )}
+                              </div>
+                            </td>
 
-                          <td style={{ textAlign: "right", padding: "1rem" }}>
-                            <button
-                              onClick={() => handleSelectUniversity(item.name)}
-                              className="btn btn-secondary btn-sm"
-                              style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem" }}
-                            >
-                              {t.institution_page.view_details} <i className="fa-solid fa-chevron-right" style={{ marginLeft: "0.25rem", fontSize: "0.7rem" }}></i>
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </div>
+                            <td style={{ textAlign: "center", padding: "1rem" }}>
+                              <span className="journal-tag" style={{ fontSize: "0.75rem" }}>
+                                {item.topDiscipline}
+                              </span>
+                            </td>
+
+                            <td style={{ textAlign: "right", fontWeight: 600, color: "var(--color-text-main)", padding: "1rem" }}>
+                              {item.totalPublications.toLocaleString()}
+                            </td>
+
+                            <td style={{ textAlign: "right", fontWeight: 700, color: "var(--color-primary)", padding: "1rem" }}>
+                              {item.totalCitations.toLocaleString()}
+                            </td>
+
+                            <td style={{ textAlign: "center", padding: "1rem" }}>
+                              <span style={{ background: "#eff6ff", color: "#1d4ed8", padding: "0.25rem 0.65rem", borderRadius: "8px", fontWeight: 700, fontSize: "0.85rem" }}>
+                                h-{item.institutionalHIndex}
+                              </span>
+                            </td>
+
+                            <td style={{ textAlign: "right", padding: "1rem" }}>
+                              <button
+                                onClick={() => handleSelectUniversity(item.name)}
+                                className="btn btn-secondary btn-sm"
+                                style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem" }}
+                              >
+                                {t.institution_page.view_details} <i className="fa-solid fa-chevron-right" style={{ marginLeft: "0.25rem", fontSize: "0.7rem" }}></i>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -443,14 +552,16 @@ function InstitutionContent() {
               <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
                 
                 {/* Institution Header Banner */}
-                <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
-                    <div>
+                    <div style={{ flex: 1, minWidth: "260px" }}>
                       <span className="badge-featured" style={{ marginBottom: "0.8rem" }}>
                         <i className="fa-solid fa-graduation-cap"></i>
                         {t.institution_page.tab_profile}
                       </span>
-                      <h1 style={{ fontSize: "2rem", margin: "0.2rem 0 0.5rem", color: "var(--color-text-main)", fontWeight: 800 }}>{profileData.name}</h1>
+                      <h1 style={{ fontSize: "clamp(1.3rem, 4vw, 2rem)", margin: "0.2rem 0 0.5rem", color: "var(--color-text-main)", fontWeight: 800, lineHeight: 1.3 }}>
+                        {profileData.name}
+                      </h1>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
                         <i className="fa-solid fa-location-dot" style={{ color: "var(--color-primary)" }}></i>
                         <span>{profileData.country || "African Academic Institution"}</span>
@@ -460,7 +571,7 @@ function InstitutionContent() {
                     <button 
                       onClick={() => setActiveTab("leaderboard")}
                       className="btn btn-secondary btn-sm"
-                      style={{ fontSize: "0.82rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
+                      style={{ fontSize: "0.82rem", display: "inline-flex", alignItems: "center", gap: "0.4rem", whiteSpace: "nowrap" }}
                     >
                       <i className="fa-solid fa-arrow-left"></i> {t.institution_page.back_to_leaderboard}
                     </button>
@@ -468,31 +579,31 @@ function InstitutionContent() {
                 </div>
 
                 {/* Metrics 4-Grid */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
-                  <div className="card-surface" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
-                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.institution_page.stats_pubs}</span>
-                    <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-text-main)", margin: "0.4rem 0 0.2rem" }}>
+                <div className="institution-metrics-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
+                  <div className="card-surface institution-metric-card" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                    <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.institution_page.stats_pubs}</span>
+                    <div className="metric-big-number" style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-text-main)", margin: "0.4rem 0 0.2rem" }}>
                       {profileData.totalPublications.toLocaleString()}
                     </div>
                   </div>
 
-                  <div className="card-surface" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
-                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.institution_page.stats_cites}</span>
-                    <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-primary)", margin: "0.4rem 0 0.2rem" }}>
+                  <div className="card-surface institution-metric-card" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                    <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.institution_page.stats_cites}</span>
+                    <div className="metric-big-number" style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-primary)", margin: "0.4rem 0 0.2rem" }}>
                       {profileData.totalCitations.toLocaleString()}
                     </div>
                   </div>
 
-                  <div className="card-surface" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
-                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.researcher_page.avg_citations}</span>
-                    <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-text-main)", margin: "0.4rem 0 0.2rem" }}>
+                  <div className="card-surface institution-metric-card" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                    <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.researcher_page.avg_citations}</span>
+                    <div className="metric-big-number" style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-text-main)", margin: "0.4rem 0 0.2rem" }}>
                       {profileData.averageCitations}
                     </div>
                   </div>
 
-                  <div className="card-surface" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
-                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.institution_page.stats_hindex}</span>
-                    <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "#0284c7", margin: "0.4rem 0 0.2rem" }}>
+                  <div className="card-surface institution-metric-card" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                    <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.institution_page.stats_hindex}</span>
+                    <div className="metric-big-number" style={{ fontSize: "2.2rem", fontWeight: "bold", color: "#0284c7", margin: "0.4rem 0 0.2rem" }}>
                       h-{profileData.institutionalHIndex || 1}
                     </div>
                   </div>

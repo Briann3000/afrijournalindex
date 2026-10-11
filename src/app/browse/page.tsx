@@ -102,6 +102,10 @@ function BrowseContent() {
   const [articleSearch, setArticleSearch] = useState<string>(urlQuery);
   const [articleTotal, setArticleTotal] = useState<number>(0);
   const [articlePage, setArticlePage] = useState<number>(1);
+  const [articleSort, setArticleSort] = useState<"newest" | "oldest" | "citations" | "title">("newest");
+  const [articleYear, setArticleYear] = useState<string>("");
+  const [articleHasPdf, setArticleHasPdf] = useState<boolean>(false);
+  const [articlePageSize, setArticlePageSize] = useState<number>(15);
   const [articleLoading, setArticleLoading] = useState<boolean>(false);
   const [expandedAbstractId, setExpandedAbstractId] = useState<string | null>(null);
 
@@ -169,7 +173,7 @@ function BrowseContent() {
     loadJournals();
   }, []);
 
-  // Fetch Articles on search or page change
+  // Fetch Articles on search, sort, filter or page change
   useEffect(() => {
     async function searchArticles() {
       if (activeTab !== "articles") return;
@@ -178,9 +182,13 @@ function BrowseContent() {
         const queryParams = new URLSearchParams({
           q: articleSearch,
           country: countryFilter,
+          sortBy: articleSort,
           page: articlePage.toString(),
-          limit: "15"
+          limit: articlePageSize.toString()
         });
+
+        if (articleYear) queryParams.set("year", articleYear);
+        if (articleHasPdf) queryParams.set("hasPdf", "true");
 
         const res = await fetch(`/api/articles/search?${queryParams.toString()}`);
         const data = await res.json();
@@ -200,7 +208,7 @@ function BrowseContent() {
     }, 200);
 
     return () => clearTimeout(timer);
-  }, [activeTab, articleSearch, countryFilter, articlePage]);
+  }, [activeTab, articleSearch, countryFilter, articleSort, articleYear, articleHasPdf, articlePage, articlePageSize]);
 
   // Filter & Sort Journals
   const processedJournals = useMemo(() => {
@@ -637,24 +645,36 @@ function BrowseContent() {
       {activeTab === "articles" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           
-          {/* Article Search Bar */}
+          {/* Article Search & Multi-Filter Card */}
           <div className="card-surface" style={{ padding: "1.4rem" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1rem", alignItems: "center" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: "1rem", alignItems: "center" }}>
+              
+              {/* Search Input */}
               <div style={{ position: "relative" }}>
                 <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--color-text-muted)" }}></i>
                 <input
                   type="text"
-                  placeholder="Search articles by keywords, topics, DOI, or abstract content..."
+                  placeholder="Search title, keywords, abstract, DOI..."
                   value={articleSearch}
                   onChange={(e) => {
                     setArticleSearch(e.target.value);
                     setArticlePage(1);
                   }}
                   className="form-control"
-                  style={{ paddingLeft: "2.6rem", fontSize: "0.95rem" }}
+                  style={{ paddingLeft: "2.6rem", paddingRight: articleSearch ? "2.2rem" : "0.75rem", fontSize: "0.92rem" }}
                 />
+                {articleSearch && (
+                  <button
+                    onClick={() => { setArticleSearch(""); setArticlePage(1); }}
+                    style={{ position: "absolute", right: "0.8rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--color-text-muted)", cursor: "pointer", padding: "4px" }}
+                    title="Clear search"
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                )}
               </div>
 
+              {/* Country Select */}
               <div>
                 <select
                   value={countryFilter}
@@ -663,9 +683,9 @@ function BrowseContent() {
                     setArticlePage(1);
                   }}
                   className="form-select"
-                  style={{ fontSize: "0.92rem" }}
+                  style={{ fontSize: "0.9rem" }}
                 >
-                  <option value="">Filter by Author/Publisher Country (All Africa)</option>
+                  <option value="">All African Nations ({ALL_COUNTRY_NAMES.length})</option>
                   {ALL_COUNTRY_NAMES.map(c => (
                     <option key={c} value={c}>
                       {COUNTRY_META_MAP[c]?.flag || "🌍"} {c}
@@ -673,10 +693,104 @@ function BrowseContent() {
                   ))}
                 </select>
               </div>
+
+              {/* Publication Year Filter */}
+              <div>
+                <select
+                  value={articleYear}
+                  onChange={(e) => {
+                    setArticleYear(e.target.value);
+                    setArticlePage(1);
+                  }}
+                  className="form-select"
+                  style={{ fontSize: "0.9rem" }}
+                >
+                  <option value="">All Publication Years</option>
+                  <option value="2026">2026 (Latest)</option>
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                  <option value="2023">2023</option>
+                  <option value="2022">2022</option>
+                  <option value="2021">2021</option>
+                  <option value="2020">2020</option>
+                </select>
+              </div>
+
+              {/* Sort Order Selector */}
+              <div>
+                <select
+                  value={articleSort}
+                  onChange={(e) => {
+                    setArticleSort(e.target.value as any);
+                    setArticlePage(1);
+                  }}
+                  className="form-select"
+                  style={{ fontSize: "0.9rem" }}
+                >
+                  <option value="newest">Sort: Newest First</option>
+                  <option value="oldest">Sort: Oldest First</option>
+                  <option value="citations">Sort: Most Cited</option>
+                  <option value="title">Sort: Title (A → Z)</option>
+                </select>
+              </div>
             </div>
 
-            <div style={{ marginTop: "0.85rem", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-              Found <strong style={{ color: "var(--color-primary)" }}>{articleTotal}</strong> peer-reviewed African research articles
+            {/* Secondary Controls Bar: Open Access PDF Toggle, Reset, Page Size, Results Count */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem", paddingTop: "0.85rem", borderTop: "1px solid var(--color-border)", fontSize: "0.85rem", color: "var(--color-text-muted)", flexWrap: "wrap", gap: "0.8rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+                <span>
+                  Found <strong style={{ color: "var(--color-primary)" }}>{articleTotal.toLocaleString()}</strong> peer-reviewed African research articles
+                </span>
+
+                {/* Open Access PDF Toggle Pill */}
+                <label style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", cursor: "pointer", background: articleHasPdf ? "var(--color-primary-light)" : "#f8fafc", padding: "0.3rem 0.75rem", borderRadius: "20px", border: articleHasPdf ? "1px solid var(--color-primary)" : "1px solid var(--color-border)", fontSize: "0.82rem", fontWeight: 600, color: articleHasPdf ? "var(--color-primary)" : "var(--color-text-main)", userSelect: "none" }}>
+                  <input
+                    type="checkbox"
+                    checked={articleHasPdf}
+                    onChange={(e) => {
+                      setArticleHasPdf(e.target.checked);
+                      setArticlePage(1);
+                    }}
+                    style={{ accentColor: "var(--color-primary)", cursor: "pointer" }}
+                  />
+                  <i className="fa-solid fa-file-pdf" style={{ color: articleHasPdf ? "var(--color-primary)" : "#dc2626" }}></i>
+                  Open Access PDF Full-Text Only
+                </label>
+
+                {(articleSearch || countryFilter || articleYear || articleHasPdf) && (
+                  <button
+                    onClick={() => {
+                      setArticleSearch("");
+                      setCountryFilter("");
+                      setArticleYear("");
+                      setArticleHasPdf(false);
+                      setArticleSort("newest");
+                      setArticlePage(1);
+                    }}
+                    style={{ background: "none", border: "none", color: "var(--color-primary)", cursor: "pointer", fontSize: "0.82rem", fontWeight: 600 }}
+                  >
+                    <i className="fa-solid fa-rotate-left" style={{ marginRight: "4px" }}></i> Reset Filters
+                  </button>
+                )}
+              </div>
+
+              {/* Page Size Selector */}
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span>Show:</span>
+                <select
+                  value={articlePageSize}
+                  onChange={(e) => {
+                    setArticlePageSize(Number(e.target.value));
+                    setArticlePage(1);
+                  }}
+                  className="form-select"
+                  style={{ padding: "0.25rem 0.6rem", fontSize: "0.82rem", width: "auto" }}
+                >
+                  <option value={15}>15 per page</option>
+                  <option value={25}>25 per page</option>
+                  <option value={50}>50 per page</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -690,7 +804,7 @@ function BrowseContent() {
             <div className="card-surface" style={{ padding: "4rem 2rem", textAlign: "center", color: "var(--color-text-muted)" }}>
               <i className="fa-solid fa-newspaper" style={{ fontSize: "2.5rem", color: "var(--color-text-lighter)", marginBottom: "1rem" }}></i>
               <h3 style={{ fontSize: "1.2rem", color: "var(--color-text-main)" }}>No Articles Found</h3>
-              <p>Try searching for broader keywords like "agriculture", "education", "health", or "economics".</p>
+              <p>Try searching for broader keywords like &quot;agriculture&quot;, &quot;education&quot;, &quot;health&quot;, or &quot;economics&quot;, or reset your filters.</p>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -714,6 +828,10 @@ function BrowseContent() {
                         </a>
                         <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
                           • {new Date(art.publishDate).getFullYear()}
+                        </span>
+                        <span style={{ fontSize: "0.78rem", color: "var(--color-primary)", fontWeight: 700, background: "rgba(13, 148, 136, 0.08)", padding: "0.15rem 0.5rem", borderRadius: "4px", border: "1px solid rgba(13, 148, 136, 0.2)" }}>
+                          <i className="fa-solid fa-quote-right" style={{ marginRight: "4px" }}></i>
+                          {art.citationCount} {art.citationCount === 1 ? "Citation" : "Citations"}
                         </span>
                       </div>
 
@@ -777,30 +895,81 @@ function BrowseContent() {
                 </div>
               ))}
 
-              {/* Article Pagination */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem", marginTop: "1rem" }}>
-                <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-                  Page {articlePage} of {Math.ceil(articleTotal / 15) || 1}
-                </span>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <button
-                    disabled={articlePage === 1}
-                    onClick={() => setArticlePage(p => Math.max(1, p - 1))}
-                    className="btn btn-secondary btn-sm"
-                    style={{ opacity: articlePage === 1 ? 0.45 : 1 }}
-                  >
-                    Previous
-                  </button>
-                  <button
-                    disabled={articlePage >= Math.ceil(articleTotal / 15)}
-                    onClick={() => setArticlePage(p => p + 1)}
-                    className="btn btn-secondary btn-sm"
-                    style={{ opacity: articlePage >= Math.ceil(articleTotal / 15) ? 0.45 : 1 }}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
+              {/* Robust Numbered Article Pagination */}
+              {articleTotal > 0 && (() => {
+                const totalPages = Math.max(1, Math.ceil(articleTotal / articlePageSize));
+                const getPages = () => {
+                  const pages: (number | string)[] = [];
+                  if (totalPages <= 7) {
+                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+                  } else {
+                    pages.push(1);
+                    if (articlePage > 3) pages.push("...");
+                    const start = Math.max(2, articlePage - 1);
+                    const end = Math.min(totalPages - 1, articlePage + 1);
+                    for (let i = start; i <= end; i++) pages.push(i);
+                    if (articlePage < totalPages - 2) pages.push("...");
+                    pages.push(totalPages);
+                  }
+                  return pages;
+                };
+
+                return (
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.1rem 1.4rem", marginTop: "1rem", background: "#f8fafc", borderRadius: "12px", border: "1px solid var(--color-border)", fontSize: "0.85rem", color: "var(--color-text-muted)", flexWrap: "wrap", gap: "0.8rem" }}>
+                    <span>
+                      Showing <strong style={{ color: "var(--color-navy)" }}>{(articlePage - 1) * articlePageSize + 1}</strong> – <strong style={{ color: "var(--color-navy)" }}>{Math.min(articlePage * articlePageSize, articleTotal)}</strong> of <strong style={{ color: "var(--color-navy)" }}>{articleTotal.toLocaleString()}</strong> articles
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", flexWrap: "wrap" }}>
+                      <button
+                        disabled={articlePage === 1}
+                        onClick={() => setArticlePage(p => Math.max(1, p - 1))}
+                        className="btn btn-secondary btn-sm"
+                        style={{ padding: "0.35rem 0.75rem", opacity: articlePage === 1 ? 0.45 : 1, fontSize: "0.82rem" }}
+                      >
+                        <i className="fa-solid fa-chevron-left" style={{ marginRight: "4px" }}></i> Prev
+                      </button>
+
+                      {getPages().map((p, idx) => {
+                        if (p === "...") {
+                          return <span key={`ell-${idx}`} style={{ padding: "0.2rem 0.5rem", color: "var(--color-text-muted)" }}>...</span>;
+                        }
+                        const pageNum = p as number;
+                        const isActive = pageNum === articlePage;
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setArticlePage(pageNum)}
+                            style={{
+                              minWidth: "34px",
+                              height: "34px",
+                              padding: "0 0.5rem",
+                              borderRadius: "6px",
+                              border: isActive ? "1px solid var(--color-primary)" : "1px solid var(--color-border)",
+                              background: isActive ? "var(--color-primary)" : "#ffffff",
+                              color: isActive ? "#ffffff" : "var(--color-text-main)",
+                              fontWeight: isActive ? 700 : 500,
+                              fontSize: "0.84rem",
+                              cursor: "pointer",
+                              transition: "all 0.15s ease"
+                            }}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+
+                      <button
+                        disabled={articlePage >= totalPages}
+                        onClick={() => setArticlePage(p => Math.min(p + 1, totalPages))}
+                        className="btn btn-secondary btn-sm"
+                        style={{ padding: "0.35rem 0.75rem", opacity: articlePage >= totalPages ? 0.45 : 1, fontSize: "0.82rem" }}
+                      >
+                        Next <i className="fa-solid fa-chevron-right" style={{ marginLeft: "4px" }}></i>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 

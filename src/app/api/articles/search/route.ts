@@ -16,6 +16,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const rawQ = searchParams.get("q")?.trim() || "";
     const country = searchParams.get("country")?.trim() || "";
+    const hasPdf = searchParams.get("hasPdf") === "true";
+    const yearStr = searchParams.get("year")?.trim();
+    const sortBy = searchParams.get("sortBy")?.trim() || "newest";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(50, Math.max(5, parseInt(searchParams.get("limit") || "15", 10)));
     const skip = (page - 1) * limit;
@@ -51,13 +54,34 @@ export async function GET(request: Request) {
       };
     }
 
+    if (hasPdf) {
+      whereClause.pdfUrl = { not: null };
+    }
+
+    if (yearStr && !isNaN(parseInt(yearStr, 10))) {
+      const yearInt = parseInt(yearStr, 10);
+      whereClause.publishDate = {
+        gte: new Date(`${yearInt}-01-01T00:00:00.000Z`),
+        lte: new Date(`${yearInt}-12-31T23:59:59.999Z`)
+      };
+    }
+
+    let orderByClause: any = { publishDate: "desc" };
+    if (sortBy === "oldest") {
+      orderByClause = { publishDate: "asc" };
+    } else if (sortBy === "citations") {
+      orderByClause = { citedBy: { _count: "desc" } };
+    } else if (sortBy === "title") {
+      orderByClause = { title: "asc" };
+    }
+
     const [total, articles] = await Promise.all([
       prisma.article.count({ where: whereClause }),
       prisma.article.findMany({
         where: whereClause,
         skip,
         take: limit,
-        orderBy: { publishDate: "desc" },
+        orderBy: orderByClause,
         include: {
           journal: {
             select: {

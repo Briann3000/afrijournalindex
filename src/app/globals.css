@@ -494,13 +494,15 @@ a {
 }
 
 /* -------------------------------------------------------------
-   Hero Section
+   Hero Section (with Option B Network Background)
 ------------------------------------------------------------- */
 .hero-section {
     position: relative;
     padding: 5rem 0 4.5rem;
-    background: var(--color-bg-base);
-    border-bottom: 1px solid var(--color-border);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.78) 50%, rgba(15, 23, 42, 0.95) 100%), url('/images/hero-network.jpg') center/cover no-repeat;
+    border-bottom: 1px solid #1e293b;
+    color: #ffffff;
+    overflow: hidden;
 }
 
 .hero-container {
@@ -516,28 +518,43 @@ a {
     align-items: flex-start;
 }
 
-.badge-featured {
-    background-color: var(--color-primary-light);
-    color: var(--color-primary-hover);
+.hero-section .badge-featured {
+    background-color: rgba(56, 189, 248, 0.12);
+    color: #38bdf8;
     padding: 0.4rem 1rem;
     border-radius: 50px;
     font-size: 0.82rem;
     font-weight: 700;
     margin-bottom: 1.2rem;
-    border: 1px solid #bfdbfe;
+    border: 1px solid rgba(56, 189, 248, 0.35);
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
 }
 
-.hero-title {
+.hero-section .hero-title {
     font-family: var(--font-heading);
     font-size: 3.2rem;
     font-weight: 800;
     line-height: 1.15;
     margin-bottom: 1.2rem;
-    color: var(--color-text-main);
+    color: #ffffff;
     letter-spacing: -0.03em;
+}
+
+.hero-section .hero-subtitle {
+    color: #cbd5e1;
+}
+
+.hero-section .btn-secondary {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.hero-section .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: #ffffff;
 }
 
 .hero-subtitle {
@@ -1292,6 +1309,17 @@ a {
     }
     .header-container {
         height: 64px !important;
+        width: 100% !important;
+        padding: 0 0.75rem !important;
+        box-sizing: border-box !important;
+    }
+    .header-actions {
+        gap: 0.35rem !important;
+    }
+    .lang-selector {
+        padding-left: 0.5rem !important;
+        padding-right: 20px !important;
+        font-size: 0.78rem !important;
     }
     .page-title {
         font-size: clamp(1.6rem, 4vw, 2.2rem) !important;
@@ -1315,6 +1343,51 @@ a {
     }
     .glass-card, .card-surface {
         padding: 1.25rem !important;
+    }
+}
+
+/* -------------------------------------------------------------
+   Institution Page Mobile Responsiveness
+------------------------------------------------------------- */
+.institution-page-container {
+    padding: 3.5rem 1rem 6rem;
+}
+
+@media (max-width: 768px) {
+    .institution-page-container {
+        padding: 1.5rem 0.5rem 4rem !important;
+        width: 100% !important;
+    }
+    .institution-desktop-table {
+        display: none !important;
+    }
+    .institution-mobile-cards {
+        display: flex !important;
+    }
+    .institution-tabs-wrapper {
+        max-width: 100% !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .institution-desktop-table {
+        display: block !important;
+    }
+    .institution-mobile-cards {
+        display: none !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .institution-metrics-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem !important;
+    }
+    .institution-metrics-grid .institution-metric-card {
+        padding: 1rem 0.6rem !important;
+    }
+    .institution-metrics-grid .metric-big-number {
+        font-size: 1.6rem !important;
     }
 }
 

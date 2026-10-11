@@ -366,8 +366,8 @@ export default function Home() {
               <a href="/submit" className="btn btn-primary btn-lg">
                 <i className="fa-solid fa-circle-check"></i> {t.cta.btn}
               </a>
-              <a href="/submit/status" className="btn btn-secondary btn-lg" style={{ background: "rgba(255,255,255,0.15)", color: "#ffffff", border: "1px solid rgba(255,255,255,0.35)" }}>
-                <i className="fa-solid fa-magnifying-glass"></i> {t.cta.btn_status}
+              <a href="/contact" className="btn btn-secondary btn-lg" style={{ background: "rgba(255,255,255,0.15)", color: "#ffffff", border: "1px solid rgba(255,255,255,0.35)" }}>
+                <i className="fa-solid fa-headset" style={{ marginRight: "0.3rem" }}></i> {t.footer?.contact || "Contact Editorial Team"}
               </a>
             </div>
           </div>

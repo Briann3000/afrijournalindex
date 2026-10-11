@@ -102,6 +102,11 @@ export default function Header({ activePage }: HeaderProps) {
     setIsMobileMenuOpen(false);
   };
 
+  const handleMobileNavigate = (url: string) => {
+    setIsMobileMenuOpen(false);
+    router.push(url);
+  };
+
   return (
     <header className="header">
       <div className="header-container">
@@ -262,10 +267,10 @@ export default function Header({ activePage }: HeaderProps) {
         </nav>
         
         {/* Right Header Actions */}
-        <div className="header-actions" style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+        <div className="header-actions" style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0, minWidth: 0 }}>
           
           {/* Expandable Desktop Quick Search */}
-          <div ref={searchContainerRef} className="header-search-container" style={{ position: "relative", display: "flex", alignItems: "center" }}>
+          <div ref={searchContainerRef} className="header-search-container" style={{ position: "relative", display: "flex", alignItems: "center", minWidth: 0 }}>
             {isSearchOpen ? (
               <form 
                 onSubmit={handleSearchSubmit} 
@@ -275,19 +280,21 @@ export default function Header({ activePage }: HeaderProps) {
                   background: "#1e293b", 
                   border: "1px solid #38bdf8", 
                   borderRadius: "20px", 
-                  padding: "2px 6px 2px 10px",
+                  padding: "2px 6px 2px 8px",
                   boxShadow: "0 0 0 3px rgba(56, 189, 248, 0.2)",
                   transition: "all 0.25s ease",
-                  width: "280px"
+                  width: "clamp(120px, 18vw, 200px)",
+                  maxWidth: "100%",
+                  flexShrink: 1
                 }}
               >
-                <i className="fa-solid fa-magnifying-glass" style={{ color: "#38bdf8", fontSize: "0.82rem", marginRight: "6px" }}></i>
+                <i className="fa-solid fa-magnifying-glass" style={{ color: "#38bdf8", fontSize: "0.78rem", marginRight: "4px" }}></i>
                 <input
                   ref={searchInputRef}
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t.hero.search_placeholder || "Search journals, articles..."}
+                  placeholder={t.hero?.search_placeholder?.substring(0, 20) || "Search..."}
                   onKeyDown={(e) => {
                     if (e.key === "Escape") {
                       setIsSearchOpen(false);
@@ -298,9 +305,10 @@ export default function Header({ activePage }: HeaderProps) {
                     border: "none",
                     outline: "none",
                     color: "#ffffff",
-                    fontSize: "0.85rem",
+                    fontSize: "0.82rem",
                     width: "100%",
-                    padding: "4px 0"
+                    minWidth: "60px",
+                    padding: "3px 0"
                   }}
                 />
                 <button
@@ -318,8 +326,8 @@ export default function Header({ activePage }: HeaderProps) {
                     border: "none",
                     color: "#94a3b8",
                     cursor: "pointer",
-                    padding: "4px 6px",
-                    fontSize: "0.85rem",
+                    padding: "3px 4px",
+                    fontSize: "0.8rem",
                     display: "flex",
                     alignItems: "center"
                   }}
@@ -345,7 +353,8 @@ export default function Header({ activePage }: HeaderProps) {
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: "pointer",
-                  transition: "all 0.15s ease"
+                  transition: "all 0.15s ease",
+                  flexShrink: 0
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = "#38bdf8";
@@ -362,13 +371,14 @@ export default function Header({ activePage }: HeaderProps) {
           </div>
 
           {/* Language Switcher */}
-          <div className="lang-selector-wrapper">
+          <div className="lang-selector-wrapper" style={{ flexShrink: 0 }}>
             <select 
               id="langSelector" 
               className="lang-selector"
               value={lang}
               aria-label="Select Language"
               onChange={(e) => setLang(e.target.value)}
+              style={{ fontSize: "0.82rem", padding: "0.4rem 22px 0.4rem 0.6rem" }}
             >
               <option value="en">English (EN)</option>
               <option value="fr">Français (FR)</option>
@@ -488,8 +498,8 @@ export default function Header({ activePage }: HeaderProps) {
             <a 
               href="/" 
               className={`nav-link ${activePage === "home" ? "active" : ""}`}
-              onClick={() => setIsMobileMenuOpen(false)}
-              style={{ fontSize: "1.05rem", fontWeight: 600, color: "#ffffff", padding: "0.5rem 0" }}
+              onClick={(e) => { e.preventDefault(); handleMobileNavigate("/"); }}
+              style={{ fontSize: "1.05rem", fontWeight: 600, color: "#ffffff", padding: "0.5rem 0", display: "block" }}
             >
               <i className="fa-solid fa-house" style={{ width: "24px", color: "#38bdf8" }}></i> {t.nav.home}
             </a>
@@ -517,10 +527,10 @@ export default function Header({ activePage }: HeaderProps) {
                 <i className={`fa-solid fa-chevron-${openDropdown === "m-journals" ? "up" : "down"}`} style={{ fontSize: "0.8rem", color: "#94a3b8" }}></i>
               </button>
               {openDropdown === "m-journals" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", padding: "0.6rem 0 0.4rem 1.5rem" }}>
-                  <a href="/browse" onClick={() => setIsMobileMenuOpen(false)} style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>{t.nav.browse}</a>
-                  <a href="/submit" onClick={() => setIsMobileMenuOpen(false)} style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>{t.nav.submit}</a>
-                  <a href="/pricing" onClick={() => setIsMobileMenuOpen(false)} style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>{t.nav.pricing}</a>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", padding: "0.6rem 0 0.4rem 1.5rem" }}>
+                  <a href="/browse" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/browse"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.browse}</a>
+                  <a href="/submit" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/submit"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.submit}</a>
+                  <a href="/pricing" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/pricing"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.pricing}</a>
                 </div>
               )}
             </div>
@@ -548,9 +558,9 @@ export default function Header({ activePage }: HeaderProps) {
                 <i className={`fa-solid fa-chevron-${openDropdown === "m-rankings" ? "up" : "down"}`} style={{ fontSize: "0.8rem", color: "#94a3b8" }}></i>
               </button>
               {openDropdown === "m-rankings" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", padding: "0.6rem 0 0.4rem 1.5rem" }}>
-                  <a href="/rankings" onClick={() => setIsMobileMenuOpen(false)} style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>{t.nav.rankings}</a>
-                  <a href="/institution" onClick={() => setIsMobileMenuOpen(false)} style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>{t.nav.institution}</a>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", padding: "0.6rem 0 0.4rem 1.5rem" }}>
+                  <a href="/rankings" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/rankings"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.rankings}</a>
+                  <a href="/institution" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/institution"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.institution}</a>
                 </div>
               )}
             </div>
@@ -578,11 +588,11 @@ export default function Header({ activePage }: HeaderProps) {
                 <i className={`fa-solid fa-chevron-${openDropdown === "m-about" ? "up" : "down"}`} style={{ fontSize: "0.8rem", color: "#94a3b8" }}></i>
               </button>
               {openDropdown === "m-about" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", padding: "0.6rem 0 0.4rem 1.5rem" }}>
-                  <a href="/about" onClick={() => setIsMobileMenuOpen(false)} style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>{t.nav.about}</a>
-                  <a href="/methodology" onClick={() => setIsMobileMenuOpen(false)} style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>{t.footer.methodology}</a>
-                  <a href="/faq" onClick={() => setIsMobileMenuOpen(false)} style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>{t.nav.faq}</a>
-                  <a href="/contact" onClick={() => setIsMobileMenuOpen(false)} style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>{t.nav.contact}</a>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", padding: "0.6rem 0 0.4rem 1.5rem" }}>
+                  <a href="/about" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/about"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.about}</a>
+                  <a href="/methodology" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/methodology"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.footer.methodology}</a>
+                  <a href="/faq" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/faq"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.faq}</a>
+                  <a href="/contact" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/contact"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.contact}</a>
                 </div>
               )}
             </div>
@@ -593,7 +603,7 @@ export default function Header({ activePage }: HeaderProps) {
                 <>
                   <a 
                     href={`/researcher?id=${user.id}`} 
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={(e) => { e.preventDefault(); handleMobileNavigate(`/researcher?id=${user.id}`); }}
                     className="btn btn-secondary" 
                     style={{ width: "100%", justifyContent: "center", background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}
                   >
@@ -614,7 +624,7 @@ export default function Header({ activePage }: HeaderProps) {
                 <>
                   <a 
                     href="/login" 
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={(e) => { e.preventDefault(); handleMobileNavigate("/login"); }}
                     className="btn btn-secondary" 
                     style={{ width: "100%", justifyContent: "center", background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}
                   >
@@ -622,7 +632,7 @@ export default function Header({ activePage }: HeaderProps) {
                   </a>
                   <a 
                     href="/submit" 
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={(e) => { e.preventDefault(); handleMobileNavigate("/submit"); }}
                     className="btn btn-primary" 
                     style={{ width: "100%", justifyContent: "center" }}
                   >

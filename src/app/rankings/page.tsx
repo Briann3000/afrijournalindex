@@ -33,6 +33,30 @@ export default function RankingsPage() {
   const [disciplineFilter, setDisciplineFilter] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Sorting state
+  const [sortBy, setSortBy] = useState<"score" | "regionalScore" | "citationCount" | "name">("score");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  const handleSort = (field: "score" | "regionalScore" | "citationCount" | "name") => {
+    if (sortBy === field) {
+      setSortOrder(prev => prev === "desc" ? "asc" : "desc");
+    } else {
+      setSortBy(field);
+      setSortOrder(field === "name" ? "asc" : "desc");
+    }
+  };
+
+  const sortedRankings = [...rankings].sort((a, b) => {
+    if (sortBy === "name") {
+      return sortOrder === "asc" 
+        ? a.name.localeCompare(b.name) 
+        : b.name.localeCompare(a.name);
+    }
+    const valA = a[sortBy] ?? 0;
+    const valB = b[sortBy] ?? 0;
+    return sortOrder === "asc" ? valA - valB : valB - valA;
+  });
+
   useEffect(() => {
     async function fetchRankings() {
       setLoading(true);
@@ -122,6 +146,30 @@ export default function RankingsPage() {
               </select>
             </div>
 
+            {/* Sort Filter */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label htmlFor="rankSort" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                <i className="fa-solid fa-arrow-down-short-wide" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i> Sort Leaderboard
+              </label>
+              <select
+                id="rankSort"
+                className="form-control"
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [field, order] = e.target.value.split("-") as ["score" | "regionalScore" | "citationCount" | "name", "asc" | "desc"];
+                  setSortBy(field);
+                  setSortOrder(order);
+                }}
+              >
+                <option value="score-desc">AJIF Score (Highest First)</option>
+                <option value="score-asc">AJIF Score (Lowest First)</option>
+                <option value="regionalScore-desc">Regional Score (Highest First)</option>
+                <option value="citationCount-desc">Citations (Most First)</option>
+                <option value="name-asc">Journal Name (A → Z)</option>
+                <option value="name-desc">Journal Name (Z → A)</option>
+              </select>
+            </div>
+
             {/* University Search */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label htmlFor="instInput" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
@@ -167,7 +215,7 @@ export default function RankingsPage() {
               <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)", marginBottom: "1rem" }}></i>
               <p>{t.rankings_page.loading}</p>
             </div>
-          ) : rankings.length === 0 ? (
+          ) : sortedRankings.length === 0 ? (
             <div style={{ textAlign: "center", padding: "4rem 2rem", color: "var(--color-text-muted)" }}>
               <i className="fa-solid fa-filter-circle-xmark" style={{ fontSize: "2.5rem", color: "var(--color-text-lighter)", marginBottom: "1rem" }}></i>
               <h3 style={{ fontSize: "1.2rem", color: "var(--color-text-main)", marginBottom: "0.4rem" }}>{t.rankings_page.no_results}</h3>
@@ -177,23 +225,75 @@ export default function RankingsPage() {
               <thead>
                 <tr style={{ background: "var(--color-bg-alt)", borderBottom: "1px solid var(--color-border)" }}>
                   <th style={{ width: "70px", textAlign: "center", padding: "1rem" }}>{t.rankings_page.col_rank}</th>
-                  <th style={{ padding: "1rem" }}>{t.rankings_page.col_journal}</th>
+                  <th 
+                    onClick={() => handleSort("name")}
+                    style={{ padding: "1rem", cursor: "pointer", userSelect: "none" }}
+                    title="Click to sort by Journal Name"
+                  >
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                      {t.rankings_page.col_journal}
+                      <i 
+                        className={`fa-solid ${sortBy === "name" ? (sortOrder === "asc" ? "fa-sort-up" : "fa-sort-down") : "fa-sort"}`}
+                        style={{ opacity: sortBy === "name" ? 1 : 0.35, color: sortBy === "name" ? "var(--color-primary)" : "inherit" }}
+                      ></i>
+                    </span>
+                  </th>
                   <th style={{ padding: "1rem" }}>{t.rankings_page.col_discipline}</th>
                   <th style={{ textAlign: "center", width: "90px", padding: "1rem" }}>{t.rankings_page.col_quartile}</th>
-                  <th style={{ textAlign: "right", width: "110px", padding: "1rem" }}>{t.rankings_page.col_ajif}</th>
-                  <th style={{ textAlign: "right", width: "110px", padding: "1rem" }}>{t.rankings_page.col_regional}</th>
-                  <th style={{ textAlign: "right", width: "90px", padding: "1rem" }}>{t.journal_page.citations}</th>
+                  <th 
+                    onClick={() => handleSort("score")}
+                    style={{ textAlign: "right", width: "120px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
+                    title="Click to sort by AJIF Impact Factor"
+                  >
+                    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: "6px", width: "100%" }}>
+                      {t.rankings_page.col_ajif}
+                      <i 
+                        className={`fa-solid ${sortBy === "score" ? (sortOrder === "asc" ? "fa-sort-up" : "fa-sort-down") : "fa-sort"}`}
+                        style={{ opacity: sortBy === "score" ? 1 : 0.35, color: sortBy === "score" ? "var(--color-primary)" : "inherit" }}
+                      ></i>
+                    </span>
+                  </th>
+                  <th 
+                    onClick={() => handleSort("regionalScore")}
+                    style={{ textAlign: "right", width: "120px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
+                    title="Click to sort by Regional Score"
+                  >
+                    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: "6px", width: "100%" }}>
+                      {t.rankings_page.col_regional}
+                      <i 
+                        className={`fa-solid ${sortBy === "regionalScore" ? (sortOrder === "asc" ? "fa-sort-up" : "fa-sort-down") : "fa-sort"}`}
+                        style={{ opacity: sortBy === "regionalScore" ? 1 : 0.35, color: sortBy === "regionalScore" ? "var(--color-primary)" : "inherit" }}
+                      ></i>
+                    </span>
+                  </th>
+                  <th 
+                    onClick={() => handleSort("citationCount")}
+                    style={{ textAlign: "right", width: "110px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
+                    title="Click to sort by Citation Count"
+                  >
+                    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: "6px", width: "100%" }}>
+                      {t.journal_page.citations}
+                      <i 
+                        className={`fa-solid ${sortBy === "citationCount" ? (sortOrder === "asc" ? "fa-sort-up" : "fa-sort-down") : "fa-sort"}`}
+                        style={{ opacity: sortBy === "citationCount" ? 1 : 0.35, color: sortBy === "citationCount" ? "var(--color-primary)" : "inherit" }}
+                      ></i>
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {rankings.map((journal, idx) => {
+                {sortedRankings.map((journal, idx) => {
                   const q = journal.quartile || "Q2";
                   const qColor = quartileStyles[q] || quartileStyles["Q2"];
 
                   return (
                     <tr key={journal.id} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.2s" }} className="hover-row">
                       <td style={{ textAlign: "center", fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.95rem", padding: "1rem" }}>
-                        {idx === 0 ? "🥇 1" : idx === 1 ? "🥈 2" : idx === 2 ? "🥉 3" : `#${idx + 1}`}
+                        {sortBy === "score" && sortOrder === "desc" ? (
+                          idx === 0 ? "🥇 1" : idx === 1 ? "🥈 2" : idx === 2 ? "🥉 3" : `#${idx + 1}`
+                        ) : (
+                          `#${idx + 1}`
+                        )}
                       </td>
                       <td style={{ padding: "1rem" }}>
                         <a href={`/journal/${journal.id}`} style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "0.98rem" }}>
