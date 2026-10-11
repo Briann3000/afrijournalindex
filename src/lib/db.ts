@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
+  pool: any;
 };
 
 // Helper function to extract connection params from discrete env vars or DATABASE_URL
@@ -14,7 +15,6 @@ function getDbConfig() {
   let password = process.env.DB_PASSWORD || "";
   let database = process.env.DB_DATABASE || "afrijournalindex";
 
-  // If DATABASE_URL is defined (e.g. mysql://user:password@host:port/database) and individual vars are not set
   if (process.env.DATABASE_URL && (!process.env.DB_HOST || !process.env.DB_DATABASE)) {
     try {
       const parsed = new URL(process.env.DATABASE_URL);
@@ -24,7 +24,7 @@ function getDbConfig() {
       password = decodeURIComponent(parsed.password || password);
       database = parsed.pathname ? parsed.pathname.replace(/^\//, "") : database;
     } catch {
-      // Keep defaults / discrete fallback if URL parsing fails
+      // Keep defaults
     }
   }
 
@@ -42,7 +42,11 @@ function getDbConfig() {
   };
 }
 
-const pool = mariadb.createPool(getDbConfig());
+const pool = globalForPrisma.pool ?? mariadb.createPool(getDbConfig());
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.pool = pool;
+}
+
 const adapter = new PrismaMariaDb(pool as any);
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });

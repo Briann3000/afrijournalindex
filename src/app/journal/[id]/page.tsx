@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, use, useRef } from "react";
+import React, { useEffect, useState, use, useRef, useMemo } from "react";
 import Header from "../../Header";
 import Footer from "../../Footer";
 import { useLang } from "../../LangContext";
@@ -81,6 +81,30 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
   // Modals & Embed state
   const [showCertificate, setShowCertificate] = useState<boolean>(false);
   const [copiedType, setCopiedType] = useState<string | null>(null);
+
+  // Articles search & pagination state
+  const [articleSearch, setArticleSearch] = useState<string>("");
+  const [articlesPage, setArticlesPage] = useState<number>(1);
+  const [articlesPageSize, setArticlesPageSize] = useState<number>(10);
+
+  const filteredArticles = useMemo(() => {
+    if (!journal?.articles) return [];
+    if (!articleSearch.trim()) return journal.articles;
+    const q = articleSearch.toLowerCase().trim();
+    return journal.articles.filter(a => 
+      a.title.toLowerCase().includes(q) || (a.doi && a.doi.toLowerCase().includes(q))
+    );
+  }, [journal?.articles, articleSearch]);
+
+  const totalArticlePages = Math.ceil(filteredArticles.length / articlesPageSize) || 1;
+  const paginatedArticles = useMemo(() => {
+    const start = (articlesPage - 1) * articlesPageSize;
+    return filteredArticles.slice(start, start + articlesPageSize);
+  }, [filteredArticles, articlesPage, articlesPageSize]);
+
+  useEffect(() => {
+    setArticlesPage(1);
+  }, [articleSearch, articlesPageSize]);
 
   // Load journal data
   useEffect(() => {
@@ -639,74 +663,140 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 </span>
               </div>
 
+              {/* Search & Page Size Toolbar */}
+              {journal.articles.length > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap", marginBottom: "1.5rem" }}>
+                  <div style={{ flex: 1, minWidth: "240px", maxWidth: "420px" }}>
+                    <input
+                      type="text"
+                      value={articleSearch}
+                      onChange={(e) => setArticleSearch(e.target.value)}
+                      placeholder="Filter articles by title or DOI..."
+                      className="form-control"
+                      style={{ fontSize: "0.85rem", padding: "0.45rem 0.85rem" }}
+                    />
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                    <span>Per page:</span>
+                    <select
+                      value={articlesPageSize}
+                      onChange={(e) => setArticlesPageSize(Number(e.target.value))}
+                      className="form-control"
+                      style={{ fontSize: "0.85rem", padding: "0.35rem 0.65rem", width: "auto" }}
+                    >
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
               {journal.articles.length === 0 ? (
                 <div style={{ padding: "2rem", textAlign: "center", color: "var(--color-text-muted)", background: "var(--color-bg-card-subtle)", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)" }}>
                   {jp.no_articles || "No articles registered in the citation window yet."}
                 </div>
+              ) : filteredArticles.length === 0 ? (
+                <div style={{ padding: "2.5rem", textAlign: "center", color: "var(--color-text-muted)", background: "var(--color-bg-card-subtle)", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)" }}>
+                  <i className="fa-solid fa-file-circle-question" style={{ fontSize: "2rem", color: "var(--color-text-lighter)", marginBottom: "0.5rem", display: "block" }}></i>
+                  No articles matched &ldquo;{articleSearch}&rdquo;.
+                </div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                  {journal.articles.map(article => (
-                    <div 
-                      key={article.id} 
-                      style={{ 
-                        padding: "1.25rem 1.5rem", 
-                        background: "#ffffff", 
-                        border: "1px solid var(--color-border)", 
-                        borderRadius: "var(--border-radius-sm)",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        flexWrap: "wrap",
-                        gap: "1rem"
-                      }}
-                    >
-                      <div style={{ flex: 1, minWidth: "250px" }}>
-                        <h4 style={{ margin: "0 0 0.5rem", fontSize: "1rem", color: "var(--color-text-main)", fontWeight: 700, lineHeight: "1.4" }}>
-                          {article.title}
-                        </h4>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                          <span>
-                            <i className="fa-regular fa-calendar" style={{ marginRight: "0.3rem" }}></i>
-                            {new Date(article.publishDate).getFullYear()}
+                <>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                    {paginatedArticles.map(article => (
+                      <div 
+                        key={article.id} 
+                        style={{ 
+                          padding: "1.25rem 1.5rem", 
+                          background: "#ffffff", 
+                          border: "1px solid var(--color-border)", 
+                          borderRadius: "var(--border-radius-sm)",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                          gap: "1rem"
+                        }}
+                      >
+                        <div style={{ flex: 1, minWidth: "250px" }}>
+                          <h4 style={{ margin: "0 0 0.5rem", fontSize: "1rem", color: "var(--color-text-main)", fontWeight: 700, lineHeight: "1.4" }}>
+                            {article.title}
+                          </h4>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
+                            <span>
+                              <i className="fa-regular fa-calendar" style={{ marginRight: "0.3rem" }}></i>
+                              {new Date(article.publishDate).getFullYear()}
+                            </span>
+                            {article.doi && (
+                              <span style={{ fontFamily: "monospace", color: "var(--color-primary)", fontWeight: 600 }}>
+                                DOI: {article.doi}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                          <span 
+                            style={{ 
+                              padding: "0.3rem 0.8rem", 
+                              background: "var(--color-primary-light)", 
+                              border: "1px solid #bfdbfe", 
+                              color: "var(--color-primary)", 
+                              borderRadius: "20px", 
+                              fontSize: "0.8rem",
+                              fontWeight: 700
+                            }}
+                          >
+                            {article.citationCount} {jp.citations || "Citations"}
                           </span>
                           {article.doi && (
-                            <span style={{ fontFamily: "monospace", color: "var(--color-primary)", fontWeight: 600 }}>
-                              DOI: {article.doi}
-                            </span>
+                            <a 
+                              href={`https://doi.org/${article.doi}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="btn btn-secondary btn-sm"
+                              style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem" }}
+                            >
+                              <span>{jp.view_doi || "View Article / DOI"}</span>
+                              <i className="fa-solid fa-up-right-from-square" style={{ fontSize: "0.7rem" }}></i>
+                            </a>
                           )}
                         </div>
                       </div>
+                    ))}
+                  </div>
 
-                      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                        <span 
-                          style={{ 
-                            padding: "0.3rem 0.8rem", 
-                            background: "var(--color-primary-light)", 
-                            border: "1px solid #bfdbfe", 
-                            color: "var(--color-primary)", 
-                            borderRadius: "20px", 
-                            fontSize: "0.8rem",
-                            fontWeight: 700
-                          }}
+                  {/* Pagination Controls */}
+                  {totalArticlePages > 1 && (
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1.5rem", paddingTop: "1.2rem", borderTop: "1px solid var(--color-border)", flexWrap: "wrap", gap: "1rem", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                      <span>
+                        Showing <strong>{(articlesPage - 1) * articlesPageSize + 1}</strong> – <strong>{Math.min(articlesPage * articlesPageSize, filteredArticles.length)}</strong> of <strong>{filteredArticles.length}</strong> articles
+                      </span>
+                      <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+                        <button
+                          disabled={articlesPage === 1}
+                          onClick={() => setArticlesPage(p => Math.max(p - 1, 1))}
+                          className="btn btn-secondary btn-sm"
+                          style={{ padding: "0.3rem 0.75rem", opacity: articlesPage === 1 ? 0.45 : 1 }}
                         >
-                          {article.citationCount} {jp.citations || "Citations"}
+                          Prev
+                        </button>
+                        <span style={{ padding: "0.3rem 0.6rem", fontWeight: 700, color: "var(--color-text-main)" }}>
+                          {articlesPage} / {totalArticlePages}
                         </span>
-                        {article.doi && (
-                          <a 
-                            href={`https://doi.org/${article.doi}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="btn btn-secondary btn-sm"
-                            style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem" }}
-                          >
-                            <span>{jp.view_doi || "View Article / DOI"}</span>
-                            <i className="fa-solid fa-up-right-from-square" style={{ fontSize: "0.7rem" }}></i>
-                          </a>
-                        )}
+                        <button
+                          disabled={articlesPage === totalArticlePages}
+                          onClick={() => setArticlesPage(p => Math.min(p + 1, totalArticlePages))}
+                          className="btn btn-secondary btn-sm"
+                          style={{ padding: "0.3rem 0.75rem", opacity: articlesPage === totalArticlePages ? 0.45 : 1 }}
+                        >
+                          Next
+                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
 

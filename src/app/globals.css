@@ -1436,14 +1436,15 @@ a {
 
     .header,
     .footer,
-    main > div:not(.certificate-modal-wrapper),
     .no-print,
-    .btn,
-    .journal-tag,
     nav,
     footer,
     header,
     button {
+        display: none !important;
+    }
+
+    body.printing-certificate main > div:not(.certificate-modal-wrapper) {
         display: none !important;
     }
 

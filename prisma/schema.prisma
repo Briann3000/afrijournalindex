@@ -30,6 +30,7 @@ model User {
   role          Role        @default(RESEARCHER)
   orcid         String?     @unique @db.VarChar(191)
   institution   String?     @db.VarChar(255)
+  bio           String?     @db.Text
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   
@@ -37,6 +38,7 @@ model User {
   journals      Journal[]
   submissions   Submission[]
   comments      Comment[]
+  claims        ClaimedPublication[]
 }
 
 model Journal {
@@ -103,6 +105,7 @@ model Article {
   
   citations     Citation[]  @relation("ArticleCitations")
   citedBy       Citation[]  @relation("ArticleCitedBy")
+  claims        ClaimedPublication[]
 
   @@index([journalId])
   @@index([publishDate])
@@ -148,4 +151,20 @@ model Comment {
   journal     Journal  @relation(fields: [journalId], references: [id], onDelete: Cascade)
   authorId    String
   author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model ClaimedPublication {
+  id          String   @id @default(uuid())
+  userId      String
+  articleId   String
+  role        String   @default("Lead Author") @db.VarChar(100)
+  status      String   @default("VERIFIED") @db.VarChar(50) // VERIFIED or PENDING_AUDIT
+  claimedAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@index([userId])
+  @@index([articleId])
 }
