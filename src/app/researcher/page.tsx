@@ -18,11 +18,21 @@ function ResearcherProfileContent() {
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Modals & UI States
+  const tabParam = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState<"publications" | "editorial">(
+    tabParam === "editorial" ? "editorial" : "publications"
+  );
   const [showClaimModal, setShowClaimModal] = useState<boolean>(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState<boolean>(false);
   const [activeCiteArticle, setActiveCiteArticle] = useState<any | null>(null);
   const [citeFormat, setCiteFormat] = useState<"APA" | "Harvard" | "BibTeX">("APA");
   const [copiedNotification, setCopiedNotification] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (tabParam === "editorial") {
+      setActiveTab("editorial");
+    }
+  }, [tabParam]);
 
   // Avatar state
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -151,6 +161,14 @@ function ResearcherProfileContent() {
     if (typeof window !== "undefined") {
       navigator.clipboard.writeText(window.location.href);
       showToast("Public profile link copied to clipboard!");
+    }
+  };
+
+  const handleCopyBadge = (journalId: string) => {
+    if (typeof window !== "undefined") {
+      const code = `<a href="https://afrijournalindex.org/journal/${journalId}" target="_blank" rel="noopener noreferrer"><img src="https://afrijournalindex.org/api/badge/${journalId}" alt="AfriJournal Verified Indexed" /></a>`;
+      navigator.clipboard.writeText(code);
+      showToast("Verification badge embed HTML copied to clipboard!");
     }
   };
 
@@ -798,6 +816,12 @@ function ResearcherProfileContent() {
                     <i className="fa-solid fa-check" style={{ color: "#16a34a" }}></i> Verified Scholar
                   </span>
                   
+                  {(profile.isEditor || profile.role === "PUBLISHER" || (data.journals && data.journals.length > 0) || (data.submissions && data.submissions.length > 0)) && (
+                    <span style={{ background: "#ecfdf5", color: "#065f46", border: "1px solid #a7f3d0", padding: "0.2rem 0.65rem", borderRadius: "4px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                      <i className="fa-solid fa-feather-pointed" style={{ color: "#059669" }}></i> Verified Journal Editor
+                    </span>
+                  )}
+
                   {profile.orcid ? (
                     <a 
                       href={`https://orcid.org/${profile.orcid}`} 
@@ -1068,7 +1092,58 @@ function ResearcherProfileContent() {
           </div>
         </div>
 
-        {/* 4. Claim Missing Article Callout Banner */}
+        {/* Academic Role Navigation Tabs (Hybrid Scholar & Editor Profile) */}
+        <div style={{ display: "flex", gap: "0.5rem", borderBottom: "2px solid #e2e8f0", marginBottom: "1.75rem", overflowX: "auto" }}>
+          <button
+            type="button"
+            onClick={() => setActiveTab("publications")}
+            style={{
+              padding: "0.75rem 1.4rem",
+              background: "none",
+              border: "none",
+              borderBottom: activeTab === "publications" ? "2px solid var(--color-primary)" : "2px solid transparent",
+              marginBottom: "-2px",
+              fontWeight: 700,
+              fontSize: "0.95rem",
+              color: activeTab === "publications" ? "var(--color-primary)" : "var(--color-text-muted)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              whiteSpace: "nowrap"
+            }}
+          >
+            <i className="fa-solid fa-book-open"></i>
+            <span>Publications & Citations ({data.articles?.length || 0})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("editorial")}
+            style={{
+              padding: "0.75rem 1.4rem",
+              background: "none",
+              border: "none",
+              borderBottom: activeTab === "editorial" ? "2px solid var(--color-primary)" : "2px solid transparent",
+              marginBottom: "-2px",
+              fontWeight: 700,
+              fontSize: "0.95rem",
+              color: activeTab === "editorial" ? "var(--color-primary)" : "var(--color-text-muted)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              whiteSpace: "nowrap"
+            }}
+          >
+            <i className="fa-solid fa-feather-pointed"></i>
+            <span>Editorial & Managed Journals ({(data.journals?.length || 0) + (data.submissions?.length || 0)})</span>
+          </button>
+        </div>
+
+        {activeTab === "publications" ? (
+          <>
+            {/* 4. Claim Missing Article Callout Banner */}
         {isOwner && (
           <div 
             style={{ 
@@ -1353,6 +1428,273 @@ function ResearcherProfileContent() {
             </div>
           )}
         </div>
+        </>
+      ) : (
+        /* TAB 2: EDITORIAL & MANAGED JOURNALS VIEW */
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
+          {/* Top Editorial Action Banner */}
+          <div 
+            style={{ 
+              background: "#0f172a", 
+              borderRadius: "12px", 
+              padding: "1.5rem 1.8rem", 
+              color: "#ffffff",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "1.2rem"
+            }}
+          >
+            <div>
+              <span style={{ fontSize: "0.75rem", background: "#334155", color: "#f8fafc", padding: "0.2rem 0.55rem", borderRadius: "4px", fontWeight: 700, textTransform: "uppercase", display: "inline-block", marginBottom: "0.4rem" }}>
+                Journal Publishing & Editorial Console
+              </span>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.25rem", color: "#ffffff" }}>
+                Managed Academic Publications & Impact Reports
+              </h3>
+              <p style={{ margin: 0, fontSize: "0.84rem", color: "#cbd5e1" }}>
+                Track peer-reviewed journals you edit or publish, monitor automated crawler audits, and embed live verification badges.
+              </p>
+            </div>
+
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              <a
+                href="/submit"
+                className="btn btn-primary"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  fontSize: "0.86rem",
+                  fontWeight: 700,
+                  padding: "0.65rem 1.2rem",
+                  borderRadius: "8px",
+                  whiteSpace: "nowrap",
+                  textDecoration: "none"
+                }}
+              >
+                <i className="fa-solid fa-plus"></i>
+                <span>Submit Journal for Evaluation</span>
+              </a>
+              <a
+                href="/submit/status"
+                className="btn btn-secondary"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  fontSize: "0.86rem",
+                  padding: "0.65rem 1.2rem",
+                  borderRadius: "8px",
+                  whiteSpace: "nowrap",
+                  textDecoration: "none",
+                  background: "#1e293b",
+                  color: "#ffffff",
+                  border: "1px solid #334155"
+                }}
+              >
+                <i className="fa-solid fa-magnifying-glass"></i>
+                <span>Lookup Crawler Logs</span>
+              </a>
+            </div>
+          </div>
+
+          {/* Section 1: Verified Indexed Journals */}
+          {data.journals && data.journals.length > 0 && (
+            <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
+                <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text-main)", margin: 0, display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                  <i className="fa-solid fa-newspaper" style={{ color: "var(--color-primary)" }}></i>
+                  Indexed Academic Journals ({data.journals.length})
+                </h2>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                {data.journals.map((j: any) => (
+                  <div 
+                    key={j.id} 
+                    style={{ 
+                      padding: "1.5rem", 
+                      borderRadius: "12px", 
+                      border: "1px solid #e2e8f0", 
+                      background: "#f8fafc",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "1.2rem"
+                    }}
+                  >
+                    {/* Journal Header */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap", marginBottom: "0.35rem" }}>
+                          <span style={{ background: "#ecfdf5", color: "#065f46", border: "1px solid #a7f3d0", padding: "0.15rem 0.55rem", borderRadius: "4px", fontSize: "0.75rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                            <i className="fa-solid fa-circle-check"></i> Verified Indexed
+                          </span>
+                          {j.qualityGrade && (
+                            <span style={{ background: "#eff6ff", color: "#1e40af", border: "1px solid #bfdbfe", padding: "0.15rem 0.55rem", borderRadius: "4px", fontSize: "0.75rem", fontWeight: 700 }}>
+                              Grade {j.qualityGrade}
+                            </span>
+                          )}
+                          <span style={{ color: "#64748b", fontSize: "0.8rem", fontWeight: 600 }}>
+                            {j.country}
+                          </span>
+                        </div>
+
+                        <h3 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "0 0 0.35rem", color: "var(--color-text-main)" }}>
+                          <a href={`/journal/${j.id}`} style={{ color: "inherit", textDecoration: "none" }}>
+                            {j.name}
+                          </a>
+                        </h3>
+
+                        <p style={{ margin: 0, fontSize: "0.85rem", color: "#475569" }}>
+                          <strong>Publisher:</strong> {j.publisherName} • <strong>Print ISSN:</strong> {j.issn || "None"} • <strong>Online eISSN:</strong> {j.eissn || "None"}
+                        </p>
+                      </div>
+
+                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                        <a href={`/journal/${j.id}`} className="btn btn-primary btn-sm" style={{ fontSize: "0.82rem", padding: "0.4rem 0.85rem" }}>
+                          View Public Profile
+                        </a>
+                        {j.websiteUrl && (
+                          <a href={j.websiteUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ fontSize: "0.82rem", padding: "0.4rem 0.85rem" }}>
+                            Website <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.7rem", marginLeft: "4px" }}></i>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Metrics 3-box Grid */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.75rem" }}>
+                      <div style={{ background: "#ffffff", padding: "0.85rem 1rem", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                        <span style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700, display: "block" }}>Standard AJIF</span>
+                        <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--color-primary)" }}>{j.standardScore}</span>
+                      </div>
+                      <div style={{ background: "#ffffff", padding: "0.85rem 1rem", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                        <span style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700, display: "block" }}>Regional Multiplier</span>
+                        <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "#059669" }}>{j.regionalScore}</span>
+                      </div>
+                      <div style={{ background: "#ffffff", padding: "0.85rem 1rem", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                        <span style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700, display: "block" }}>Cataloged Articles</span>
+                        <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "#334155" }}>{j.articlesCount}</span>
+                      </div>
+                    </div>
+
+                    {/* Embed Live Verification Badge Box */}
+                    <div style={{ background: "#ffffff", padding: "1rem", borderRadius: "8px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+                        <div>
+                          <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#475569", display: "block", marginBottom: "4px" }}>Live AJIF Verification Badge:</span>
+                          <a href={`/journal/${j.id}`} target="_blank" rel="noopener noreferrer">
+                            <img src={`/api/badge/${j.id}`} alt="AfriJournal Verified" style={{ height: "28px" }} />
+                          </a>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleCopyBadge(j.id)}
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: "0.8rem", padding: "0.4rem 0.85rem", display: "inline-flex", alignItems: "center", gap: "5px" }}
+                      >
+                        <i className="fa-solid fa-code"></i> Copy Embed HTML Code
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Section 2: Submissions & Evaluation Pipeline */}
+          {data.submissions && data.submissions.length > 0 && (
+            <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "1rem" }}>
+                <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text-main)", margin: 0, display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                  <i className="fa-solid fa-list-check" style={{ color: "var(--color-primary)" }}></i>
+                  Submissions & Automated Crawler Pipeline ({data.submissions.length})
+                </h2>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                {data.submissions.map((s: any) => {
+                  const statusConfig = {
+                    ACCEPTED: { label: "Verified & Indexed", bg: "#ecfdf5", color: "#065f46", border: "#a7f3d0", icon: "fa-circle-check" },
+                    UNDER_REVIEW: { label: "Under Automated Crawl", bg: "#eff6ff", color: "#1d4ed8", border: "#bfdbfe", icon: "fa-magnifying-glass" },
+                    PENDING: { label: "Evaluation In Progress", bg: "#fffbeb", color: "#b45309", border: "#fde68a", icon: "fa-clock" },
+                    REJECTED: { label: "Editorial Flags Detected", bg: "#fef2f2", color: "#b91c1c", border: "#fecaca", icon: "fa-triangle-exclamation" }
+                  }[s.status as string] || { label: s.status, bg: "#f1f5f9", color: "#334155", border: "#cbd5e1", icon: "fa-circle-info" };
+
+                  return (
+                    <div 
+                      key={s.id} 
+                      style={{ 
+                        padding: "1.2rem 1.4rem", 
+                        borderRadius: "10px", 
+                        border: "1px solid #e2e8f0", 
+                        background: "#f8fafc",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: "1rem"
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap", marginBottom: "0.3rem" }}>
+                          <span style={{ background: statusConfig.bg, color: statusConfig.color, border: `1px solid ${statusConfig.border}`, padding: "0.15rem 0.55rem", borderRadius: "4px", fontSize: "0.75rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                            <i className={`fa-solid ${statusConfig.icon}`}></i> {statusConfig.label}
+                          </span>
+                          <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                            Submitted {new Date(s.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        <h4 style={{ fontSize: "1.05rem", fontWeight: 700, margin: "0 0 0.2rem", color: "var(--color-text-main)" }}>
+                          {s.journalName}
+                        </h4>
+
+                        <p style={{ margin: 0, fontSize: "0.82rem", color: "#64748b" }}>
+                          ISSN: {s.issn || s.eissn || "Pending"} • Frequency: {s.frequency} • Origin: {s.country}
+                        </p>
+                      </div>
+
+                      <a 
+                        href={`/submit/status?id=${s.id}`} 
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: "0.82rem", padding: "0.45rem 0.9rem", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                      >
+                        <i className="fa-solid fa-clipboard-check"></i> View Compliance Logs
+                      </a>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Empty State: No journals and no submissions */}
+          {(!data.journals || data.journals.length === 0) && (!data.submissions || data.submissions.length === 0) && (
+            <div className="card-surface" style={{ padding: "3.5rem 1.5rem", borderRadius: "16px", border: "1px dashed #cbd5e1", background: "#f8fafc", textAlign: "center" }}>
+              <i className="fa-solid fa-newspaper" style={{ fontSize: "3rem", color: "var(--color-primary)", marginBottom: "1rem", display: "block" }}></i>
+              <h3 style={{ fontSize: "1.3rem", fontWeight: 700, color: "var(--color-text-main)", margin: "0 0 0.5rem" }}>
+                Editorial & Academic Journal Management
+              </h3>
+              <p style={{ color: "var(--color-text-muted)", fontSize: "0.92rem", maxWidth: "560px", margin: "0 auto 1.5rem", lineHeight: 1.5 }}>
+                You currently have no academic journals indexed or submitted. If you are an Editor-in-Chief, Managing Editor, or university press publisher, you can submit your peer-reviewed publication to receive automated crawler audit logs, ISSN registry validation, and official African Journal Impact Factor (AJIF) ranking.
+              </p>
+              <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
+                <a href="/submit" className="btn btn-primary" style={{ padding: "0.65rem 1.4rem", fontSize: "0.9rem", fontWeight: 700, textDecoration: "none" }}>
+                  <i className="fa-solid fa-plus" style={{ marginRight: "6px" }}></i> Submit Journal for Evaluation
+                </a>
+                <a href="/submit/status" className="btn btn-secondary" style={{ padding: "0.65rem 1.4rem", fontSize: "0.9rem", textDecoration: "none" }}>
+                  <i className="fa-solid fa-magnifying-glass" style={{ marginRight: "6px" }}></i> Check Submission Status
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
         {/* Modal: Edit Scholar Profile */}
         {showEditProfileModal && (

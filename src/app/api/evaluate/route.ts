@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "../../../lib/db";
+import { verifySessionToken } from "../../../lib/auth";
 
 // Simulation database of official ISSN database records for verification
 const MOCK_ISSN_REGISTRY: Record<string, { name: string; publisher: string; active: boolean }> = {
@@ -95,21 +97,40 @@ export async function POST(request: Request) {
       evaluationLogs.push("Compliance score moderate. Flagged for editor manual verification review.");
     }
 
-    // Save to Database via Prisma (using a mock user/publisher profile for association)
-    // First, find or create a default publisher account
-    let defaultPublisher = await prisma.user.findFirst({
-      where: { email: "publisher@kenpro.org" }
-    });
-
-    if (!defaultPublisher) {
-      defaultPublisher = await prisma.user.create({
-        data: {
-          email: "publisher@kenpro.org",
-          name: "KENPRO Publisher",
-          role: "PUBLISHER",
-          passwordHash: "hashed_dummy_password"
+    // Determine the publisher/submitter user account
+    let activePublisherId: string | null = null;
+    try {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get("afriJournalSession");
+      if (sessionCookie?.value) {
+        const sessionUserId = verifySessionToken(sessionCookie.value);
+        if (sessionUserId) {
+          const authenticatedUser = await prisma.user.findUnique({ where: { id: sessionUserId } });
+          if (authenticatedUser) {
+            activePublisherId = authenticatedUser.id;
+          }
         }
+      }
+    } catch {
+      // Guest submission or session retrieval error
+    }
+
+    if (!activePublisherId) {
+      let defaultPublisher = await prisma.user.findFirst({
+        where: { email: "publisher@kenpro.org" }
       });
+
+      if (!defaultPublisher) {
+        defaultPublisher = await prisma.user.create({
+          data: {
+            email: "publisher@kenpro.org",
+            name: "KENPRO Publisher",
+            role: "PUBLISHER",
+            passwordHash: "hashed_dummy_password"
+          }
+        });
+      }
+      activePublisherId = defaultPublisher.id;
     }
 
     // Save the Journal submission records
@@ -125,7 +146,7 @@ export async function POST(request: Request) {
         websiteUrl: website,
         isIndexed: status === "APPROVED",
         qualityGrade: status === "APPROVED" ? "A" : null,
-        publisherId: defaultPublisher.id
+        publisherId: activePublisherId
       }
     });
 
@@ -148,7 +169,7 @@ export async function POST(request: Request) {
         websiteUrl: website,
         status: dbStatus,
         evaluationLog: evaluationLogs.join("\n"),
-        submitterId: defaultPublisher.id,
+        submitterId: activePublisherId,
         journalId: journal.id
       }
     });

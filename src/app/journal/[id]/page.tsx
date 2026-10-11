@@ -217,20 +217,50 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
 
       <main className="container" style={{ padding: "3rem 0 5rem", maxWidth: "1050px" }}>
         {/* Back Link */}
-        <div style={{ marginBottom: "2rem" }}>
-          <a 
-            href="/browse" 
+        <div style={{ marginBottom: "1.75rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <button 
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                if (window.history.length > 1) {
+                  window.history.back();
+                } else {
+                  window.location.href = "/browse";
+                }
+              }
+            }}
             style={{ 
+              background: "none",
+              border: "none",
               color: "var(--color-primary)", 
-              textDecoration: "none", 
               fontSize: "0.9rem",
               fontWeight: 600,
               display: "inline-flex",
               alignItems: "center",
-              gap: "0.5rem"
+              gap: "0.4rem",
+              cursor: "pointer",
+              padding: 0
             }}
           >
-            <i className="fa-solid fa-arrow-left"></i> {jp.back_to_browse || "Back to Browse Directory"}
+            <i className="fa-solid fa-arrow-left"></i>
+            <span>Back</span>
+          </button>
+          
+          <span style={{ color: "#94a3b8", fontSize: "0.85rem" }}>•</span>
+
+          <a 
+            href="/browse" 
+            style={{ 
+              color: "var(--color-text-muted)", 
+              textDecoration: "none", 
+              fontSize: "0.85rem",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem"
+            }}
+          >
+            <i className="fa-solid fa-layer-group" style={{ fontSize: "0.8rem" }}></i>
+            <span>Browse Directory</span>
           </a>
         </div>
 
@@ -336,45 +366,6 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     <span>Official Certificate</span>
                   </button>
                 </div>
-              </div>
-            </div>
-
-            {/* Claim & Official Evaluation Callout Banner (Monetization Engine) */}
-            <div 
-              style={{ 
-                background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", 
-                borderRadius: "12px", 
-                padding: "1.6rem 2rem", 
-                color: "#ffffff",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: "1.2rem",
-                boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.2)"
-              }}
-            >
-              <div style={{ flex: 1, minWidth: "280px" }}>
-                <span style={{ fontSize: "0.75rem", background: "#f59e0b", color: "#0f172a", padding: "0.2rem 0.6rem", borderRadius: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.5px", display: "inline-block", marginBottom: "0.5rem" }}>
-                  Publisher &amp; Editorial Portal
-                </span>
-                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: "0 0 0.35rem", color: "#ffffff" }}>
-                  Are you the editor or publisher of {journal.name}?
-                </h3>
-                <p style={{ margin: 0, fontSize: "0.85rem", color: "#94a3b8", lineHeight: "1.5" }}>
-                  Claim this official profile, submit your latest volumes for verified citation harvesting, and receive your accredited 2026 Academic Impact Certificate &amp; Gold Badge.
-                </p>
-              </div>
-
-              <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-                <a 
-                  href={`/pricing?journalId=${journal.id}&journal=${encodeURIComponent(journal.name)}&tier=Basic`}
-                  className="btn btn-primary"
-                  style={{ backgroundColor: "#f59e0b", color: "#0f172a", borderColor: "#f59e0b", fontWeight: 800, padding: "0.6rem 1.4rem", fontSize: "0.88rem" }}
-                >
-                  <i className="fa-solid fa-certificate" style={{ marginRight: "0.4rem" }}></i>
-                  Claim &amp; Certify (from $99)
-                </a>
               </div>
             </div>
 

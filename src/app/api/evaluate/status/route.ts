@@ -10,8 +10,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: "Submission ID is required." }, { status: 400 });
     }
 
-    const submission = await prisma.submission.findUnique({
-      where: { id },
+    const cleanId = id.trim();
+    let submission = await prisma.submission.findUnique({
+      where: { id: cleanId },
       include: {
         journal: {
           include: {
@@ -21,8 +22,29 @@ export async function GET(request: Request) {
       }
     });
 
+    // Fallback: search by ISSN, eISSN, or journalId
     if (!submission) {
-      return NextResponse.json({ success: false, error: "Submission not found." }, { status: 404 });
+      submission = await prisma.submission.findFirst({
+        where: {
+          OR: [
+            { issn: cleanId },
+            { eissn: cleanId },
+            { journalId: cleanId }
+          ]
+        },
+        orderBy: { createdAt: "desc" },
+        include: {
+          journal: {
+            include: {
+              reports: true
+            }
+          }
+        }
+      });
+    }
+
+    if (!submission) {
+      return NextResponse.json({ success: false, error: `No submission record found matching "${cleanId}".` }, { status: 404 });
     }
 
     return NextResponse.json({

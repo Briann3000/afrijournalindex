@@ -195,6 +195,63 @@ export async function GET(request: Request) {
       { year: currentYear, citations: 0 }
     ];
 
+    // Fetch user's managed journals and submissions (for hybrid scholar/editor profile)
+    const userJournals = await prisma.journal.findMany({
+      where: { publisherId: user.id },
+      include: {
+        reports: {
+          orderBy: { year: "desc" },
+          take: 1
+        },
+        articles: {
+          select: { id: true }
+        },
+        submissions: {
+          orderBy: { createdAt: "desc" },
+          take: 1
+        }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+
+    const userSubmissions = await prisma.submission.findMany({
+      where: { submitterId: user.id },
+      orderBy: { createdAt: "desc" }
+    });
+
+    const journals = userJournals.map(j => {
+      const latestReport = j.reports[0];
+      return {
+        id: j.id,
+        name: j.name,
+        issn: j.issn,
+        eissn: j.eissn,
+        country: j.country,
+        publisherName: j.publisherName,
+        qualityGrade: j.qualityGrade || "Pending",
+        isIndexed: j.isIndexed,
+        websiteUrl: j.websiteUrl,
+        articlesCount: j.articles.length,
+        standardScore: latestReport && typeof latestReport.standardScore === "number" ? latestReport.standardScore.toFixed(3) : "N/A",
+        regionalScore: latestReport && typeof latestReport.regionalScore === "number" ? latestReport.regionalScore.toFixed(3) : "N/A",
+        status: j.isIndexed ? "INDEXED" : (j.submissions[0]?.status || "PENDING")
+      };
+    });
+
+    const submissions = userSubmissions.map(s => ({
+      id: s.id,
+      journalName: s.journalName,
+      issn: s.issn,
+      eissn: s.eissn,
+      country: s.country,
+      publisherName: s.publisherName,
+      frequency: s.frequency,
+      websiteUrl: s.websiteUrl,
+      status: s.status,
+      createdAt: s.createdAt,
+      evaluationLog: s.evaluationLog
+    }));
+
     return NextResponse.json({
       success: true,
       data: {
@@ -205,7 +262,8 @@ export async function GET(request: Request) {
           orcid: user.orcid,
           institution: user.institution || "University of Nairobi",
           bio: user.bio || "",
-          role: user.role
+          role: user.role,
+          isEditor: user.role === "PUBLISHER" || journals.length > 0 || submissions.length > 0
         },
         metrics: {
           publicationsCount: articles.length,
@@ -214,9 +272,13 @@ export async function GET(request: Request) {
           i10Index,
           yearlyCitations,
           quartileRatio: articles.length > 0 ? "100% Peer-Reviewed" : "0% Indexed",
-          regionalPercentile: articles.length > 0 ? "Indexed Scholar" : "New Scholar Profile"
+          regionalPercentile: articles.length > 0 ? "Indexed Scholar" : "New Scholar Profile",
+          managedJournalsCount: journals.length,
+          pendingSubmissionsCount: submissions.filter(s => s.status === "PENDING" || s.status === "UNDER_REVIEW").length
         },
-        articles
+        articles,
+        journals,
+        submissions
       }
     });
 

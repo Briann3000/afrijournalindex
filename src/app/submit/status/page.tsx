@@ -80,16 +80,20 @@ function StatusContent() {
     }
   };
 
+  const [lookupQuery, setLookupQuery] = useState<string>("");
+
   useEffect(() => {
-    if (!id) {
-      setError("No submission ID provided.");
+    const targetId = id;
+    if (!targetId) {
       setLoading(false);
       return;
     }
 
-    async function fetchStatus() {
+    async function fetchStatus(validId: string) {
+      setLoading(true);
+      setError(null);
       try {
-        const res = await fetch(`/api/evaluate/status?id=${id}`);
+        const res = await fetch(`/api/evaluate/status?id=${encodeURIComponent(validId)}`);
         const result = await res.json();
         if (result.success) {
           setData(result.data);
@@ -104,8 +108,15 @@ function StatusContent() {
       }
     }
 
-    fetchStatus();
+    fetchStatus(targetId);
   }, [id]);
+
+  const handleLookupSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (lookupQuery.trim()) {
+      window.location.href = `/submit/status?id=${encodeURIComponent(lookupQuery.trim())}`;
+    }
+  };
 
   if (loading) {
     return (
@@ -118,15 +129,78 @@ function StatusContent() {
     );
   }
 
-  if (error || !data) {
+  // Interactive Lookup Tracker Form when no ID is provided or when record not found
+  if (!id || error || !data) {
     return (
-      <div style={{ background: "var(--color-bg-base)", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-main)" }}>
-        <div className="card-surface" style={{ maxWidth: "480px", textAlign: "center", padding: "3rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)" }}>
-          <i className="fa-solid fa-circle-exclamation" style={{ fontSize: "3rem", color: "var(--color-primary)", marginBottom: "1.5rem" }}></i>
-          <h3 style={{ color: "var(--color-text-main)" }}>{t.common.error}</h3>
-          <p style={{ margin: "1rem 0", color: "var(--color-text-muted)" }}>{error || "Submission record not found."}</p>
-          <a href="/submit" className="btn btn-primary" style={{ display: "inline-block", marginTop: "1rem" }}>{t.submit_page.title}</a>
-        </div>
+      <div className="page-wrapper" style={{ padding: 0 }}>
+        <Header activePage="submit" />
+
+        <main className="container" style={{ padding: "4rem 1rem 6rem", maxWidth: "680px" }}>
+          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+            <h1 className="page-title" style={{ fontSize: "2rem" }}>Submission Evaluation Tracker</h1>
+            <p className="page-subtitle" style={{ fontSize: "0.95rem" }}>
+              Look up automated crawler audit logs, ISSN compliance checks, and editorial indexing decisions.
+            </p>
+          </div>
+
+          <div className="glass-card" style={{ padding: "2.5rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)" }}>
+            {error && (
+              <div style={{
+                background: "#fef2f2",
+                border: "1px solid #fecaca",
+                color: "#b91c1c",
+                padding: "0.85rem 1rem",
+                borderRadius: "8px",
+                fontSize: "0.9rem",
+                marginBottom: "1.5rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px"
+              }}>
+                <i className="fa-solid fa-circle-exclamation"></i>
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleLookupSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+              <div className="form-group">
+                <label htmlFor="lookupId" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                  <i className="fa-solid fa-magnifying-glass" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i>
+                  Enter Submission ID, ISSN, or Journal Name
+                </label>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <input
+                    type="text"
+                    id="lookupId"
+                    required
+                    className="form-control"
+                    placeholder="e.g. 2312-0134 or sub-171000"
+                    value={lookupQuery}
+                    onChange={(e) => setLookupQuery(e.target.value)}
+                    style={{ flex: 1, minWidth: "220px" }}
+                  />
+                  <button type="submit" className="btn btn-primary" style={{ padding: "0.6rem 1.4rem", whiteSpace: "nowrap" }}>
+                    Track Status
+                  </button>
+                </div>
+                <small style={{ color: "var(--color-text-muted)", fontSize: "0.78rem", marginTop: "6px", display: "block" }}>
+                  Enter your submission reference code or active print/online ISSN to inspect crawler audit logs.
+                </small>
+              </div>
+            </form>
+
+            <div style={{ borderTop: "1px solid #e2e8f0", marginTop: "2rem", paddingTop: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+              <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                Want to submit a new academic publication?
+              </span>
+              <a href="/submit" className="btn btn-secondary btn-sm" style={{ textDecoration: "none" }}>
+                Submit New Journal
+              </a>
+            </div>
+          </div>
+        </main>
+
+        <Footer />
       </div>
     );
   }

@@ -393,8 +393,8 @@ export default function Header({ activePage }: HeaderProps) {
             {user ? (
               <>
                 <a href={`/researcher?id=${user.id}`} className="btn btn-secondary btn-sm" style={{ background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}>
-                  <i className="fa-solid fa-user-graduate" style={{ marginRight: "5px" }}></i>
-                  {t.nav.profile}
+                  <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`} style={{ marginRight: "5px" }}></i>
+                  {user.role === "PUBLISHER" ? "Editor & Scholar Profile" : t.nav.profile}
                 </a>
                 <button 
                   onClick={async () => {
@@ -607,7 +607,7 @@ export default function Header({ activePage }: HeaderProps) {
                     className="btn btn-secondary" 
                     style={{ width: "100%", justifyContent: "center", background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}
                   >
-                    <i className="fa-solid fa-user-graduate"></i> {t.nav.profile}
+                    <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`}></i> {user.role === "PUBLISHER" ? "Editor & Scholar Profile" : t.nav.profile}
                   </a>
                   <button 
                     onClick={async () => {
