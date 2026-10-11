@@ -7,12 +7,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { email, password } = body;
 
-    if (!email || !password) {
+    const cleanEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+
+    if (!cleanEmail || !password) {
       return NextResponse.json({ success: false, error: "Email and password are required." }, { status: 400 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email: cleanEmail }
     });
 
     if (!user || !verifyPassword(password, user.passwordHash)) {

@@ -529,7 +529,7 @@
     "auth_success": "Authentication successful. Redirecting to your dashboard...",
     "auth_error": "Authentication failed. Please verify your credentials.",
     "reg_success": "Registration Successful",
-    "reg_success_sub": "Your account has been created. Redirecting to login..."
+    "reg_success_sub": "Your account has been created. Redirecting to your dashboard..."
   },
   "common": {
     "loading": "Loading...",
