@@ -33,17 +33,17 @@
     "cta_explore": "Explore Directory",
     "cta_institution": "Institutional Console",
     "card_title": "Featured Metrics: ARJESS",
-    "card_if": "AfriJournal IF (AJIF)",
+    "card_if": "AfriJournal Citation Index (AJCI)",
     "card_grade": "Quality Grade",
     "card_score": "Score: 1.482",
-    "card_regional": "Regional Weighted IF",
-    "card_regional_sub": "Weighted by regional citation velocity & open-access accessibility"
+    "card_regional": "Regional Representation (RRQ)",
+    "card_regional_sub": "Pan-African citation provenance & institutional diversity"
   },
   "stats": {
     "journals": "Indexed African Journals",
     "free_indexing": "Free Open Indexing",
     "languages": "Supported Languages",
-    "metrics": "Proprietary AJIF Metrics",
+    "metrics": "Audited AJCI Metrics",
     "countries_covered": "African Nations Covered",
     "verified_rate": "Editorial Verification"
   },
@@ -122,8 +122,8 @@
     "tagline": "Empowering African Scholarly Discovery."
   },
   "rankings_page": {
-    "title": "AJIF Journal Rankings & Quartiles",
-    "subtitle": "Real-time leaderboard of African research journals classified into subject quartiles (Q1–Q4) and ranked by verified AJIF impact indicators.",
+    "title": "AJCI Journal Rankings & Quartiles",
+    "subtitle": "Real-time leaderboard of African research journals classified into subject quartiles (Q1–Q4) and ranked by verified AJCI citation velocity indicators.",
     "filter_country": "Filter by Country",
     "all_countries": "All African Countries",
     "filter_discipline": "Filter by Discipline",
@@ -135,7 +135,7 @@
     "col_journal": "Journal Name & Publisher",
     "col_country": "Country",
     "col_discipline": "Discipline",
-    "col_ajif": "Standard AJIF",
+    "col_ajif": "Standard AJCI",
     "col_regional": "Regional Score",
     "col_quartile": "Quartile",
     "col_grade": "Grade",
@@ -261,7 +261,7 @@
     "filter_all_disciplines": "All Disciplines",
     "filter_all_grades": "All Quality Grades",
     "filter_sort": "Sort By",
-    "sort_ajif": "Highest Impact Factor (AJIF)",
+    "sort_ajif": "Highest Citation Index (AJCI)",
     "sort_name": "Alphabetical (A-Z)",
     "sort_citations": "Most Citations",
     "no_results": "No journals found matching your search criteria.",
@@ -270,7 +270,7 @@
     "issn": "ISSN",
     "publisher": "Publisher",
     "country": "Country",
-    "score": "AJIF Score"
+    "score": "AJCI Score"
   },
   "journal_page": {
     "back_to_browse": "Browse Directory",
@@ -283,10 +283,10 @@
     "issn_print": "Print ISSN",
     "issn_electronic": "Online eISSN",
     "visit_website": "Visit Official Website",
-    "impact_metrics_title": "AJIF Impact Metrics",
-    "impact_metrics_desc": "Calculated using a 2-year citation window with regional Africa-weighted multiplier",
-    "standard_ajif": "Standard AJIF Score",
-    "regional_ajif": "Regional Weighted Score",
+    "impact_metrics_title": "AJCI Citation Metrics",
+    "impact_metrics_desc": "Calculated using an international 2-year citation window with uncorrupted Regional Representation Quotient (RRQ)",
+    "standard_ajif": "Standard AJCI Score",
+    "regional_ajif": "Regional Representation (RRQ)",
     "citable_articles": "Citable Articles",
     "citations_received": "Citations Received",
     "scope_title": "Scope & Editorial Focus",
@@ -450,11 +450,11 @@
       ]
     },
     {
-      "category": "Impact Factor, Citations & DOIs",
+      "category": "Citation Index, Provenance & DOIs",
       "items": [
         {
-          "q": "How is the AJIF Impact Factor calculated?",
-          "a": "The AJIF score is calculated annually using a standard 2-year citation window (citations in year T to articles published in T-1 and T-2, divided by citable items in T-1 and T-2). We also calculate a regional score that factors open access accessibility and cross-institutional African citations."
+          "q": "How is the AfriJournal Citation Index (AJCI) calculated?",
+          "a": "The AJCI score is calculated annually using the international standard 2-year citation window (citations in year T to articles published in T-1 and T-2, divided by citable items in T-1 and T-2). The Regional Representation Quotient (RRQ) is reported separately as an uncorrupted percentage of citations from African institutions."
         },
         {
           "q": "How do Crossref DOIs and citation tracking work?",
@@ -462,7 +462,7 @@
         },
         {
           "q": "How often are rankings and quartiles updated?",
-          "a": "The rankings leaderboard dynamically calculates positions from the database in real time. Official journal impact factor reports and subject quartile classifications (Q1–Q4) are updated annually."
+          "a": "The rankings leaderboard dynamically calculates positions from the database in real time. Official journal citation index reports and subject quartile classifications (Q1–Q4) are updated annually."
         },
         {
           "q": "Can I embed a live verification badge on my journal's website?",

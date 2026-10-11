@@ -32,7 +32,7 @@ export default function Methodology() {
               {t.methodology_page.formula_desc}
             </p>
             <div style={{ background: "var(--color-bg-base)", border: "1px solid var(--color-border)", padding: "1.75rem", borderRadius: "10px", margin: "1.2rem 0", display: "flex", justifyContent: "center", alignItems: "center", gap: "1.2rem", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--color-primary)" }}>AJIF (2-Year Standard) =</span>
+              <span style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--color-primary)" }}>AJCI (2-Year Standard) =</span>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
                 <span style={{ borderBottom: "2px solid var(--color-text-main)", paddingBottom: "6px", fontSize: "0.95rem", fontWeight: 600, color: "var(--color-text-main)" }}>
                   {t.methodology_page.formula_num}
@@ -43,9 +43,9 @@ export default function Methodology() {
               </div>
             </div>
 
-            {/* CiteScore (3-Year Window) */}
+            {/* 3-Year Citation Average (3-YCA) */}
             <div style={{ background: "var(--color-bg-base)", border: "1px solid var(--color-border)", padding: "1.75rem", borderRadius: "10px", margin: "1.2rem 0", display: "flex", justifyContent: "center", alignItems: "center", gap: "1.2rem", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "1.2rem", fontWeight: 800, color: "#2563eb" }}>CiteScore (3-Year Window) =</span>
+              <span style={{ fontSize: "1.2rem", fontWeight: 800, color: "#2563eb" }}>3-Year Citation Average (3-YCA) =</span>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
                 <span style={{ borderBottom: "2px solid var(--color-text-main)", paddingBottom: "6px", fontSize: "0.95rem", fontWeight: 600, color: "var(--color-text-main)" }}>
                   Citations in 2025 to articles published in 2022, 2023, and 2024
@@ -57,7 +57,7 @@ export default function Methodology() {
             </div>
 
             <p style={{ color: "var(--color-text-muted)", fontSize: "0.88rem", marginTop: "1rem", lineHeight: "1.6" }}>
-              To prevent artificial underscoring of journals with bi-annual or quarterly cadences, AfriJournal Index computes both the internationally aligned <strong>2-Year AJIF</strong> and the extended <strong>3-Year CiteScore</strong>, alongside lifetime citation benchmarks.
+              To prevent artificial underscoring of journals with bi-annual or quarterly cadences, AfriJournal Index computes both the internationally aligned <strong>2-Year AJCI</strong> (Mean Citation Rate) and the extended <strong>3-Year Citation Average (3-YCA)</strong>, alongside lifetime citation benchmarks.
             </p>
           </div>
 

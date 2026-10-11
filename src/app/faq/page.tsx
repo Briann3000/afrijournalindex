@@ -36,7 +36,7 @@ export default function FAQ() {
               ? "كل ما تحتاج إلى معرفته حول استخدام AfriJournal Index."
               : lang === "sw"
               ? "Kila kitu unachohitaji kujua kuhusu kutumia AfriJournal Index."
-              : "Everything you need to know about using AfriJournal Index — from submitting a journal to understanding your impact factor score."}
+              : "Everything you need to know about using AfriJournal Index — from submitting a journal to understanding your citation index metrics."}
           </p>
         </div>
 

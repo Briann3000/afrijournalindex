@@ -106,11 +106,11 @@ export default function Home() {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.75rem", textAlign: "center" }}>
                     <div>
                       <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--color-primary)", lineHeight: 1.1 }}>2.458</div>
-                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>2-Yr AJIF</div>
+                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>2-Yr AJCI</div>
                     </div>
                     <div style={{ borderLeft: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
                       <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#0284c7", lineHeight: 1.1 }}>2.802</div>
-                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>3-Yr CiteScore</div>
+                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>3-Yr Citation Avg</div>
                     </div>
                     <div>
                       <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#16a34a", lineHeight: 1.1 }}>Grade A+</div>

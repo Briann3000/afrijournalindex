@@ -1761,7 +1761,7 @@ function ResearcherProfileContent() {
                 Editorial & Academic Journal Management
               </h3>
               <p style={{ color: "var(--color-text-muted)", fontSize: "0.92rem", maxWidth: "560px", margin: "0 auto 1.5rem", lineHeight: 1.5 }}>
-                You currently have no academic journals indexed or submitted. If you are an Editor-in-Chief, Managing Editor, or university press publisher, you can submit your peer-reviewed publication to receive automated crawler audit logs, ISSN registry validation, and official African Journal Impact Factor (AJIF) ranking.
+                You currently have no academic journals indexed or submitted. If you are an Editor-in-Chief, Managing Editor, or university press publisher, you can submit your peer-reviewed publication to receive automated crawler audit logs, ISSN registry validation, and official AfriJournal Citation Index (AJCI) ranking.
               </p>
               <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
                 <button 

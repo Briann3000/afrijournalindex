@@ -244,7 +244,7 @@ export default function RankingsPage() {
                   <th 
                     onClick={() => handleSort("score")}
                     style={{ textAlign: "right", width: "110px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
-                    title="Click to sort by 2-Year AJIF Impact Factor"
+                    title="Click to sort by 2-Year AJCI Citation Index"
                   >
                     <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: "6px", width: "100%" }}>
                       {t.rankings_page.col_ajif}
@@ -257,10 +257,10 @@ export default function RankingsPage() {
                   <th 
                     onClick={() => handleSort("citescore")}
                     style={{ textAlign: "right", width: "115px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
-                    title="Click to sort by 3-Year CiteScore"
+                    title="Click to sort by 3-Year Citation Average (3-YCA)"
                   >
                     <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: "6px", width: "100%" }}>
-                      CiteScore
+                      3-YCA
                       <i 
                         className={`fa-solid ${sortBy === "citescore" ? (sortOrder === "asc" ? "fa-sort-up" : "fa-sort-down") : "fa-sort"}`}
                         style={{ opacity: sortBy === "citescore" ? 1 : 0.35, color: sortBy === "citescore" ? "var(--color-primary)" : "inherit" }}

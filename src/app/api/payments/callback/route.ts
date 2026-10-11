@@ -149,7 +149,7 @@ export async function POST(request: Request) {
       data: journalUpdateData
     });
 
-    // 7. Calculate Impact Factor & Quartiles
+    // 7. Calculate Citation Index (AJCI) & Quartiles
     const citableArticles = await prisma.article.findMany({
       where: {
         journalId: journal.id,

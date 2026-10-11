@@ -318,33 +318,33 @@ function PricingContent() {
             </a>
           </div>
 
-          {/* Tier 2: Basic Impact Package ($99 / KES 12,800) */}
+          {/* Tier 2: Basic Editorial & Impact Suite ($99 / KES 12,800) */}
           <div className="card-surface valprop-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", border: "2px solid var(--color-primary)", position: "relative", boxShadow: "var(--card-shadow-hover)" }}>
             <div style={{ position: "absolute", top: "-12px", right: "20px", backgroundColor: "var(--color-primary)", color: "#ffffff", fontSize: "0.75rem", fontWeight: 800, padding: "0.25rem 0.85rem", borderRadius: "50px", letterSpacing: "0.5px" }}>
               MOST POPULAR
             </div>
             <div>
-              <span className="badge badge-blue" style={{ marginBottom: "0.8rem" }}>Accredited Certification</span>
+              <span className="badge badge-blue" style={{ marginBottom: "0.8rem" }}>Editorial Suite &amp; Accreditation</span>
               <h3 className="card-title" style={{ color: "var(--color-primary)", fontSize: "1.3rem" }}>
-                {t.pricing_page?.basic_title || "Official Impact & Certificate"}
+                {t.pricing_page?.basic_title || "Official Accreditation & Editorial Suite"}
               </h3>
               <div style={{ fontSize: "2.4rem", fontWeight: 800, margin: "0.8rem 0", color: "var(--color-text-main)" }}>
                 {currency === "USD" ? `$${PRICING.basic.usd}` : `KES ${PRICING.basic.kes.toLocaleString()}`}{" "}
                 <span style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", fontWeight: 500 }}>/ 1-year accreditation</span>
               </div>
               <p className="card-text" style={{ marginBottom: "1.5rem" }}>
-                {t.pricing_page?.basic_desc || "Formal evaluation with official accredited high-res printable certificate, live verification QR code, and Gold badge."}
+                {t.pricing_page?.basic_desc || "Formal evaluation packet with printable vector certificate, official signed 2-page evaluation letter, editor portal access, and 2-year issue sync."}
               </p>
               <ul style={{ listStyle: "none", marginBottom: "2rem", color: "var(--color-text-body)", fontSize: "0.9rem", display: "flex", flexDirection: "column", gap: "0.65rem" }}>
-                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> <strong>Official Printable Certificate (No Watermark)</strong></li>
-                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> Live QR Code Verification Portal</li>
-                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> Standard &amp; Regional AJIF Metric Audit</li>
-                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> Subject Category Quartile &amp; Discipline Ranking</li>
-                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> Embeddable Live Gold Verified Badge Widget</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> <strong>Official Vector Certificate + Signed Audit Letter</strong></li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> <strong>Verified Editor Portal (Aims, Scope &amp; Periodicity Editing)</strong></li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> <strong>Active Volume OJS Sync (Current + Past 2 Years)</strong></li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> Cryptographic QR Registry Seal &amp; Embeddable Gold Badge</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> Standard AJCI &amp; Regional Representation Metric Audit</li>
               </ul>
             </div>
             <button className="btn btn-primary" style={{ width: "100%" }} onClick={() => handlePurchaseClick("Basic")}>
-              Order Certificate ($99 / KES 12,800)
+              Order Accreditation ($99 / KES 12,800)
             </button>
           </div>
 
@@ -360,14 +360,15 @@ function PricingContent() {
                 <span style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", fontWeight: 500 }}>/ 1-year dossier</span>
               </div>
               <p className="card-text" style={{ marginBottom: "1.5rem" }}>
-                {t.pricing_page?.premium_desc || "Complete historical catalog ingestion, citation origin breakdown, and editorial board compliance dossier."}
+                {t.pricing_page?.premium_desc || "Complete 12-page vector dossier PDF, deep 10-15 year archive sync, citation formula ledger, and DOAJ/Scopus remediation recipes."}
               </p>
               <ul style={{ listStyle: "none", marginBottom: "2rem", color: "var(--color-text-body)", fontSize: "0.9rem", display: "flex", flexDirection: "column", gap: "0.65rem" }}>
-                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#b45309" }}></i> <strong>Everything in Basic Impact Package</strong></li>
-                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#b45309" }}></i> <strong>Priority Full Back-Issue Ingestion (OJS Sync)</strong></li>
-                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#b45309" }}></i> Global vs African Citation Origin Maps</li>
-                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#b45309" }}></i> Self-Citation &amp; Integrity Screening Report</li>
-                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#b45309" }}></i> Verified Publisher Claim &amp; Profile Editing Rights</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#b45309" }}></i> <strong>Everything in Basic Editorial Suite</strong></li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#b45309" }}></i> <strong>12-Page Formal Institutional Dossier (Vector PDF)</strong></li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#b45309" }}></i> <strong>Deep Archive Harvester (10-15 Yrs / Full Back-Catalog)</strong></li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#b45309" }}></i> Interactive Formula Breakdown &amp; Quartile Gap Engine</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#b45309" }}></i> Pan-African Citation Maps &amp; Cartel Defense Clearance</li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-check" style={{ color: "#b45309" }}></i> DOAJ &amp; Scopus Technical Remediation Guidance</li>
               </ul>
             </div>
             <button className="btn btn-secondary" style={{ width: "100%" }} onClick={() => handlePurchaseClick("Premium")}>
