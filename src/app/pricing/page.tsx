@@ -45,6 +45,23 @@ function PricingContent() {
   const [selectedTier, setSelectedTier] = useState<"Basic" | "Premium">("Basic");
   const [checkoutLoading, setCheckoutLoading] = useState<boolean>(false);
   const [intasendLoaded, setIntasendLoaded] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+
+  // Load user session if logged in
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (data.success && data.authenticated) {
+          setCurrentUser(data.user);
+        }
+      } catch {
+        // Not logged in
+      }
+    }
+    checkAuth();
+  }, []);
 
   // Journal search state
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -158,12 +175,16 @@ function PricingContent() {
                   state: results.state,
                   api_ref: results.api_ref,
                   journalId: selectedJournal.id,
-                  amount: currentPriceKES
+                  tier: selectedTier,
+                  amount: currentPriceKES,
+                  currency: "KES",
+                  email: currentUser?.email || "editorial@afrijournal.org",
+                  userId: currentUser?.id || null
                 })
               });
               const verifyData = await res.json();
               if (verifyData.success) {
-                alert("Payment verified successfully! Redirecting to your official accredited certificate...");
+                alert(`Payment verified successfully (${selectedTier} Tier)! Redirecting to your official accredited certificate...`);
                 window.location.href = `/verify/${selectedJournal.id}`;
               } else {
                 alert(`Verification notice: ${verifyData.error}`);
@@ -190,8 +211,8 @@ function PricingContent() {
         intasend.run({
           amount: currentPriceKES,
           currency: "KES",
-          email: "afrijournalindex@gmail.com",
-          api_ref: selectedJournal.id
+          email: currentUser?.email || "editorial@afrijournal.org",
+          api_ref: `${selectedJournal.id}:${selectedTier}`
         });
 
         setShowModal(false);
@@ -309,14 +330,14 @@ function PricingContent() {
               </h3>
               <div style={{ fontSize: "2.4rem", fontWeight: 800, margin: "0.8rem 0", color: "var(--color-text-main)" }}>
                 {currency === "USD" ? `$${PRICING.basic.usd}` : `KES ${PRICING.basic.kes.toLocaleString()}`}{" "}
-                <span style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", fontWeight: 500 }}>/ one-time</span>
+                <span style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", fontWeight: 500 }}>/ 1-year accreditation</span>
               </div>
               <p className="card-text" style={{ marginBottom: "1.5rem" }}>
                 {t.pricing_page?.basic_desc || "Formal evaluation with official accredited high-res printable certificate, live verification QR code, and Gold badge."}
               </p>
               <ul style={{ listStyle: "none", marginBottom: "2rem", color: "var(--color-text-body)", fontSize: "0.9rem", display: "flex", flexDirection: "column", gap: "0.65rem" }}>
                 <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> <strong>Official Printable Certificate (No Watermark)</strong></li>
-                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> <strong>Live QR Code Verification Portal</strong></li>
+                <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> Live QR Code Verification Portal</li>
                 <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> Standard &amp; Regional AJIF Metric Audit</li>
                 <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> Subject Category Quartile &amp; Discipline Ranking</li>
                 <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><i className="fa-solid fa-circle-check" style={{ color: "var(--color-primary)" }}></i> Embeddable Live Gold Verified Badge Widget</li>
@@ -336,7 +357,7 @@ function PricingContent() {
               </h3>
               <div style={{ fontSize: "2.4rem", fontWeight: 800, margin: "0.8rem 0", color: "var(--color-text-main)" }}>
                 {currency === "USD" ? `$${PRICING.premium.usd}` : `KES ${PRICING.premium.kes.toLocaleString()}`}{" "}
-                <span style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", fontWeight: 500 }}>/ one-time</span>
+                <span style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", fontWeight: 500 }}>/ 1-year dossier</span>
               </div>
               <p className="card-text" style={{ marginBottom: "1.5rem" }}>
                 {t.pricing_page?.premium_desc || "Complete historical catalog ingestion, citation origin breakdown, and editorial board compliance dossier."}
@@ -368,20 +389,27 @@ function PricingContent() {
 
       {/* Checkout Modal */}
       {showModal && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          background: "rgba(15, 23, 42, 0.75)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 9999,
-          padding: "1.5rem"
-        }}>
-          <div className="card-surface" style={{ maxWidth: "540px", width: "100%", padding: "2.2rem", position: "relative", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.4)", borderRadius: "16px", maxHeight: "90vh", overflowY: "auto" }}>
+        <div 
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(15, 23, 42, 0.75)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "1.5rem"
+          }}
+          onClick={() => setShowModal(false)}
+        >
+          <div 
+            className="card-surface" 
+            style={{ maxWidth: "540px", width: "100%", padding: "2.2rem", position: "relative", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.4)", borderRadius: "16px", maxHeight: "90vh", overflowY: "auto" }}
+            onClick={e => e.stopPropagation()}
+          >
             <button 
               style={{ position: "absolute", top: "1.25rem", right: "1.25rem", background: "none", border: "none", color: "var(--color-text-muted)", fontSize: "1.4rem", cursor: "pointer" }}
               onClick={() => setShowModal(false)}

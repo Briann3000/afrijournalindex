@@ -17,6 +17,8 @@ interface JournalDetail {
   websiteUrl: string;
   isIndexed: boolean;
   certificatePaid?: boolean;
+  activeTier?: string;
+  subscriptionExpiresAt?: string | null;
   publisherId?: string | null;
   qualityGrade: string | null;
   indexedAt: string | null;
@@ -29,6 +31,22 @@ interface JournalDetail {
   selfCitationRate?: number;
   externalCitationRate?: number;
   integrityScore?: string;
+  citationOrigin?: {
+    total: number;
+    regionalCount: number;
+    globalCount: number;
+    regionalPercentage: number;
+    globalPercentage: number;
+    topCitingCountries: Array<{ country: string; count: number }>;
+  };
+  integrityReport?: {
+    selfCitationRate: number;
+    externalCitationRate: number;
+    integrityScore: string;
+    cartelRisk: string;
+    coerciveCitationFlag: boolean;
+    recommendation: string;
+  };
   citescore?: number;
   lifetimeCitations?: number;
   journalHIndex?: number;
@@ -88,6 +106,125 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
   const [claimSuccess, setClaimSuccess] = useState<string | null>(null);
   const [claimError, setClaimError] = useState<string | null>(null);
   const [copiedType, setCopiedType] = useState<string | null>(null);
+
+  // Feature Additions: Compliance Audit Modal State
+  const [showAuditModal, setShowAuditModal] = useState<boolean>(false);
+  const [auditLoading, setAuditLoading] = useState<boolean>(false);
+  const [auditData, setAuditData] = useState<any | null>(null);
+  const [auditError, setAuditError] = useState<string | null>(null);
+
+  // Feature Additions: Publisher Management Modal State
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [editLoading, setEditLoading] = useState<boolean>(false);
+  const [editSuccess, setEditSuccess] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    publisherName: "",
+    websiteUrl: "",
+    frequency: "",
+    country: "",
+    description: ""
+  });
+
+  // Feature Additions: Back-catalog OJS Harvest State
+  const [harvestLoading, setHarvestLoading] = useState<boolean>(false);
+  const [harvestResult, setHarvestResult] = useState<string | null>(null);
+
+  const handleOpenEditModal = () => {
+    if (!journal) return;
+    setEditForm({
+      publisherName: journal.publisherName || "",
+      websiteUrl: journal.websiteUrl || "",
+      frequency: journal.frequency || "Quarterly",
+      country: journal.country || "Kenya",
+      description: journal.description || ""
+    });
+    setEditSuccess(null);
+    setEditError(null);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!journal) return;
+    setEditLoading(true);
+    setEditError(null);
+    setEditSuccess(null);
+    try {
+      const res = await fetch(`/api/journals/${encodeURIComponent(journal.id)}/manage`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editForm)
+      });
+      const data = await res.json();
+      if (data.success && data.journal) {
+        setJournal(prev => prev ? { ...prev, ...data.journal } : null);
+        setEditSuccess("Journal profile updated successfully.");
+        setTimeout(() => setShowEditModal(false), 1200);
+      } else {
+        setEditError(data.error || "Failed to update journal metadata.");
+      }
+    } catch {
+      setEditError("Network error while updating journal metadata.");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleLoadAudit = async () => {
+    if (!journal) return;
+    setShowAuditModal(true);
+    setAuditLoading(true);
+    setAuditError(null);
+    try {
+      const res = await fetch(`/api/journals/${encodeURIComponent(journal.id)}/compliance-audit`);
+      const data = await res.json();
+      if (data.success) {
+        setAuditData(data);
+      } else {
+        setAuditError(data.error || "Failed to generate compliance audit.");
+      }
+    } catch {
+      setAuditError("Network error loading compliance report.");
+    } finally {
+      setAuditLoading(false);
+    }
+  };
+
+  const handleTriggerHarvest = async () => {
+    if (!journal) return;
+    setHarvestLoading(true);
+    setHarvestResult(null);
+    try {
+      const targetUrl = journal.websiteUrl?.trim();
+      const res = await fetch("/api/harvester/oai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          baseUrl: targetUrl,
+          journalId: journal.id,
+          maxPages: 10,
+          limit: 300
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setHarvestResult(`Sync completed: ${data.indexedCount || 0} articles imported/verified across catalog.`);
+        // Reload journal to update article list & citations
+        const reload = await fetch(`/api/journals/${encodeURIComponent(journal.id)}`);
+        const reloadData = await reload.json();
+        if (reloadData.success && reloadData.journal) {
+          setJournal(reloadData.journal);
+        }
+      } else {
+        setHarvestResult(`Sync result: ${data.error || "Completed with no new articles found"}`);
+      }
+    } catch {
+      setHarvestResult("Network error during catalog harvest.");
+    } finally {
+      setHarvestLoading(false);
+    }
+  };
 
   const handleClaimJournal = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -420,11 +557,35 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     </button>
                   )}
 
-                  {/* Claim Journal Action if unassigned, or badge if owned by current user */}
+                  {/* Claim Journal Action if unassigned, or controls if owned by current user */}
                   {user && journal.publisherId === user.id ? (
-                    <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "0.45rem 0.8rem", textAlign: "center", fontSize: "0.8rem", color: "#166534", fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}>
-                      <i className="fa-solid fa-check"></i>
-                      <span>Managed by You</span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                      <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "0.45rem 0.8rem", textAlign: "center", fontSize: "0.8rem", color: "#166534", fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}>
+                        <i className="fa-solid fa-check"></i>
+                        <span>Managed by You</span>
+                      </div>
+                      <button 
+                        onClick={handleOpenEditModal}
+                        className="btn btn-secondary"
+                        style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.82rem", background: "#f8fafc" }}
+                      >
+                        <i className="fa-solid fa-pen-to-square"></i>
+                        <span>Edit Journal Metadata</span>
+                      </button>
+                      <button 
+                        onClick={handleTriggerHarvest}
+                        disabled={harvestLoading}
+                        className="btn btn-secondary"
+                        style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.82rem", background: "#f8fafc" }}
+                      >
+                        <i className={`fa-solid ${harvestLoading ? "fa-spinner fa-spin" : "fa-rotate"}`}></i>
+                        <span>{harvestLoading ? "Harvesting Catalog..." : "Sync OJS Back-Catalog"}</span>
+                      </button>
+                      {harvestResult && (
+                        <div style={{ fontSize: "0.75rem", color: "#0d9488", background: "#f0fdfa", padding: "0.4rem 0.6rem", borderRadius: "6px", border: "1px solid #ccfbf1" }}>
+                          {harvestResult}
+                        </div>
+                      )}
                     </div>
                   ) : !journal.publisherId ? (
                     <button 
@@ -437,6 +598,16 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                       <span>Claim Journal (Editor)</span>
                     </button>
                   ) : null}
+
+                  {/* DOAJ / Scopus Readiness Audit trigger button */}
+                  <button 
+                    onClick={handleLoadAudit}
+                    className="btn btn-secondary"
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.82rem", borderColor: "#4338ca", color: "#4338ca", background: "#eef2ff" }}
+                  >
+                    <i className="fa-solid fa-clipboard-check"></i>
+                    <span>Compliance &amp; Readiness Audit</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -633,15 +804,116 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 {/* Self-Citation Breakdown Bar */}
                 <div style={{ paddingTop: "0.5rem" }}>
                   <div style={{ display: "flex", height: "8px", borderRadius: "4px", overflow: "hidden", background: "#e2e8f0", marginBottom: "0.6rem" }}>
-                    <div style={{ width: `${journal.externalCitationRate ?? 95}%`, background: "var(--color-primary)", height: "100%" }} title="External Citations"></div>
-                    <div style={{ width: `${journal.selfCitationRate ?? 5}%`, background: "#94a3b8", height: "100%" }} title="Journal Self-Citations"></div>
+                    <div style={{ width: `${journal.integrityReport?.externalCitationRate ?? journal.externalCitationRate ?? 95}%`, background: "var(--color-primary)", height: "100%" }} title="External Citations"></div>
+                    <div style={{ width: `${journal.integrityReport?.selfCitationRate ?? journal.selfCitationRate ?? 5}%`, background: "#94a3b8", height: "100%" }} title="Journal Self-Citations"></div>
                   </div>
 
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                    <span>External Journal Citations: <strong style={{ color: "var(--color-text-main)" }}>{journal.externalCitationRate ?? 95}%</strong></span>
-                    <span>Self-Citation Rate: <strong style={{ color: "var(--color-text-main)" }}>{journal.selfCitationRate ?? 5}%</strong> (Audit Threshold: &lt; 25%)</span>
+                    <span>External Journal Citations: <strong style={{ color: "var(--color-text-main)" }}>{journal.integrityReport?.externalCitationRate ?? journal.externalCitationRate ?? 95}%</strong></span>
+                    <span>Self-Citation Rate: <strong style={{ color: "var(--color-text-main)" }}>{journal.integrityReport?.selfCitationRate ?? journal.selfCitationRate ?? 5}%</strong> (Audit Threshold: &lt; 25%)</span>
                   </div>
                 </div>
+
+                {/* Citation Provenance Breakdown: Regional African vs Global Footprint (Institutional Tier Feature) */}
+                {journal.citationOrigin && (
+                  <div style={{ position: "relative", overflow: "hidden", borderRadius: "8px", marginTop: "0.5rem" }}>
+                    <div style={{ 
+                      background: "#ffffff", 
+                      padding: "1.2rem", 
+                      borderRadius: "8px", 
+                      border: "1px solid var(--color-border)",
+                      filter: (!journal.certificatePaid && journal.activeTier !== "Premium") ? "blur(2.5px)" : "none",
+                      pointerEvents: (!journal.certificatePaid && journal.activeTier !== "Premium") ? "none" : "auto",
+                      userSelect: (!journal.certificatePaid && journal.activeTier !== "Premium") ? "none" : "auto"
+                    }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                        <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                          <i className="fa-solid fa-earth-africa" style={{ color: "var(--color-primary)" }}></i>
+                          Citation Provenance &amp; Regional Footprint
+                        </span>
+                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
+                          Total Citations Analyzed: <strong style={{ color: "var(--color-text-main)" }}>{journal.citationOrigin.total}</strong>
+                        </span>
+                      </div>
+
+                      <div style={{ display: "flex", height: "10px", borderRadius: "5px", overflow: "hidden", background: "#f1f5f9", marginBottom: "0.75rem" }}>
+                        <div style={{ width: `${journal.citationOrigin.regionalPercentage}%`, background: "#0d9488", height: "100%" }}></div>
+                        <div style={{ width: `${journal.citationOrigin.globalPercentage}%`, background: "#3b82f6", height: "100%" }}></div>
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", marginBottom: "0.8rem" }}>
+                        <span style={{ color: "#0f766e", fontWeight: 600 }}>
+                          Pan-African Citations: {journal.citationOrigin.regionalPercentage}% ({journal.citationOrigin.regionalCount})
+                        </span>
+                        <span style={{ color: "#1d4ed8", fontWeight: 600 }}>
+                          Global Citations: {journal.citationOrigin.globalPercentage}% ({journal.citationOrigin.globalCount})
+                        </span>
+                      </div>
+
+                      {journal.citationOrigin.topCitingCountries.length > 0 && (
+                        <div style={{ borderTop: "1px dashed #e2e8f0", paddingTop: "0.6rem", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.4rem", fontSize: "0.78rem" }}>
+                          <span style={{ color: "var(--color-text-muted)", fontWeight: 600 }}>Top Citing Geographies:</span>
+                          {journal.citationOrigin.topCitingCountries.map(c => (
+                            <span key={c.country} style={{ background: "#f8fafc", padding: "0.15rem 0.5rem", borderRadius: "4px", border: "1px solid #e2e8f0", color: "#334155" }}>
+                              {c.country} ({c.count})
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Paywall Overlay for Free Journals */}
+                    {!journal.certificatePaid && journal.activeTier !== "Premium" && (
+                      <div style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: "rgba(255, 255, 255, 0.72)",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "1rem",
+                        textAlign: "center"
+                      }}>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: "#fef3c7", border: "1px solid #fde68a", color: "#92400e", padding: "0.3rem 0.75rem", borderRadius: "20px", fontSize: "0.78rem", fontWeight: 700, marginBottom: "0.4rem" }}>
+                          <i className="fa-solid fa-lock"></i>
+                          <span>Institutional Evaluation Dossier Feature</span>
+                        </div>
+                        <p style={{ margin: "0 0 0.6rem", fontSize: "0.8rem", color: "#475569", maxWidth: "420px" }}>
+                          Pan-African author distribution maps and citation cartel defense audits are unlocked with an institutional dossier subscription.
+                        </p>
+                        <a 
+                          href={`/pricing?journalId=${journal.id}&tier=Premium`}
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontSize: "0.78rem", padding: "0.35rem 0.9rem", color: "#b45309", borderColor: "#f59e0b", background: "#ffffff" }}
+                        >
+                          Unlock Full Citation Dossier ($349)
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Cartel Defense & Integrity Diagnosis (Visible if paid, or summary if free) */}
+                {journal.integrityReport && (
+                  <div style={{ background: journal.integrityReport.cartelRisk === "Low" ? "#f0fdf4" : "#fffbeb", border: `1px solid ${journal.integrityReport.cartelRisk === "Low" ? "#bbf7d0" : "#fef08a"}`, borderRadius: "8px", padding: "1rem", fontSize: "0.82rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
+                      <span style={{ fontWeight: 700, color: journal.integrityReport.cartelRisk === "Low" ? "#166534" : "#854d0e", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                        <i className={`fa-solid ${journal.integrityReport.cartelRisk === "Low" ? "fa-shield-halved" : "fa-triangle-exclamation"}`}></i>
+                        Citation Cartel Defense &amp; Coercive Citation Audit
+                      </span>
+                      <span style={{ fontWeight: 700, textTransform: "uppercase", fontSize: "0.75rem", background: "#ffffff", padding: "0.15rem 0.5rem", borderRadius: "4px", border: "1px solid rgba(0,0,0,0.1)" }}>
+                        Risk Level: {journal.integrityReport.cartelRisk}
+                      </span>
+                    </div>
+                    <p style={{ margin: 0, color: journal.integrityReport.cartelRisk === "Low" ? "#14532d" : "#713f12", lineHeight: "1.4" }}>
+                      {journal.integrityReport.recommendation}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1328,6 +1600,310 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   )}
                 </form>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Compliance & Readiness Audit Modal */}
+        {showAuditModal && (
+          <div 
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(15, 23, 42, 0.65)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+              padding: "1.5rem"
+            }}
+            onClick={() => setShowAuditModal(false)}
+          >
+            <div 
+              style={{
+                backgroundColor: "#ffffff",
+                borderRadius: "16px",
+                maxWidth: "680px",
+                width: "100%",
+                padding: "2rem",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                maxHeight: "90vh",
+                overflowY: "auto"
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.2rem" }}>
+                <div>
+                  <h3 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "0 0 0.3rem", color: "#0f172a", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <i className="fa-solid fa-clipboard-check" style={{ color: "var(--color-primary)" }}></i>
+                    DOAJ &amp; Scopus Accreditation Readiness
+                  </h3>
+                  <p style={{ margin: 0, fontSize: "0.82rem", color: "#64748b" }}>
+                    Automated technical &amp; editorial criteria compliance diagnostics
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setShowAuditModal(false)}
+                  style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#94a3b8", cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              {auditLoading ? (
+                <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
+                  <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)", marginBottom: "1rem" }}></i>
+                  <p style={{ fontSize: "0.9rem", color: "#64748b" }}>Evaluating technical standards, ISSN checksums, and metadata coverage...</p>
+                </div>
+              ) : auditError ? (
+                <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", borderRadius: "8px", padding: "1rem", fontSize: "0.85rem" }}>
+                  <i className="fa-solid fa-circle-exclamation" style={{ marginRight: "0.5rem" }}></i>
+                  {auditError}
+                </div>
+              ) : auditData ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+                  {/* Readiness Score Card */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f8fafc", padding: "1.2rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                    <div>
+                      <div style={{ fontSize: "0.8rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>Index Readiness Score</div>
+                      <div style={{ fontSize: "2rem", fontWeight: 800, color: (auditData.overallScore ?? 0) >= 80 ? "#16a34a" : (auditData.overallScore ?? 0) >= 50 ? "#d97706" : "#dc2626" }}>
+                        {auditData.overallScore ?? 0}%
+                      </div>
+                      <div style={{ fontSize: "0.8rem", color: "#475569" }}>
+                        {auditData.checks?.filter((c: any) => c.passed).length || 0} of {auditData.checks?.length || 6} international indexing criteria satisfied
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <span style={{ 
+                        padding: "0.4rem 0.9rem", 
+                        borderRadius: "20px", 
+                        fontSize: "0.82rem", 
+                        fontWeight: 700,
+                        backgroundColor: (auditData.overallScore ?? 0) >= 80 ? "#dcfce7" : (auditData.overallScore ?? 0) >= 60 ? "#fef3c7" : "#fee2e2",
+                        color: (auditData.overallScore ?? 0) >= 80 ? "#166534" : (auditData.overallScore ?? 0) >= 60 ? "#92400e" : "#991b1b"
+                      }}>
+                        {auditData.status === "INTERNATIONAL_INDEX_READY" ? "International Ready" : auditData.status === "EDITORIAL_UPGRADE_RECOMMENDED" ? "Upgrade Recommended" : "Deficiencies Detected"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Checklist Items */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                    <h4 style={{ fontSize: "0.9rem", fontWeight: 700, margin: "0.5rem 0 0.2rem", color: "#1e293b" }}>Evaluation Criteria Breakdown</h4>
+                    {auditData.checks?.map((chk: any) => (
+                      <div key={chk.id} style={{ display: "flex", alignItems: "flex-start", gap: "0.8rem", padding: "0.75rem", background: "#ffffff", borderRadius: "8px", border: "1px solid #f1f5f9" }}>
+                        <i className={`fa-solid ${chk.passed ? "fa-circle-check" : "fa-triangle-exclamation"}`} style={{ fontSize: "1rem", marginTop: "0.15rem", color: chk.passed ? "#16a34a" : "#d97706" }}></i>
+                        <div style={{ flex: 1, fontSize: "0.82rem" }}>
+                          <div style={{ fontWeight: 700, color: "#1e293b", display: "flex", justifyContent: "space-between" }}>
+                            <span>{chk.name}</span>
+                            <span style={{ fontSize: "0.75rem", fontWeight: 600, color: chk.passed ? "#16a34a" : "#d97706" }}>
+                              {chk.passed ? "PASS" : "ATTENTION"}
+                            </span>
+                          </div>
+                          <div style={{ color: "#64748b", marginTop: "0.15rem" }}>{chk.details}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Actionable Recommendations */}
+                  {auditData.checks?.filter((c: any) => c.recommendation).length > 0 && (
+                    <div style={{ background: "#f0fdfa", border: "1px solid #ccfbf1", borderRadius: "8px", padding: "1rem", fontSize: "0.82rem" }}>
+                      <div style={{ fontWeight: 700, color: "#0f766e", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                        <i className="fa-solid fa-lightbulb"></i>
+                        Accreditation Improvement Roadmap
+                      </div>
+                      <ul style={{ margin: 0, paddingLeft: "1.2rem", color: "#134e4a", lineHeight: "1.5" }}>
+                        {auditData.checks.filter((c: any) => c.recommendation).map((c: any) => (
+                          <li key={c.id}>{c.recommendation}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.5rem" }}>
+                    <button 
+                      onClick={() => setShowAuditModal(false)}
+                      className="btn btn-secondary"
+                      style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem" }}
+                    >
+                      Close Report
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        )}
+
+        {/* Publisher Profile Management Modal */}
+        {showEditModal && (
+          <div 
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(15, 23, 42, 0.65)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+              padding: "1.5rem"
+            }}
+            onClick={() => setShowEditModal(false)}
+          >
+            <div 
+              style={{
+                backgroundColor: "#ffffff",
+                borderRadius: "16px",
+                maxWidth: "580px",
+                width: "100%",
+                padding: "2rem",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.2rem" }}>
+                <div>
+                  <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: "0 0 0.3rem", color: "#0f172a" }}>
+                    Manage Journal Profile &amp; Metadata
+                  </h3>
+                  <p style={{ margin: 0, fontSize: "0.82rem", color: "#64748b" }}>
+                    Verified publisher profile management for {journal?.name}
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setShowEditModal(false)}
+                  style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#94a3b8", cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              {editSuccess && (
+                <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#166534", borderRadius: "8px", padding: "0.75rem 1rem", fontSize: "0.82rem", marginBottom: "1rem" }}>
+                  <i className="fa-solid fa-circle-check" style={{ marginRight: "0.4rem" }}></i>
+                  {editSuccess}
+                </div>
+              )}
+
+              {editError && (
+                <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", borderRadius: "8px", padding: "0.75rem 1rem", fontSize: "0.82rem", marginBottom: "1rem" }}>
+                  <i className="fa-solid fa-circle-exclamation" style={{ marginRight: "0.4rem" }}></i>
+                  {editError}
+                </div>
+              )}
+
+              <form onSubmit={handleSaveEdit}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.8rem", marginBottom: "0.8rem" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "0.3rem" }}>
+                      Publisher / Press
+                    </label>
+                    <input 
+                      type="text"
+                      className="form-control"
+                      value={editForm.publisherName}
+                      onChange={e => setEditForm(prev => ({ ...prev, publisherName: e.target.value }))}
+                      required
+                      style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "0.3rem" }}>
+                      Country
+                    </label>
+                    <input 
+                      type="text"
+                      className="form-control"
+                      value={editForm.country}
+                      onChange={e => setEditForm(prev => ({ ...prev, country: e.target.value }))}
+                      required
+                      style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem" }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: "0.8rem", marginBottom: "0.8rem" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "0.3rem" }}>
+                      Official Website / OJS URL
+                    </label>
+                    <input 
+                      type="text"
+                      className="form-control"
+                      value={editForm.websiteUrl}
+                      onChange={e => setEditForm(prev => ({ ...prev, websiteUrl: e.target.value }))}
+                      style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "0.3rem" }}>
+                      Frequency
+                    </label>
+                    <select 
+                      className="form-control"
+                      value={editForm.frequency}
+                      onChange={e => setEditForm(prev => ({ ...prev, frequency: e.target.value }))}
+                      style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem" }}
+                    >
+                      <option value="Monthly">Monthly</option>
+                      <option value="Bi-monthly">Bi-monthly</option>
+                      <option value="Quarterly">Quarterly</option>
+                      <option value="Bi-annual">Bi-annual</option>
+                      <option value="Annual">Annual</option>
+                      <option value="Continuous">Continuous</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: "1.2rem" }}>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "0.3rem" }}>
+                    Aims, Scope &amp; Editorial Description
+                  </label>
+                  <textarea 
+                    rows={4}
+                    className="form-control"
+                    value={editForm.description}
+                    onChange={e => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                    style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", resize: "vertical" }}
+                  />
+                </div>
+
+                <div style={{ display: "flex", gap: "0.8rem", justifyContent: "flex-end" }}>
+                  <button 
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    className="btn btn-secondary"
+                    style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={editLoading}
+                    className="btn btn-primary"
+                    style={{ padding: "0.5rem 1.4rem", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
+                  >
+                    {editLoading ? (
+                      <>
+                        <i className="fa-solid fa-spinner fa-spin"></i>
+                        <span>Saving Changes...</span>
+                      </>
+                    ) : (
+                      <>
+                        <i className="fa-solid fa-check"></i>
+                        <span>Save Metadata</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

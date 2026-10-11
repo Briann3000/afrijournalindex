@@ -1,12 +1,57 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const journals = await prisma.journal.findMany();
-    return NextResponse.json({ success: true, journals });
+    const { searchParams } = new URL(request.url);
+    const hasPagination = searchParams.has("page") || searchParams.has("limit");
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.min(200, Math.max(1, parseInt(searchParams.get("limit") || "25", 10)));
+    const skip = (page - 1) * limit;
+    const country = searchParams.get("country");
+    const search = searchParams.get("q")?.trim();
+
+    const where: any = {};
+    if (country) {
+      where.country = country;
+    }
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { issn: { contains: search } },
+        { eissn: { contains: search } },
+        { publisherName: { contains: search } }
+      ];
+    }
+
+    if (hasPagination) {
+      const [total, journals] = await Promise.all([
+        prisma.journal.count({ where }),
+        prisma.journal.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { name: "asc" }
+        })
+      ]);
+      return NextResponse.json({
+        success: true,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        journals
+      });
+    }
+
+    const journals = await prisma.journal.findMany({
+      where,
+      orderBy: { name: "asc" }
+    });
+    return NextResponse.json({ success: true, total: journals.length, journals });
   } catch (error: any) {
     console.error("List journals error:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+

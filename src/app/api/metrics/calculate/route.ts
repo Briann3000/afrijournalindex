@@ -1,82 +1,135 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
+import { getDisciplines, assignQuartiles } from "../../../../lib/metrics";
 
 export async function POST(request: Request) {
   try {
-    const journals = await prisma.journal.findMany();
-    const results: any[] = [];
-
-    for (const journal of journals) {
-      // 1. Fetch articles published in 2023 & 2024 (citable articles)
-      const citableArticles = await prisma.article.findMany({
-        where: {
-          journalId: journal.id,
-          publishDate: {
-            gte: new Date("2023-01-01T00:00:00.000Z"),
-            lte: new Date("2024-12-31T23:59:59.999Z")
-          }
-        },
-        select: { id: true }
-      });
-
-      const articleCount = citableArticles.length;
-      const citableArticleIds = citableArticles.map(a => a.id);
-
-      // 2. Count citations registered in 2025 pointing to those citable articles
-      let citationCount = 0;
-      if (citableArticleIds.length > 0) {
-        citationCount = await prisma.citation.count({
+    const journals = await prisma.journal.findMany({
+      include: {
+        articles: {
           where: {
-            citedArticleId: { in: citableArticleIds },
-            citedAt: {
-              gte: new Date("2025-01-01T00:00:00.000Z"),
-              lte: new Date("2025-12-31T23:59:59.999Z")
+            publishDate: {
+              gte: new Date("2023-01-01T00:00:00.000Z"),
+              lte: new Date("2024-12-31T23:59:59.999Z")
+            }
+          },
+          select: {
+            id: true,
+            citedBy: {
+              where: {
+                citedAt: {
+                  gte: new Date("2025-01-01T00:00:00.000Z"),
+                  lte: new Date("2025-12-31T23:59:59.999Z")
+                }
+              },
+              select: { id: true }
             }
           }
-        });
+        }
       }
+    });
 
-      // 3. Calculate impact factor score
+    // 1. Calculate raw impact scores and assign primary discipline
+    const calculatedList = journals.map(journal => {
+      const articleCount = journal.articles.length;
+      let citationCount = 0;
+      journal.articles.forEach(art => {
+        citationCount += art.citedBy.length;
+      });
+
       const standardScore = articleCount > 0 ? parseFloat((citationCount / articleCount).toFixed(3)) : 0.0;
-      const regionalScore = parseFloat((standardScore * 1.15).toFixed(3)); // Africa-weighted scaling
+      const regionalScore = parseFloat((standardScore * 1.15).toFixed(3));
 
-      // 4. Save report
-      const report = await prisma.impactFactorReport.upsert({
+      const disciplines = getDisciplines(journal.name, journal.description || "");
+      const primaryDiscipline = disciplines[0] || "Multidisciplinary";
+
+      return {
+        journalId: journal.id,
+        name: journal.name,
+        issn: journal.issn,
+        articleCount,
+        citationCount,
+        standardScore,
+        regionalScore,
+        score: standardScore,
+        primaryDiscipline
+      };
+    });
+
+    // 2. Group by primary discipline and compute quartile & rank within discipline
+    const disciplineGroups: Record<string, typeof calculatedList> = {};
+    calculatedList.forEach(item => {
+      if (!disciplineGroups[item.primaryDiscipline]) {
+        disciplineGroups[item.primaryDiscipline] = [];
+      }
+      disciplineGroups[item.primaryDiscipline].push(item);
+    });
+
+    const rankingMap = new Map<string, { quartile: string; rank: number; totalInGroup: number }>();
+    Object.keys(disciplineGroups).forEach(disc => {
+      const rankedGroup = assignQuartiles(disciplineGroups[disc]);
+      rankedGroup.forEach(r => {
+        rankingMap.set(r.journalId, {
+          quartile: r.quartile,
+          rank: r.rank,
+          totalInGroup: r.totalInGroup
+        });
+      });
+    });
+
+    // 3. Persist reports into database
+    const results: any[] = [];
+    for (const item of calculatedList) {
+      const rankInfo = rankingMap.get(item.journalId) || { quartile: "Unrated", rank: 1, totalInGroup: 1 };
+
+      await prisma.impactFactorReport.upsert({
         where: {
           journalId_year: {
-            journalId: journal.id,
+            journalId: item.journalId,
             year: 2025
           }
         },
         update: {
-          standardScore,
-          regionalScore,
-          citationCount,
-          articleCount
+          standardScore: item.standardScore,
+          regionalScore: item.regionalScore,
+          citationCount: item.citationCount,
+          articleCount: item.articleCount,
+          quartile: rankInfo.quartile,
+          disciplineRank: rankInfo.rank,
+          totalInDiscipline: rankInfo.totalInGroup,
+          primaryDiscipline: item.primaryDiscipline
         },
         create: {
-          journalId: journal.id,
+          journalId: item.journalId,
           year: 2025,
-          standardScore,
-          regionalScore,
-          citationCount,
-          articleCount
+          standardScore: item.standardScore,
+          regionalScore: item.regionalScore,
+          citationCount: item.citationCount,
+          articleCount: item.articleCount,
+          quartile: rankInfo.quartile,
+          disciplineRank: rankInfo.rank,
+          totalInDiscipline: rankInfo.totalInGroup,
+          primaryDiscipline: item.primaryDiscipline
         }
       });
 
       results.push({
-        journal: journal.name,
-        issn: journal.issn,
-        articlesWindow: articleCount,
-        citationsWindow: citationCount,
-        ajifScore: standardScore,
-        regionalScore
+        journal: item.name,
+        issn: item.issn,
+        primaryDiscipline: item.primaryDiscipline,
+        articlesWindow: item.articleCount,
+        citationsWindow: item.citationCount,
+        ajifScore: item.standardScore,
+        regionalScore: item.regionalScore,
+        quartile: rankInfo.quartile,
+        disciplineRank: rankInfo.rank
       });
     }
 
     return NextResponse.json({
       success: true,
-      message: "AJIF metrics calculated successfully.",
+      message: "AJIF metrics and subject quartile rankings calculated and saved successfully.",
+      totalJournals: results.length,
       results
     });
 
@@ -85,3 +138,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+

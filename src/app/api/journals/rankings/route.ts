@@ -49,45 +49,56 @@ export async function GET(request: Request) {
         qualityGrade: journal.qualityGrade || "B",
         country: countryName,
         disciplines,
-        primaryDiscipline,
+        primaryDiscipline: latestReport?.primaryDiscipline || primaryDiscipline,
         score,
         citescore: latestReport ? Number((latestReport.standardScore * 1.14).toFixed(3)) : 0,
         regionalScore,
         citationCount: latestReport ? latestReport.citationCount : 0,
-        articleCount: latestReport ? latestReport.articleCount : 0
+        articleCount: latestReport ? latestReport.articleCount : 0,
+        precomputedQuartile: latestReport?.quartile || null,
+        precomputedRank: latestReport?.disciplineRank || null,
+        precomputedTotal: latestReport?.totalInDiscipline || null
       };
     });
 
-    // Compute overall quartiles and per-discipline rankings
-    const allRanked = assignQuartiles(mapped);
-
-    // Also compute discipline-specific quartiles
-    const disciplineGroups: Record<string, typeof mapped> = {};
-    allRanked.forEach((item) => {
-      if (!disciplineGroups[item.primaryDiscipline]) {
-        disciplineGroups[item.primaryDiscipline] = [];
-      }
-      disciplineGroups[item.primaryDiscipline].push(item);
-    });
-
-    const disciplineQuartileMap: Record<string, { quartile: string; rank: number; total: number }> = {};
-    Object.keys(disciplineGroups).forEach((disc) => {
-      const rankedInDisc = assignQuartiles(disciplineGroups[disc]);
-      rankedInDisc.forEach((item) => {
-        disciplineQuartileMap[item.id] = {
-          quartile: item.quartile,
-          rank: item.rank,
-          total: item.totalInGroup
-        };
-      });
-    });
-
-    const rankings = allRanked.map((item) => ({
+    const hasPrecomputed = mapped.some(m => m.precomputedQuartile);
+    let rankings = mapped.map(item => ({
       ...item,
-      quartile: disciplineQuartileMap[item.id]?.quartile || item.quartile,
-      disciplineRank: disciplineQuartileMap[item.id]?.rank || 1,
-      totalInDiscipline: disciplineQuartileMap[item.id]?.total || 1
+      quartile: item.precomputedQuartile || (item.score >= 0.5 ? "Q1" : item.score >= 0.25 ? "Q2" : item.score >= 0.08 ? "Q3" : item.score > 0 ? "Q4" : "Unrated"),
+      disciplineRank: item.precomputedRank || 1,
+      totalInDiscipline: item.precomputedTotal || 1
     }));
+
+    if (!hasPrecomputed) {
+      // Compute dynamically as fallback
+      const allRanked = assignQuartiles(mapped);
+      const disciplineGroups: Record<string, typeof mapped> = {};
+      allRanked.forEach((item) => {
+        if (!disciplineGroups[item.primaryDiscipline]) {
+          disciplineGroups[item.primaryDiscipline] = [];
+        }
+        disciplineGroups[item.primaryDiscipline].push(item);
+      });
+
+      const disciplineQuartileMap: Record<string, { quartile: string; rank: number; total: number }> = {};
+      Object.keys(disciplineGroups).forEach((disc) => {
+        const rankedInDisc = assignQuartiles(disciplineGroups[disc]);
+        rankedInDisc.forEach((item) => {
+          disciplineQuartileMap[item.id] = {
+            quartile: item.quartile,
+            rank: item.rank,
+            total: item.totalInGroup
+          };
+        });
+      });
+
+      rankings = allRanked.map((item) => ({
+        ...item,
+        quartile: disciplineQuartileMap[item.id]?.quartile || item.quartile,
+        disciplineRank: disciplineQuartileMap[item.id]?.rank || 1,
+        totalInDiscipline: disciplineQuartileMap[item.id]?.total || 1
+      }));
+    }
 
     const countries = Array.from(
       new Set(

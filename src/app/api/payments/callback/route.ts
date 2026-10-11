@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "../../../../lib/db";
+import { verifySessionToken } from "../../../../lib/auth";
+import { getDisciplines, assignQuartiles } from "../../../../lib/metrics";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Handle IntaSend Webhook Challenge / Handshake test
+    // 1. Handle IntaSend Webhook Challenge / Handshake test
     if (body.challenge) {
       return NextResponse.json({ challenge: body.challenge }, { status: 200 });
     }
@@ -18,16 +21,25 @@ export async function POST(request: Request) {
     const journalId = body.journalId || (api_ref?.startsWith("AJIF_") ? api_ref.replace("AJIF_", "") : api_ref);
 
     if (!journalId) {
-      // In webhook tests where no specific journal is referenced, acknowledge receipt
       if (body.event === "test" || !tracking_id) {
         return NextResponse.json({ success: true, message: "Webhook ping received" });
       }
       return NextResponse.json({ success: false, error: "Missing associated Journal ID or api_ref reference." }, { status: 400 });
     }
 
-    const secretKey = process.env.INTASEND_SECRET_KEY;
+    // Verify Journal exists
+    const existingJournal = await prisma.journal.findUnique({
+      where: { id: journalId }
+    });
 
-    // Production IntaSend server-to-server verification check
+    if (!existingJournal) {
+      return NextResponse.json({ success: false, error: "Journal not found in registry." }, { status: 404 });
+    }
+
+    const secretKey = process.env.INTASEND_SECRET_KEY;
+    let isPaymentVerified = false;
+
+    // 2. Strict Server-to-Server IntaSend Verification
     if (secretKey && tracking_id) {
       try {
         const isTest = secretKey.includes("_sandbox_") || process.env.INTASEND_TEST_MODE === "true";
@@ -46,37 +58,98 @@ export async function POST(request: Request) {
 
         if (verifyResponse.ok) {
           const verifyData = await verifyResponse.json();
-          const invoiceState = verifyData?.invoice?.state?.toUpperCase();
-          if (invoiceState !== "COMPLETE" && invoiceState !== "SUCCESSFUL") {
-            return NextResponse.json({ success: false, error: "IntaSend payment status not verified as COMPLETE." }, { status: 400 });
+          const invoiceState = (verifyData?.invoice?.state || verifyData?.state || "").toUpperCase();
+          if (invoiceState === "COMPLETE" || invoiceState === "SUCCESSFUL" || invoiceState === "SUCCESS") {
+            isPaymentVerified = true;
           }
         }
       } catch (verifyErr) {
-        console.warn("IntaSend API verification warning:", verifyErr);
-        // Fall back to client payload validation in dev or if network timeout occurs
+        console.error("IntaSend API verification error:", verifyErr);
       }
     }
 
-    // Baseline validation check
-    const normalizedState = (state || "").toUpperCase();
-    if (normalizedState !== "COMPLETE" && normalizedState !== "SUCCESSFUL" && normalizedState !== "SUCCESS") {
-      return NextResponse.json({ success: false, error: "Payment was not completed successfully." }, { status: 400 });
+    // Fallback only permitted in local dev without live secret key
+    if (!isPaymentVerified) {
+      if (!secretKey && process.env.NODE_ENV !== "production") {
+        const normalizedState = (state || "").toUpperCase();
+        if (normalizedState === "COMPLETE" || normalizedState === "SUCCESSFUL" || normalizedState === "SUCCESS") {
+          isPaymentVerified = true;
+        }
+      }
     }
 
-    console.log(`Payment success confirmed for Journal ${journalId}. Tracking ID: ${tracking_id || "N/A"}`);
+    if (!isPaymentVerified) {
+      return NextResponse.json({
+        success: false,
+        error: "IntaSend payment verification failed. Payment was not confirmed as completed by the gateway."
+      }, { status: 400 });
+    }
 
-    // 1. Mark the journal as premium-indexed and certificate paid
-    const journal = await prisma.journal.update({
-      where: { id: journalId },
-      data: {
-        isIndexed: true,
-        qualityGrade: "A",
-        certificatePaid: true
+    // 3. Resolve user session if available
+    let authenticatedUserId: string | null = null;
+    try {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get("afriJournalSession");
+      if (sessionCookie?.value) {
+        authenticatedUserId = verifySessionToken(sessionCookie.value);
+      }
+    } catch {
+      // Guest payment
+    }
+    if (!authenticatedUserId && body.userId) {
+      authenticatedUserId = body.userId;
+    }
+
+    // 4. Resolve tier & pricing
+    const rawTier = (body.tier || "").toUpperCase();
+    const selectedTier = rawTier === "PREMIUM" ? "PREMIUM" : "BASIC";
+    const amountPaid = Number(body.amount) || (selectedTier === "PREMIUM" ? 45000 : 12800);
+    const currency = (body.currency || "KES").toUpperCase();
+
+    // 5. Record transaction in Payment audit table
+    await prisma.payment.upsert({
+      where: { trackingId: tracking_id },
+      create: {
+        trackingId: tracking_id,
+        journalId: existingJournal.id,
+        userId: authenticatedUserId,
+        amount: amountPaid,
+        currency,
+        tier: selectedTier,
+        status: "COMPLETE",
+        customerEmail: body.email || body.customerEmail || null,
+        rawResponse: JSON.stringify(body)
+      },
+      update: {
+        status: "COMPLETE",
+        tier: selectedTier,
+        userId: authenticatedUserId
       }
     });
 
-    // 2. Trigger automatic Impact Factor calculation for this journal
-    // Fetch articles published in 2023 & 2024 (citable articles)
+    // 6. Update Journal entitlements
+    // Maintain academic integrity: preserve existing quality grade or default to "B" for new entries; NEVER auto-promote to "A"
+    const qualityGrade = existingJournal.qualityGrade || "B";
+
+    const journalUpdateData: any = {
+      isIndexed: true,
+      certificatePaid: true,
+      activeTier: selectedTier,
+      qualityGrade,
+      subscriptionExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1-year accreditation cycle
+    };
+
+    // If Premium tier and user is authenticated, link publisher claim ownership
+    if (selectedTier === "PREMIUM" && authenticatedUserId) {
+      journalUpdateData.publisherId = authenticatedUserId;
+    }
+
+    const journal = await prisma.journal.update({
+      where: { id: existingJournal.id },
+      data: journalUpdateData
+    });
+
+    // 7. Calculate Impact Factor & Quartiles
     const citableArticles = await prisma.article.findMany({
       where: {
         journalId: journal.id,
@@ -91,7 +164,6 @@ export async function POST(request: Request) {
     const articleCount = citableArticles.length;
     const citableArticleIds = citableArticles.map(a => a.id);
 
-    // Count citations registered in 2025 pointing to those citable articles
     let citationCount = 0;
     if (citableArticleIds.length > 0) {
       citationCount = await prisma.citation.count({
@@ -105,11 +177,20 @@ export async function POST(request: Request) {
       });
     }
 
-    // Calculate score
     const standardScore = articleCount > 0 ? parseFloat((citationCount / articleCount).toFixed(3)) : 0.0;
-    const regionalScore = parseFloat((standardScore * 1.15).toFixed(3)); // Africa-weighted scaling
+    const regionalScore = parseFloat((standardScore * 1.15).toFixed(3));
 
-    // Save report
+    const disciplines = getDisciplines(journal.name, journal.description || "");
+    const primaryDiscipline = disciplines[0] || "Multidisciplinary";
+
+    // Assign quartile based on standard velocity thresholds
+    let quartile = "Unrated";
+    if (standardScore >= 0.500) quartile = "Q1";
+    else if (standardScore >= 0.250) quartile = "Q2";
+    else if (standardScore >= 0.080) quartile = "Q3";
+    else if (standardScore > 0.000) quartile = "Q4";
+
+    // Save report with precomputed ranking metadata
     await prisma.impactFactorReport.upsert({
       where: {
         journalId_year: {
@@ -121,7 +202,9 @@ export async function POST(request: Request) {
         standardScore,
         regionalScore,
         citationCount,
-        articleCount
+        articleCount,
+        quartile,
+        primaryDiscipline
       },
       create: {
         journalId: journal.id,
@@ -129,20 +212,21 @@ export async function POST(request: Request) {
         standardScore,
         regionalScore,
         citationCount,
-        articleCount
+        articleCount,
+        quartile,
+        primaryDiscipline
       }
     });
 
-    // Update submission record if one exists for the journal to ACCEPTED
+    // Update submission record if one exists
     await prisma.submission.updateMany({
       where: { journalId: journal.id },
       data: {
         status: "ACCEPTED",
-        evaluationLog: `Payment confirmed. Tracking ID: ${tracking_id || "N/A"}. Metrics Report generated successfully for year 2025.`
+        evaluationLog: `Payment confirmed (${selectedTier} Tier). Tracking ID: ${tracking_id}. Metrics Report generated for year 2025.`
       }
     });
 
-    // Find submission to redirect to its status page
     const submission = await prisma.submission.findFirst({
       where: { journalId: journal.id },
       select: { id: true }
@@ -150,10 +234,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Payment verified and metrics report generated successfully.",
+      message: `Payment verified successfully for ${selectedTier} package.`,
+      trackingId: tracking_id,
+      tier: selectedTier,
       submissionId: submission?.id || null,
       journalId: journal.id,
-      score: standardScore
+      score: standardScore,
+      quartile
     });
 
   } catch (error: any) {
@@ -161,3 +248,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+

@@ -92,81 +92,104 @@ export async function identifyOaiRepository(rawUrl: string): Promise<OaiIdentify
 }
 
 /**
- * Harvest records from an OAI-PMH / OJS repository
+ * Harvest records from an OAI-PMH / OJS repository with deep resumptionToken pagination
  */
-export async function harvestOaiRecords(rawUrl: string, maxRecords = 50): Promise<OaiHarvestResult> {
+export async function harvestOaiRecords(rawUrl: string, maxRecords = 500): Promise<OaiHarvestResult> {
   try {
     const identify = await identifyOaiRepository(rawUrl);
     const repoName = identify?.repositoryName || 'OJS Journal Repository';
 
-    const url = new URL(rawUrl);
-    url.searchParams.set('verb', 'ListRecords');
-    url.searchParams.set('metadataPrefix', 'oai_dc');
-
-    const res = await fetch(url.toString(), {
-      headers: {
-        'User-Agent': 'AfriJournalIndex-Harvester/2.0 (African Scholarly Registry; https://afrijournalindex.org)'
-      },
-      signal: AbortSignal.timeout(15000)
-    });
-
-    if (!res.ok) {
-      return {
-        success: false,
-        repositoryName: repoName,
-        records: [],
-        error: `OAI endpoint returned HTTP ${res.status}`
-      };
-    }
-
-    const xml = await res.text();
-
-    // Split by <record>...</record>
-    const recordMatches = xml.match(/<record[\s\S]*?<\/record>/gi) || [];
+    const baseUrl = new URL(rawUrl);
     const harvested: OaiHarvestedRecord[] = [];
+    let currentToken: string | null = null;
+    let pageCount = 0;
+    const maxPages = 15; // safeguard: max 15 requests per harvest session
 
-    for (let i = 0; i < Math.min(recordMatches.length, maxRecords); i++) {
-      const recXml = recordMatches[i];
+    do {
+      pageCount++;
+      const requestUrl = new URL(baseUrl.toString());
 
-      // Check if deleted
-      if (recXml.includes('status="deleted"')) continue;
-
-      const identifiers = extractTagContent(recXml, 'identifier');
-      const titles = extractTagContent(recXml, 'title');
-      const creators = extractTagContent(recXml, 'creator');
-      const descriptions = extractTagContent(recXml, 'description');
-      const dates = extractTagContent(recXml, 'date');
-      const publishers = extractTagContent(recXml, 'publisher');
-      const languages = extractTagContent(recXml, 'language');
-
-      if (titles.length === 0) continue;
-
-      // Extract DOI or URL from identifiers
-      let doi: string | undefined;
-      let articleUrl: string | undefined;
-
-      for (const id of identifiers) {
-        if (id.includes('10.') && id.includes('/')) {
-          const doiMatch = id.match(/10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+/);
-          if (doiMatch) doi = doiMatch[0];
-        }
-        if (id.startsWith('http://') || id.startsWith('https://')) {
-          articleUrl = id;
-        }
+      if (currentToken) {
+        requestUrl.searchParams.set('verb', 'ListRecords');
+        requestUrl.searchParams.set('resumptionToken', currentToken);
+      } else {
+        requestUrl.searchParams.set('verb', 'ListRecords');
+        requestUrl.searchParams.set('metadataPrefix', 'oai_dc');
       }
 
-      harvested.push({
-        identifier: identifiers[0] || `oai-rec-${i + 1}`,
-        title: titles[0],
-        creators,
-        description: descriptions[0] || '',
-        publishDate: dates[0] || new Date().toISOString(),
-        doi,
-        url: articleUrl,
-        publisher: publishers[0],
-        language: languages[0] || 'en'
+      const res = await fetch(requestUrl.toString(), {
+        headers: {
+          'User-Agent': 'AfriJournalIndex-Harvester/2.0 (African Scholarly Registry; https://afrijournalindex.org)'
+        },
+        signal: AbortSignal.timeout(20000)
       });
-    }
+
+      if (!res.ok) {
+        if (harvested.length > 0) break; // return what we've harvested so far
+        return {
+          success: false,
+          repositoryName: repoName,
+          records: [],
+          error: `OAI endpoint returned HTTP ${res.status}`
+        };
+      }
+
+      const xml = await res.text();
+
+      // Split by <record>...</record>
+      const recordMatches = xml.match(/<record[\s\S]*?<\/record>/gi) || [];
+
+      for (let i = 0; i < recordMatches.length; i++) {
+        if (harvested.length >= maxRecords) break;
+        const recXml = recordMatches[i];
+
+        // Check if deleted
+        if (recXml.includes('status="deleted"')) continue;
+
+        const identifiers = extractTagContent(recXml, 'identifier');
+        const titles = extractTagContent(recXml, 'title');
+        const creators = extractTagContent(recXml, 'creator');
+        const descriptions = extractTagContent(recXml, 'description');
+        const dates = extractTagContent(recXml, 'date');
+        const publishers = extractTagContent(recXml, 'publisher');
+        const languages = extractTagContent(recXml, 'language');
+
+        if (titles.length === 0) continue;
+
+        // Extract DOI or URL from identifiers
+        let doi: string | undefined;
+        let articleUrl: string | undefined;
+
+        for (const id of identifiers) {
+          if (id.includes('10.') && id.includes('/')) {
+            const doiMatch = id.match(/10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+/);
+            if (doiMatch) doi = doiMatch[0];
+          }
+          if (id.startsWith('http://') || id.startsWith('https://')) {
+            articleUrl = id;
+          }
+        }
+
+        harvested.push({
+          identifier: identifiers[0] || `oai-rec-${harvested.length + 1}`,
+          title: titles[0],
+          creators,
+          description: descriptions[0] || '',
+          publishDate: dates[0] || new Date().toISOString(),
+          doi,
+          url: articleUrl,
+          publisher: publishers[0],
+          language: languages[0] || 'en'
+        });
+      }
+
+      // Check for resumptionToken for next page
+      const tokenMatch = xml.match(/<resumptionToken[^>]*>([\s\S]*?)<\/resumptionToken>/i);
+      const tokenVal = tokenMatch ? tokenMatch[1].trim() : '';
+
+      currentToken = tokenVal.length > 0 ? tokenVal : null;
+
+    } while (currentToken && harvested.length < maxRecords && pageCount < maxPages);
 
     return {
       success: true,

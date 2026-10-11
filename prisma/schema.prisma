@@ -39,6 +39,7 @@ model User {
   submissions   Submission[]
   comments      Comment[]
   claims        ClaimedPublication[]
+  payments      Payment[]
 }
 
 model Journal {
@@ -55,6 +56,8 @@ model Journal {
   qualityGrade  String?           @db.VarChar(10) // e.g. "A+", "A", "B", "C"
   isIndexed     Boolean           @default(false)
   certificatePaid Boolean         @default(false)
+  activeTier    String            @default("FREE") @db.VarChar(50) // FREE, BASIC, PREMIUM
+  subscriptionExpiresAt DateTime?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
   
@@ -65,9 +68,12 @@ model Journal {
   articles      Article[]
   reports       ImpactFactorReport[]
   comments      Comment[]
+  payments      Payment[]
 
   @@index([country])
   @@index([name])
+  @@index([isIndexed])
+  @@index([certificatePaid])
 }
 
 model Submission {
@@ -133,6 +139,10 @@ model ImpactFactorReport {
   regionalScore     Float?
   citationCount     Int
   articleCount      Int
+  quartile          String?  @db.VarChar(10) // e.g. "Q1", "Q2", "Q3", "Q4", "Unrated"
+  disciplineRank    Int?
+  totalInDiscipline Int?
+  primaryDiscipline String?  @db.VarChar(100)
   pdfReportUrl      String?  @db.Text
   createdAt         DateTime @default(now())
 
@@ -141,6 +151,7 @@ model ImpactFactorReport {
 
   @@unique([journalId, year])
   @@index([year])
+  @@index([quartile])
 }
 
 model Comment {
@@ -169,3 +180,26 @@ model ClaimedPublication {
   @@index([userId])
   @@index([articleId])
 }
+
+model Payment {
+  id            String   @id @default(uuid())
+  trackingId    String   @unique @db.VarChar(191)
+  journalId     String
+  userId        String?
+  amount        Float
+  currency      String   @default("KES") @db.VarChar(10)
+  tier          String   @default("BASIC") @db.VarChar(50) // BASIC or PREMIUM
+  status        String   @default("COMPLETE") @db.VarChar(50)
+  customerEmail String?  @db.VarChar(191)
+  rawResponse   String?  @db.Text
+  createdAt     DateTime @default(now())
+
+  journal       Journal  @relation(fields: [journalId], references: [id], onDelete: Cascade)
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([journalId])
+  @@index([userId])
+  @@index([trackingId])
+  @@index([createdAt])
+}
+

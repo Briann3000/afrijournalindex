@@ -23,8 +23,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Harvest records
-    const harvest = await harvestOaiRecords(oaiUrl, 50);
+    const maxLimit = Math.min(1000, Math.max(10, parseInt(body.limit || "500", 10)));
+
+    // 2. Harvest records with deep pagination
+    const harvest = await harvestOaiRecords(oaiUrl, maxLimit);
 
     if (!harvest.success) {
       return NextResponse.json(
@@ -46,6 +48,8 @@ export async function POST(request: Request) {
               data: {
                 title: rec.title,
                 doi,
+                abstract: rec.description || null,
+                pdfUrl: rec.url || null,
                 publishDate: new Date(rec.publishDate || Date.now()),
                 journalId
               }

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
-import { getDisciplines, assignQuartiles } from "../../../../lib/metrics";
 
 export async function GET(
   request: Request,
@@ -39,17 +38,8 @@ export async function GET(
         const latest = journal.reports[0];
         const score = latest ? latest.standardScore : 0;
         
-        // Compute quartile
-        const primaryDisc = getDisciplines(journal.name, journal.description || "")[0] || "Multidisciplinary";
-        const peerJournals = await prisma.journal.findMany({
-          include: { reports: { orderBy: { year: "desc" }, take: 1 } }
-        });
-        const peers = peerJournals
-          .filter(p => getDisciplines(p.name, p.description || "").includes(primaryDisc))
-          .map(p => ({ id: p.id, score: p.reports[0]?.standardScore || 0 }));
-        
-        const ranked = assignQuartiles(peers.length > 0 ? peers : [{ id: journal.id, score }]);
-        const myQuartile = ranked.find(r => r.id === journal.id)?.quartile || "Q2";
+        // Use precomputed quartile or derive directly
+        const myQuartile = latest?.quartile || (score >= 0.5 ? "Q1" : score >= 0.25 ? "Q2" : score >= 0.08 ? "Q3" : score > 0 ? "Q4" : "Unrated");
 
         scoreText = `AJIF ${score.toFixed(2)} • ${myQuartile}`;
 
