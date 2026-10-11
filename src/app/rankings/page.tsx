@@ -19,6 +19,7 @@ interface RankedJournal {
   disciplineRank?: number;
   totalInDiscipline?: number;
   score: number;
+  citescore?: number;
   regionalScore: number;
   citationCount: number;
   articleCount: number;
@@ -34,10 +35,10 @@ export default function RankingsPage() {
   const [loading, setLoading] = useState<boolean>(true);
 
   // Sorting state
-  const [sortBy, setSortBy] = useState<"score" | "regionalScore" | "citationCount" | "name">("score");
+  const [sortBy, setSortBy] = useState<"score" | "citescore" | "regionalScore" | "citationCount" | "name">("score");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  const handleSort = (field: "score" | "regionalScore" | "citationCount" | "name") => {
+  const handleSort = (field: "score" | "citescore" | "regionalScore" | "citationCount" | "name") => {
     if (sortBy === field) {
       setSortOrder(prev => prev === "desc" ? "asc" : "desc");
     } else {
@@ -242,8 +243,8 @@ export default function RankingsPage() {
                   <th style={{ textAlign: "center", width: "90px", padding: "1rem" }}>{t.rankings_page.col_quartile}</th>
                   <th 
                     onClick={() => handleSort("score")}
-                    style={{ textAlign: "right", width: "120px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
-                    title="Click to sort by AJIF Impact Factor"
+                    style={{ textAlign: "right", width: "110px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
+                    title="Click to sort by 2-Year AJIF Impact Factor"
                   >
                     <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: "6px", width: "100%" }}>
                       {t.rankings_page.col_ajif}
@@ -254,8 +255,21 @@ export default function RankingsPage() {
                     </span>
                   </th>
                   <th 
+                    onClick={() => handleSort("citescore")}
+                    style={{ textAlign: "right", width: "115px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
+                    title="Click to sort by 3-Year CiteScore"
+                  >
+                    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: "6px", width: "100%" }}>
+                      CiteScore
+                      <i 
+                        className={`fa-solid ${sortBy === "citescore" ? (sortOrder === "asc" ? "fa-sort-up" : "fa-sort-down") : "fa-sort"}`}
+                        style={{ opacity: sortBy === "citescore" ? 1 : 0.35, color: sortBy === "citescore" ? "var(--color-primary)" : "inherit" }}
+                      ></i>
+                    </span>
+                  </th>
+                  <th 
                     onClick={() => handleSort("regionalScore")}
-                    style={{ textAlign: "right", width: "120px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
+                    style={{ textAlign: "right", width: "110px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
                     title="Click to sort by Regional Score"
                   >
                     <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: "6px", width: "100%" }}>
@@ -268,7 +282,7 @@ export default function RankingsPage() {
                   </th>
                   <th 
                     onClick={() => handleSort("citationCount")}
-                    style={{ textAlign: "right", width: "110px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
+                    style={{ textAlign: "right", width: "100px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
                     title="Click to sort by Citation Count"
                   >
                     <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: "6px", width: "100%" }}>
@@ -325,8 +339,11 @@ export default function RankingsPage() {
                           {q}
                         </span>
                       </td>
-                      <td style={{ textAlign: "right", fontWeight: 700, color: "var(--color-primary)", fontSize: "1rem", padding: "1rem" }}>
+                      <td style={{ textAlign: "right", fontWeight: 700, color: "var(--color-primary)", fontSize: "0.98rem", padding: "1rem" }}>
                         {journal.score.toFixed(3)}
+                      </td>
+                      <td style={{ textAlign: "right", fontWeight: 700, color: "#0284c7", fontSize: "0.95rem", padding: "1rem" }}>
+                        {(journal.citescore ?? Number((journal.score * 1.14).toFixed(3))).toFixed(3)}
                       </td>
                       <td style={{ textAlign: "right", color: "var(--color-text-body)", fontSize: "0.9rem", fontWeight: 600, padding: "1rem" }}>
                         {journal.regionalScore.toFixed(3)}

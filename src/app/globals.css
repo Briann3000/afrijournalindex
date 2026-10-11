@@ -983,8 +983,13 @@ a {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: #94a3b8 !important;
-    font-size: 0.85rem;
+    color: #e2e8f0 !important;
+    font-size: 0.88rem;
+}
+
+.footer-bottom-flex p,
+.footer-bottom .copyright {
+    color: #e2e8f0 !important;
 }
 
 /* -------------------------------------------------------------

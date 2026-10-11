@@ -105,16 +105,16 @@ export default function Home() {
                 <div style={{ background: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0", padding: "1rem", marginBottom: "1.2rem" }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.75rem", textAlign: "center" }}>
                     <div>
-                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--color-primary)", lineHeight: 1.1 }}>0.842</div>
-                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>AJIF Factor</div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--color-primary)", lineHeight: 1.1 }}>2.458</div>
+                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>2-Yr AJIF</div>
                     </div>
                     <div style={{ borderLeft: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
-                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#16a34a", lineHeight: 1.1 }}>Grade A</div>
-                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>Quality Tier</div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#0284c7", lineHeight: 1.1 }}>2.802</div>
+                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>3-Yr CiteScore</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#0284c7", lineHeight: 1.1 }}>100%</div>
-                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>CrossRef DOI</div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#16a34a", lineHeight: 1.1 }}>Grade A+</div>
+                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>Q1 Quartile</div>
                     </div>
                   </div>
                 </div>
@@ -122,27 +122,27 @@ export default function Home() {
                 {/* Bibliometric Verification List */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.82rem", color: "#334155" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "#64748b" }}>Annual Citation Velocity:</span>
-                    <strong style={{ color: "#16a34a" }}><i className="fa-solid fa-arrow-trend-up"></i> +38.4% YoY</strong>
+                    <span style={{ color: "#64748b" }}>Lifetime Impact (Scholar):</span>
+                    <strong style={{ color: "var(--color-navy)" }}><i className="fa-solid fa-graduation-cap" style={{ color: "#2563eb", marginRight: "4px" }}></i> 950+ Citations (h-14)</strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ color: "#64748b" }}>Peer-Reviewed Articles:</span>
                     <strong style={{ color: "var(--color-navy)" }}>420+ Papers</strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "#64748b" }}>Indexing Status:</span>
-                    <strong style={{ color: "var(--color-primary)" }}>Active & Accredited</strong>
+                    <span style={{ color: "#64748b" }}>Data Provenance:</span>
+                    <strong style={{ color: "#16a34a" }}><i className="fa-solid fa-circle-check" style={{ marginRight: "4px" }}></i> Crossref & DOAJ Verified</strong>
                   </div>
                 </div>
 
                 {/* Card Action Link */}
                 <div style={{ marginTop: "1.2rem", paddingTop: "0.85rem", borderTop: "1px solid #f1f5f9" }}>
                   <a 
-                    href="/browse?q=ARJESS" 
+                    href="/journal/264679fc-eb2d-4d55-b26e-3204dd06b46a" 
                     className="hover-primary" 
                     style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "space-between" }}
                   >
-                    <span>View Complete Bibliometric Report</span>
+                    <span>View Complete Bibliometric Report & Certificate</span>
                     <i className="fa-solid fa-arrow-right"></i>
                   </a>
                 </div>

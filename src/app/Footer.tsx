@@ -48,10 +48,10 @@ export default function Footer() {
       
       <div className="footer-bottom">
         <div className="container footer-bottom-flex" style={{ flexWrap: "wrap", gap: "1rem" }}>
-          <p className="copyright">
+          <p className="copyright" style={{ color: "#e2e8f0", fontSize: "0.88rem", fontWeight: 500, margin: 0 }}>
             &copy; 2026 AfriJournal Index. {t.footer.rights}
           </p>
-          <p style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
+          <p style={{ fontSize: "0.88rem", color: "#93c5fd", fontWeight: 500, margin: 0 }}>
             {t.footer.tagline}
           </p>
         </div>

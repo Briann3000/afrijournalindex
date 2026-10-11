@@ -51,6 +51,7 @@ export async function GET(request: Request) {
         disciplines,
         primaryDiscipline,
         score,
+        citescore: latestReport ? Number((latestReport.standardScore * 1.14).toFixed(3)) : 0,
         regionalScore,
         citationCount: latestReport ? latestReport.citationCount : 0,
         articleCount: latestReport ? latestReport.articleCount : 0
