@@ -174,7 +174,7 @@ function StatusContent() {
                     id="lookupId"
                     required
                     className="form-control"
-                    placeholder="e.g. 2312-0134 or sub-171000"
+                    placeholder="e.g. 2070-1721 or sub-171000"
                     value={lookupQuery}
                     onChange={(e) => setLookupQuery(e.target.value)}
                     style={{ flex: 1, minWidth: "220px" }}

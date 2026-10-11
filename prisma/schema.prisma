@@ -54,6 +54,7 @@ model Journal {
   indexedAt     DateTime?
   qualityGrade  String?           @db.VarChar(10) // e.g. "A+", "A", "B", "C"
   isIndexed     Boolean           @default(false)
+  certificatePaid Boolean         @default(false)
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
   

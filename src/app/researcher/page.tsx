@@ -82,6 +82,66 @@ function ResearcherProfileContent() {
   const [institutionalEmail, setInstitutionalEmail] = useState<string>("");
   const [manualJustification, setManualJustification] = useState<string>("");
 
+  // Journal Claiming State
+  const [showJournalClaimModal, setShowJournalClaimModal] = useState<boolean>(false);
+  const [claimJournalSearch, setClaimJournalSearch] = useState<string>("");
+  const [claimJournalResults, setClaimJournalResults] = useState<any[]>([]);
+  const [claimJournalSearching, setClaimJournalSearching] = useState<boolean>(false);
+  const [claimingJournalId, setClaimingJournalId] = useState<string | null>(null);
+  const [claimJournalSuccess, setClaimJournalSuccess] = useState<string | null>(null);
+  const [claimJournalError, setClaimJournalError] = useState<string | null>(null);
+  const [claimJournalRole, setClaimJournalRole] = useState<string>("Editor-in-Chief");
+
+  const handleSearchUnclaimedJournals = async (q: string) => {
+    setClaimJournalSearch(q);
+    if (q.trim().length < 2) {
+      setClaimJournalResults([]);
+      return;
+    }
+    setClaimJournalSearching(true);
+    try {
+      const res = await fetch(`/api/journals/claim?search=${encodeURIComponent(q.trim())}`);
+      const json = await res.json();
+      if (json.success) {
+        setClaimJournalResults(json.journals || []);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setClaimJournalSearching(false);
+    }
+  };
+
+  const handleClaimJournalInDashboard = async (journalId: string) => {
+    setClaimingJournalId(journalId);
+    setClaimJournalError(null);
+    setClaimJournalSuccess(null);
+    try {
+      const res = await fetch("/api/journals/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journalId,
+          roleTitle: claimJournalRole
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setClaimJournalSuccess(json.message || "Journal claimed successfully!");
+        setClaimJournalResults(prev => prev.filter(j => j.id !== journalId));
+        if (targetId) {
+          loadProfile();
+        }
+      } else {
+        setClaimJournalError(json.error || "Failed to claim journal.");
+      }
+    } catch {
+      setClaimJournalError("Network error while claiming journal.");
+    } finally {
+      setClaimingJournalId(null);
+    }
+  };
+
   // Check current session
   useEffect(() => {
     async function checkAuth() {
@@ -1459,6 +1519,26 @@ function ResearcherProfileContent() {
             </div>
 
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              <button
+                onClick={() => setShowJournalClaimModal(true)}
+                className="btn btn-secondary"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  fontSize: "0.86rem",
+                  fontWeight: 600,
+                  padding: "0.65rem 1.2rem",
+                  borderRadius: "8px",
+                  whiteSpace: "nowrap",
+                  background: "#f0fdfa",
+                  color: "#0d9488",
+                  border: "1px solid #99f6e4"
+                }}
+              >
+                <i className="fa-solid fa-building-columns"></i>
+                <span>Claim Existing Journal</span>
+              </button>
               <a
                 href="/submit"
                 className="btn btn-primary"
@@ -1684,6 +1764,13 @@ function ResearcherProfileContent() {
                 You currently have no academic journals indexed or submitted. If you are an Editor-in-Chief, Managing Editor, or university press publisher, you can submit your peer-reviewed publication to receive automated crawler audit logs, ISSN registry validation, and official African Journal Impact Factor (AJIF) ranking.
               </p>
               <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
+                <button 
+                  onClick={() => setShowJournalClaimModal(true)} 
+                  className="btn btn-secondary" 
+                  style={{ padding: "0.65rem 1.4rem", fontSize: "0.9rem", fontWeight: 600, borderColor: "#0d9488", color: "#0d9488", background: "#f0fdfa" }}
+                >
+                  <i className="fa-solid fa-building-columns" style={{ marginRight: "6px" }}></i> Claim Existing Journal
+                </button>
                 <a href="/submit" className="btn btn-primary" style={{ padding: "0.65rem 1.4rem", fontSize: "0.9rem", fontWeight: 700, textDecoration: "none" }}>
                   <i className="fa-solid fa-plus" style={{ marginRight: "6px" }}></i> Submit Journal for Evaluation
                 </a>
@@ -2297,6 +2384,165 @@ function ResearcherProfileContent() {
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Claim Existing Indexed Journal */}
+        {showJournalClaimModal && (
+          <div 
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(15, 23, 42, 0.75)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              padding: "1rem"
+            }}
+            onClick={() => setShowJournalClaimModal(false)}
+          >
+            <div 
+              style={{
+                background: "var(--color-bg-card)",
+                borderRadius: "16px",
+                width: "100%",
+                maxWidth: "600px",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                padding: "2rem",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                border: "1px solid var(--color-border)",
+                position: "relative"
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem" }}>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 700, margin: 0, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <i className="fa-solid fa-building-columns" style={{ color: "var(--color-primary)" }}></i>
+                  Claim Existing Indexed Journal
+                </h3>
+                <button 
+                  onClick={() => setShowJournalClaimModal(false)}
+                  style={{ background: "transparent", border: "none", color: "var(--color-text-muted)", fontSize: "1.2rem", cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", margin: "0 0 1.2rem", lineHeight: 1.5 }}>
+                If your journal is already indexed in AfriJournal Index without an assigned owner, search for it below to claim editorial rights and link it to your dashboard.
+              </p>
+
+              {claimJournalSuccess && (
+                <div style={{ background: "#ecfdf5", border: "1px solid #a7f3d0", color: "#065f46", borderRadius: "8px", padding: "0.75rem 1rem", fontSize: "0.85rem", marginBottom: "1.2rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <i className="fa-solid fa-check"></i>
+                  <span>{claimJournalSuccess}</span>
+                </div>
+              )}
+
+              {claimJournalError && (
+                <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", borderRadius: "8px", padding: "0.75rem 1rem", fontSize: "0.85rem", marginBottom: "1.2rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <i className="fa-solid fa-circle-exclamation"></i>
+                  <span>{claimJournalError}</span>
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: "0.6rem", marginBottom: "1rem" }}>
+                <div style={{ flex: 1, position: "relative" }}>
+                  <input
+                    type="text"
+                    value={claimJournalSearch}
+                    onChange={e => handleSearchUnclaimedJournals(e.target.value)}
+                    placeholder="Search journal name, ISSN, or publisher (e.g. ARJESS)..."
+                    className="form-control"
+                    style={{ width: "100%", padding: "0.65rem 1rem", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.88rem" }}
+                  />
+                  {claimJournalSearching && (
+                    <div style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--color-primary)" }}>
+                      <i className="fa-solid fa-spinner fa-spin"></i>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: "1.2rem" }}>
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.3rem" }}>
+                  Your Editorial Position
+                </label>
+                <select
+                  value={claimJournalRole}
+                  onChange={e => setClaimJournalRole(e.target.value)}
+                  className="form-control"
+                  style={{ width: "100%", padding: "0.55rem 0.8rem", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.85rem" }}
+                >
+                  <option value="Editor-in-Chief">Editor-in-Chief</option>
+                  <option value="Managing Editor">Managing Editor</option>
+                  <option value="Associate Editor">Associate Editor / Board Member</option>
+                  <option value="Publisher / University Press">Publisher / University Press Director</option>
+                </select>
+              </div>
+
+              {/* Search Results */}
+              <div style={{ maxHeight: "300px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                {claimJournalResults.length > 0 ? (
+                  claimJournalResults.map((j: any) => (
+                    <div
+                      key={j.id}
+                      style={{
+                        padding: "1rem",
+                        borderRadius: "10px",
+                        border: "1px solid var(--color-border)",
+                        background: "var(--color-bg-base)",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: "1rem",
+                        flexWrap: "wrap"
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: "220px" }}>
+                        <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.95rem" }}>
+                          {j.name}
+                        </div>
+                        <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "0.2rem" }}>
+                          <strong>ISSN:</strong> {j.issn || "Registered"} • <strong>Publisher:</strong> {j.publisherName} • {j.country}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleClaimJournalInDashboard(j.id)}
+                        disabled={claimingJournalId === j.id}
+                        className="btn btn-primary btn-sm"
+                        style={{ fontSize: "0.82rem", padding: "0.45rem 1rem", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
+                      >
+                        {claimingJournalId === j.id ? (
+                          <>
+                            <i className="fa-solid fa-spinner fa-spin"></i>
+                            <span>Claiming...</span>
+                          </>
+                        ) : (
+                          <>
+                            <i className="fa-solid fa-check"></i>
+                            <span>Claim Journal</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ))
+                ) : claimJournalSearch.trim().length >= 2 && !claimJournalSearching ? (
+                  <div style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-muted)", fontSize: "0.88rem" }}>
+                    No unclaimed journals found matching &quot;{claimJournalSearch}&quot;.
+                  </div>
+                ) : (
+                  <div style={{ textAlign: "center", padding: "1.5rem", color: "var(--color-text-muted)", fontSize: "0.82rem" }}>
+                    Type a journal title or ISSN above to find and claim your publication.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

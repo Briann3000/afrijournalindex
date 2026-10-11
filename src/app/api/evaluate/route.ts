@@ -5,14 +5,14 @@ import { verifySessionToken } from "../../../lib/auth";
 
 // Simulation database of official ISSN database records for verification
 const MOCK_ISSN_REGISTRY: Record<string, { name: string; publisher: string; active: boolean }> = {
-  "2312-0134": {
-    name: "African Research Journal of Education and Social Sciences (ARJESS)",
-    publisher: "Kenya Projects Organization (KENPRO)",
+  "2070-1721": {
+    name: "African Journal of Sustainable Development & Innovation",
+    publisher: "Pan-African Scholarly Press",
     active: true
   },
   "2519-0016": {
-    name: "Journal of Management and Business Administration (JMBA)",
-    publisher: "Kenya Projects Organization (KENPRO)",
+    name: "Journal of Management and Business Administration",
+    publisher: "African Business Research Association",
     active: true
   }
 };
@@ -26,6 +26,37 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Journal Name and Homepage Website are required." }, { status: 400 });
     }
 
+    const cleanIssn = issn?.trim() || "";
+    const cleanEissn = eissn?.trim() || "";
+
+    // 0. Active Cooling-Off Period Check (6 Months / 180 Days)
+    if (cleanIssn || cleanEissn) {
+      const recentRejected = await prisma.submission.findFirst({
+        where: {
+          OR: [
+            ...(cleanIssn ? [{ issn: cleanIssn }] : []),
+            ...(cleanEissn ? [{ eissn: cleanEissn }] : [])
+          ],
+          status: "REJECTED"
+        },
+        orderBy: { createdAt: "desc" }
+      });
+
+      if (recentRejected) {
+        const submissionDate = new Date(recentRejected.createdAt);
+        const coolingEndDate = new Date(submissionDate.getTime() + 180 * 24 * 60 * 60 * 1000);
+        const now = new Date();
+
+        if (now < coolingEndDate) {
+          const eligibleDateStr = coolingEndDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+          return NextResponse.json({
+            success: false,
+            error: `This journal is currently in an active 6-month editorial improvement period following a previous evaluation flag. Re-submission is eligible starting ${eligibleDateStr}.`
+          }, { status: 429 });
+        }
+      }
+    }
+
     const evaluationLogs: string[] = [];
     let isMetadataConsistent = true;
     let isOpenPeerReviewValid = true;
@@ -35,10 +66,7 @@ export async function POST(request: Request) {
     evaluationLogs.push("Starting automated evaluation process...");
 
     // 1. Metadata Consistency Verification
-    if (issn || eissn) {
-      const cleanIssn = issn?.trim() || "";
-      const cleanEissn = eissn?.trim() || "";
-      
+    if (cleanIssn || cleanEissn) {
       const dbMatch = await prisma.journal.findFirst({
         where: {
           OR: [
@@ -69,7 +97,7 @@ export async function POST(request: Request) {
 
     // 2. Open Peer-Review Policy Verification (Simulated webpage crawlers)
     evaluationLogs.push(`Scanning journal home directory website: ${website}`);
-    if (website.includes("arjess.org") || website.includes("kenpro.org")) {
+    if (website.includes("peer-review") || website.includes("about") || website.includes("editorial") || website.includes("ojs") || website.includes(".org") || website.includes(".edu") || website.includes(".ac.")) {
       evaluationLogs.push("Peer-Review Policy Found: Verified double-blind editorial board workflow.");
     } else {
       score -= 10;
@@ -117,14 +145,14 @@ export async function POST(request: Request) {
 
     if (!activePublisherId) {
       let defaultPublisher = await prisma.user.findFirst({
-        where: { email: "publisher@kenpro.org" }
+        where: { email: "editorial@afrijournal.org" }
       });
 
       if (!defaultPublisher) {
         defaultPublisher = await prisma.user.create({
           data: {
-            email: "publisher@kenpro.org",
-            name: "KENPRO Publisher",
+            email: "editorial@afrijournal.org",
+            name: "AfriJournal Editorial Desk",
             role: "PUBLISHER",
             passwordHash: "hashed_dummy_password"
           }

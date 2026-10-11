@@ -94,10 +94,10 @@ export default function Home() {
                     </span>
                   </div>
                   <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--color-navy)", margin: "0.3rem 0", lineHeight: "1.4" }}>
-                    African Research Journal of Education and Social Sciences
+                    African Research Journal of Education and Social Sciences (ARJESS)
                   </h3>
                   <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", margin: "0.2rem 0 0" }}>
-                    ISSN: 2312-0134 • Kenya Projects Organization (KENPRO)
+                    ISSN: 2312-0134 • Verified Open Access
                   </p>
                 </div>
 
@@ -276,7 +276,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 7. Verified KENPRO Seed Showcase */}
+        {/* 7. Verified Seed Directory Showcase */}
         <section style={{ padding: "4.5rem 0", background: "var(--color-bg-alt)" }}>
           <div className="container">
             <div style={{ textAlign: "center", marginBottom: "3rem" }}>
@@ -306,7 +306,7 @@ export default function Home() {
                 </p>
                 <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: "0.8rem", color: "#64748b" }}>ISSN: 2312-0134</span>
-                  <a href="/browse" className="btn btn-primary btn-sm">{t.showcase.view_journal}</a>
+                  <a href="/journal/264679fc-eb2d-4d55-b26e-3204dd06b46a" className="btn btn-primary btn-sm">{t.showcase.view_journal}</a>
                 </div>
               </div>
 

@@ -226,6 +226,23 @@ a {
     cursor: pointer;
 }
 
+.mobile-nav-backdrop {
+    position: fixed;
+    top: 72px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(4px);
+    z-index: 998;
+}
+
+@media (max-width: 768px) {
+    .mobile-nav-backdrop {
+        top: 64px !important;
+    }
+}
+
 /* -------------------------------------------------------------
    Buttons (High-Contrast, Crisp Text)
 ------------------------------------------------------------- */

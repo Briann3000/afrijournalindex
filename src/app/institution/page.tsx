@@ -36,6 +36,10 @@ function InstitutionContent() {
   const [tableSearch, setTableSearch] = useState<string>("");
   const [loadingLeaderboard, setLoadingLeaderboard] = useState<boolean>(true);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+
   // Profile states
   const [currentUnivName, setCurrentUnivName] = useState<string>(nameParam || "University of Nairobi");
   const [searchQuery, setSearchQuery] = useState<string>(nameParam || "");
@@ -93,6 +97,18 @@ function InstitutionContent() {
       fetchLeaderboard();
     }
   }, [activeTab, selectedCountry, selectedDiscipline, sortBy, tableSearch]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCountry, selectedDiscipline, sortBy, tableSearch]);
+
+  // Pagination calculation
+  const totalItems = leaderboard.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+  const paginatedLeaderboard = leaderboard.slice(startIndex, endIndex);
 
   // Fetch University Profile Drilldown
   const loadUniversityProfile = async (univName: string) => {
@@ -291,7 +307,7 @@ function InstitutionContent() {
               <>
                 {/* 1. Mobile Cards View (Shown on screens <= 768px) */}
                 <div className="institution-mobile-cards" style={{ display: "none", flexDirection: "column", gap: "0.85rem" }}>
-                  {leaderboard.map((item) => {
+                  {paginatedLeaderboard.map((item) => {
                     const isTop3 = item.rank <= 3;
                     const rankIcon = item.rank === 1 ? "🥇 1" : item.rank === 2 ? "🥈 2" : item.rank === 3 ? "🥉 3" : `#${item.rank}`;
                     const rankBadgeBg = item.rank === 1 ? "#eff6ff" : item.rank === 2 ? "#f1f5f9" : item.rank === 3 ? "#fef3c7" : "var(--color-bg-base)";
@@ -406,7 +422,7 @@ function InstitutionContent() {
                       </tr>
                     </thead>
                     <tbody>
-                      {leaderboard.map((item) => {
+                      {paginatedLeaderboard.map((item) => {
                         const isTop3 = item.rank <= 3;
                         const rankBadgeBg = item.rank === 1 ? "#eff6ff" : item.rank === 2 ? "#f1f5f9" : item.rank === 3 ? "#fef3c7" : "var(--color-bg-card-subtle)";
                         const rankBadgeColor = item.rank === 1 ? "var(--color-primary)" : item.rank === 2 ? "#475569" : item.rank === 3 ? "#b45309" : "var(--color-text-muted)";
@@ -482,6 +498,93 @@ function InstitutionContent() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination Controls */}
+                {totalItems > 0 && (
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: "1rem",
+                    marginTop: "1.5rem",
+                    padding: "1rem 1.25rem",
+                    background: "#ffffff",
+                    borderRadius: "14px",
+                    border: "1px solid var(--color-border)",
+                    boxShadow: "var(--card-shadow)"
+                  }}>
+                    <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                      Showing <strong style={{ color: "var(--color-navy)" }}>{totalItems > 0 ? startIndex + 1 : 0}</strong> to <strong style={{ color: "var(--color-navy)" }}>{endIndex}</strong> of <strong style={{ color: "var(--color-navy)" }}>{totalItems}</strong> institutions
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                      <button
+                        onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="btn btn-secondary btn-sm"
+                        style={{ padding: "0.35rem 0.75rem", fontSize: "0.82rem", opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? "not-allowed" : "pointer" }}
+                      >
+                        <i className="fa-solid fa-chevron-left" style={{ marginRight: "4px" }}></i> Previous
+                      </button>
+
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                        .map((p, idx, arr) => {
+                          const prev = arr[idx - 1];
+                          return (
+                            <React.Fragment key={p}>
+                              {prev && p - prev > 1 && (
+                                <span style={{ padding: "0 4px", color: "var(--color-text-muted)", fontSize: "0.82rem" }}>...</span>
+                              )}
+                              <button
+                                onClick={() => setCurrentPage(p)}
+                                style={{
+                                  minWidth: "32px",
+                                  height: "32px",
+                                  borderRadius: "8px",
+                                  border: currentPage === p ? "none" : "1px solid var(--color-border)",
+                                  background: currentPage === p ? "var(--color-primary)" : "#ffffff",
+                                  color: currentPage === p ? "#ffffff" : "var(--color-text-main)",
+                                  fontWeight: 700,
+                                  fontSize: "0.82rem",
+                                  cursor: "pointer"
+                                }}
+                              >
+                                {p}
+                              </button>
+                            </React.Fragment>
+                          );
+                        })}
+
+                      <button
+                        onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="btn btn-secondary btn-sm"
+                        style={{ padding: "0.35rem 0.75rem", fontSize: "0.82rem", opacity: currentPage === totalPages ? 0.5 : 1, cursor: currentPage === totalPages ? "not-allowed" : "pointer" }}
+                      >
+                        Next <i className="fa-solid fa-chevron-right" style={{ marginLeft: "4px" }}></i>
+                      </button>
+
+                      <div style={{ marginLeft: "0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                        <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>Per page:</span>
+                        <select
+                          value={pageSize}
+                          onChange={e => {
+                            setPageSize(Number(e.target.value));
+                            setCurrentPage(1);
+                          }}
+                          className="form-control"
+                          style={{ width: "auto", padding: "0.25rem 0.5rem", fontSize: "0.82rem", height: "32px" }}
+                        >
+                          <option value={10}>10</option>
+                          <option value={25}>25</option>
+                          <option value={50}>50</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>

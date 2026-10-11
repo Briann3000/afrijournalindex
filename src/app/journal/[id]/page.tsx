@@ -16,6 +16,8 @@ interface JournalDetail {
   frequency: string;
   websiteUrl: string;
   isIndexed: boolean;
+  certificatePaid?: boolean;
+  publisherId?: string | null;
   qualityGrade: string | null;
   indexedAt: string | null;
   disciplines?: string[];
@@ -80,7 +82,48 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
 
   // Modals & Embed state
   const [showCertificate, setShowCertificate] = useState<boolean>(false);
+  const [showClaimModal, setShowClaimModal] = useState<boolean>(false);
+  const [claimRole, setClaimRole] = useState<string>("Editor-in-Chief");
+  const [claimLoading, setClaimLoading] = useState<boolean>(false);
+  const [claimSuccess, setClaimSuccess] = useState<string | null>(null);
+  const [claimError, setClaimError] = useState<string | null>(null);
   const [copiedType, setCopiedType] = useState<string | null>(null);
+
+  const handleClaimJournal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!journal) return;
+    if (!user) {
+      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
+
+    setClaimLoading(true);
+    setClaimError(null);
+    setClaimSuccess(null);
+
+    try {
+      const res = await fetch("/api/journals/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journalId: journal.id,
+          roleTitle: claimRole
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setClaimSuccess(data.message || "Journal successfully claimed!");
+        setJournal(prev => prev ? { ...prev, publisherId: user.id } : null);
+      } else {
+        setClaimError(data.error || "Failed to claim journal.");
+      }
+    } catch {
+      setClaimError("Network error submitting journal claim.");
+    } finally {
+      setClaimLoading(false);
+    }
+  };
 
   // Articles search & pagination state
   const [articleSearch, setArticleSearch] = useState<string>("");
@@ -357,14 +400,43 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     </a>
                   )}
                   
-                  <button 
-                    onClick={() => setShowCertificate(true)}
-                    className="btn btn-secondary"
-                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.6rem", fontSize: "0.85rem" }}
-                  >
-                    <i className="fa-solid fa-stamp" style={{ color: "var(--color-primary)" }}></i>
-                    <span>Official Certificate</span>
-                  </button>
+                  {journal.certificatePaid ? (
+                    <a 
+                      href={`/verify/${journal.issn || journal.id}`}
+                      className="btn btn-secondary"
+                      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.6rem", fontSize: "0.85rem" }}
+                    >
+                      <i className="fa-solid fa-certificate" style={{ color: "var(--color-primary)" }}></i>
+                      <span>Verified Certificate</span>
+                    </a>
+                  ) : (
+                    <button 
+                      onClick={() => setShowCertificate(true)}
+                      className="btn btn-secondary"
+                      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.6rem", fontSize: "0.85rem" }}
+                    >
+                      <i className="fa-solid fa-lock" style={{ color: "#b45309" }}></i>
+                      <span>Official Certificate (Preview)</span>
+                    </button>
+                  )}
+
+                  {/* Claim Journal Action if unassigned, or badge if owned by current user */}
+                  {user && journal.publisherId === user.id ? (
+                    <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "0.45rem 0.8rem", textAlign: "center", fontSize: "0.8rem", color: "#166534", fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}>
+                      <i className="fa-solid fa-check"></i>
+                      <span>Managed by You</span>
+                    </div>
+                  ) : !journal.publisherId ? (
+                    <button 
+                      onClick={() => setShowClaimModal(true)}
+                      className="btn btn-secondary"
+                      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.82rem", borderColor: "#0d9488", color: "#0d9488", background: "#f0fdfa" }}
+                      title="Are you an editor or publisher? Claim this journal to manage it in your portal."
+                    >
+                      <i className="fa-solid fa-shield-halved"></i>
+                      <span>Claim Journal (Editor)</span>
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -917,16 +989,15 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 color: "#0f172a",
                 width: "100%",
                 maxWidth: "540px",
-                maxHeight: "88vh",
+                maxHeight: "90vh",
                 overflowY: "auto",
                 borderRadius: "14px",
                 border: "2px solid #b45309",
                 outline: "4px solid rgba(180, 83, 9, 0.15)",
                 outlineOffset: "3px",
-                padding: "2rem 2.2rem",
+                padding: "1.75rem 2rem",
                 boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.4)",
-                position: "relative",
-                overflow: "hidden"
+                position: "relative"
               }}
               onClick={e => e.stopPropagation()}
             >
@@ -1084,6 +1155,179 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   <span>Print Disabled in Preview</span>
                 </span>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Claim Journal Ownership Modal */}
+        {showClaimModal && journal && (
+          <div 
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(15, 23, 42, 0.75)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              padding: "1.5rem"
+            }}
+            onClick={() => setShowClaimModal(false)}
+          >
+            <div 
+              style={{
+                background: "#ffffff",
+                color: "#0f172a",
+                width: "100%",
+                maxWidth: "520px",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                borderRadius: "16px",
+                border: "1px solid #e2e8f0",
+                padding: "2rem",
+                boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.25)",
+                position: "relative"
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <button 
+                onClick={() => setShowClaimModal(false)}
+                style={{
+                  position: "absolute",
+                  top: "1.2rem",
+                  right: "1.2rem",
+                  background: "transparent",
+                  border: "none",
+                  color: "#64748b",
+                  fontSize: "1.2rem",
+                  cursor: "pointer"
+                }}
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+
+              <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+                <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#f0fdfa", color: "#0d9488", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", marginBottom: "0.8rem" }}>
+                  <i className="fa-solid fa-building-columns"></i>
+                </div>
+                <h2 style={{ fontSize: "1.35rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.35rem" }}>
+                  Claim Editorial Ownership
+                </h2>
+                <p style={{ fontSize: "0.85rem", color: "#64748b", margin: 0 }}>
+                  Verify that you manage or edit <strong>{journal.name}</strong>
+                </p>
+              </div>
+
+              {claimSuccess ? (
+                <div style={{ textAlign: "center", padding: "1rem 0" }}>
+                  <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "#ecfdf5", color: "#059669", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", marginBottom: "1rem" }}>
+                    <i className="fa-solid fa-check"></i>
+                  </div>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#065f46", marginBottom: "0.5rem" }}>
+                    Ownership Linked!
+                  </h3>
+                  <p style={{ fontSize: "0.85rem", color: "#475569", marginBottom: "1.5rem" }}>
+                    {claimSuccess}
+                  </p>
+                  <a 
+                    href="/researcher" 
+                    className="btn btn-primary"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
+                  >
+                    <i className="fa-solid fa-gauge-high"></i>
+                    <span>Go to My Publisher Dashboard</span>
+                  </a>
+                </div>
+              ) : (
+                <form onSubmit={handleClaimJournal}>
+                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "1rem", marginBottom: "1.2rem", fontSize: "0.82rem" }}>
+                    <div style={{ color: "#334155", marginBottom: "0.25rem" }}><strong>Journal:</strong> {journal.name}</div>
+                    <div style={{ color: "#64748b", marginBottom: "0.25rem" }}><strong>ISSN:</strong> {journal.issn || "Registered"} • <strong>Publisher:</strong> {journal.publisherName}</div>
+                    <div style={{ color: "#64748b" }}><strong>Official Website:</strong> {journal.websiteUrl}</div>
+                  </div>
+
+                  {claimError && (
+                    <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", borderRadius: "8px", padding: "0.75rem 1rem", fontSize: "0.82rem", marginBottom: "1rem" }}>
+                      <i className="fa-solid fa-circle-exclamation" style={{ marginRight: "0.4rem" }}></i>
+                      {claimError}
+                    </div>
+                  )}
+
+                  {!user ? (
+                    <div style={{ textAlign: "center", padding: "1rem 0" }}>
+                      <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "1rem" }}>
+                        You must be signed in with your editorial account to claim this journal.
+                      </p>
+                      <a 
+                        href={`/login?redirect=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : `/journal/${journal.id}`)}`}
+                        className="btn btn-primary"
+                        style={{ width: "100%", justifyContent: "center" }}
+                      >
+                        Sign In to Claim
+                      </a>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ marginBottom: "1rem" }}>
+                        <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "#334155", marginBottom: "0.4rem" }}>
+                          Your Editorial Role
+                        </label>
+                        <select 
+                          value={claimRole}
+                          onChange={e => setClaimRole(e.target.value)}
+                          className="form-control"
+                          style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "0.85rem" }}
+                        >
+                          <option value="Editor-in-Chief">Editor-in-Chief</option>
+                          <option value="Managing Editor">Managing Editor</option>
+                          <option value="Associate Editor">Associate Editor / Board Member</option>
+                          <option value="Publisher / University Press">Publisher / University Press Director</option>
+                        </select>
+                      </div>
+
+                      <div style={{ marginBottom: "1.5rem" }}>
+                        <div style={{ fontSize: "0.78rem", color: "#64748b", lineHeight: "1.4" }}>
+                          <i className="fa-solid fa-circle-info" style={{ marginRight: "0.3rem", color: "#0d9488" }}></i>
+                          By claiming, this journal will be linked to your account (<strong>{user.email}</strong>). You will gain access to editorial metrics, crawler audit tools, and evaluation settings.
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", gap: "0.8rem" }}>
+                        <button 
+                          type="button"
+                          onClick={() => setShowClaimModal(false)}
+                          className="btn btn-secondary"
+                          style={{ flex: 1, justifyContent: "center" }}
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          type="submit"
+                          disabled={claimLoading}
+                          className="btn btn-primary"
+                          style={{ flex: 2, justifyContent: "center", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
+                        >
+                          {claimLoading ? (
+                            <>
+                              <i className="fa-solid fa-spinner fa-spin"></i>
+                              <span>Verifying Claim...</span>
+                            </>
+                          ) : (
+                            <>
+                              <i className="fa-solid fa-check"></i>
+                              <span>Confirm &amp; Link Journal</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </form>
+              )}
             </div>
           </div>
         )}

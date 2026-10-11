@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-const SECRET_KEY = process.env.NEXTAUTH_SECRET || process.env.SESSION_SECRET || "afrijournalindex-production-secret-key-2026-kenpro";
+const SECRET_KEY = process.env.NEXTAUTH_SECRET || process.env.SESSION_SECRET || "afrijournalindex-production-secret-key-2026-auth";
 
 /**
  * Hashes a plain-text password using native Node.js crypto scrypt.

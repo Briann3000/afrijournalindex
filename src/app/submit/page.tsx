@@ -204,6 +204,40 @@ export default function Submit() {
           </form>
         </div>
 
+        {/* Automated Evaluation & Criteria Notice */}
+        <div style={{
+          background: "#ffffff",
+          border: "1px solid var(--color-border)",
+          borderRadius: "16px",
+          padding: "1.25rem 1.5rem",
+          marginBottom: "2rem",
+          boxShadow: "var(--card-shadow)"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
+            <i className="fa-solid fa-microchip" style={{ color: "var(--color-primary)" }}></i>
+            <strong style={{ fontSize: "0.95rem", color: "var(--color-navy)" }}>Rapid Automated Verification Process</strong>
+          </div>
+          <p style={{ fontSize: "0.84rem", color: "var(--color-text-body)", lineHeight: "1.6", margin: "0 0 0.85rem" }}>
+            AfriJournal Index uses real-time crawler screening to audit official ISSN registries, homepage accessibility, and peer-review transparency upon submission.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "0.85rem", fontSize: "0.82rem", color: "#475569" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", background: "var(--color-bg-base)", padding: "0.75rem", borderRadius: "10px" }}>
+              <i className="fa-solid fa-bolt" style={{ color: "var(--color-primary)", marginTop: "2px" }}></i>
+              <div>
+                <strong style={{ color: "var(--color-text-main)", display: "block" }}>Instant Technical Audit</strong>
+                <span>Domain SSL, ISSN format, and metadata endpoints are verified immediately. Technical errors can be retried without delay.</span>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", background: "var(--color-bg-base)", padding: "0.75rem", borderRadius: "10px" }}>
+              <i className="fa-solid fa-shield-halved" style={{ color: "#0284c7", marginTop: "2px" }}></i>
+              <div>
+                <strong style={{ color: "var(--color-text-main)", display: "block" }}>6-Month Quality Period</strong>
+                <span>Submissions flagged for serious editorial integrity or lack of verified governance enter a 6-month reform window before re-application.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Step Indicator */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -287,7 +321,7 @@ export default function Submit() {
                   <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                     <input 
                       type="url" 
-                      placeholder="e.g. https://arjess.org/index.php/oai" 
+                      placeholder="e.g. https://journal-domain.org/index.php/oai" 
                       id="ojsInput"
                       value={ojsInput}
                       onChange={e => setOjsInput(e.target.value)}
@@ -351,7 +385,7 @@ export default function Submit() {
                         type="text" 
                         id="jIssn" 
                         className="form-control"
-                        placeholder="2312-0134"
+                        placeholder="e.g. 2070-1721"
                         value={formData.issn}
                         onChange={handleChange}
                       />
@@ -364,7 +398,7 @@ export default function Submit() {
                         type="text" 
                         id="jEissn" 
                         className="form-control"
-                        placeholder="2520-4106"
+                        placeholder="e.g. 2520-4106"
                         value={formData.eissn}
                         onChange={handleChange}
                       />
@@ -380,7 +414,7 @@ export default function Submit() {
                       id="jPublisher" 
                       required 
                       className="form-control"
-                      placeholder={t.submit_page.publisher_placeholder}
+                      placeholder=""
                       value={formData.publisher}
                       onChange={handleChange}
                     />

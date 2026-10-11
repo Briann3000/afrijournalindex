@@ -247,7 +247,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         status: "PENDING_EDITORIAL_AUDIT",
-        message: `Authorship claim submitted for Editorial Verification. Because your registered name ("${user.name}") differs from primary Crossref author records (${matchResult.authorNames.slice(0, 2).join(", ") || "N/A"}), an automated audit ticket has been queued with KENPRO editorial review.`,
+        message: `Authorship claim submitted for Editorial Verification. Because your registered name ("${user.name}") differs from primary Crossref author records (${matchResult.authorNames.slice(0, 2).join(", ") || "N/A"}), an automated audit ticket has been queued with AfriJournal editorial review.`,
         articleId: article.id,
         role: role || "Co-Author"
       });

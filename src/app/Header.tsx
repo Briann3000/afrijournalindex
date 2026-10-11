@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLang } from "./LangContext";
 
@@ -14,6 +15,11 @@ export default function Header({ activePage }: HeaderProps) {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [mobileExpanded, setMobileExpanded] = useState<{ [key: string]: boolean }>({
+    journals: false,
+    rankings: false,
+    about: false,
+  });
   const [user, setUser] = useState<any>(null);
 
   // Expandable Header Quick Search State
@@ -43,6 +49,8 @@ export default function Header({ activePage }: HeaderProps) {
   // Close dropdown or search on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
+      if (isMobileMenuOpen) return;
+
       if (navRef.current && !navRef.current.contains(event.target as Node)) {
         setOpenDropdown(null);
       }
@@ -57,7 +65,7 @@ export default function Header({ activePage }: HeaderProps) {
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [searchQuery]);
+  }, [searchQuery, isMobileMenuOpen]);
 
   // Focus search input when opened
   useEffect(() => {
@@ -80,6 +88,13 @@ export default function Header({ activePage }: HeaderProps) {
 
   const toggleDropdown = (name: string) => {
     setOpenDropdown(openDropdown === name ? null : name);
+  };
+
+  const toggleMobileSection = (key: string) => {
+    setMobileExpanded(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -438,16 +453,6 @@ export default function Header({ activePage }: HeaderProps) {
         <div 
           className="mobile-nav-backdrop"
           onClick={() => setIsMobileMenuOpen(false)}
-          style={{
-            position: "fixed",
-            top: "64px",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(15, 23, 42, 0.8)",
-            backdropFilter: "blur(4px)",
-            zIndex: 998
-          }}
         >
           <div 
             className="mobile-nav-drawer"
@@ -495,20 +500,21 @@ export default function Header({ activePage }: HeaderProps) {
             </form>
 
             {/* Direct Links */}
-            <a 
+            <Link 
               href="/" 
               className={`nav-link ${activePage === "home" ? "active" : ""}`}
-              onClick={(e) => { e.preventDefault(); handleMobileNavigate("/"); }}
-              style={{ fontSize: "1.05rem", fontWeight: 600, color: "#ffffff", padding: "0.5rem 0", display: "block" }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={{ fontSize: "1.05rem", fontWeight: 600, color: "#ffffff", padding: "0.5rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
             >
-              <i className="fa-solid fa-house" style={{ width: "24px", color: "#38bdf8" }}></i> {t.nav.home}
-            </a>
+              <i className="fa-solid fa-house" style={{ width: "22px", color: "#38bdf8", textAlign: "center" }}></i>
+              <span>{t.nav.home}</span>
+            </Link>
 
             {/* Mobile Accordion 1: Journals */}
             <div style={{ borderTop: "1px solid #1e293b", paddingTop: "0.85rem" }}>
               <button 
                 type="button"
-                onClick={() => toggleDropdown("m-journals")}
+                onClick={() => toggleMobileSection("journals")}
                 style={{
                   width: "100%",
                   display: "flex",
@@ -523,14 +529,46 @@ export default function Header({ activePage }: HeaderProps) {
                   padding: "0.4rem 0"
                 }}
               >
-                <span><i className="fa-solid fa-book" style={{ width: "24px", color: "#38bdf8" }}></i> {t.nav.journals}</span>
-                <i className={`fa-solid fa-chevron-${openDropdown === "m-journals" ? "up" : "down"}`} style={{ fontSize: "0.8rem", color: "#94a3b8" }}></i>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <i className="fa-solid fa-book" style={{ width: "22px", color: "#38bdf8", textAlign: "center" }}></i>
+                  <span>{t.nav.journals}</span>
+                </div>
+                <i 
+                  className="fa-solid fa-chevron-down" 
+                  style={{ 
+                    fontSize: "0.8rem", 
+                    color: "#94a3b8",
+                    transition: "transform 0.2s ease",
+                    transform: mobileExpanded.journals ? "rotate(180deg)" : "rotate(0deg)"
+                  }}
+                ></i>
               </button>
-              {openDropdown === "m-journals" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", padding: "0.6rem 0 0.4rem 1.5rem" }}>
-                  <a href="/browse" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/browse"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.browse}</a>
-                  <a href="/submit" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/submit"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.submit}</a>
-                  <a href="/pricing" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/pricing"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.pricing}</a>
+              {mobileExpanded.journals && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", padding: "0.6rem 0 0.4rem 1.75rem" }}>
+                  <Link 
+                    href="/browse" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-book-open" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>{t.nav.browse}</span>
+                  </Link>
+                  <Link 
+                    href="/submit" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-cloud-arrow-up" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>{t.nav.submit}</span>
+                  </Link>
+                  <Link 
+                    href="/pricing" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-tags" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>{t.nav.pricing}</span>
+                  </Link>
                 </div>
               )}
             </div>
@@ -539,7 +577,7 @@ export default function Header({ activePage }: HeaderProps) {
             <div style={{ borderTop: "1px solid #1e293b", paddingTop: "0.85rem" }}>
               <button 
                 type="button"
-                onClick={() => toggleDropdown("m-rankings")}
+                onClick={() => toggleMobileSection("rankings")}
                 style={{
                   width: "100%",
                   display: "flex",
@@ -554,13 +592,38 @@ export default function Header({ activePage }: HeaderProps) {
                   padding: "0.4rem 0"
                 }}
               >
-                <span><i className="fa-solid fa-chart-line" style={{ width: "24px", color: "#38bdf8" }}></i> {t.nav.rankings}</span>
-                <i className={`fa-solid fa-chevron-${openDropdown === "m-rankings" ? "up" : "down"}`} style={{ fontSize: "0.8rem", color: "#94a3b8" }}></i>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <i className="fa-solid fa-chart-line" style={{ width: "22px", color: "#38bdf8", textAlign: "center" }}></i>
+                  <span>{t.nav.rankings}</span>
+                </div>
+                <i 
+                  className="fa-solid fa-chevron-down" 
+                  style={{ 
+                    fontSize: "0.8rem", 
+                    color: "#94a3b8",
+                    transition: "transform 0.2s ease",
+                    transform: mobileExpanded.rankings ? "rotate(180deg)" : "rotate(0deg)"
+                  }}
+                ></i>
               </button>
-              {openDropdown === "m-rankings" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", padding: "0.6rem 0 0.4rem 1.5rem" }}>
-                  <a href="/rankings" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/rankings"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.rankings}</a>
-                  <a href="/institution" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/institution"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.institution}</a>
+              {mobileExpanded.rankings && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", padding: "0.6rem 0 0.4rem 1.75rem" }}>
+                  <Link 
+                    href="/rankings" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-chart-line" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>{t.nav.rankings}</span>
+                  </Link>
+                  <Link 
+                    href="/institution" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-building-columns" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>{t.nav.institution}</span>
+                  </Link>
                 </div>
               )}
             </div>
@@ -569,7 +632,7 @@ export default function Header({ activePage }: HeaderProps) {
             <div style={{ borderTop: "1px solid #1e293b", paddingTop: "0.85rem" }}>
               <button 
                 type="button"
-                onClick={() => toggleDropdown("m-about")}
+                onClick={() => toggleMobileSection("about")}
                 style={{
                   width: "100%",
                   display: "flex",
@@ -584,15 +647,54 @@ export default function Header({ activePage }: HeaderProps) {
                   padding: "0.4rem 0"
                 }}
               >
-                <span><i className="fa-solid fa-circle-info" style={{ width: "24px", color: "#38bdf8" }}></i> {t.nav.about}</span>
-                <i className={`fa-solid fa-chevron-${openDropdown === "m-about" ? "up" : "down"}`} style={{ fontSize: "0.8rem", color: "#94a3b8" }}></i>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <i className="fa-solid fa-circle-info" style={{ width: "22px", color: "#38bdf8", textAlign: "center" }}></i>
+                  <span>{t.nav.about}</span>
+                </div>
+                <i 
+                  className="fa-solid fa-chevron-down" 
+                  style={{ 
+                    fontSize: "0.8rem", 
+                    color: "#94a3b8",
+                    transition: "transform 0.2s ease",
+                    transform: mobileExpanded.about ? "rotate(180deg)" : "rotate(0deg)"
+                  }}
+                ></i>
               </button>
-              {openDropdown === "m-about" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", padding: "0.6rem 0 0.4rem 1.5rem" }}>
-                  <a href="/about" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/about"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.about}</a>
-                  <a href="/methodology" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/methodology"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.footer.methodology}</a>
-                  <a href="/faq" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/faq"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.faq}</a>
-                  <a href="/contact" onClick={(e) => { e.preventDefault(); handleMobileNavigate("/contact"); }} style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.35rem 0", display: "block" }}>{t.nav.contact}</a>
+              {mobileExpanded.about && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", padding: "0.6rem 0 0.4rem 1.75rem" }}>
+                  <Link 
+                    href="/about" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-circle-info" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>{t.nav.about}</span>
+                  </Link>
+                  <Link 
+                    href="/methodology" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-scale-balanced" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>{t.footer.methodology}</span>
+                  </Link>
+                  <Link 
+                    href="/faq" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-circle-question" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>{t.nav.faq}</span>
+                  </Link>
+                  <Link 
+                    href="/contact" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-envelope" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>{t.nav.contact}</span>
+                  </Link>
                 </div>
               )}
             </div>
@@ -601,14 +703,14 @@ export default function Header({ activePage }: HeaderProps) {
             <div style={{ borderTop: "1px solid #1e293b", paddingTop: "1.2rem", marginTop: "auto", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               {user ? (
                 <>
-                  <a 
+                  <Link 
                     href={`/researcher?id=${user.id}`} 
-                    onClick={(e) => { e.preventDefault(); handleMobileNavigate(`/researcher?id=${user.id}`); }}
+                    onClick={() => setIsMobileMenuOpen(false)}
                     className="btn btn-secondary" 
                     style={{ width: "100%", justifyContent: "center", background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}
                   >
                     <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`}></i> {user.role === "PUBLISHER" ? "Editor & Scholar Profile" : t.nav.profile}
-                  </a>
+                  </Link>
                   <button 
                     onClick={async () => {
                       await fetch("/api/auth/login", { method: "DELETE" });
@@ -622,22 +724,22 @@ export default function Header({ activePage }: HeaderProps) {
                 </>
               ) : (
                 <>
-                  <a 
+                  <Link 
                     href="/login" 
-                    onClick={(e) => { e.preventDefault(); handleMobileNavigate("/login"); }}
+                    onClick={() => setIsMobileMenuOpen(false)}
                     className="btn btn-secondary" 
                     style={{ width: "100%", justifyContent: "center", background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}
                   >
                     {t.nav.login}
-                  </a>
-                  <a 
+                  </Link>
+                  <Link 
                     href="/submit" 
-                    onClick={(e) => { e.preventDefault(); handleMobileNavigate("/submit"); }}
+                    onClick={() => setIsMobileMenuOpen(false)}
                     className="btn btn-primary" 
                     style={{ width: "100%", justifyContent: "center" }}
                   >
                     {t.nav.get_started}
-                  </a>
+                  </Link>
                 </>
               )}
             </div>

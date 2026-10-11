@@ -7,7 +7,7 @@ import { useLang } from "../LangContext";
 
 export default function PrivacyPolicy() {
   const { t } = useLang();
-  const pp = t.privacy_page;
+  const pp = t?.privacy_page || {};
 
   return (
     <div className="page-wrapper" style={{ padding: 0 }}>

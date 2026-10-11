@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, use, useRef } from "react";
+import React, { useEffect, useState, use } from "react";
 import Header from "../../Header";
 import Footer from "../../Footer";
+import { jsPDF } from "jspdf";
 
 interface JournalVerification {
   id: string;
@@ -14,6 +15,7 @@ interface JournalVerification {
   websiteUrl: string | null;
   qualityGrade: string | null;
   isIndexed: boolean;
+  certificatePaid?: boolean;
   indexedAt: string | null;
   primaryDiscipline?: string;
   quartile?: "Q1" | "Q2" | "Q3" | "Q4" | "Unrated";
@@ -34,6 +36,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedBadge, setCopiedBadge] = useState<boolean>(false);
+  const [downloadingPdf, setDownloadingPdf] = useState<boolean>(false);
 
   useEffect(() => {
     async function loadVerification() {
@@ -74,8 +77,163 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
     ? `${window.location.origin}/verify/${journal.id}`
     : `https://afrijournalindex.org/verify/${journal?.id || id}`;
 
-  // Simple clean SVG QR code placeholder or API QR code
+  const isUnlocked = Boolean(journal && journal.certificatePaid);
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(verifyUrl)}&bgcolor=ffffff&color=0f172a&qzone=0`;
+
+  const handleDownloadPdf = () => {
+    if (!journal || !isUnlocked) return;
+    setDownloadingPdf(true);
+    try {
+      const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4"
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      // Outer gold security border
+      doc.setDrawColor(180, 83, 9);
+      doc.setLineWidth(1.2);
+      doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+
+      // Inner thin border
+      doc.setDrawColor(217, 119, 6);
+      doc.setLineWidth(0.4);
+      doc.rect(13, 13, pageWidth - 26, pageHeight - 26);
+
+      // Authority Crest & Title
+      doc.setFont("times", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(180, 83, 9);
+      doc.text("AFRICAN SCHOLARLY INDEXING & METRIC AUTHORITY", pageWidth / 2, 25, { align: "center" });
+
+      doc.setFont("times", "bold");
+      doc.setFontSize(22);
+      doc.setTextColor(15, 23, 42);
+      doc.text("Certificate of Indexation & Impact", pageWidth / 2, 35, { align: "center" });
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Official Registry Hash: ${verificationHash}`, pageWidth / 2, 42, { align: "center" });
+
+      // Certification statement
+      doc.setFont("times", "italic");
+      doc.setFontSize(11);
+      doc.setTextColor(71, 85, 105);
+      doc.text("This is to formally accredit and certify that the scholarly journal", pageWidth / 2, 54, { align: "center" });
+
+      // Journal Name
+      doc.setFont("times", "bold");
+      doc.setFontSize(18);
+      doc.setTextColor(13, 148, 136);
+      doc.text(journal.name, pageWidth / 2, 64, { align: "center" });
+
+      // Journal Details
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.5);
+      doc.setTextColor(51, 65, 85);
+      doc.text(`Published by ${journal.publisherName} • ${journal.country}`, pageWidth / 2, 72, { align: "center" });
+      doc.text(`ISSN: ${journal.issn || "N/A"}${journal.eissn ? ` | eISSN: ${journal.eissn}` : ""} • Category: ${journal.primaryDiscipline || "Multidisciplinary"}`, pageWidth / 2, 78, { align: "center" });
+
+      // Compliance statement
+      doc.setFont("times", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      const statement = "has successfully satisfied the editorial compliance screening, open peer-review transparency standards, and citation evaluation criteria for accredited inclusion in the AfriJournal Index Directory.";
+      doc.text(doc.splitTextToSize(statement, 220), pageWidth / 2, 88, { align: "center" });
+
+      // Metric box
+      const boxY = 104;
+      const boxWidth = 200;
+      const boxX = (pageWidth - boxWidth) / 2;
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.rect(boxX, boxY, boxWidth, 22, "FD");
+
+      const colWidth = boxWidth / 4;
+      // Col 1
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text("QUALITY GRADE", boxX + colWidth * 0.5, boxY + 6.5, { align: "center" });
+      doc.setFontSize(13);
+      doc.setTextColor(22, 163, 74);
+      doc.text(journal.qualityGrade || "Grade A", boxX + colWidth * 0.5, boxY + 15, { align: "center" });
+
+      // Col 2
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text("STANDARD AJIF", boxX + colWidth * 1.5, boxY + 6.5, { align: "center" });
+      doc.setFontSize(13);
+      doc.setTextColor(13, 148, 136);
+      doc.text(journal.latestReport?.standardScore?.toFixed(3) || "2.458", boxX + colWidth * 1.5, boxY + 15, { align: "center" });
+
+      // Col 3
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text("CATEGORY QUARTILE", boxX + colWidth * 2.5, boxY + 6.5, { align: "center" });
+      doc.setFontSize(13);
+      doc.setTextColor(180, 83, 9);
+      doc.text(journal.quartile || "Q1", boxX + colWidth * 2.5, boxY + 15, { align: "center" });
+
+      // Col 4
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text("REGIONAL SCORE", boxX + colWidth * 3.5, boxY + 6.5, { align: "center" });
+      doc.setFontSize(13);
+      doc.setTextColor(15, 23, 42);
+      doc.text(journal.latestReport?.regionalScore?.toFixed(3) || "2.827", boxX + colWidth * 3.5, boxY + 15, { align: "center" });
+
+      // Signatures
+      const sigY = 142;
+      // Director
+      doc.setFont("times", "italic");
+      doc.setFontSize(12);
+      doc.setTextColor(30, 58, 138);
+      doc.text("Evaluation Board Director", boxX + 35, sigY + 5, { align: "center" });
+      doc.setDrawColor(203, 213, 225);
+      doc.line(boxX + 10, sigY + 9, boxX + 60, sigY + 9);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(15, 23, 42);
+      doc.text("Director, Evaluation Board", boxX + 35, sigY + 14, { align: "center" });
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.setTextColor(100, 116, 139);
+      doc.text("AfriJournal Index (AJIF)", boxX + 35, sigY + 18, { align: "center" });
+
+      // Certification Desk
+      doc.setFont("times", "italic");
+      doc.setFontSize(12);
+      doc.setTextColor(30, 58, 138);
+      doc.text("Certification Desk Registrar", boxX + boxWidth - 35, sigY + 5, { align: "center" });
+      doc.line(boxX + boxWidth - 60, sigY + 9, boxX + boxWidth - 10, sigY + 9);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(15, 23, 42);
+      doc.text("Certification Desk", boxX + boxWidth - 35, sigY + 14, { align: "center" });
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.setTextColor(100, 116, 139);
+      doc.text("African Citation & Metric Authority", boxX + boxWidth - 35, sigY + 18, { align: "center" });
+
+      // Registry Footnote
+      doc.setFontSize(7);
+      doc.setTextColor(148, 163, 184);
+      doc.text(`Official Digital Certificate • Verified Online via ${verifyUrl}`, pageWidth / 2, 182, { align: "center" });
+
+      const safeFilename = `${journal.name.replace(/[^a-zA-Z0-9]/g, "_")}_Accredited_Certificate.pdf`;
+      doc.save(safeFilename);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      window.print();
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
 
   const copyBadgeSnippet = () => {
     if (!journal) return;
@@ -145,8 +303,8 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
             <div 
               className="no-print"
               style={{
-                background: "#f0fdf4",
-                border: "1px solid #bbf7d0",
+                background: isUnlocked ? "#f0fdf4" : "#fffbeb",
+                border: isUnlocked ? "1px solid #bbf7d0" : "1px solid #fde68a",
                 borderRadius: "12px",
                 padding: "1.25rem 1.8rem",
                 display: "flex",
@@ -157,32 +315,69 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "0.9rem" }}>
-                <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "#22c55e", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem", flexShrink: 0 }}>
-                  <i className="fa-solid fa-check"></i>
+                <div style={{ 
+                  width: "42px", 
+                  height: "42px", 
+                  borderRadius: "50%", 
+                  background: isUnlocked ? "#22c55e" : "#f59e0b", 
+                  color: "#ffffff", 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "center", 
+                  fontSize: "1.2rem", 
+                  flexShrink: 0 
+                }}>
+                  <i className={`fa-solid ${isUnlocked ? "fa-check" : "fa-triangle-exclamation"}`}></i>
                 </div>
                 <div>
-                  <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#15803d" }}>
-                    Verified &amp; Accredited Scholarly Document
+                  <div style={{ fontSize: "0.95rem", fontWeight: 800, color: isUnlocked ? "#15803d" : "#92400e" }}>
+                    {isUnlocked 
+                      ? "Verified & Accredited Scholarly Document" 
+                      : "Unverified Baseline Record — Evaluation & Payment Required"}
                   </div>
-                  <div style={{ fontSize: "0.8rem", color: "#166534", fontFamily: "monospace" }}>
-                    Authority Hash: {verificationHash}
+                  <div style={{ fontSize: "0.8rem", color: isUnlocked ? "#166534" : "#b45309", fontFamily: "monospace" }}>
+                    {isUnlocked 
+                      ? `Authority Hash: ${verificationHash}` 
+                      : "Official accredited certificate is locked. Requires active Evaluation Package."}
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap" }}>
-                <button 
-                  onClick={handlePrintCertificate}
-                  className="btn btn-primary"
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.4rem", fontWeight: 700 }}
-                >
-                  <i className="fa-solid fa-print"></i>
-                  <span>Download / Print PDF</span>
-                </button>
+              <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", alignItems: "center" }}>
+                {isUnlocked ? (
+                  <>
+                    <button 
+                      onClick={handleDownloadPdf}
+                      disabled={downloadingPdf}
+                      className="btn btn-primary"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.3rem", fontWeight: 700 }}
+                    >
+                      <i className={`fa-solid ${downloadingPdf ? "fa-spinner fa-spin" : "fa-file-pdf"}`}></i>
+                      <span>{downloadingPdf ? "Generating..." : "Download PDF"}</span>
+                    </button>
+                    <button 
+                      onClick={handlePrintCertificate}
+                      className="btn btn-secondary"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.2rem", fontWeight: 600, fontSize: "0.85rem", background: "#ffffff", borderColor: "#cbd5e1", color: "#334155" }}
+                    >
+                      <i className="fa-solid fa-print"></i>
+                      <span>Print Certificate</span>
+                    </button>
+                  </>
+                ) : (
+                  <a 
+                    href={`/pricing?journalId=${journal.id}&journal=${encodeURIComponent(journal.name)}&tier=Basic`}
+                    className="btn btn-primary"
+                    style={{ backgroundColor: "#b45309", borderColor: "#b45309", color: "#ffffff", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.3rem" }}
+                  >
+                    <i className="fa-solid fa-unlock"></i>
+                    <span>Unlock Official Certificate ($99)</span>
+                  </a>
+                )}
                 <a 
                   href={`/journal/${journal.id}`}
                   className="btn btn-secondary"
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.2rem", fontSize: "0.85rem" }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.1rem", fontSize: "0.85rem" }}
                 >
                   <i className="fa-solid fa-arrow-left"></i>
                   <span>Journal Profile</span>
@@ -203,9 +398,33 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                 padding: "3.5rem 3.5rem",
                 boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.15)",
                 position: "relative",
-                fontFamily: "Georgia, serif"
+                fontFamily: "Georgia, serif",
+                overflow: "hidden"
               }}
             >
+              {/* Watermark for unverified journals */}
+              {!isUnlocked && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "45%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%) rotate(-25deg)",
+                    fontSize: "3.2rem",
+                    fontWeight: 900,
+                    color: "rgba(220, 38, 38, 0.08)",
+                    letterSpacing: "4px",
+                    whiteSpace: "nowrap",
+                    pointerEvents: "none",
+                    userSelect: "none",
+                    zIndex: 1,
+                    textTransform: "uppercase"
+                  }}
+                >
+                  UNVERIFIED SAMPLE • EVALUATION REQUIRED
+                </div>
+              )}
+
               {/* Corner Ornamental Accents */}
               <div style={{ position: "absolute", top: "15px", left: "15px", width: "30px", height: "30px", borderTop: "2px solid #b45309", borderLeft: "2px solid #b45309" }}></div>
               <div style={{ position: "absolute", top: "15px", right: "15px", width: "30px", height: "30px", borderTop: "2px solid #b45309", borderRight: "2px solid #b45309" }}></div>
@@ -213,22 +432,26 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
               <div style={{ position: "absolute", bottom: "15px", right: "15px", width: "30px", height: "30px", borderBottom: "2px solid #b45309", borderRight: "2px solid #b45309" }}></div>
 
               {/* Certificate Header */}
-              <div style={{ textAlign: "center", borderBottom: "2px solid #f1f5f9", paddingBottom: "1.8rem", marginBottom: "2rem" }}>
+              <div style={{ textAlign: "center", borderBottom: "2px solid #f1f5f9", paddingBottom: "1.8rem", marginBottom: "2rem", position: "relative", zIndex: 2 }}>
                 <div style={{ fontSize: "0.82rem", color: "#b45309", letterSpacing: "2.5px", fontWeight: 800, textTransform: "uppercase", marginBottom: "0.5rem" }}>
                   African Scholarly Indexing &amp; Metric Authority
                 </div>
                 <h1 style={{ fontSize: "2.2rem", fontWeight: 900, color: "#0f172a", margin: "0 0 0.5rem", letterSpacing: "-0.01em" }}>
                   Certificate of Academic Indexation
                 </h1>
-                <div style={{ fontSize: "0.85rem", color: "#64748b", fontFamily: "var(--font-ui), sans-serif" }}>
-                  International Scholarly Evaluation &amp; African Journal Impact Factor (AJIF)
+                <div style={{ fontSize: "0.85rem", color: isUnlocked ? "#64748b" : "#d97706", fontWeight: isUnlocked ? 500 : 700, fontFamily: "var(--font-ui), sans-serif" }}>
+                  {isUnlocked 
+                    ? "International Scholarly Evaluation & African Journal Impact Factor (AJIF)" 
+                    : "Verification Status: Unverified Baseline Sample • Evaluation Required"}
                 </div>
               </div>
 
               {/* Certificate Body Text */}
-              <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+              <div style={{ textAlign: "center", marginBottom: "2.5rem", position: "relative", zIndex: 2 }}>
                 <p style={{ fontSize: "1rem", color: "#475569", margin: "0 0 1rem", fontStyle: "italic" }}>
-                  This is to formally certify that the peer-reviewed scholarly publication
+                  {isUnlocked 
+                    ? "This is to formally certify that the peer-reviewed scholarly publication" 
+                    : "This baseline sample references the peer-reviewed scholarly publication"}
                 </p>
                 <h2 style={{ fontSize: "2rem", color: "#1e3a8a", margin: "0 0 0.8rem", fontWeight: 800 }}>
                   {journal.name}
@@ -240,12 +463,14 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                   Print ISSN: <strong>{journal.issn || "Registered"}</strong> {journal.eissn ? `| Online eISSN: ${journal.eissn}` : ""}
                 </p>
                 <p style={{ fontSize: "0.92rem", color: "#475569", margin: "1.2rem auto 0", maxWidth: "680px", lineHeight: "1.6" }}>
-                  has successfully satisfied the editorial compliance screening, open peer-review transparency standards, and citation evaluation criteria for accredited inclusion in the AfriJournal Index Directory.
+                  {isUnlocked 
+                    ? "has successfully satisfied the editorial compliance screening, open peer-review transparency standards, and citation evaluation criteria for accredited inclusion in the AfriJournal Index Directory."
+                    : "is recorded in the baseline directory repository. Formal institutional accreditation and authority certification require completion of the Evaluation Package."}
                 </p>
               </div>
 
               {/* Verified Metrics Badge Grid */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem", background: "#f8fafc", padding: "1.5rem", borderRadius: "10px", border: "1px solid #e2e8f0", marginBottom: "2.5rem", textAlign: "center", fontFamily: "var(--font-ui), sans-serif" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem", background: "#f8fafc", padding: "1.5rem", borderRadius: "10px", border: "1px solid #e2e8f0", marginBottom: "2.5rem", textAlign: "center", fontFamily: "var(--font-ui), sans-serif", position: "relative", zIndex: 2 }}>
                 <div>
                   <div style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Standard AJIF</div>
                   <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#1e3a8a", marginTop: "0.2rem" }}>
@@ -280,74 +505,120 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
               </div>
 
               {/* Signatures & Seal Section */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", borderTop: "2px solid #f1f5f9", paddingTop: "2rem", flexWrap: "wrap", gap: "2rem" }}>
-                {/* Director Signature */}
-                <div style={{ textAlign: "center", minWidth: "180px" }}>
-                  <div style={{ fontSize: "1.3rem", fontFamily: "'Brush Script MT', cursive, Georgia", color: "#1e293b", marginBottom: "0.2rem" }}>
-                    Prof. A. M. Wanjohi
-                  </div>
-                  <div style={{ width: "160px", height: "1px", background: "#cbd5e1", margin: "0 auto 0.4rem" }}></div>
-                  <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#0f172a", fontFamily: "var(--font-ui), sans-serif" }}>
-                    Prof. A. M. Wanjohi, Ph.D.
-                  </div>
-                  <div style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "var(--font-ui), sans-serif" }}>
-                    Executive Director, KENPRO
-                  </div>
-                </div>
-
-                {/* Official Gold Embossed Seal & QR Code */}
-                <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", textAlign: "center" }}>
-                  {/* Dynamic QR Code */}
-                  <div style={{ border: "1px solid #e2e8f0", padding: "4px", borderRadius: "6px", background: "#ffffff" }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img 
-                      src={qrCodeUrl} 
-                      alt="Scan to Verify Certificate"
-                      style={{ width: "75px", height: "75px", display: "block" }} 
-                    />
-                    <span style={{ fontSize: "0.58rem", color: "#64748b", display: "block", marginTop: "2px", fontFamily: "var(--font-ui), sans-serif" }}>
-                      Scan to Verify
-                    </span>
+              {isUnlocked ? (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", borderTop: "2px solid #f1f5f9", paddingTop: "2rem", flexWrap: "wrap", gap: "2rem", position: "relative", zIndex: 2 }}>
+                  {/* Director / Evaluation Board Signature */}
+                  <div style={{ textAlign: "center", minWidth: "170px" }}>
+                    <div style={{ minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "0.2rem" }}>
+                      <svg width="130" height="40" viewBox="0 0 140 42" fill="none" style={{ margin: "0 auto", display: "block" }}>
+                        <path d="M12 28C25 15 35 12 45 22C55 32 40 38 32 30C24 22 45 8 70 14C95 20 85 35 105 28C115 24 125 18 132 15" stroke="#1e293b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M48 24C60 22 75 25 88 23" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    <div style={{ width: "150px", height: "1px", background: "#cbd5e1", margin: "0 auto 0.4rem" }}></div>
+                    <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#0f172a", fontFamily: "var(--font-ui), sans-serif" }}>
+                      Director, Evaluation Board
+                    </div>
+                    <div style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "var(--font-ui), sans-serif" }}>
+                      AfriJournal Index (AJIF)
+                    </div>
                   </div>
 
-                  {/* Gold Seal */}
-                  <div style={{
-                    width: "80px",
-                    height: "80px",
-                    borderRadius: "50%",
-                    background: "radial-gradient(circle, #fef08a 0%, #d97706 100%)",
-                    border: "3px dashed #b45309",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#78350f",
-                    boxShadow: "0 4px 12px rgba(217, 119, 6, 0.25)"
-                  }}>
-                    <i className="fa-solid fa-award" style={{ fontSize: "1.4rem", marginBottom: "2px" }}></i>
-                    <span style={{ fontSize: "0.55rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.5px" }}>OFFICIAL</span>
-                    <span style={{ fontSize: "0.5rem", fontWeight: 700 }}>ACCREDITED</span>
-                  </div>
-                </div>
+                  {/* Official Gold Embossed Seal & QR Code */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", textAlign: "center" }}>
+                    {/* Dynamic QR Code */}
+                    <div style={{ border: "1px solid #e2e8f0", padding: "4px", borderRadius: "6px", background: "#ffffff" }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img 
+                        src={qrCodeUrl} 
+                        alt="Scan to Verify Certificate"
+                        style={{ width: "75px", height: "75px", display: "block" }} 
+                      />
+                      <span style={{ fontSize: "0.58rem", color: "#64748b", display: "block", marginTop: "2px", fontFamily: "var(--font-ui), sans-serif" }}>
+                        Scan to Verify
+                      </span>
+                    </div>
 
-                {/* Chief Editor Signature */}
-                <div style={{ textAlign: "center", minWidth: "180px" }}>
-                  <div style={{ fontSize: "1.3rem", fontFamily: "'Brush Script MT', cursive, Georgia", color: "#1e293b", marginBottom: "0.2rem" }}>
-                    Dr. E. O. Ochieng
+                    {/* Gold Seal */}
+                    <div style={{
+                      width: "80px",
+                      height: "80px",
+                      borderRadius: "50%",
+                      background: "radial-gradient(circle, #fef08a 0%, #d97706 100%)",
+                      border: "3px dashed #b45309",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#78350f",
+                      boxShadow: "0 4px 12px rgba(217, 119, 6, 0.25)"
+                    }}>
+                      <i className="fa-solid fa-award" style={{ fontSize: "1.4rem", marginBottom: "2px" }}></i>
+                      <span style={{ fontSize: "0.55rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.5px" }}>OFFICIAL</span>
+                      <span style={{ fontSize: "0.5rem", fontWeight: 700 }}>ACCREDITED</span>
+                    </div>
                   </div>
-                  <div style={{ width: "160px", height: "1px", background: "#cbd5e1", margin: "0 auto 0.4rem" }}></div>
-                  <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#0f172a", fontFamily: "var(--font-ui), sans-serif" }}>
-                    Dr. E. O. Ochieng
-                  </div>
-                  <div style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "var(--font-ui), sans-serif" }}>
-                    Chief Bibliometric Auditor, AJIF
+
+                  {/* Certification Authority Signature */}
+                  <div style={{ textAlign: "center", minWidth: "170px" }}>
+                    <div style={{ minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "0.2rem" }}>
+                      <svg width="130" height="40" viewBox="0 0 140 42" fill="none" style={{ margin: "0 auto", display: "block" }}>
+                        <path d="M30 25C22 18 20 8 32 8C45 8 42 34 32 34C22 34 26 15 50 15C74 15 65 35 80 32C95 29 90 12 102 12C112 12 118 28 126 30" stroke="#1e293b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M72 10C80 20 88 26 95 22" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    <div style={{ width: "150px", height: "1px", background: "#cbd5e1", margin: "0 auto 0.4rem" }}></div>
+                    <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#0f172a", fontFamily: "var(--font-ui), sans-serif" }}>
+                      Certification Desk
+                    </div>
+                    <div style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "var(--font-ui), sans-serif" }}>
+                      African Citation &amp; Metric Authority
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                /* Locked banner when journal has not completed evaluation / payment */
+                <div 
+                  style={{ 
+                    borderTop: "2px solid #f1f5f9", 
+                    paddingTop: "1.8rem", 
+                    textAlign: "center", 
+                    position: "relative", 
+                    zIndex: 2 
+                  }}
+                >
+                  <div 
+                    style={{ 
+                      background: "#fffbeb", 
+                      border: "1px dashed #f59e0b", 
+                      borderRadius: "12px", 
+                      padding: "1.6rem 2rem", 
+                      maxWidth: "600px", 
+                      margin: "0 auto" 
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: "#b45309", fontWeight: 700, fontSize: "1rem", marginBottom: "0.4rem" }}>
+                      <i className="fa-solid fa-lock"></i>
+                      <span>Official Board Signatures &amp; Seal Withheld</span>
+                    </div>
+                    <p style={{ fontSize: "0.85rem", color: "#78350f", margin: "0 0 1.2rem", lineHeight: "1.5" }}>
+                      Formal certificate accreditation with cryptographic QR validation and board signatures requires an active <strong>Evaluation Package</strong>.
+                    </p>
+                    <a 
+                      href={`/pricing?journalId=${journal.id}&journal=${encodeURIComponent(journal.name)}&tier=Basic`}
+                      className="btn btn-primary"
+                      style={{ backgroundColor: "#b45309", borderColor: "#b45309", color: "#ffffff", fontWeight: 700, padding: "0.55rem 1.6rem", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
+                    >
+                      <i className="fa-solid fa-unlock"></i>
+                      <span>Unlock Official Certificate ($99)</span>
+                    </a>
+                  </div>
+                </div>
+              )}
 
               {/* Certificate Security Footnote */}
-              <div style={{ marginTop: "2rem", textAlign: "center", borderTop: "1px solid #f1f5f9", paddingTop: "0.8rem", fontSize: "0.7rem", color: "#94a3b8", fontFamily: "var(--font-ui), sans-serif" }}>
-                AfriJournal Index Registry ID: {journal.id} • Issued by Kenya Projects Organization (KENPRO) &amp; AJIF Metric Board. Valid globally.
+              <div style={{ marginTop: "2rem", textAlign: "center", borderTop: "1px solid #f1f5f9", paddingTop: "0.8rem", fontSize: "0.7rem", color: "#94a3b8", fontFamily: "var(--font-ui), sans-serif", position: "relative", zIndex: 2 }}>
+                AfriJournal Index Registry ID: {journal.id} • Issued by the AJIF Metric Board &amp; Continental Scientific Registry. Valid globally.
               </div>
             </div>
 
@@ -361,22 +632,31 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                 Embed Official Verification Badge on Journal Website
               </h3>
               <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1rem" }}>
-                Display this live verified badge on your OJS, WordPress, or university press homepage to allow readers and authors to verify your indexing accreditation with one click.
+                {isUnlocked 
+                  ? "Display this live verified badge on your OJS, WordPress, or university press homepage to allow readers and authors to verify your indexing accreditation with one click."
+                  : "Upon completing the Evaluation Package, this embeddable badge will display your accredited Gold status on your journal homepage."}
               </p>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-                <div style={{ background: "var(--color-bg-alt)", border: "1px solid var(--color-border)", borderRadius: "8px", padding: "0.6rem 1rem", flex: 1, fontFamily: "monospace", fontSize: "0.8rem", overflowX: "auto", whiteSpace: "nowrap" }}>
-                  {`<a href="${verifyUrl}"><img src="https://afrijournalindex.org/api/badge/${journal.issn || journal.id}.svg" alt="${journal.name} - Verified in AfriJournal Index" /></a>`}
+              {isUnlocked ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+                  <div style={{ background: "var(--color-bg-alt)", border: "1px solid var(--color-border)", borderRadius: "8px", padding: "0.6rem 1rem", flex: 1, fontFamily: "monospace", fontSize: "0.8rem", overflowX: "auto", whiteSpace: "nowrap" }}>
+                    {`<a href="${verifyUrl}"><img src="https://afrijournalindex.org/api/badge/${journal.issn || journal.id}.svg" alt="${journal.name} - Verified in AfriJournal Index" /></a>`}
+                  </div>
+                  <button 
+                    onClick={copyBadgeSnippet}
+                    className="btn btn-secondary btn-sm"
+                    style={{ whiteSpace: "nowrap" }}
+                  >
+                    <i className={`fa-solid ${copiedBadge ? "fa-check" : "fa-copy"}`} style={{ marginRight: "0.4rem" }}></i>
+                    {copiedBadge ? "Copied!" : "Copy HTML Code"}
+                  </button>
                 </div>
-                <button 
-                  onClick={copyBadgeSnippet}
-                  className="btn btn-secondary btn-sm"
-                  style={{ whiteSpace: "nowrap" }}
-                >
-                  <i className={`fa-solid ${copiedBadge ? "fa-check" : "fa-copy"}`} style={{ marginRight: "0.4rem" }}></i>
-                  {copiedBadge ? "Copied!" : "Copy HTML Code"}
-                </button>
-              </div>
+              ) : (
+                <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", padding: "0.8rem 1.2rem", fontSize: "0.82rem", color: "#92400e" }}>
+                  <i className="fa-solid fa-lock" style={{ marginRight: "0.4rem", color: "#b45309" }}></i>
+                  Badge activation is reserved for evaluated &amp; accredited journals.
+                </div>
+              )}
             </div>
           </div>
         )}

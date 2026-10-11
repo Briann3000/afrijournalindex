@@ -65,12 +65,13 @@ export async function POST(request: Request) {
 
     console.log(`Payment success confirmed for Journal ${journalId}. Tracking ID: ${tracking_id || "N/A"}`);
 
-    // 1. Mark the journal as premium-indexed
+    // 1. Mark the journal as premium-indexed and certificate paid
     const journal = await prisma.journal.update({
       where: { id: journalId },
       data: {
         isIndexed: true,
-        qualityGrade: "A"
+        qualityGrade: "A",
+        certificatePaid: true
       }
     });
 

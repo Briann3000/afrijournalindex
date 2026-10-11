@@ -152,6 +152,8 @@ export async function GET(
         frequency: journal.frequency,
         websiteUrl: journal.websiteUrl,
         isIndexed: journal.isIndexed,
+        certificatePaid: journal.certificatePaid ?? false,
+        publisherId: journal.publisherId,
         qualityGrade: journal.qualityGrade,
         indexedAt: journal.indexedAt,
         disciplines,
@@ -164,7 +166,7 @@ export async function GET(
         externalCitationRate: Number(externalCitationRate.toFixed(1)),
         integrityScore: selfCitationRate < 20 ? "High Integrity" : selfCitationRate < 40 ? "Standard" : "Under Audit",
         citescore: latestReport ? Number((latestReport.standardScore * 1.14).toFixed(3)) : 0,
-        lifetimeCitations: latestReport ? Math.max(totalCitations, Math.round(latestReport.citationCount * 4.5 + (journal.name.includes("ARJESS") ? 1300 : 0))) : totalCitations,
+        lifetimeCitations: latestReport ? Math.max(totalCitations, Math.round(latestReport.citationCount * 4.5)) : totalCitations,
         journalHIndex: latestReport ? Math.max(3, Math.round(latestReport.standardScore * 7)) : 1,
         latestReport: latestReport ? {
           year: latestReport.year,

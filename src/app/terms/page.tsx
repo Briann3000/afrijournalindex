@@ -7,7 +7,7 @@ import { useLang } from "../LangContext";
 
 export default function TermsAndConditions() {
   const { t } = useLang();
-  const tp = t.terms_page;
+  const tp = t?.terms_page || {};
 
   return (
     <div className="page-wrapper" style={{ padding: 0 }}>
