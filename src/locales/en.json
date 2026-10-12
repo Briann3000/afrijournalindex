@@ -624,7 +624,21 @@
     "auth_success": "Authentication successful. Redirecting to your dashboard...",
     "auth_error": "Authentication failed. Please verify your credentials.",
     "reg_success": "Registration Successful",
-    "reg_success_sub": "Your account has been created. Redirecting to your dashboard..."
+    "reg_success_sub": "Your account has been created. Redirecting to your dashboard...",
+    "forgot_password_link": "Forgot Password?",
+    "forgot_password_title": "Reset Your Password",
+    "forgot_password_subtitle": "Enter your registered email address and we'll send you a secure link to reset your password.",
+    "btn_send_reset": "Send Password Reset Link",
+    "sending_reset": "Sending Reset Link...",
+    "back_to_login": "Back to Sign In",
+    "reset_password_title": "Choose New Password",
+    "reset_password_subtitle": "Please enter and confirm your new secure password below.",
+    "new_password_label": "New Password",
+    "confirm_password_label": "Confirm New Password",
+    "btn_update_password": "Update Password",
+    "updating_password": "Updating Password...",
+    "password_mismatch": "Passwords do not match. Please re-enter.",
+    "reset_success": "Your password has been successfully updated! You can now sign in with your new credentials."
   },
   "common": {
     "loading": "Loading...",

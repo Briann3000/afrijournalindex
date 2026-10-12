@@ -145,9 +145,17 @@ function LoginForm() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="password" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
-            <i className="fa-solid fa-lock" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i> {t.auth.password_label}
-          </label>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+            <label htmlFor="password" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700, margin: 0 }}>
+              <i className="fa-solid fa-lock" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i> {t.auth.password_label}
+            </label>
+            <a 
+              href="/forgot-password" 
+              style={{ fontSize: "0.8rem", color: "var(--color-primary)", fontWeight: 600, textDecoration: "none" }}
+            >
+              {(t.auth as any).forgot_password_link || "Forgot Password?"}
+            </a>
+          </div>
           <div style={{ position: "relative" }}>
             <input 
               type={showPassword ? "text" : "password"} 

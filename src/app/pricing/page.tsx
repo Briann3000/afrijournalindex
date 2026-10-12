@@ -393,11 +393,9 @@ function PricingContent() {
         <div 
           style={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
+            inset: 0,
             background: "rgba(15, 23, 42, 0.75)",
+            backdropFilter: "blur(4px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

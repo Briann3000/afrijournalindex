@@ -138,9 +138,18 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
   // Feature Additions: 12-Page Dossier PDF Generation & Formula Drawer State
   const [downloadingDossier, setDownloadingDossier] = useState<boolean>(false);
   const [showFormulaDrawer, setShowFormulaDrawer] = useState<boolean>(false);
+  const [showDossierLockModal, setShowDossierLockModal] = useState<boolean>(false);
 
   const handleDownloadDossier = () => {
     if (!journal) return;
+    
+    // Check if journal has active Premium evaluation tier or editor access
+    const isUnlocked = journal.activeTier === "Premium" || (journal.certificatePaid && journal.activeTier !== "Basic");
+    if (!isUnlocked) {
+      setShowDossierLockModal(true);
+      return;
+    }
+
     setDownloadingDossier(true);
     try {
       generateInstitutionalDossier({
@@ -428,8 +437,19 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
   };
 
   const articlesList = journal?.articles || [];
-  const totalCitableCount = articlesList.length > 0 ? articlesList.length : (journal?.latestReport?.articleCount || 1);
-  const totalCalculatedCites = articlesList.length > 0 ? articlesList.reduce((acc, a) => acc + (a.citationCount || 0), 0) : (journal?.latestReport?.citationCount || 0);
+  const currentYear = new Date().getFullYear();
+  // Standard international 2-year citable window (T-1 and T-2 items, e.g. 2023 & 2024)
+  const windowArticles = articlesList.filter(a => {
+    if (!a.publishDate) return false;
+    const y = new Date(a.publishDate).getFullYear();
+    return y === currentYear - 1 || y === currentYear - 2;
+  });
+
+  const evaluationArticles = windowArticles.length > 0 ? windowArticles : articlesList;
+  const totalCitableCount = evaluationArticles.length > 0 ? evaluationArticles.length : (journal?.latestReport?.articleCount || 1);
+  const totalCalculatedCites = evaluationArticles.length > 0 
+    ? evaluationArticles.reduce((acc, a) => acc + (a.citationCount || 0), 0) 
+    : (journal?.latestReport?.citationCount || 0);
   const computedAJCI = totalCitableCount > 0 ? totalCalculatedCites / totalCitableCount : (journal?.latestReport?.standardScore || 0);
   const computedAJCIStr = computedAJCI.toFixed(3);
 
@@ -1424,10 +1444,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
             className="certificate-modal-wrapper"
             style={{
               position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
+              inset: 0,
               backgroundColor: "rgba(0,0,0,0.85)",
               display: "flex",
               alignItems: "center",
@@ -1619,10 +1636,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
           <div 
             style={{
               position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
+              inset: 0,
               backgroundColor: "rgba(15, 23, 42, 0.75)",
               backdropFilter: "blur(4px)",
               display: "flex",
@@ -2107,6 +2121,76 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   onClick={() => setShowProvenanceModal(false)}
                   className="btn btn-secondary btn-sm"
                   style={{ padding: "0.45rem 1.2rem", fontSize: "0.85rem" }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Institutional Evaluation Dossier Gate Modal */}
+        {showDossierLockModal && journal && (
+          <div 
+            style={{
+              position: "fixed",
+              inset: 0,
+              backgroundColor: "rgba(15, 23, 42, 0.75)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              padding: "1.5rem"
+            }}
+            onClick={() => setShowDossierLockModal(false)}
+          >
+            <div 
+              style={{
+                backgroundColor: "#ffffff",
+                borderRadius: "16px",
+                maxWidth: "520px",
+                width: "100%",
+                padding: "2rem",
+                boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.25)",
+                border: "1px solid #e2e8f0",
+                textAlign: "center"
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ width: "54px", height: "54px", borderRadius: "50%", background: "#fef3c7", border: "2px solid #fde68a", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#b45309", fontSize: "1.4rem", marginBottom: "1rem" }}>
+                <i className="fa-solid fa-file-invoice"></i>
+              </div>
+              <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: "0 0 0.5rem", color: "#0f172a" }}>
+                Institutional Evaluation Dossier
+              </h3>
+              <p style={{ fontSize: "0.88rem", color: "#64748b", margin: "0 0 1.5rem", lineHeight: "1.5" }}>
+                The official 12-page vector evaluation dossier—including the Dean's Digest, mathematical formula ledger, DOAJ/Scopus CSAB pre-audit matrices, and OJS technical optimization checklist—is part of the <strong>Institutional Evaluation Package</strong>.
+              </p>
+              
+              <div style={{ background: "#f8fafc", padding: "1rem", borderRadius: "10px", border: "1px solid #e2e8f0", marginBottom: "1.5rem", textAlign: "left", fontSize: "0.82rem", color: "#334155" }}>
+                <div style={{ fontWeight: 700, color: "#b45309", marginBottom: "0.5rem" }}>Included in Institutional Package ($349):</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> 12-Page Formal Institutional Dossier (Vector PDF)</div>
+                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> DOAJ &amp; Scopus Technical Remediation Recipes</div>
+                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> Back-Catalog OJS Archive Ingestion &amp; Verification</div>
+                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> Cryptographic QR Seal for Senate Evaluations</div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+                <a 
+                  href={`/pricing?journalId=${journal.id}&tier=Premium`}
+                  className="btn btn-primary btn-sm"
+                  style={{ background: "#b45309", borderColor: "#b45309", color: "#ffffff", padding: "0.55rem 1.4rem", fontWeight: 700 }}
+                >
+                  <i className="fa-solid fa-unlock" style={{ marginRight: "0.4rem" }}></i>
+                  Unlock Institutional Dossier ($349)
+                </a>
+                <button 
+                  onClick={() => setShowDossierLockModal(false)}
+                  className="btn btn-secondary btn-sm"
+                  style={{ padding: "0.55rem 1.2rem" }}
                 >
                   Close
                 </button>

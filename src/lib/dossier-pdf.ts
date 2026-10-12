@@ -79,13 +79,21 @@ export function generateInstitutionalDossier(journal: DossierJournalData): void 
   // SINGLE SOURCE OF TRUTH (SSOT) DATA AGGREGATION
   // -------------------------------------------------------------
   const articlesList = journal.articles || [];
-  const totalCitableArticles = articlesList.length > 0
-    ? articlesList.length
+  // Standard international 2-year citable window (T-1 and T-2 items, e.g. 2023 & 2024)
+  const windowArticles = articlesList.filter(a => {
+    if (!a.publishDate) return false;
+    const y = new Date(a.publishDate).getFullYear();
+    return y === currentYear - 1 || y === currentYear - 2;
+  });
+
+  const evaluationArticles = windowArticles.length > 0 ? windowArticles : articlesList;
+  const totalCitableArticles = evaluationArticles.length > 0
+    ? evaluationArticles.length
     : (journal.latestReport?.articleCount || 1);
 
-  // Compute total citations strictly aggregated from the articles array if present
-  const calculatedCitations = articlesList.reduce((sum, a) => sum + (a.citationCount || 0), 0);
-  const totalQualifiedCitations = articlesList.length > 0 && calculatedCitations > 0
+  // Compute total citations strictly aggregated from the evaluation articles array if present
+  const calculatedCitations = evaluationArticles.reduce((sum, a) => sum + (a.citationCount || 0), 0);
+  const totalQualifiedCitations = evaluationArticles.length > 0 && calculatedCitations > 0
     ? calculatedCitations
     : (journal.latestReport?.citationCount || 0);
 

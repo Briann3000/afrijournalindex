@@ -31,6 +31,8 @@ model User {
   orcid         String?     @unique @db.VarChar(191)
   institution   String?     @db.VarChar(255)
   bio           String?     @db.Text
+  resetToken    String?     @db.VarChar(255)
+  resetTokenExpiry DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   
