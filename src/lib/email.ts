@@ -13,7 +13,7 @@ export async function sendEmail({ to, subject, html, text }: EmailPayload): Prom
     const port = parseInt(process.env.SMTP_PORT || "587", 10);
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
-    const from = process.env.SMTP_FROM || '"AfriJournal Index" <noreply@afrijournalindex.org>';
+    const from = process.env.SMTP_FROM || '"AfriJournal Index" <noreply@afrijournalindexing.org>';
 
     // If SMTP is not yet configured in production, log the dispatch securely to console
     if (!host || !user || !pass) {

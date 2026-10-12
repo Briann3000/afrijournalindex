@@ -139,6 +139,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
   const [downloadingDossier, setDownloadingDossier] = useState<boolean>(false);
   const [showFormulaDrawer, setShowFormulaDrawer] = useState<boolean>(false);
   const [showDossierLockModal, setShowDossierLockModal] = useState<boolean>(false);
+  const [showAuditLockModal, setShowAuditLockModal] = useState<boolean>(false);
 
   const handleDownloadDossier = () => {
     if (!journal) return;
@@ -221,6 +222,14 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
 
   const handleLoadAudit = async () => {
     if (!journal) return;
+    
+    // Check if journal has active evaluation tier (Standard/Professional/Premium) or paid certificate
+    const isUnlocked = journal.activeTier === "Premium" || journal.activeTier === "Professional" || journal.activeTier === "Standard" || (journal.certificatePaid && journal.activeTier !== "Basic");
+    if (!isUnlocked) {
+      setShowAuditLockModal(true);
+      return;
+    }
+
     setShowAuditModal(true);
     setAuditLoading(true);
     setAuditError(null);
@@ -421,11 +430,11 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
     : `/api/badge/${journal?.issn || journal?.id || "preview"}.svg`;
 
   const htmlSnippet = journal 
-    ? `<a href="https://afrijournalindex.org/journal/${journal.id}"><img src="https://afrijournalindex.org/api/badge/${journal.issn || journal.id}.svg" alt="${journal.name} - Indexed in AfriJournal Index" /></a>`
+    ? `<a href="https://afrijournalindexing.org/journal/${journal.id}"><img src="https://afrijournalindexing.org/api/badge/${journal.issn || journal.id}.svg" alt="${journal.name} - Indexed in AfriJournal Index" /></a>`
     : "";
 
   const markdownSnippet = journal
-    ? `[![Indexed in AfriJournal Index](https://afrijournalindex.org/api/badge/${journal.issn || journal.id}.svg)](https://afrijournalindex.org/journal/${journal.id})`
+    ? `[![Indexed in AfriJournal Index](https://afrijournalindexing.org/api/badge/${journal.issn || journal.id}.svg)](https://afrijournalindexing.org/journal/${journal.id})`
     : "";
 
   const quartileColors: Record<string, { bg: string; text: string; border: string }> = {
@@ -789,13 +798,16 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                       2-Year Mean Citation Rate
                     </div>
                   </div>
-                  <button 
-                    onClick={() => setShowFormulaDrawer(!showFormulaDrawer)}
-                    style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: "0.78rem", fontWeight: 700, padding: 0, textAlign: "left", cursor: "pointer", marginTop: "0.6rem", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}
-                  >
-                    <span>{showFormulaDrawer ? "Hide Formula" : "How was this calculated?"}</span>
-                    <i className={`fa-solid ${showFormulaDrawer ? "fa-chevron-up" : "fa-chevron-down"}`} style={{ fontSize: "0.7rem" }}></i>
-                  </button>
+                  {/* How was this calculated? only accessible to paid evaluation tiers */}
+                  {((journal.activeTier && journal.activeTier !== "Basic") || journal.certificatePaid) && (
+                    <button 
+                      onClick={() => setShowFormulaDrawer(!showFormulaDrawer)}
+                      style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: "0.78rem", fontWeight: 700, padding: 0, textAlign: "left", cursor: "pointer", marginTop: "0.6rem", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}
+                    >
+                      <span>{showFormulaDrawer ? "Hide Formula" : "How was this calculated?"}</span>
+                      <i className={`fa-solid ${showFormulaDrawer ? "fa-chevron-up" : "fa-chevron-down"}`} style={{ fontSize: "0.7rem" }}></i>
+                    </button>
+                  )}
                 </div>
 
                 {/* 3-Year Citation Average (3-YCA) */}
@@ -870,8 +882,8 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 </div>
               </div>
 
-              {/* Expandable Mathematical Formula & Attribution Drawer ("Explain") */}
-              {showFormulaDrawer && (
+              {/* Expandable Mathematical Formula & Attribution Drawer ("Explain") - Paid only */}
+              {showFormulaDrawer && ((journal.activeTier && journal.activeTier !== "Basic") || journal.certificatePaid) && (
                 <div style={{ background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "10px", padding: "1.5rem", marginBottom: "2rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
                     <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -2189,6 +2201,75 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 </a>
                 <button 
                   onClick={() => setShowDossierLockModal(false)}
+                  className="btn btn-secondary btn-sm"
+                  style={{ padding: "0.55rem 1.2rem" }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Compliance Audit Upgrade Modal */}
+        {showAuditLockModal && journal && (
+          <div 
+            style={{
+              position: "fixed",
+              inset: 0,
+              backgroundColor: "rgba(15, 23, 42, 0.75)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              padding: "1.5rem"
+            }}
+            onClick={() => setShowAuditLockModal(false)}
+          >
+            <div 
+              style={{
+                backgroundColor: "#ffffff",
+                borderRadius: "16px",
+                maxWidth: "520px",
+                width: "100%",
+                padding: "2rem",
+                boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.25)",
+                border: "1px solid #e2e8f0",
+                textAlign: "center"
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ width: "54px", height: "54px", borderRadius: "50%", background: "#e0e7ff", border: "2px solid #c7d2fe", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#4338ca", fontSize: "1.4rem", marginBottom: "1rem" }}>
+                <i className="fa-solid fa-clipboard-check"></i>
+              </div>
+              <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: "0 0 0.5rem", color: "#0f172a" }}>
+                Compliance &amp; Readiness Audit Locked
+              </h3>
+              <p style={{ fontSize: "0.88rem", color: "#64748b", margin: "0 0 1.5rem", lineHeight: "1.5" }}>
+                Automated 6-point verification standard adhering to DOAJ screening protocols, Scopus CSAB criteria, and technical remediation recipes requires an active evaluation license.
+              </p>
+              
+              <div style={{ background: "#f8fafc", padding: "1rem", borderRadius: "10px", border: "1px solid #e2e8f0", marginBottom: "1.5rem", textAlign: "left", fontSize: "0.82rem", color: "#334155" }}>
+                <div style={{ fontWeight: 700, color: "#4338ca", marginBottom: "0.5rem" }}>Audit Feature Access:</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> Comprehensive DOAJ Gap Analysis &amp; Action Plan</div>
+                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> Scopus CSAB Continuous Quality Verification</div>
+                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> OJS Technical Metadata Compliance Checker</div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+                <a 
+                  href={`/pricing?journalId=${journal.id}`}
+                  className="btn btn-primary btn-sm"
+                  style={{ background: "#4338ca", borderColor: "#4338ca", color: "#ffffff", padding: "0.55rem 1.4rem", fontWeight: 700 }}
+                >
+                  <i className="fa-solid fa-unlock" style={{ marginRight: "0.4rem" }}></i>
+                  View Evaluation Plans &amp; Unlock
+                </a>
+                <button 
+                  onClick={() => setShowAuditLockModal(false)}
                   className="btn btn-secondary btn-sm"
                   style={{ padding: "0.55rem 1.2rem" }}
                 >

@@ -75,7 +75,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
 
   const verifyUrl = typeof window !== "undefined" && journal
     ? `${window.location.origin}/verify/${journal.id}`
-    : `https://afrijournalindex.org/verify/${journal?.id || id}`;
+    : `https://afrijournalindexing.org/verify/${journal?.id || id}`;
 
   const isUnlocked = Boolean(journal && journal.certificatePaid);
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(verifyUrl)}&bgcolor=ffffff&color=0f172a&qzone=0`;
@@ -324,7 +324,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
 
   const copyBadgeSnippet = () => {
     if (!journal) return;
-    const snippet = `<a href="${verifyUrl}"><img src="https://afrijournalindex.org/api/badge/${journal.issn || journal.id}.svg" alt="${journal.name} - Verified in AfriJournal Index" /></a>`;
+    const snippet = `<a href="${verifyUrl}"><img src="https://afrijournalindexing.org/api/badge/${journal.issn || journal.id}.svg" alt="${journal.name} - Verified in AfriJournal Index" /></a>`;
     navigator.clipboard.writeText(snippet);
     setCopiedBadge(true);
     setTimeout(() => setCopiedBadge(false), 2500);
@@ -727,7 +727,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
               {isUnlocked ? (
                 <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
                   <div style={{ background: "var(--color-bg-alt)", border: "1px solid var(--color-border)", borderRadius: "8px", padding: "0.6rem 1rem", flex: 1, fontFamily: "monospace", fontSize: "0.8rem", overflowX: "auto", whiteSpace: "nowrap" }}>
-                    {`<a href="${verifyUrl}"><img src="https://afrijournalindex.org/api/badge/${journal.issn || journal.id}.svg" alt="${journal.name} - Verified in AfriJournal Index" /></a>`}
+                    {`<a href="${verifyUrl}"><img src="https://afrijournalindexing.org/api/badge/${journal.issn || journal.id}.svg" alt="${journal.name} - Verified in AfriJournal Index" /></a>`}
                   </div>
                   <button 
                     onClick={copyBadgeSnippet}

@@ -1437,12 +1437,35 @@ a {
     .btn {
         min-height: 44px;
     }
-    .logo {
-        font-size: 1.15rem !important;
+    .header-container {
+        height: 60px !important;
+        padding: 0 0.6rem !important;
+        gap: 0.4rem !important;
     }
-    .lang-selector {
-        font-size: 0.78rem !important;
-        padding: 0.35rem 1.4rem 0.35rem 0.6rem !important;
+    .logo {
+        font-size: 1.05rem !important;
+        gap: 6px !important;
+    }
+    .logo-badge-container {
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 8px !important;
+    }
+    .logo-text-afri {
+        font-size: 1.1rem !important;
+    }
+    .logo-text-journal {
+        font-size: 1.1rem !important;
+    }
+    .lang-selector-wrapper {
+        display: none !important; /* Move language selector to mobile drawer on small screens */
+    }
+    .header-actions {
+        gap: 0.25rem !important;
+    }
+    .menu-toggle {
+        padding: 6px !important;
+        font-size: 1.25rem !important;
     }
 }
 

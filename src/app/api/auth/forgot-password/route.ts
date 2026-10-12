@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       }
     });
 
-    const origin = process.env.NEXTAUTH_URL || "https://afrijournalindex.org";
+    const origin = process.env.NEXTAUTH_URL || "https://afrijournalindexing.org";
     const resetUrl = `${origin}/reset-password?token=${resetToken}&email=${encodeURIComponent(cleanEmail)}`;
 
     const html = `

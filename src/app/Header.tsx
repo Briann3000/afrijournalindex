@@ -126,9 +126,34 @@ export default function Header({ activePage }: HeaderProps) {
     <header className="header">
       <div className="header-container">
         {/* Brand Logo */}
-        <a href="/" className="logo" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.25rem" }}>Afri</span>
-          <span style={{ color: "#38bdf8", fontWeight: 800, fontSize: "1.25rem" }}>Journal Indexing</span>
+        <a href="/" className="logo" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+          <div 
+            className="logo-badge-container"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "42px",
+              height: "42px",
+              background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+              borderRadius: "10px",
+              border: "1px solid rgba(56, 189, 248, 0.4)",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
+              padding: "3px",
+              overflow: "hidden",
+              flexShrink: 0
+            }}
+          >
+            <img 
+              src="/logo.png" 
+              alt="AfriJournal Indexing Logo" 
+              style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "7px" }}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <span className="logo-text-afri" style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.35rem" }}>Afri</span>
+            <span className="logo-text-journal" style={{ color: "#38bdf8", fontWeight: 800, fontSize: "1.35rem" }}>Journal Indexing</span>
+          </div>
         </a>
         
         {/* Clustered Desktop Navigation Menu */}

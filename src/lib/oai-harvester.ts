@@ -66,7 +66,7 @@ export async function identifyOaiRepository(rawUrl: string): Promise<OaiIdentify
 
     const res = await fetch(url.toString(), {
       headers: {
-        'User-Agent': 'AfriJournalIndex-Harvester/2.0 (African Scholarly Registry; https://afrijournalindex.org)'
+        'User-Agent': 'AfriJournalIndex-Harvester/2.0 (African Scholarly Registry; https://afrijournalindexing.org)'
       },
       signal: AbortSignal.timeout(10000)
     });
@@ -119,7 +119,7 @@ export async function harvestOaiRecords(rawUrl: string, maxRecords = 500): Promi
 
       const res = await fetch(requestUrl.toString(), {
         headers: {
-          'User-Agent': 'AfriJournalIndex-Harvester/2.0 (African Scholarly Registry; https://afrijournalindex.org)'
+          'User-Agent': 'AfriJournalIndex-Harvester/2.0 (African Scholarly Registry; https://afrijournalindexing.org)'
         },
         signal: AbortSignal.timeout(20000)
       });

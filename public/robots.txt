@@ -3,4 +3,4 @@ Allow: /
 Disallow: /api/
 Disallow: /submit/status
 
-Sitemap: https://afrijournalindex.org/sitemap.xml
+Sitemap: https://afrijournalindexing.org/sitemap.xml

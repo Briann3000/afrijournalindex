@@ -226,7 +226,7 @@ function ResearcherProfileContent() {
 
   const handleCopyBadge = (journalId: string) => {
     if (typeof window !== "undefined") {
-      const code = `<a href="https://afrijournalindex.org/journal/${journalId}" target="_blank" rel="noopener noreferrer"><img src="https://afrijournalindex.org/api/badge/${journalId}" alt="AfriJournal Verified Indexed" /></a>`;
+      const code = `<a href="https://afrijournalindexing.org/journal/${journalId}" target="_blank" rel="noopener noreferrer"><img src="https://afrijournalindexing.org/api/badge/${journalId}" alt="AfriJournal Verified Indexed" /></a>`;
       navigator.clipboard.writeText(code);
       showToast("Verification badge embed HTML copied to clipboard!");
     }
@@ -494,7 +494,7 @@ function ResearcherProfileContent() {
         doc.setFontSize(7.5);
         doc.setTextColor(148, 163, 184);
         doc.text(
-          `AfriJournal Index Repository  •  https://afrijournalindex.org  •  Page ${p} of ${totalPages}`,
+          `AfriJournal Index Repository  •  https://afrijournalindexing.org  •  Page ${p} of ${totalPages}`,
           105,
           288,
           { align: "center" }

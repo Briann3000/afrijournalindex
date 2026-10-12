@@ -67,7 +67,7 @@ export function generateInstitutionalDossier(journal: DossierJournalData): void 
 
   const currentYear = new Date().getFullYear();
   const authHash = `AJCI-DOSSIER-${journal.id.substring(0, 8).toUpperCase()}-${(journal.issn || "REG").replace(/[^a-zA-Z0-9]/g, "")}-${currentYear}`;
-  const verifyUrl = `https://afrijournalindex.org/verify/${journal.id}`;
+  const verifyUrl = `https://afrijournalindexing.org/verify/${journal.id}`;
 
   const primaryColor = [15, 23, 42]; // Slate 900
   const navyColor = [30, 58, 138]; // Blue 900

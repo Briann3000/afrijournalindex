@@ -105,11 +105,11 @@ export default function Home() {
                 <div style={{ background: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0", padding: "1rem", marginBottom: "1.2rem" }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.75rem", textAlign: "center" }}>
                     <div>
-                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--color-primary)", lineHeight: 1.1 }}>2.458</div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--color-primary)", lineHeight: 1.1 }}>1.545</div>
                       <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>2-Yr AJCI</div>
                     </div>
                     <div style={{ borderLeft: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
-                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#0284c7", lineHeight: 1.1 }}>2.802</div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#0284c7", lineHeight: 1.1 }}>1.762</div>
                       <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>3-Yr Citation Avg</div>
                     </div>
                     <div>
@@ -122,12 +122,12 @@ export default function Home() {
                 {/* Bibliometric Verification List */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.82rem", color: "#334155" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "#64748b" }}>Lifetime Impact (Scholar):</span>
-                    <strong style={{ color: "var(--color-navy)" }}><i className="fa-solid fa-graduation-cap" style={{ color: "#2563eb", marginRight: "4px" }}></i> 950+ Citations (h-14)</strong>
+                    <span style={{ color: "#64748b" }}>Lifetime Impact (Indexed):</span>
+                    <strong style={{ color: "var(--color-navy)" }}><i className="fa-solid fa-chart-line" style={{ color: "#2563eb", marginRight: "4px" }}></i> 522+ Citations (h-17)</strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "#64748b" }}>Peer-Reviewed Articles:</span>
-                    <strong style={{ color: "var(--color-navy)" }}>420+ Papers</strong>
+                    <span style={{ color: "#64748b" }}>Evaluated Citable Articles:</span>
+                    <strong style={{ color: "var(--color-navy)" }}>44 Catalog Papers</strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ color: "#64748b" }}>Data Provenance:</span>
