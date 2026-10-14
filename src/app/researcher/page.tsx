@@ -555,6 +555,28 @@ function ResearcherProfileContent() {
     }
   };
 
+  // Unlink / Disassociate Journal from publisher account
+  const handleUnlinkJournal = async (journalId: string, journalName: string) => {
+    if (!confirm(`Are you sure you want to unlink and release management of "${journalName}"?`)) return;
+    try {
+      const res = await fetch("/api/journals/claim", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ journalId })
+      });
+      const resData = await res.json();
+      if (resData.success) {
+        showToast(`"${journalName}" has been unlinked successfully.`);
+        await loadProfile();
+      } else {
+        alert(resData.error || "Failed to unlink journal.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error unlinking journal.");
+    }
+  };
+
   // Searching articles to claim
   const handleSearchArticles = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -743,7 +765,7 @@ function ResearcherProfileContent() {
   }
 
   const { profile, metrics } = data;
-  const isOwner = currentUser && (currentUser.id === profile.id || !id);
+  const isOwner = Boolean(currentUser && (currentUser.id === profile.id || !id || currentUser.role === "ADMIN"));
 
   const initials = profile.name
     ? profile.name
@@ -794,7 +816,7 @@ function ResearcherProfileContent() {
             marginBottom: "2rem", 
             borderRadius: "16px", 
             border: "1px solid var(--color-border)", 
-            background: "#ffffff",
+            background: "var(--color-bg-card)",
             boxShadow: "var(--card-shadow)"
           }}
         >
@@ -872,7 +894,7 @@ function ResearcherProfileContent() {
                 
                 {/* Badges Bar */}
                 <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.5rem", flexWrap: "wrap" }}>
-                  <span style={{ background: "#f8fafc", color: "#334155", border: "1px solid #cbd5e1", padding: "0.2rem 0.65rem", borderRadius: "4px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                  <span style={{ background: "var(--color-bg-card-subtle)", color: "var(--color-text-body)", border: "1px solid var(--color-border)", padding: "0.2rem 0.65rem", borderRadius: "4px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px" }}>
                     <i className="fa-solid fa-check" style={{ color: "#16a34a" }}></i> Verified Scholar
                   </span>
                   
@@ -887,7 +909,7 @@ function ResearcherProfileContent() {
                       href={`https://orcid.org/${profile.orcid}`} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      style={{ background: "#f8fafc", color: "#16a34a", border: "1px solid #cbd5e1", padding: "0.2rem 0.65rem", borderRadius: "4px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px", textDecoration: "none" }}
+                      style={{ background: "var(--color-bg-card-subtle)", color: "#16a34a", border: "1px solid var(--color-border)", padding: "0.2rem 0.65rem", borderRadius: "4px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px", textDecoration: "none" }}
                     >
                       <i className="fa-brands fa-orcid" style={{ color: "#a6ce39" }}></i> orcid.org/{profile.orcid}
                     </a>
@@ -900,7 +922,7 @@ function ResearcherProfileContent() {
                 </h1>
 
                 {/* Academic Title & Department */}
-                <p style={{ color: "#475569", fontSize: "0.95rem", margin: "0 0 0.4rem", fontWeight: 600 }}>
+                <p style={{ color: "var(--color-text-muted)", fontSize: "0.95rem", margin: "0 0 0.4rem", fontWeight: 600 }}>
                   {profile.academicRank || "Senior Research Fellow & Author"} • {profile.department || "School of Education & Social Sciences"}
                 </p>
 
@@ -914,7 +936,7 @@ function ResearcherProfileContent() {
 
                 {/* Academic Bio Statement if available */}
                 {profile.bio && (
-                  <p style={{ color: "#334155", fontSize: "0.86rem", margin: "0 0 0.75rem", lineHeight: 1.5, background: "#f8fafc", padding: "0.55rem 0.8rem", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
+                  <p style={{ color: "var(--color-text-body)", fontSize: "0.86rem", margin: "0 0 0.75rem", lineHeight: 1.5, background: "var(--color-bg-card-subtle)", padding: "0.55rem 0.8rem", borderRadius: "6px", border: "1px solid var(--color-border)" }}>
                     <i className="fa-solid fa-quote-left" style={{ color: "var(--color-primary)", marginRight: "6px", fontSize: "0.78rem" }}></i>
                     {profile.bio}
                   </p>
@@ -930,9 +952,9 @@ function ResearcherProfileContent() {
                     <span 
                       key={idx}
                       style={{
-                        background: "#f1f5f9",
-                        color: "#334155",
-                        border: "1px solid #e2e8f0",
+                        background: "var(--color-bg-card-subtle)",
+                        color: "var(--color-text-body)",
+                        border: "1px solid var(--color-border)",
                         padding: "0.2rem 0.6rem",
                         borderRadius: "4px",
                         fontSize: "0.76rem",
@@ -1026,7 +1048,7 @@ function ResearcherProfileContent() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "2rem" }}>
           
           {/* Metric 1: Hirsch h-index */}
-          <div className="card-surface" style={{ padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+          <div className="card-surface" style={{ padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
             <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.5px", display: "block" }}>
               Personal h-index
             </span>
@@ -1035,13 +1057,13 @@ function ResearcherProfileContent() {
                 h-{metrics.hIndex}
               </span>
             </div>
-            <p style={{ margin: "0.4rem 0 0", fontSize: "0.78rem", color: "#64748b" }}>
+            <p style={{ margin: "0.4rem 0 0", fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
               Citation Depth Benchmark
             </p>
           </div>
 
           {/* Metric 2: Total Citations */}
-          <div className="card-surface" style={{ padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+          <div className="card-surface" style={{ padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
             <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.5px", display: "block" }}>
               Total Citations
             </span>
@@ -1053,13 +1075,13 @@ function ResearcherProfileContent() {
                 +28% YoY
               </span>
             </div>
-            <p style={{ margin: "0.4rem 0 0", fontSize: "0.78rem", color: "#64748b" }}>
+            <p style={{ margin: "0.4rem 0 0", fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
               Across Indexed African Journals
             </p>
           </div>
 
           {/* Metric 3: Peer-Reviewed Articles */}
-          <div className="card-surface" style={{ padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+          <div className="card-surface" style={{ padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
             <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.5px", display: "block" }}>
               Publications
             </span>
@@ -1068,13 +1090,13 @@ function ResearcherProfileContent() {
                 {metrics.publicationsCount}
               </span>
             </div>
-            <p style={{ margin: "0.4rem 0 0", fontSize: "0.78rem", color: "#64748b" }}>
+            <p style={{ margin: "0.4rem 0 0", fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
               Verified Authorship Papers
             </p>
           </div>
 
           {/* Metric 4: i10-index & Standing */}
-          <div className="card-surface" style={{ padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+          <div className="card-surface" style={{ padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
             <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.5px", display: "block" }}>
               i10-index
             </span>
@@ -1082,11 +1104,11 @@ function ResearcherProfileContent() {
               <span style={{ fontSize: "2.3rem", fontWeight: 800, color: "var(--color-text-main)", lineHeight: 1 }}>
                 {metrics.i10Index || 2}
               </span>
-              <span style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 700 }}>
+              <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700 }}>
                 High Impact
               </span>
             </div>
-            <p style={{ margin: "0.4rem 0 0", fontSize: "0.78rem", color: "#64748b" }}>
+            <p style={{ margin: "0.4rem 0 0", fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
               {metrics.quartileRatio || "78% Q1/Q2 Indexed"}
             </p>
           </div>
@@ -1100,7 +1122,7 @@ function ResearcherProfileContent() {
             marginBottom: "2rem", 
             borderRadius: "16px", 
             border: "1px solid var(--color-border)", 
-            background: "#ffffff" 
+            background: "var(--color-bg-card)" 
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
@@ -1113,7 +1135,7 @@ function ResearcherProfileContent() {
                 Verified citations received annually across Crossref, DOAJ, and university repositories
               </p>
             </div>
-            <div style={{ background: "#f8fafc", border: "1px solid #cbd5e1", padding: "0.35rem 0.8rem", borderRadius: "6px", fontSize: "0.82rem", fontWeight: 700, color: "#334155" }}>
+            <div style={{ background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", padding: "0.35rem 0.8rem", borderRadius: "6px", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-body)" }}>
               {metrics.regionalPercentile || "Top 8% Continental Ranking"}
             </div>
           </div>
@@ -1143,7 +1165,7 @@ function ResearcherProfileContent() {
                       borderRadius: "4px 4px 0 0"
                     }} 
                   />
-                  <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#64748b", marginTop: "8px" }}>
+                  <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--color-text-muted)", marginTop: "8px" }}>
                     {item.year}
                   </span>
                 </div>
@@ -1153,7 +1175,7 @@ function ResearcherProfileContent() {
         </div>
 
         {/* Academic Role Navigation Tabs (Hybrid Scholar & Editor Profile) */}
-        <div style={{ display: "flex", gap: "0.5rem", borderBottom: "2px solid #e2e8f0", marginBottom: "1.75rem", overflowX: "auto" }}>
+        <div style={{ display: "flex", gap: "0.5rem", borderBottom: "2px solid var(--color-border)", marginBottom: "1.75rem", overflowX: "auto" }}>
           <button
             type="button"
             onClick={() => setActiveTab("publications")}
@@ -1260,7 +1282,7 @@ function ResearcherProfileContent() {
         )}
 
         {/* 5. Authored Publications Container with Clean Pagination */}
-        <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+        <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
           
           {/* Header & Filter Controls */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
@@ -1306,7 +1328,7 @@ function ResearcherProfileContent() {
           {/* Publications List */}
           {filteredArticles.length === 0 ? (
             data.articles.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "3.5rem 1.5rem", background: "#f8fafc", borderRadius: "12px", border: "1px dashed #cbd5e1" }}>
+              <div style={{ textAlign: "center", padding: "3.5rem 1.5rem", background: "var(--color-bg-card-subtle)", borderRadius: "12px", border: "1px dashed #cbd5e1" }}>
                 <i className="fa-solid fa-graduation-cap" style={{ fontSize: "2.8rem", color: "var(--color-primary)", marginBottom: "0.8rem", display: "block" }}></i>
                 <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--color-text-main)", margin: "0 0 0.4rem" }}>
                   Welcome to your Scholar Profile, {profile.name}!
@@ -1341,8 +1363,8 @@ function ResearcherProfileContent() {
                   style={{
                     padding: "1.25rem",
                     borderRadius: "8px",
-                    background: "#f8fafc",
-                    border: "1px solid #e2e8f0",
+                    background: "var(--color-bg-card-subtle)",
+                    border: "1px solid var(--color-border)",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "flex-start",
@@ -1358,7 +1380,7 @@ function ResearcherProfileContent() {
                     </h3>
 
                     {/* Journal Details */}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem", alignItems: "center", fontSize: "0.82rem", color: "#64748b", marginBottom: "0.6rem" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem", alignItems: "center", fontSize: "0.82rem", color: "var(--color-text-muted)", marginBottom: "0.6rem" }}>
                       <span>
                         Published in{" "}
                         <a 
@@ -1372,14 +1394,14 @@ function ResearcherProfileContent() {
                       <span>{art.publishedYear || 2024}</span>
                       
                       {art.journalQuartile && (
-                        <span style={{ background: "#f1f5f9", color: "#334155", border: "1px solid #cbd5e1", padding: "0.15rem 0.45rem", borderRadius: "4px", fontWeight: 700, fontSize: "0.75rem" }}>
+                        <span style={{ background: "var(--color-bg-card-subtle)", color: "var(--color-text-body)", border: "1px solid var(--color-border)", padding: "0.15rem 0.45rem", borderRadius: "4px", fontWeight: 700, fontSize: "0.75rem" }}>
                           {art.journalQuartile}
                         </span>
                       )}
 
                       {art.journalScore && (
-                        <span style={{ background: "#f1f5f9", color: "#334155", border: "1px solid #cbd5e1", padding: "0.15rem 0.45rem", borderRadius: "4px", fontWeight: 700, fontSize: "0.75rem" }}>
-                          AJIF {art.journalScore}
+                        <span style={{ background: "var(--color-bg-card-subtle)", color: "var(--color-text-body)", border: "1px solid var(--color-border)", padding: "0.15rem 0.45rem", borderRadius: "4px", fontWeight: 700, fontSize: "0.75rem" }}>
+                          AJCI {art.journalScore}
                         </span>
                       )}
                     </div>
@@ -1387,7 +1409,7 @@ function ResearcherProfileContent() {
                     {/* Metadata & DOI */}
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.8rem", alignItems: "center", fontSize: "0.8rem" }}>
                       {art.doi && (
-                        <span style={{ color: "#475569" }}>
+                        <span style={{ color: "var(--color-text-muted)" }}>
                           <strong>DOI:</strong>{" "}
                           <a 
                             href={`https://doi.org/${art.doi}`} 
@@ -1582,7 +1604,7 @@ function ResearcherProfileContent() {
 
           {/* Section 1: Verified Indexed Journals */}
           {data.journals && data.journals.length > 0 && (
-            <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+            <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
                 <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text-main)", margin: 0, display: "flex", alignItems: "center", gap: "0.6rem" }}>
                   <i className="fa-solid fa-newspaper" style={{ color: "var(--color-primary)" }}></i>
@@ -1597,8 +1619,8 @@ function ResearcherProfileContent() {
                     style={{ 
                       padding: "1.5rem", 
                       borderRadius: "12px", 
-                      border: "1px solid #e2e8f0", 
-                      background: "#f8fafc",
+                      border: "1px solid var(--color-border)", 
+                      background: "var(--color-bg-card-subtle)",
                       display: "flex",
                       flexDirection: "column",
                       gap: "1.2rem"
@@ -1616,7 +1638,7 @@ function ResearcherProfileContent() {
                               Grade {j.qualityGrade}
                             </span>
                           )}
-                          <span style={{ color: "#64748b", fontSize: "0.8rem", fontWeight: 600 }}>
+                          <span style={{ color: "var(--color-text-muted)", fontSize: "0.8rem", fontWeight: 600 }}>
                             {j.country}
                           </span>
                         </div>
@@ -1627,12 +1649,12 @@ function ResearcherProfileContent() {
                           </a>
                         </h3>
 
-                        <p style={{ margin: 0, fontSize: "0.85rem", color: "#475569" }}>
+                        <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
                           <strong>Publisher:</strong> {j.publisherName} • <strong>Print ISSN:</strong> {j.issn || "None"} • <strong>Online eISSN:</strong> {j.eissn || "None"}
                         </p>
                       </div>
 
-                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
                         <a href={`/journal/${j.id}`} className="btn btn-primary btn-sm" style={{ fontSize: "0.82rem", padding: "0.4rem 0.85rem" }}>
                           View Public Profile
                         </a>
@@ -1641,30 +1663,42 @@ function ResearcherProfileContent() {
                             Website <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.7rem", marginLeft: "4px" }}></i>
                           </a>
                         )}
+                        {isOwner && (
+                          <button
+                            type="button"
+                            onClick={() => handleUnlinkJournal(j.id, j.name)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ fontSize: "0.82rem", padding: "0.4rem 0.85rem", color: "#ef4444", borderColor: "#fca5a5" }}
+                            title="Unlink and release editorial management of this journal"
+                          >
+                            <i className="fa-solid fa-link-slash" style={{ marginRight: "4px" }}></i>
+                            Unlink Journal
+                          </button>
+                        )}
                       </div>
                     </div>
 
                     {/* Metrics 3-box Grid */}
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.75rem" }}>
-                      <div style={{ background: "#ffffff", padding: "0.85rem 1rem", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-                        <span style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700, display: "block" }}>Standard AJIF</span>
+                      <div style={{ background: "var(--color-bg-card)", padding: "0.85rem 1rem", borderRadius: "8px", border: "1px solid var(--color-border)" }}>
+                        <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700, display: "block" }}>Standard AJCI</span>
                         <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--color-primary)" }}>{j.standardScore}</span>
                       </div>
-                      <div style={{ background: "#ffffff", padding: "0.85rem 1rem", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-                        <span style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700, display: "block" }}>Regional Multiplier</span>
+                      <div style={{ background: "var(--color-bg-card)", padding: "0.85rem 1rem", borderRadius: "8px", border: "1px solid var(--color-border)" }}>
+                        <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700, display: "block" }}>Regional Multiplier</span>
                         <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "#059669" }}>{j.regionalScore}</span>
                       </div>
-                      <div style={{ background: "#ffffff", padding: "0.85rem 1rem", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-                        <span style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700, display: "block" }}>Cataloged Articles</span>
-                        <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "#334155" }}>{j.articlesCount}</span>
+                      <div style={{ background: "var(--color-bg-card)", padding: "0.85rem 1rem", borderRadius: "8px", border: "1px solid var(--color-border)" }}>
+                        <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700, display: "block" }}>Cataloged Articles</span>
+                        <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--color-text-body)" }}>{j.articlesCount}</span>
                       </div>
                     </div>
 
                     {/* Embed Live Verification Badge Box */}
-                    <div style={{ background: "#ffffff", padding: "1rem", borderRadius: "8px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+                    <div style={{ background: "var(--color-bg-card)", padding: "1rem", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
                         <div>
-                          <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#475569", display: "block", marginBottom: "4px" }}>Live AJIF Verification Badge:</span>
+                          <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-muted)", display: "block", marginBottom: "4px" }}>Live AJCI Verification Badge:</span>
                           <a href={`/journal/${j.id}`} target="_blank" rel="noopener noreferrer">
                             <img src={`/api/badge/${j.id}`} alt="AfriJournal Verified" style={{ height: "28px" }} />
                           </a>
@@ -1688,7 +1722,7 @@ function ResearcherProfileContent() {
 
           {/* Section 2: Submissions & Evaluation Pipeline */}
           {data.submissions && data.submissions.length > 0 && (
-            <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+            <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "1rem" }}>
                 <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text-main)", margin: 0, display: "flex", alignItems: "center", gap: "0.6rem" }}>
                   <i className="fa-solid fa-list-check" style={{ color: "var(--color-primary)" }}></i>
@@ -1703,7 +1737,7 @@ function ResearcherProfileContent() {
                     UNDER_REVIEW: { label: "Under Automated Crawl", bg: "#eff6ff", color: "#1d4ed8", border: "#bfdbfe", icon: "fa-magnifying-glass" },
                     PENDING: { label: "Evaluation In Progress", bg: "#fffbeb", color: "#b45309", border: "#fde68a", icon: "fa-clock" },
                     REJECTED: { label: "Editorial Flags Detected", bg: "#fef2f2", color: "#b91c1c", border: "#fecaca", icon: "fa-triangle-exclamation" }
-                  }[s.status as string] || { label: s.status, bg: "#f1f5f9", color: "#334155", border: "#cbd5e1", icon: "fa-circle-info" };
+                  }[s.status as string] || { label: s.status, bg: "#f1f5f9", color: "var(--color-text-body)", border: "#cbd5e1", icon: "fa-circle-info" };
 
                   return (
                     <div 
@@ -1711,8 +1745,8 @@ function ResearcherProfileContent() {
                       style={{ 
                         padding: "1.2rem 1.4rem", 
                         borderRadius: "10px", 
-                        border: "1px solid #e2e8f0", 
-                        background: "#f8fafc",
+                        border: "1px solid var(--color-border)", 
+                        background: "var(--color-bg-card-subtle)",
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
@@ -1725,7 +1759,7 @@ function ResearcherProfileContent() {
                           <span style={{ background: statusConfig.bg, color: statusConfig.color, border: `1px solid ${statusConfig.border}`, padding: "0.15rem 0.55rem", borderRadius: "4px", fontSize: "0.75rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "4px" }}>
                             <i className={`fa-solid ${statusConfig.icon}`}></i> {statusConfig.label}
                           </span>
-                          <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                          <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
                             Submitted {new Date(s.createdAt).toLocaleDateString()}
                           </span>
                         </div>
@@ -1734,7 +1768,7 @@ function ResearcherProfileContent() {
                           {s.journalName}
                         </h4>
 
-                        <p style={{ margin: 0, fontSize: "0.82rem", color: "#64748b" }}>
+                        <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
                           ISSN: {s.issn || s.eissn || "Pending"} • Frequency: {s.frequency} • Origin: {s.country}
                         </p>
                       </div>
@@ -1755,7 +1789,7 @@ function ResearcherProfileContent() {
 
           {/* Empty State: No journals and no submissions */}
           {(!data.journals || data.journals.length === 0) && (!data.submissions || data.submissions.length === 0) && (
-            <div className="card-surface" style={{ padding: "3.5rem 1.5rem", borderRadius: "16px", border: "1px dashed #cbd5e1", background: "#f8fafc", textAlign: "center" }}>
+            <div className="card-surface" style={{ padding: "3.5rem 1.5rem", borderRadius: "16px", border: "1px dashed #cbd5e1", background: "var(--color-bg-card-subtle)", textAlign: "center" }}>
               <i className="fa-solid fa-newspaper" style={{ fontSize: "3rem", color: "var(--color-primary)", marginBottom: "1rem", display: "block" }}></i>
               <h3 style={{ fontSize: "1.3rem", fontWeight: 700, color: "var(--color-text-main)", margin: "0 0 0.5rem" }}>
                 Editorial & Academic Journal Management
@@ -1809,7 +1843,7 @@ function ResearcherProfileContent() {
                 overflowY: "auto",
                 padding: "2rem",
                 borderRadius: "16px",
-                background: "#ffffff"
+                background: "var(--color-bg-card)"
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
@@ -1826,7 +1860,7 @@ function ResearcherProfileContent() {
               </div>
 
               {/* Photo Upload Section */}
-              <div style={{ display: "flex", alignItems: "center", gap: "1.2rem", padding: "1rem", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "1.2rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "1.2rem", padding: "1rem", background: "var(--color-bg-card-subtle)", borderRadius: "8px", border: "1px solid var(--color-border)", marginBottom: "1.2rem" }}>
                 <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#1e293b", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", fontWeight: 700, overflow: "hidden", border: "2px solid #cbd5e1" }}>
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -1846,7 +1880,7 @@ function ResearcherProfileContent() {
                       </button>
                     )}
                   </div>
-                  <span style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "4px", display: "block" }}>
+                  <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "4px", display: "block" }}>
                     Recommended: Square JPG or PNG, max 2MB.
                   </span>
                 </div>
@@ -1963,7 +1997,7 @@ function ResearcherProfileContent() {
                   )}
 
                   {!orcidCheckStatus.verified && !orcidCheckStatus.error && (
-                    <span style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "3px", display: "block" }}>
+                    <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "3px", display: "block" }}>
                       Must exist in the official Open Researcher and Contributor ID registry (orcid.org).
                     </span>
                   )}
@@ -2029,7 +2063,7 @@ function ResearcherProfileContent() {
                 maxWidth: "600px",
                 padding: "2rem",
                 borderRadius: "16px",
-                background: "#ffffff"
+                background: "var(--color-bg-card)"
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem" }}>
@@ -2069,7 +2103,7 @@ function ResearcherProfileContent() {
               </div>
 
               {/* Citation Box */}
-              <div style={{ background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "1.2rem", fontSize: "0.88rem", lineHeight: 1.6, color: "#1e293b", fontFamily: citeFormat === "BibTeX" ? "monospace" : "inherit", wordBreak: "break-word", marginBottom: "1.2rem" }}>
+              <div style={{ background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", borderRadius: "6px", padding: "1.2rem", fontSize: "0.88rem", lineHeight: 1.6, color: "var(--color-text-body)", fontFamily: citeFormat === "BibTeX" ? "monospace" : "inherit", wordBreak: "break-word", marginBottom: "1.2rem" }}>
                 {citeFormat === "APA" && (
                   `${profile.name}. (${activeCiteArticle.publishedYear || 2024}). ${activeCiteArticle.title}. ${activeCiteArticle.journalName}. https://doi.org/${activeCiteArticle.doi}`
                 )}
@@ -2133,7 +2167,7 @@ function ResearcherProfileContent() {
                 overflowY: "auto",
                 padding: "2rem",
                 borderRadius: "16px",
-                background: "#ffffff"
+                background: "var(--color-bg-card)"
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
@@ -2156,13 +2190,13 @@ function ResearcherProfileContent() {
               {verifyingArticle ? (
                 <div>
                   {/* Selected Publication Card */}
-                  <div style={{ padding: "1.2rem", background: "#f8fafc", borderRadius: "8px", border: "1px solid #cbd5e1", marginBottom: "1.2rem" }}>
+                  <div style={{ padding: "1.2rem", background: "var(--color-bg-card-subtle)", borderRadius: "8px", border: "1px solid var(--color-border)", marginBottom: "1.2rem" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-                      <span style={{ fontSize: "0.72rem", background: "#f1f5f9", color: "#334155", border: "1px solid #cbd5e1", padding: "0.2rem 0.5rem", borderRadius: "4px", fontWeight: 700, textTransform: "uppercase" }}>
+                      <span style={{ fontSize: "0.72rem", background: "var(--color-bg-card-subtle)", color: "var(--color-text-body)", border: "1px solid var(--color-border)", padding: "0.2rem 0.5rem", borderRadius: "4px", fontWeight: 700, textTransform: "uppercase" }}>
                         Selected Publication
                       </span>
                       {verifyingArticle.doi && (
-                        <span style={{ fontSize: "0.75rem", color: "#64748b", fontFamily: "monospace" }}>
+                        <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", fontFamily: "monospace" }}>
                           DOI: {verifyingArticle.doi}
                         </span>
                       )}
@@ -2177,12 +2211,12 @@ function ResearcherProfileContent() {
 
                   {/* Crossref Metadata Pre-check status */}
                   {verificationLoading ? (
-                    <div style={{ padding: "2rem 1rem", textAlign: "center", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "1.2rem" }}>
+                    <div style={{ padding: "2rem 1rem", textAlign: "center", background: "var(--color-bg-card-subtle)", borderRadius: "8px", border: "1px solid var(--color-border)", marginBottom: "1.2rem" }}>
                       <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "1.8rem", color: "var(--color-primary)", marginBottom: "0.75rem" }}></i>
-                      <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "0.92rem" }}>
+                      <div style={{ fontWeight: 600, color: "var(--color-text-body)", fontSize: "0.92rem" }}>
                         Querying Crossref & ORCID Metadata Registries...
                       </div>
-                      <p style={{ fontSize: "0.78rem", color: "#64748b", margin: "0.25rem 0 0" }}>
+                      <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", margin: "0.25rem 0 0" }}>
                         Authenticating publication DOI against international author indexes.
                       </p>
                     </div>
@@ -2223,13 +2257,13 @@ function ResearcherProfileContent() {
 
                   {/* Non-match Institutional Email & Justification Form */}
                   {!verificationLoading && !verificationData?.isMatch && (
-                    <div style={{ background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "1.2rem", marginBottom: "1.2rem" }}>
-                      <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#1e293b", marginBottom: "0.6rem" }}>
+                    <div style={{ background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", borderRadius: "8px", padding: "1.2rem", marginBottom: "1.2rem" }}>
+                      <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "var(--color-text-body)", marginBottom: "0.6rem" }}>
                         Co-Author Verification Details (Required)
                       </div>
                       
                       <div style={{ marginBottom: "0.85rem" }}>
-                        <label className="form-label" style={{ fontSize: "0.82rem", fontWeight: 600, color: "#334155" }}>
+                        <label className="form-label" style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--color-text-body)" }}>
                           Official Institutional Email Address <span style={{ color: "#dc2626" }}>*</span>
                         </label>
                         <input 
@@ -2240,13 +2274,13 @@ function ResearcherProfileContent() {
                           className="form-control"
                           style={{ fontSize: "0.85rem" }}
                         />
-                        <span style={{ fontSize: "0.72rem", color: "#64748b" }}>
+                        <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted)" }}>
                           Must be an accredited university or research institute email address.
                         </span>
                       </div>
 
                       <div>
-                        <label className="form-label" style={{ fontSize: "0.82rem", fontWeight: 600, color: "#334155" }}>
+                        <label className="form-label" style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--color-text-body)" }}>
                           Authorship Justification / Discrepancy Note (Optional)
                         </label>
                         <textarea 
@@ -2368,7 +2402,7 @@ function ResearcherProfileContent() {
                               {art.title}
                             </div>
                             <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "0.2rem" }}>
-                              {art.journal?.name} • DOI: {art.doi || "N/A"}
+                              {art.journal?.name}{art.doi ? ` • DOI: ${art.doi}` : ""}
                             </div>
                           </div>
                           <button

@@ -33,17 +33,17 @@
     "cta_explore": "استكشف الدليل",
     "cta_institution": "لوحة تحكم الجامعات",
     "card_title": "المقاييس المميزة للمجلة",
-    "card_if": "معامل تأثير إفريقي (AJIF)",
+    "card_if": "معامل تأثير إفريقي (AJCI)",
     "card_grade": "درجة الجودة",
     "card_score": "الدرجة: 1.482",
-    "card_regional": "معامل التأثير الإقليمي الموزون",
+    "card_regional": "مؤشر الاستشهاد الإقليمي الموزون",
     "card_regional_sub": "موزون بسرعة الاستشهادات الإقليمية وإتاحة الوصول الحر"
   },
   "stats": {
     "journals": "مجلة إفريقية مفهرسة",
     "free_indexing": "فهرسة مفتوحة ومجانية",
     "languages": "لغات معتمدة",
-    "metrics": "مقاييس AJIF الحصرية",
+    "metrics": "مقاييس AJCI الحصرية",
     "countries_covered": "دولة إفريقية مشمولة",
     "verified_rate": "التحقق التحريري"
   },
@@ -122,7 +122,7 @@
     "tagline": "تمكين الاكتشاف العلمي الإفريقي."
   },
   "rankings_page": {
-    "title": "تصنيفات وأرباع مجلات AJIF",
+    "title": "تصنيفات وأرباع مجلات AJCI",
     "subtitle": "جدول ترتيب مباشر للمجلات البحثية الإفريقية المصنفة حسب الأرباع التخصصية (Q1–Q4) والمرتبة بمؤشرات تأثير معتمدة.",
     "filter_country": "تصفية حسب الدولة",
     "all_countries": "جميع الدول الإفريقية",
@@ -135,7 +135,7 @@
     "col_journal": "اسم المجلة والناشر",
     "col_country": "الدولة",
     "col_discipline": "التخصص",
-    "col_ajif": "معامل AJIF القياسي",
+    "col_ajif": "معامل AJCI القياسي",
     "col_regional": "الدرجة الإقليمية",
     "col_quartile": "الربع (Quartile)",
     "col_grade": "الدرجة",
@@ -261,7 +261,7 @@
     "filter_all_disciplines": "جميع التخصصات",
     "filter_all_grades": "جميع درجات الجودة",
     "filter_sort": "ترتيب حسب",
-    "sort_ajif": "الأعلى في معامل التأثير (AJIF)",
+    "sort_ajif": "الأعلى في مؤشر الاستشهاد (AJCI)",
     "sort_name": "أبجدياً (A-Z)",
     "sort_citations": "الأكثر استشهاداً",
     "no_results": "لم يتم العثور على مجلات تطابق معايير البحث.",
@@ -270,7 +270,7 @@
     "issn": "الرقم المعياري",
     "publisher": "الناشر",
     "country": "الدولة",
-    "score": "درجة AJIF"
+    "score": "درجة AJCI"
   },
   "journal_page": {
     "back_to_browse": "← العودة إلى الدليل",
@@ -283,9 +283,9 @@
     "issn_print": "الرقم المعياري المطبوع",
     "issn_electronic": "الرقم المعياري الإلكتروني",
     "visit_website": "زيارة الموقع الرسمي",
-    "impact_metrics_title": "مقاييس التأثير AJIF",
+    "impact_metrics_title": "مقاييس التأثير AJCI",
     "impact_metrics_desc": "محسوبة بنافذة استشهاد مدتها سنتان مع مضاعف إقليمي إفريقي موزون",
-    "standard_ajif": "درجة AJIF القياسية",
+    "standard_ajif": "درجة AJCI القياسية",
     "regional_ajif": "الدرجة الإقليمية الموزونة",
     "citable_articles": "الأبحاث القابلة للاستشهاد",
     "citations_received": "الاستشهادات المستلمة",
@@ -312,7 +312,7 @@
   },
   "pricing_page": {
     "title": "أسعار تقارير التقييم والمقاييس",
-    "desc": "فهرسة المجلات مجانية تماماً. يمكنك طلب تقارير تحليل المقاييس المتقدمة وتقييم معامل التأثير لزيادة الظهور.",
+    "desc": "فهرسة المجلات مجانية تماماً. يمكنك طلب تقارير تحليل المقاييس المتقدمة وتقييم مؤشر الاستشهاد لزيادة الظهور.",
     "free_title": "الفهرسة القياسية",
     "free_price": "$0",
     "free_sub": "/ مجاناً دائماً",
@@ -325,7 +325,7 @@
     "basic_price": "$99",
     "basic_sub": "/ دفعة واحدة",
     "basic_desc": "يحسب معامل تأثير الاستشهادات القياسي لسنتين ويوفر صفحة تقييم رسمية.",
-    "basic_feature1": "حساب معامل AJIF القياسي",
+    "basic_feature1": "حساب معامل AJCI القياسي",
     "basic_feature2": "أداة شارة التحقق للموقع",
     "basic_feature3": "ورقة تفصيل الاستشهادات",
     "basic_feature4": "التصنيف التخصصي للمجلة",
@@ -333,7 +333,7 @@
     "premium_price": "$349",
     "premium_sub": "/ دفعة واحدة",
     "premium_desc": "تقرير تقييم شامل مع خرائط مسارات الاستشهاد، ودرجة التأثير المحلي، ودليل التحسين.",
-    "premium_feature1": "معامل التأثير القياسي + الإقليمي المخصص",
+    "premium_feature1": "مؤشر الاستشهاد القياسي + الإقليمي المخصص",
     "premium_feature2": "خرائط الاستشهاد التفاعلية",
     "premium_feature3": "تقرير فحص الانتحال العلمي",
     "premium_feature4": "خطة تعزيز الظهور لمدة 12 شهراً",
@@ -373,8 +373,8 @@
   },
   "methodology_page": {
     "desc": "كيف نحسب معاملات تأثير الاستشهاد والمضاعفات الإقليمية للمجلات الإفريقية.",
-    "formula_title": "معامل تأثير المجلات الإفريقية (AJIF)",
-    "formula_desc": "يتم احتساب AJIF سنوياً من خلال تتبع المقالات المحكمة وإحصاء الاستشهادات المسجلة داخل دليل AfriJournal.",
+    "formula_title": "معامل تأثير المجلات الإفريقية (AJCI)",
+    "formula_desc": "يتم احتساب AJCI سنوياً من خلال تتبع المقالات المحكمة وإحصاء الاستشهادات المسجلة داخل دليل AfriJournal.",
     "formula_num": "الاستشهادات في عام 2025 للأبحاث المنشورة في 2023-2024",
     "formula_den": "إجمالي الأبحاث القابلة للاستشهاد المنشورة في 2023-2024",
     "regional_formula_title": "مضاعف التأثير الإقليمي الموزون",
@@ -391,7 +391,7 @@
       "items": [
         {
           "q": "ما هو فهرس AfriJournal Index؟",
-          "a": "فهرس AfriJournal Index (AJIF) هو منصة فهرسة أكاديمية مفتوحة الوصول مخصصة للمجلات البحثية الإفريقية لحساب معاملات التأثير وإبراز الباحثين مجاناً."
+          "a": "فهرس AfriJournal Index (AJCI) هو منصة فهرسة أكاديمية مفتوحة الوصول مخصصة للمجلات البحثية الإفريقية لحساب مؤشرات الاستشهاد وإبراز الباحثين مجاناً."
         },
         {
           "q": "هل المنصة مجانية للاستخدام؟",
@@ -411,7 +411,7 @@
     "sec2_title": "وصف المنصة",
     "sec2_p1": "AfriJournal Index هو محرك فهرسة أكاديمية مفتوح لفهرسة وتصنيف المجلات الإفريقية ومتابعة استشهاداتها. توفر المنصة:",
     "sec2_li1": "تقديم المجلات والتقييم الآلي للامتثال والجودة",
-    "sec2_li2": "احتساب درجات معامل التأثير (القياسي والإقليمي AJIF)",
+    "sec2_li2": "احتساب درجات مؤشر الاستشهاد (القياسي والإقليمي AJCI)",
     "sec2_li3": "ملفات الباحثين مع تحليلات مؤشر هيرش h-index",
     "sec2_li4": "لوحات تحكم مؤشرات الأداء للجامعات والمؤسسات",
     "sec2_li5": "منتديات التحكيم العلمي ونقاشات الباحثين",
@@ -477,7 +477,7 @@
     "sec2_li3_1": "Server logs (IP address, browser user-agent, request timestamps) for security monitoring",
     "sec2_li3_2": "Automated crawler audit logs verifying journal website responsiveness and SSL encryption",
     "sec2_li3_3": "Session cookies required strictly for platform authentication",
-    "sec3_li1": "Verifying journal eligibility and calculating AJIF citation impact indicators",
+    "sec3_li1": "Verifying journal eligibility and calculating AJCI citation impact indicators",
     "sec3_li2": "Generating researcher profile pages, verified authorship records, and h-index metrics",
     "sec3_li3": "Aggregating university-level research outputs for the Institutional Leaderboard",
     "sec3_li4": "Communicating evaluation results, crawler audit logs, and account notices",

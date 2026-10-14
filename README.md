@@ -47,7 +47,7 @@ src/app/
  ├── page.tsx                  → Home / Hero landing page
  ├── about/                    → Platform mission and methodology
  ├── browse/                   → Journal catalog with search and filters
- ├── rankings/                 → Live AJIF impact factor leaderboard
+ ├── rankings/                 → Live AJCI citation index leaderboard
  ├── submit/                   → Journal submission wizard (3-step form)
  │   └── status/               → Evaluation status dashboard & forum
  ├── pricing/                  → Free vs. premium indexing tiers
@@ -69,7 +69,7 @@ src/app/
 - [ ] DOI resolver and CrossRef citation auto-import
 - [ ] Bulk journal seeding via Excel/CSV upload pipeline
 - [ ] Email notification system for evaluation status changes
-- [ ] PDF Impact Factor Report generation and download
+- [ ] PDF Citation Metrics Report generation and download
 - [ ] Admin panel for manual journal verification override
 - [ ] Public API with rate-limited access keys for institutional integrations
 

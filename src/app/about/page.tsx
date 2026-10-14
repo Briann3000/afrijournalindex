@@ -27,7 +27,7 @@ export default function About() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
           {/* Mission Card */}
-          <div className="card-surface" style={{ padding: "2.5rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+          <div className="card-surface" style={{ padding: "2.5rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem" }}>
               <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(13, 148, 136, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary)" }}>
                 <i className="fa-solid fa-earth-africa" style={{ fontSize: "1.1rem" }}></i>
@@ -50,7 +50,7 @@ export default function About() {
               {t.about_page.pillars_title || "Our Core Academic Pillars"}
             </h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1.25rem" }}>
-              <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+              <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "14px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
                 <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#2563eb", marginBottom: "1rem" }}>
                   <i className="fa-solid fa-lock-open" style={{ fontSize: "1.1rem" }}></i>
                 </div>
@@ -62,7 +62,7 @@ export default function About() {
                 </p>
               </div>
 
-              <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+              <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "14px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
                 <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#ecfdf5", display: "flex", alignItems: "center", justifyContent: "center", color: "#059669", marginBottom: "1rem" }}>
                   <i className="fa-solid fa-chart-line" style={{ fontSize: "1.1rem" }}></i>
                 </div>
@@ -70,11 +70,11 @@ export default function About() {
                   {t.about_page.pillar_metrics || "Transparent African Bibliometrics"}
                 </h3>
                 <p style={{ fontSize: "0.88rem", color: "var(--color-text-body)", lineHeight: "1.6", margin: 0 }}>
-                  {t.about_page.pillar_metrics_text || "Objective impact calculation models (AJIF) and citation tracking designed to reflect African scientific advancement."}
+                  {t.about_page.pillar_metrics_text || "Objective citation calculation models (AJCI) and citation tracking designed to reflect African scientific advancement."}
                 </p>
               </div>
 
-              <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+              <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "14px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
                 <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#fef3c7", display: "flex", alignItems: "center", justifyContent: "center", color: "#d97706", marginBottom: "1rem" }}>
                   <i className="fa-solid fa-microchip" style={{ fontSize: "1.1rem" }}></i>
                 </div>
@@ -89,7 +89,7 @@ export default function About() {
           </div>
 
           {/* Governance & COPE Alignment Card */}
-          <div className="card-surface" style={{ padding: "2.5rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+          <div className="card-surface" style={{ padding: "2.5rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem" }}>
               <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(2, 132, 199, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0284c7" }}>
                 <i className="fa-solid fa-shield-halved" style={{ fontSize: "1.1rem" }}></i>

@@ -26,7 +26,7 @@
     "pre_badge": "Pan-African Scholarly Index & Bibliometric Authority",
     "title": "Elevating African Academic Excellence Through Verified Indexation",
     "title_highlight": "Academic Excellence",
-    "subtitle": "An open, transparent indexing directory and citation metrics engine designed to value African scientific research, eliminate predatory barriers, and calculate verified regional impact factors.",
+    "subtitle": "An open, transparent indexing directory and citation metrics engine designed to value African scientific research, eliminate predatory barriers, and calculate verified regional citation metrics.",
     "search_placeholder": "Search 300+ indexed journals, universities or DOIs...",
     "search_btn": "Search Index",
     "cta_submit": "Index Your Journal (Free)",
@@ -76,8 +76,8 @@
     "desc": "AfriJournal Index overcomes the visibility barriers that African academic editors and researchers face daily.",
     "indexing_title": "Free & Open Indexing",
     "indexing_text": "We index peer-reviewed journals published on the African continent completely free of charge, making African scholarship globally discoverable.",
-    "if_title": "Credible Impact Factors",
-    "if_text": "Access rigorous, transparent calculations of your journal's citation impact factor to increase institutional prestige.",
+    "if_title": "Credible Citation Metrics",
+    "if_text": "Access rigorous, transparent calculations of your journal's citation performance index to increase institutional prestige.",
     "eval_title": "Automated Verification",
     "eval_text": "Our platform runs automated checks on ISSN, publication history, SSL security, and editorial boards to verify quality status instantly.",
     "regional_title": "Regional Context Weighting",
@@ -306,13 +306,13 @@
     "not_found_title": "Journal Not Found",
     "not_found_desc": "The requested journal could not be located in the AfriJournal Index registry.",
     "badge_widget_title": "Embed Verification Badge",
-    "badge_embed_desc": "Embed this live AJIF verification badge on your journal website to display your official indexing status:",
+    "badge_embed_desc": "Embed this live AJCI verification badge on your journal website to display your official indexing status:",
     "copy_code": "Copy Embed Code",
     "copied": "Copied!"
   },
   "pricing_page": {
     "title": "Evaluation & Metric Report Pricing",
-    "desc": "Journal indexing is completely free. Purchase detailed metric analysis and impact factor evaluation reports to build visibility.",
+    "desc": "Journal indexing is completely free. Purchase detailed metric analysis and citation evaluation reports to build visibility.",
     "free_title": "Standard Indexing",
     "free_price": "$0",
     "free_sub": "/ Free forever",
@@ -321,11 +321,11 @@
     "free_feature2": "Basic Metadata Archiving",
     "free_feature3": "Automated Quality Checks",
     "free_feature4": "Directory Search Indexing",
-    "basic_title": "Basic Impact Report",
+    "basic_title": "Basic Citation Report",
     "basic_price": "$99",
     "basic_sub": "/ one-time",
-    "basic_desc": "Calculates your standard 2-year citation impact factor and provides a formal rating page.",
-    "basic_feature1": "Standard AJIF Calculation",
+    "basic_desc": "Calculates your standard 2-year citation index and provides a formal rating page.",
+    "basic_feature1": "Standard AJCI Calculation",
     "basic_feature2": "Verification Badge Widget",
     "basic_feature3": "Citation Breakdown Sheet",
     "basic_feature4": "Performance Ranking (Discipline)",
@@ -333,7 +333,7 @@
     "premium_price": "$349",
     "premium_sub": "/ one-time",
     "premium_desc": "Comprehensive evaluation report with citation path maps, local impact scoring, and improvement guide.",
-    "premium_feature1": "Standard + Custom Regional IF",
+    "premium_feature1": "Standard AJCI + Custom Regional Score",
     "premium_feature2": "Interactive Citation Maps",
     "premium_feature3": "Plagiarism Compliance Report",
     "premium_feature4": "12-Month Visibility Guide",
@@ -352,7 +352,7 @@
     "pillar_open": "Open & Free Infrastructure",
     "pillar_open_text": "Zero submission fees, zero subscription paywalls, and zero barriers for African journals and researchers.",
     "pillar_metrics": "Transparent African Bibliometrics",
-    "pillar_metrics_text": "Objective impact calculation models (AJIF) and citation tracking designed to reflect African scientific advancement.",
+    "pillar_metrics_text": "Objective citation calculation models (AJCI) and citation tracking designed to reflect African scientific advancement.",
     "pillar_capacity": "Automated Publisher Empowerment",
     "pillar_capacity_text": "Instant crawler compliance diagnostics helping editorial teams identify and fix metadata deficiencies."
   },
@@ -372,9 +372,9 @@
     "phone_title": "Telephone Support"
   },
   "methodology_page": {
-    "desc": "How we calculate standard citation impact factors and regional multipliers for African journals.",
-    "formula_title": "African Journal Impact Factor (AJIF)",
-    "formula_desc": "The African Journal Impact Factor (AJIF) is computed annually by tracking peer-reviewed articles and counting citations registered within the AfriJournal directory.",
+    "desc": "How we calculate standard citation indexes and regional multipliers for African journals.",
+    "formula_title": "AfriJournal Citation Index (AJCI)",
+    "formula_desc": "The AfriJournal Citation Index (AJCI) is computed annually by tracking peer-reviewed articles and counting citations registered within the AfriJournal directory.",
     "formula_num": "Citations in 2025 to articles published in 2023-2024",
     "formula_den": "Total citable items published in 2023-2024",
     "regional_formula_title": "Regional Weighted Impact Multiplier",
@@ -391,7 +391,7 @@
       "items": [
         {
           "q": "What is AfriJournal Index?",
-          "a": "AfriJournal Index (AJIF) is an open-access academic indexing and bibliometric platform built specifically for African research journals. We catalog peer-reviewed journals, compute calculated impact factor scores, track citations, and provide researcher profile dashboards — all without paywalls."
+          "a": "AfriJournal Index (AJCI) is an open-access academic indexing and bibliometric platform built specifically for African research journals. We catalog peer-reviewed journals, compute calculated citation index scores, track citations, and provide researcher profile dashboards — all without paywalls."
         },
         {
           "q": "Is AfriJournal Index free to use?",
@@ -403,7 +403,7 @@
         },
         {
           "q": "Which countries are covered?",
-          "a": "The Platform indexes journals from all 54 African countries. Our regional AJIF score gives proportional weight to publication volume and open access availability within the continent, ensuring journals from all regional research ecosystems are fairly represented."
+          "a": "The Platform indexes journals from all 54 African countries. Our regional representation score gives proportional weight to publication volume and open access availability within the continent, ensuring journals from all regional research ecosystems are fairly represented."
         }
       ]
     },
@@ -501,9 +501,9 @@
     "sec1_p1": "By accessing the AfriJournal Index platform, creating an account, or submitting a journal for evaluation, you confirm that you have read, understood, and agree to be bound by these Terms & Conditions and our Privacy Policy.",
     "sec1_p2": "If you are acting on behalf of an academic institution, journal publisher, or editorial board, you warrant that you hold the legal authority to bind that entity to these Terms.",
     "sec2_title": "Platform Scope & Services",
-    "sec2_p1": "AfriJournal Index provides an open, non-commercial academic infrastructure for African scholarship, including:",
+    "sec2_p1": "AfriJournal Index provides an open-access academic infrastructure for African scholarship, including:",
     "sec2_li1": "Automated journal submission and crawler-based quality compliance evaluation",
-    "sec2_li2": "Bibliometric impact computation (AJIF standard score and regional multiplier)",
+    "sec2_li2": "Bibliometric citation index computation (AJCI standard score and regional multiplier)",
     "sec2_li3": "Discipline rankings and quartile classifications (Q1–Q4)",
     "sec2_li4": "Researcher profiles, publication claiming, and dynamic h-index tracking",
     "sec2_li5": "Institutional research consoles and university benchmarking",
@@ -548,7 +548,7 @@
     "subtitle": "Your privacy and academic data rights are paramount. This policy outlines how AfriJournal Index handles personal information in compliance with continental and international data standards.",
     "last_updated": "Last updated: October 2026",
     "sec1_title": "Who We Are & Governance",
-    "sec1_p1": "AfriJournal Index operates as an independent, non-commercial continental academic indexing infrastructure governed by a pan-African scholarly advisory body. We are committed to transparency, open science, and robust data protection.",
+    "sec1_p1": "AfriJournal Index operates as an independent, open-access continental academic indexing infrastructure governed by a pan-African scholarly advisory body. We are committed to transparency, open science, and robust data protection.",
     "sec2_title": "Information We Collect",
     "sec2_p1": "We collect information necessary to provide academic indexing and researcher analytics services:",
     "sec2_h1": "Account Registration Data",
@@ -567,7 +567,7 @@
     "sec2_li3_3": "Session cookies required strictly for platform authentication",
     "sec3_title": "How We Use Collected Information",
     "sec3_p1": "All collected data is processed strictly for academic and operational purposes:",
-    "sec3_li1": "Verifying journal eligibility and calculating AJIF citation impact indicators",
+    "sec3_li1": "Verifying journal eligibility and calculating AJCI citation impact indicators",
     "sec3_li2": "Generating researcher profile pages, verified authorship records, and h-index metrics",
     "sec3_li3": "Aggregating university-level research outputs for the Institutional Leaderboard",
     "sec3_li4": "Communicating evaluation results, crawler audit logs, and account notices",

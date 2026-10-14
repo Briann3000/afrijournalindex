@@ -73,7 +73,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="glass-card" style={{ padding: "2.2rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)" }}>
+    <div className="glass-card" style={{ padding: "2.2rem", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)" }}>
       {redirectParam && (
         <div style={{
           background: "#f0fdf4",
@@ -232,7 +232,7 @@ export default function Login() {
         </div>
 
         <Suspense fallback={
-          <div className="glass-card" style={{ padding: "2rem", textAlign: "center", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)" }}>
+          <div className="glass-card" style={{ padding: "2rem", textAlign: "center", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
             <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: "8px", color: "var(--color-primary)" }}></i>
             Loading login portal...
           </div>

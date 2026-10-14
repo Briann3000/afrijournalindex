@@ -122,8 +122,8 @@ export default function FAQ() {
             textAlign: "center",
             padding: "3rem",
             marginTop: "3.5rem",
-            background: "linear-gradient(135deg, #eff6ff, #f8fafc)",
-            border: "1px solid #bfdbfe"
+            background: "var(--color-bg-card)",
+            border: "1px solid var(--color-border)"
           }}
         >
           <i className="fa-solid fa-circle-question" style={{ fontSize: "2.5rem", color: "var(--color-primary)", marginBottom: "1rem", display: "block" }} />

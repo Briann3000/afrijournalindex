@@ -70,7 +70,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
   };
 
   const verificationHash = journal 
-    ? `AJIF-AUTH-${journal.id.substring(0, 8).toUpperCase()}-${(journal.issn || "REG").replace("-", "")}-2026`
+    ? `AJCI-AUTH-${journal.id.substring(0, 8).toUpperCase()}-${(journal.issn || "REG").replace("-", "")}-2026`
     : "";
 
   const verifyUrl = typeof window !== "undefined" && journal
@@ -104,32 +104,39 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
       doc.rect(13, 13, pageWidth - 26, pageHeight - 26);
 
       // Authority Crest & Title
-      doc.setFont("times", "bold");
-      doc.setFontSize(10);
-      doc.setTextColor(180, 83, 9);
-      doc.text("AFRICAN SCHOLARLY INDEXING & METRIC AUTHORITY", pageWidth / 2, 25, { align: "center" });
+      try {
+        const logoImg = "/logo.png";
+        doc.addImage(logoImg, "PNG", pageWidth / 2 - 8, 16, 16, 16);
+      } catch {
+        // Fallback if image not ready in memory
+      }
 
       doc.setFont("times", "bold");
-      doc.setFontSize(22);
+      doc.setFontSize(9);
+      doc.setTextColor(180, 83, 9);
+      doc.text("AFRICAN SCHOLARLY INDEXING & CITATION AUTHORITY (AJCI)", pageWidth / 2, 36, { align: "center" });
+
+      doc.setFont("times", "bold");
+      doc.setFontSize(20);
       doc.setTextColor(15, 23, 42);
-      doc.text("Certificate of Indexation & Impact", pageWidth / 2, 35, { align: "center" });
+      doc.text("Certificate of Academic Accreditation", pageWidth / 2, 44, { align: "center" });
 
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
+      doc.setFontSize(7.5);
       doc.setTextColor(100, 116, 139);
-      doc.text(`Official Registry Hash: ${verificationHash}`, pageWidth / 2, 42, { align: "center" });
+      doc.text(`Official Registry Hash: ${verificationHash}`, pageWidth / 2, 50, { align: "center" });
 
       // Certification statement
       doc.setFont("times", "italic");
-      doc.setFontSize(11);
+      doc.setFontSize(10.5);
       doc.setTextColor(71, 85, 105);
-      doc.text("This is to formally accredit and certify that the scholarly journal", pageWidth / 2, 54, { align: "center" });
+      doc.text("This is to formally accredit and certify the peer-reviewed scholarly serial", pageWidth / 2, 59, { align: "center" });
 
       // Journal Name
       doc.setFont("times", "bold");
-      doc.setFontSize(18);
+      doc.setFontSize(19);
       doc.setTextColor(13, 148, 136);
-      doc.text(journal.name, pageWidth / 2, 64, { align: "center" });
+      doc.text(journal.name, pageWidth / 2, 68, { align: "center" });
 
       // Journal Details
       doc.setFont("helvetica", "normal");
@@ -290,7 +297,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7.5);
       doc.setTextColor(100, 116, 139);
-      doc.text("African Scholarly Indexing & Metric Authority (AJIF)", p2Margin, letSigY + 12);
+      doc.text("African Scholarly Indexing & Metric Authority (AJCI)", p2Margin, letSigY + 12);
 
       doc.setFont("times", "italic");
       doc.setFontSize(12);
@@ -445,7 +452,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                     <button 
                       onClick={handlePrintCertificate}
                       className="btn btn-secondary"
-                      style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.2rem", fontWeight: 600, fontSize: "0.85rem", background: "#ffffff", borderColor: "#cbd5e1", color: "#334155" }}
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.2rem", fontWeight: 600, fontSize: "0.85rem", background: "var(--color-bg-card)", borderColor: "#cbd5e1", color: "var(--color-text-body)" }}
                     >
                       <i className="fa-solid fa-print"></i>
                       <span>Print Certificate</span>
@@ -476,8 +483,8 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
             <div 
               className="certificate-card"
               style={{
-                background: "#ffffff",
-                color: "#0f172a",
+                background: "var(--color-bg-card)",
+                color: "var(--color-text-main)",
                 borderRadius: "16px",
                 border: "3px solid #b45309",
                 outline: "6px solid rgba(180, 83, 9, 0.12)",
@@ -518,13 +525,20 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
               <div style={{ position: "absolute", bottom: "15px", left: "15px", width: "30px", height: "30px", borderBottom: "2px solid #b45309", borderLeft: "2px solid #b45309" }}></div>
               <div style={{ position: "absolute", bottom: "15px", right: "15px", width: "30px", height: "30px", borderBottom: "2px solid #b45309", borderRight: "2px solid #b45309" }}></div>
 
-              {/* Certificate Header */}
-              <div style={{ textAlign: "center", borderBottom: "2px solid #f1f5f9", paddingBottom: "1.8rem", marginBottom: "2rem", position: "relative", zIndex: 2 }}>
-                <div style={{ fontSize: "0.82rem", color: "#b45309", letterSpacing: "2.5px", fontWeight: 800, textTransform: "uppercase", marginBottom: "0.5rem" }}>
-                  African Scholarly Indexing &amp; Metric Authority
+              {/* Certificate Header: Centered Logo at the Top */}
+              <div style={{ textAlign: "center", borderBottom: "2px solid #f1f5f9", paddingBottom: "1.5rem", marginBottom: "1.8rem", position: "relative", zIndex: 2 }}>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.8rem" }}>
+                  <img 
+                    src="/logo.png" 
+                    alt="AfriJournal Authority Emblem" 
+                    style={{ width: "68px", height: "68px", objectFit: "contain", display: "block" }} 
+                  />
                 </div>
-                <h1 style={{ fontSize: "2.2rem", fontWeight: 900, color: "#0f172a", margin: "0 0 0.5rem", letterSpacing: "-0.01em" }}>
-                  Certificate of Academic Indexation
+                <div style={{ fontSize: "0.85rem", color: "#b45309", letterSpacing: "2.5px", fontWeight: 800, textTransform: "uppercase", marginBottom: "0.4rem" }}>
+                  African Scholarly Indexing &amp; Citation Authority (AJCI)
+                </div>
+                <h1 style={{ fontSize: "2.2rem", fontWeight: 900, color: "var(--color-text-main)", margin: "0 0 0.4rem", letterSpacing: "-0.01em" }}>
+                  Certificate of Academic Accreditation
                 </h1>
                 <div style={{ fontSize: "0.85rem", color: isUnlocked ? "#64748b" : "#d97706", fontWeight: isUnlocked ? 500 : 700, fontFamily: "var(--font-ui), sans-serif" }}>
                   {isUnlocked 
@@ -533,23 +547,23 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                 </div>
               </div>
 
-              {/* Certificate Body Text */}
+              {/* Certificate Body Text: Centered Journal Name Prominently Displayed */}
               <div style={{ textAlign: "center", marginBottom: "2.5rem", position: "relative", zIndex: 2 }}>
-                <p style={{ fontSize: "1rem", color: "#475569", margin: "0 0 1rem", fontStyle: "italic" }}>
+                <p style={{ fontSize: "1rem", color: "var(--color-text-muted)", margin: "0 0 0.8rem", fontStyle: "italic" }}>
                   {isUnlocked 
-                    ? "This is to formally certify that the peer-reviewed scholarly publication" 
+                    ? "This is to formally accredit and certify the peer-reviewed scholarly serial" 
                     : "This baseline sample references the peer-reviewed scholarly publication"}
                 </p>
-                <h2 style={{ fontSize: "2rem", color: "#1e3a8a", margin: "0 0 0.8rem", fontWeight: 800 }}>
+                <h2 style={{ fontSize: "2.2rem", color: "var(--color-primary)", margin: "0 0 0.8rem", fontWeight: 900, letterSpacing: "-0.02em" }}>
                   {journal.name}
                 </h2>
-                <p style={{ fontSize: "1.05rem", color: "#1e293b", margin: 0, fontWeight: 600, fontFamily: "var(--font-ui), sans-serif" }}>
+                <p style={{ fontSize: "1.05rem", color: "var(--color-text-main)", margin: 0, fontWeight: 600, fontFamily: "var(--font-ui), sans-serif" }}>
                   Published by <strong>{journal.publisherName}</strong> • {journal.country}
                 </p>
-                <p style={{ fontSize: "0.9rem", color: "#64748b", margin: "0.4rem 0 0", fontFamily: "var(--font-ui), sans-serif" }}>
+                <p style={{ fontSize: "0.9rem", color: "var(--color-text-muted)", margin: "0.4rem 0 0", fontFamily: "var(--font-ui), sans-serif" }}>
                   Print ISSN: <strong>{journal.issn || "Registered"}</strong> {journal.eissn ? `| Online eISSN: ${journal.eissn}` : ""}
                 </p>
-                <p style={{ fontSize: "0.92rem", color: "#475569", margin: "1.2rem auto 0", maxWidth: "680px", lineHeight: "1.6" }}>
+                <p style={{ fontSize: "0.92rem", color: "var(--color-text-muted)", margin: "1.2rem auto 0", maxWidth: "680px", lineHeight: "1.6" }}>
                   {isUnlocked 
                     ? "has successfully satisfied the editorial compliance screening, open peer-review transparency standards, and citation evaluation criteria for accredited inclusion in the AfriJournal Index Directory."
                     : "is recorded in the baseline directory repository. Formal institutional accreditation and authority certification require completion of the Evaluation Package."}
@@ -557,17 +571,17 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
               </div>
 
               {/* Verified Metrics Badge Grid */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem", background: "#f8fafc", padding: "1.5rem", borderRadius: "10px", border: "1px solid #e2e8f0", marginBottom: "2.5rem", textAlign: "center", fontFamily: "var(--font-ui), sans-serif", position: "relative", zIndex: 2 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem", background: "var(--color-bg-card-subtle)", padding: "1.5rem", borderRadius: "10px", border: "1px solid var(--color-border)", marginBottom: "2.5rem", textAlign: "center", fontFamily: "var(--font-ui), sans-serif", position: "relative", zIndex: 2 }}>
                 <div>
-                  <div style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>AfriJournal Citation Index</div>
-                  <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#1e3a8a", marginTop: "0.2rem" }}>
+                  <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>AfriJournal Citation Index</div>
+                  <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "var(--color-primary)", marginTop: "0.2rem" }}>
                     {journal.latestReport?.standardScore !== undefined ? journal.latestReport.standardScore.toFixed(3) : "1.000"}
                   </div>
                   <div style={{ fontSize: "0.68rem", color: "#94a3b8" }}>2-Year Mean Citation Rate</div>
                 </div>
 
                 <div>
-                  <div style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Regional Rep (RRQ)</div>
+                  <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Regional Rep (RRQ)</div>
                   <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#047857", marginTop: "0.2rem" }}>
                     64.2%
                   </div>
@@ -575,7 +589,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                 </div>
 
                 <div>
-                  <div style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Category Quartile</div>
+                  <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Category Quartile</div>
                   <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#b45309", marginTop: "0.2rem" }}>
                     {journal.quartile || "Q2"}
                   </div>
@@ -583,8 +597,8 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                 </div>
 
                 <div>
-                  <div style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Evaluation Year</div>
-                  <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#0f172a", marginTop: "0.2rem" }}>
+                  <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Evaluation Year</div>
+                  <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "var(--color-text-main)", marginTop: "0.2rem" }}>
                     {journal.latestReport?.year || 2026}
                   </div>
                   <div style={{ fontSize: "0.68rem", color: "#94a3b8" }}>Accredited Cycle</div>
@@ -603,25 +617,25 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                       </svg>
                     </div>
                     <div style={{ width: "150px", height: "1px", background: "#cbd5e1", margin: "0 auto 0.4rem" }}></div>
-                    <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#0f172a", fontFamily: "var(--font-ui), sans-serif" }}>
+                    <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--color-text-main)", fontFamily: "var(--font-ui), sans-serif" }}>
                       Director, Evaluation Board
                     </div>
-                    <div style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "var(--font-ui), sans-serif" }}>
-                      AfriJournal Index (AJIF)
+                    <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", fontFamily: "var(--font-ui), sans-serif" }}>
+                      AfriJournal Index (AJCI)
                     </div>
                   </div>
 
                   {/* Official Gold Embossed Seal & QR Code */}
                   <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", textAlign: "center" }}>
                     {/* Dynamic QR Code */}
-                    <div style={{ border: "1px solid #e2e8f0", padding: "4px", borderRadius: "6px", background: "#ffffff" }}>
+                    <div style={{ border: "1px solid var(--color-border)", padding: "4px", borderRadius: "6px", background: "var(--color-bg-card)" }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img 
                         src={qrCodeUrl} 
                         alt="Scan to Verify Certificate"
                         style={{ width: "75px", height: "75px", display: "block" }} 
                       />
-                      <span style={{ fontSize: "0.58rem", color: "#64748b", display: "block", marginTop: "2px", fontFamily: "var(--font-ui), sans-serif" }}>
+                      <span style={{ fontSize: "0.58rem", color: "var(--color-text-muted)", display: "block", marginTop: "2px", fontFamily: "var(--font-ui), sans-serif" }}>
                         Scan to Verify
                       </span>
                     </div>
@@ -655,10 +669,10 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                       </svg>
                     </div>
                     <div style={{ width: "150px", height: "1px", background: "#cbd5e1", margin: "0 auto 0.4rem" }}></div>
-                    <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#0f172a", fontFamily: "var(--font-ui), sans-serif" }}>
+                    <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--color-text-main)", fontFamily: "var(--font-ui), sans-serif" }}>
                       Certification Desk
                     </div>
-                    <div style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "var(--font-ui), sans-serif" }}>
+                    <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", fontFamily: "var(--font-ui), sans-serif" }}>
                       African Citation &amp; Metric Authority
                     </div>
                   </div>
@@ -705,7 +719,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
 
               {/* Certificate Security Footnote */}
               <div style={{ marginTop: "2rem", textAlign: "center", borderTop: "1px solid #f1f5f9", paddingTop: "0.8rem", fontSize: "0.7rem", color: "#94a3b8", fontFamily: "var(--font-ui), sans-serif", position: "relative", zIndex: 2 }}>
-                AfriJournal Index Registry ID: {journal.id} • Issued by the AJIF Metric Board &amp; Continental Scientific Registry. Valid globally.
+                AfriJournal Index Registry ID: {journal.id} • Issued by the AJCI Metric Board &amp; Continental Scientific Registry. Valid globally.
               </div>
             </div>
 

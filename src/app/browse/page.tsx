@@ -43,10 +43,16 @@ function getDisciplines(name: string, description: string): string[] {
   const text = `${name} ${description}`.toLowerCase();
   const disciplines: string[] = [];
   if (text.includes("education") || text.includes("teaching") || text.includes("pedagog")) {
-    disciplines.push("Education");
+    if (text.includes("social") || text.includes("humanit") || text.includes("sociolog") || text.includes("histor")) {
+      disciplines.push("Education & Social Sciences");
+    } else {
+      disciplines.push("Education");
+    }
   }
   if (text.includes("social") || text.includes("humanit") || text.includes("sociolog") || text.includes("histor") || text.includes("philosoph") || text.includes("religio")) {
-    disciplines.push("Social Sciences");
+    if (!disciplines.includes("Education & Social Sciences")) {
+      disciplines.push("Social Sciences");
+    }
   }
   if (text.includes("management") || text.includes("business") || text.includes("admin") || text.includes("econom")) {
     disciplines.push("Management");
@@ -280,7 +286,7 @@ function BrowseContent() {
   };
 
   const exportCSV = () => {
-    const headers = ["#", "Journal Name", "ISSN", "Publisher", "Country", "Disciplines", "Quartile", "AJIF Score", "Frequency", "Website"];
+    const headers = ["#", "Journal Name", "ISSN", "Publisher", "Country", "Disciplines", "Quartile", "AJCI Score", "Frequency", "Website"];
     const rows = processedJournals.map((j, idx) => [
       idx + 1,
       `"${j.name.replace(/"/g, '""')}"`,
@@ -341,7 +347,7 @@ function BrowseContent() {
             padding: "0.65rem 1.4rem",
             borderRadius: "10px",
             border: activeTab === "journals" ? "2px solid var(--color-primary)" : "1px solid var(--color-border)",
-            background: activeTab === "journals" ? "var(--color-primary-light)" : "#ffffff",
+            background: activeTab === "journals" ? "var(--color-primary-light)" : "var(--color-bg-card)",
             color: activeTab === "journals" ? "var(--color-primary)" : "var(--color-text-main)",
             fontWeight: 700,
             fontSize: "0.92rem",
@@ -362,7 +368,7 @@ function BrowseContent() {
             padding: "0.65rem 1.4rem",
             borderRadius: "10px",
             border: activeTab === "articles" ? "2px solid var(--color-primary)" : "1px solid var(--color-border)",
-            background: activeTab === "articles" ? "var(--color-primary-light)" : "#ffffff",
+            background: activeTab === "articles" ? "var(--color-primary-light)" : "var(--color-bg-card)",
             color: activeTab === "articles" ? "var(--color-primary)" : "var(--color-text-main)",
             fontWeight: 700,
             fontSize: "0.92rem",
@@ -427,6 +433,7 @@ function BrowseContent() {
                   style={{ fontSize: "0.9rem" }}
                 >
                   <option value="">All Subject Fields</option>
+                  <option value="Education & Social Sciences">Education &amp; Social Sciences</option>
                   <option value="Education">Education</option>
                   <option value="Social Sciences">Social Sciences</option>
                   <option value="Management">Management</option>
@@ -488,7 +495,7 @@ function BrowseContent() {
           </div>
 
           {/* Structured High-Contrast Academic Table */}
-          <div className="table-wrapper" style={{ border: "1px solid var(--color-border)", borderRadius: "10px", overflow: "hidden", background: "#ffffff" }}>
+          <div className="table-wrapper" style={{ border: "1px solid var(--color-border)", borderRadius: "10px", overflow: "hidden", background: "var(--color-bg-card)" }}>
             {loadingJournals ? (
               <div style={{ textAlign: "center", padding: "4rem 2rem", color: "var(--color-text-muted)" }}>
                 <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)" }}></i>
@@ -510,7 +517,7 @@ function BrowseContent() {
             ) : (
               <table className="academic-table" style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ background: "#f8fafc", borderBottom: "2px solid #e2e8f0" }}>
+                  <tr style={{ background: "var(--color-bg-card-subtle)", borderBottom: "2px solid var(--color-border)" }}>
                     <th style={{ width: "45px", textAlign: "center", padding: "0.95rem 0.5rem", color: "var(--color-text-muted)", fontSize: "0.82rem" }}>#</th>
                     <th onClick={() => handleSort("name")} style={{ width: "35%", cursor: "pointer", userSelect: "none", padding: "0.95rem 1.2rem" }}>
                       <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
@@ -529,7 +536,7 @@ function BrowseContent() {
                       Tier
                     </th>
                     <th onClick={() => handleSort("score")} style={{ width: "10%", textAlign: "right", cursor: "pointer", userSelect: "none", padding: "0.95rem 1rem" }}>
-                      AJIF Score
+                      AJCI Score
                     </th>
                     <th style={{ width: "13%", textAlign: "right", padding: "0.95rem 1.2rem" }}>Actions</th>
                   </tr>
@@ -541,19 +548,19 @@ function BrowseContent() {
                     const rowNum = (currentPage - 1) * pageSize + index + 1;
 
                     return (
-                      <tr key={journal.id || index} style={{ borderBottom: "1px solid var(--color-border)", background: index % 2 === 0 ? "#ffffff" : "#fafcff" }}>
+                      <tr key={journal.id || index} style={{ borderBottom: "1px solid var(--color-border)", background: index % 2 === 0 ? "transparent" : "rgba(255, 255, 255, 0.02)" }}>
                         <td style={{ textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.82rem", fontWeight: 600, padding: "0.9rem 0.5rem" }}>
                           {rowNum}
                         </td>
                         <td style={{ padding: "0.9rem 1.2rem" }}>
                           <a 
                             href={`/journal/${journal.id || journal.issn}`}
-                            style={{ color: "var(--color-navy)", fontWeight: 700, textDecoration: "none", fontSize: "0.95rem", display: "block", marginBottom: "0.25rem", lineHeight: 1.35 }}
+                            style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "0.95rem", display: "block", marginBottom: "0.25rem", lineHeight: 1.35 }}
                           >
                             {journal.name}
                           </a>
                           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem", fontSize: "0.79rem", color: "var(--color-text-muted)" }}>
-                            <span style={{ background: "#f1f5f9", padding: "0.1rem 0.4rem", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
+                            <span style={{ background: "var(--color-bg-card-subtle)", padding: "0.1rem 0.4rem", borderRadius: "4px", border: "1px solid var(--color-border)" }}>
                               <strong>ISSN:</strong> {journal.issn}
                             </span>
                             <span>•</span>
@@ -612,9 +619,9 @@ function BrowseContent() {
 
             {/* Pagination Controls */}
             {processedJournals.length > 0 && (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.85rem 1.2rem", background: "#f8fafc", borderTop: "1px solid var(--color-border)", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.85rem 1.2rem", background: "var(--color-bg-card-subtle)", borderTop: "1px solid var(--color-border)", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
                 <span>
-                  Showing <strong style={{ color: "var(--color-navy)" }}>{(currentPage - 1) * pageSize + 1}</strong> – <strong style={{ color: "var(--color-navy)" }}>{Math.min(currentPage * pageSize, processedJournals.length)}</strong> of <strong>{processedJournals.length}</strong> journals
+                  Showing <strong style={{ color: "var(--color-text-main)" }}>{(currentPage - 1) * pageSize + 1}</strong> – <strong style={{ color: "var(--color-text-main)" }}>{Math.min(currentPage * pageSize, processedJournals.length)}</strong> of <strong>{processedJournals.length}</strong> journals
                 </span>
                 <div style={{ display: "flex", gap: "0.4rem" }}>
                   <button
@@ -841,9 +848,9 @@ function BrowseContent() {
                     </div>
 
                     <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                      {art.doi && (
+                      {art.doi && art.doi.startsWith("10.") && !art.doi.includes("zenodo.arjess") && !art.doi.includes("10.5130") && !art.doi.includes("10.59235") && (
                         <a
-                          href={`https://doi.org/${art.doi}`}
+                          href={`https://doi.org/${art.doi.trim()}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="btn btn-secondary btn-sm"
@@ -915,7 +922,7 @@ function BrowseContent() {
                 };
 
                 return (
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.1rem 1.4rem", marginTop: "1rem", background: "#f8fafc", borderRadius: "12px", border: "1px solid var(--color-border)", fontSize: "0.85rem", color: "var(--color-text-muted)", flexWrap: "wrap", gap: "0.8rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.1rem 1.4rem", marginTop: "1rem", background: "var(--color-bg-card-subtle)", borderRadius: "12px", border: "1px solid var(--color-border)", fontSize: "0.85rem", color: "var(--color-text-muted)", flexWrap: "wrap", gap: "0.8rem" }}>
                     <span>
                       Showing <strong style={{ color: "var(--color-navy)" }}>{(articlePage - 1) * articlePageSize + 1}</strong> – <strong style={{ color: "var(--color-navy)" }}>{Math.min(articlePage * articlePageSize, articleTotal)}</strong> of <strong style={{ color: "var(--color-navy)" }}>{articleTotal.toLocaleString()}</strong> articles
                     </span>

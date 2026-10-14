@@ -169,7 +169,7 @@ export default function Submit() {
         </div>
 
         {/* Status Lookup Search Block */}
-        <div className="card-surface" style={{ marginBottom: "2rem", padding: "1.75rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+        <div className="card-surface" style={{ marginBottom: "2rem", padding: "1.75rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
           <form onSubmit={handleLookup}>
             <label htmlFor="lookupInput" className="form-label" style={{ marginBottom: "0.5rem", fontSize: "0.85rem", fontWeight: 700 }}>
               <i className="fa-solid fa-magnifying-glass" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i>
@@ -206,7 +206,7 @@ export default function Submit() {
 
         {/* Automated Evaluation & Criteria Notice */}
         <div style={{
-          background: "#ffffff",
+          background: "var(--color-bg-card)",
           border: "1px solid var(--color-border)",
           borderRadius: "16px",
           padding: "1.25rem 1.5rem",
@@ -220,7 +220,7 @@ export default function Submit() {
           <p style={{ fontSize: "0.84rem", color: "var(--color-text-body)", lineHeight: "1.6", margin: "0 0 0.85rem" }}>
             AfriJournal Index uses real-time crawler screening to audit official ISSN registries, homepage accessibility, and peer-review transparency upon submission.
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "0.85rem", fontSize: "0.82rem", color: "#475569" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "0.85rem", fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", background: "var(--color-bg-base)", padding: "0.75rem", borderRadius: "10px" }}>
               <i className="fa-solid fa-bolt" style={{ color: "var(--color-primary)", marginTop: "2px" }}></i>
               <div>
@@ -286,7 +286,7 @@ export default function Submit() {
         </div>
 
         {/* Main Form Card */}
-        <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+        <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
           {formError && (
             <div style={{
               background: "#fef2f2",

@@ -175,7 +175,7 @@ function InstitutionContent() {
 
         {/* Tab Navigation */}
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "2rem" }}>
-          <div className="institution-tabs-wrapper" style={{ background: "#ffffff", padding: "0.35rem", borderRadius: "12px", border: "1px solid var(--color-border)", display: "flex", gap: "0.4rem", boxShadow: "var(--card-shadow)", width: "100%", maxWidth: "440px" }}>
+          <div className="institution-tabs-wrapper" style={{ background: "var(--color-bg-card)", padding: "0.35rem", borderRadius: "12px", border: "1px solid var(--color-border)", display: "flex", gap: "0.4rem", boxShadow: "var(--card-shadow)", width: "100%", maxWidth: "440px" }}>
             <button
               onClick={() => {
                 setActiveTab("leaderboard");
@@ -231,7 +231,7 @@ function InstitutionContent() {
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             
             {/* Filter Bar */}
-            <div className="card-surface" style={{ padding: "1.5rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+            <div className="card-surface" style={{ padding: "1.5rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", alignItems: "center" }}>
                 
                 {/* Search query */}
@@ -294,12 +294,12 @@ function InstitutionContent() {
 
             {/* Leaderboard Table / Cards Container */}
             {loadingLeaderboard ? (
-              <div style={{ background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)", padding: "4rem", textAlign: "center" }}>
+              <div style={{ background: "var(--color-bg-card)", borderRadius: "16px", border: "1px solid var(--color-border)", padding: "4rem", textAlign: "center" }}>
                 <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)", marginBottom: "1rem" }}></i>
                 <p style={{ color: "var(--color-text-muted)" }}>{t.rankings_page.loading}</p>
               </div>
             ) : leaderboard.length === 0 ? (
-              <div style={{ background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)", padding: "4rem", textAlign: "center", color: "var(--color-text-muted)" }}>
+              <div style={{ background: "var(--color-bg-card)", borderRadius: "16px", border: "1px solid var(--color-border)", padding: "4rem", textAlign: "center", color: "var(--color-text-muted)" }}>
                 <i className="fa-solid fa-filter-circle-xmark" style={{ fontSize: "2.5rem", marginBottom: "1rem", color: "var(--color-text-muted)" }}></i>
                 <p>{t.institution_page.no_results}</p>
               </div>
@@ -322,7 +322,7 @@ function InstitutionContent() {
                           borderRadius: "14px",
                           border: isTop3 ? "1.5px solid rgba(13, 148, 136, 0.3)" : "1px solid var(--color-border)",
                           boxShadow: "var(--card-shadow)",
-                          background: "#ffffff"
+                          background: "var(--color-bg-card)"
                         }}
                       >
                         {/* Header: Rank + University + Country + h-Index */}
@@ -408,7 +408,7 @@ function InstitutionContent() {
                 </div>
 
                 {/* 2. Desktop Table View (Shown on screens > 768px) */}
-                <div className="institution-desktop-table table-responsive" style={{ background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)", overflowX: "auto" }}>
+                <div className="institution-desktop-table table-responsive" style={{ background: "var(--color-bg-card)", borderRadius: "16px", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)", overflowX: "auto" }}>
                   <table className="academic-table" style={{ width: "100%", minWidth: "720px", borderCollapse: "collapse", textAlign: "left" }}>
                     <thead>
                       <tr style={{ background: "var(--color-bg-alt)", borderBottom: "1px solid var(--color-border)" }}>
@@ -509,7 +509,7 @@ function InstitutionContent() {
                     gap: "1rem",
                     marginTop: "1.5rem",
                     padding: "1rem 1.25rem",
-                    background: "#ffffff",
+                    background: "var(--color-bg-card)",
                     borderRadius: "14px",
                     border: "1px solid var(--color-border)",
                     boxShadow: "var(--card-shadow)"
@@ -595,7 +595,7 @@ function InstitutionContent() {
           <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
             
             {/* Search & Selector Card */}
-            <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+            <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
               <form onSubmit={handleSearchSubmit} style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
                 <div style={{ flex: 1, minWidth: "260px", position: "relative" }}>
                   <i className="fa-solid fa-building-columns" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--color-primary)" }}></i>
@@ -655,7 +655,7 @@ function InstitutionContent() {
               <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
                 
                 {/* Institution Header Banner */}
-                <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
                     <div style={{ flex: 1, minWidth: "260px" }}>
                       <span className="badge-featured" style={{ marginBottom: "0.8rem" }}>
@@ -683,28 +683,28 @@ function InstitutionContent() {
 
                 {/* Metrics 4-Grid */}
                 <div className="institution-metrics-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
-                  <div className="card-surface institution-metric-card" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                  <div className="card-surface institution-metric-card" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
                     <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.institution_page.stats_pubs}</span>
                     <div className="metric-big-number" style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-text-main)", margin: "0.4rem 0 0.2rem" }}>
                       {profileData.totalPublications.toLocaleString()}
                     </div>
                   </div>
 
-                  <div className="card-surface institution-metric-card" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                  <div className="card-surface institution-metric-card" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
                     <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.institution_page.stats_cites}</span>
                     <div className="metric-big-number" style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-primary)", margin: "0.4rem 0 0.2rem" }}>
                       {profileData.totalCitations.toLocaleString()}
                     </div>
                   </div>
 
-                  <div className="card-surface institution-metric-card" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                  <div className="card-surface institution-metric-card" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
                     <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.researcher_page.avg_citations}</span>
                     <div className="metric-big-number" style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--color-text-main)", margin: "0.4rem 0 0.2rem" }}>
                       {profileData.averageCitations}
                     </div>
                   </div>
 
-                  <div className="card-surface institution-metric-card" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                  <div className="card-surface institution-metric-card" style={{ padding: "1.5rem", textAlign: "center", borderRadius: "14px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
                     <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{t.institution_page.stats_hindex}</span>
                     <div className="metric-big-number" style={{ fontSize: "2.2rem", fontWeight: "bold", color: "#0284c7", margin: "0.4rem 0 0.2rem" }}>
                       h-{profileData.institutionalHIndex || 1}
@@ -714,7 +714,7 @@ function InstitutionContent() {
 
                 {/* Discipline Research Distribution */}
                 {profileData.disciplineBreakdown && profileData.disciplineBreakdown.length > 0 && (
-                  <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                  <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
                     <h3 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "0 0 1.25rem", color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
                       <i className="fa-solid fa-chart-pie" style={{ color: "var(--color-primary)" }}></i>
                       {t.institution_page.departments_heading}
@@ -738,7 +738,7 @@ function InstitutionContent() {
 
                 {/* Affiliated Journals / Publications */}
                 {profileData.affiliatedJournals && profileData.affiliatedJournals.length > 0 && (
-                  <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+                  <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
                     <h3 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "0 0 1.25rem", color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
                       <i className="fa-solid fa-book-journal-whills" style={{ color: "var(--color-primary)" }}></i>
                       {t.institution_page.affiliated_journals}
@@ -752,7 +752,7 @@ function InstitutionContent() {
                               {j.name}
                             </a>
                             <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", marginTop: "0.2rem" }}>
-                              {t.browse_page.score}: <strong style={{ color: "var(--color-primary)" }}>{j.ajifScore?.toFixed(3) || "0.000"}</strong>
+                              {t.browse_page.score}: <strong style={{ color: "var(--color-primary)" }}>{(j.ajciScore ?? j.ajifScore)?.toFixed(3) || "0.000"}</strong>
                             </div>
                           </div>
                           <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>

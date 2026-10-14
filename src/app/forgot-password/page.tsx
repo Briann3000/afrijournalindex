@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
           </p>
         </div>
 
-        <div className="glass-card" style={{ padding: "2.2rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)" }}>
+        <div className="glass-card" style={{ padding: "2.2rem", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)" }}>
           {submitted ? (
             <div style={{ textAlign: "center", padding: "1rem 0" }}>
               <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "#ecfdf5", color: "#059669", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", marginBottom: "1rem" }}>

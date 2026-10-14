@@ -147,7 +147,7 @@ export default function Register() {
           </p>
         </div>
 
-        <div className="glass-card" style={{ padding: "2.2rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)" }}>
+        <div className="glass-card" style={{ padding: "2.2rem", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)" }}>
           {success ? (
             <div style={{ textAlign: "center", padding: "2.5rem 1rem" }}>
               <div style={{
@@ -415,7 +415,7 @@ export default function Register() {
 
               {/* Terms and Academic Integrity Agreement */}
               <div style={{
-                background: "#f8fafc",
+                background: "var(--color-bg-card-subtle)",
                 border: "1px solid var(--color-border)",
                 padding: "0.85rem 1rem",
                 borderRadius: "8px",

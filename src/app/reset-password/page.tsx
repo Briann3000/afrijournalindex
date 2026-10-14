@@ -59,7 +59,7 @@ function ResetPasswordForm() {
 
   if (!token || !email) {
     return (
-      <div className="glass-card" style={{ padding: "2.2rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)", textAlign: "center" }}>
+      <div className="glass-card" style={{ padding: "2.2rem", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", textAlign: "center" }}>
         <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "#fef2f2", color: "#dc2626", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", marginBottom: "1rem" }}>
           <i className="fa-solid fa-triangle-exclamation"></i>
         </div>
@@ -77,7 +77,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="glass-card" style={{ padding: "2.2rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)" }}>
+    <div className="glass-card" style={{ padding: "2.2rem", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)" }}>
       {success ? (
         <div style={{ textAlign: "center", padding: "1rem 0" }}>
           <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "#ecfdf5", color: "#059669", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", marginBottom: "1rem" }}>
@@ -102,7 +102,7 @@ function ResetPasswordForm() {
             </div>
           )}
 
-          <div style={{ background: "#f8fafc", padding: "0.75rem 1rem", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "0.82rem", color: "#475569" }}>
+          <div style={{ background: "var(--color-bg-card-subtle)", padding: "0.75rem 1rem", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
             Resetting password for: <strong style={{ color: "var(--color-navy)" }}>{email}</strong>
           </div>
 
@@ -203,7 +203,7 @@ export default function ResetPasswordPage() {
         </div>
 
         <Suspense fallback={
-          <div className="glass-card" style={{ padding: "2rem", textAlign: "center", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)" }}>
+          <div className="glass-card" style={{ padding: "2rem", textAlign: "center", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
             <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: "8px", color: "var(--color-primary)" }}></i>
             Loading security verification...
           </div>

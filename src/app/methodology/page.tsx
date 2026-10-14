@@ -67,40 +67,40 @@ export default function Methodology() {
               The Continental Citation Dividend &amp; Data Provenance
             </h3>
             <p style={{ color: "var(--color-text-body)", lineHeight: "1.8", marginBottom: "1rem", fontSize: "0.98rem" }}>
-              Historically, legacy commercial databases (such as Web of Science) have severely undervalued African research by limiting their citation universe to closed, paywalled journals predominantly published in the Global North. Under those restrictions, citations between African universities and journals are systematically omitted.
+              Historically, legacy subscription-based indexing databases have often underrepresented African research by limiting their citation universe primarily to closed, paywalled periodicals. Under these structural limitations, authentic citations between African universities and regional open-access journals have frequently been omitted.
             </p>
             <p style={{ color: "var(--color-text-body)", lineHeight: "1.8", marginBottom: "1.2rem", fontSize: "0.98rem" }}>
               AfriJournal Index resolves this structural gap by ingesting open citation networks from verified international authorities:
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
-              <div style={{ background: "#f8fafc", padding: "1.2rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
-                <strong style={{ color: "#0f172a", display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.3rem" }}>
+              <div style={{ background: "var(--color-bg-card-subtle)", padding: "1.2rem", borderRadius: "10px", border: "1px solid var(--color-border)" }}>
+                <strong style={{ color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.3rem" }}>
                   <i className="fa-solid fa-fingerprint" style={{ color: "#d97706" }}></i> Crossref &amp; I4OC
                 </strong>
-                <span style={{ fontSize: "0.85rem", color: "#64748b" }}>
+                <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
                   Official Digital Object Identifier (DOI) reference graph tracking formal scholarly citations worldwide.
                 </span>
               </div>
-              <div style={{ background: "#f8fafc", padding: "1.2rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
-                <strong style={{ color: "#0f172a", display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.3rem" }}>
+              <div style={{ background: "var(--color-bg-card-subtle)", padding: "1.2rem", borderRadius: "10px", border: "1px solid var(--color-border)" }}>
+                <strong style={{ color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.3rem" }}>
                   <i className="fa-solid fa-check-circle" style={{ color: "#16a34a" }}></i> DOAJ Standards
                 </strong>
-                <span style={{ fontSize: "0.85rem", color: "#64748b" }}>
+                <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
                   Strict peer-review integrity and open-access licensing benchmarks, guarding against predatory practices.
                 </span>
               </div>
-              <div style={{ background: "#f8fafc", padding: "1.2rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
-                <strong style={{ color: "#0f172a", display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.3rem" }}>
+              <div style={{ background: "var(--color-bg-card-subtle)", padding: "1.2rem", borderRadius: "10px", border: "1px solid var(--color-border)" }}>
+                <strong style={{ color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.3rem" }}>
                   <i className="fa-solid fa-network-wired" style={{ color: "#2563eb" }}></i> OpenAlex &amp; OAI-PMH
                 </strong>
-                <span style={{ fontSize: "0.85rem", color: "#64748b" }}>
+                <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
                   Continental repository harvesting across 1,600+ African universities, capturing authentic institutional citations.
                 </span>
               </div>
             </div>
             <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", padding: "1rem 1.25rem", borderRadius: "8px", fontSize: "0.9rem", color: "#1e40af" }}>
               <i className="fa-solid fa-circle-info" style={{ marginRight: "6px" }}></i>
-              <strong>Benchmark Validation:</strong> By capturing this continental citation dividend, AfriJournal metrics closely align with Scopus CiteScore and SCImago h-index benchmarks while capturing research impact addressing regional challenges.
+              <strong>Benchmark Validation:</strong> By capturing this continental citation dividend, AfriJournal metrics closely align with global citation benchmarks and SCImago h-index models while capturing research impact addressing regional challenges.
             </div>
           </div>
 

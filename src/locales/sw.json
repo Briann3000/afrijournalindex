@@ -33,17 +33,17 @@
     "cta_explore": "Vinjari Majarida",
     "cta_institution": "Dashibodi ya Taasisi",
     "card_title": "Vipimo vya Jarida Lililoangaziwa",
-    "card_if": "Kipimo cha Athari (AJIF)",
+    "card_if": "Kielezo cha Nukuu (AJCI)",
     "card_grade": "Daraja la Ubora",
     "card_score": "Alama: 1.482",
-    "card_regional": "AJIF ya Kikanda",
+    "card_regional": "AJCI ya Kikanda",
     "card_regional_sub": "Imehesabiwa kwa kasi ya nukuu za kikanda na upatikanaji wa wazi"
   },
   "stats": {
     "journals": "Majarida ya Kiafrika Yaliyoorodheshwa",
     "free_indexing": "Uorodheshaji wa Bure & Wazi",
     "languages": "Lugha Zinazotumika",
-    "metrics": "Vipimo Maalum vya AJIF",
+    "metrics": "Vipimo Maalum vya AJCI",
     "countries_covered": "Nchi za Kiafrika Zilizopo",
     "verified_rate": "Uhakiki wa Uhariri"
   },
@@ -77,7 +77,7 @@
     "indexing_title": "Uorodheshaji wa Bure na Wazi",
     "indexing_text": "Tunaorodhesha majarida yanayopitiwa na wanazuoni barani Afrika bila malipo yoyote, na kufanya tafiti za Kiafrika zipatikane ulimwenguni kote.",
     "if_title": "Vipimo vya Athari Vinavyoaminika",
-    "if_text": "Pata hesabu thabiti na zilizo wazi za kipimo cha athari ya nukuu ya jarida lako ili kukuza hadhi ya kitaasisi.",
+    "if_text": "Pata hesabu thabiti na zilizo wazi za kielezo cha nukuu ya nukuu ya jarida lako ili kukuza hadhi ya kitaasisi.",
     "eval_title": "Uhakiki wa Kiotomatiki",
     "eval_text": "Mfumo wetu huangazia kiotomatiki ISSN, rekodi za uchapishaji, usalama wa SSL, na bodi za uhariri ili kuthibitisha ubora papo hapo.",
     "regional_title": "Uzito wa Muktadha wa Kikanda",
@@ -122,8 +122,8 @@
     "tagline": "Kuwezesha Ugunduzi wa Kitaaluma Barani Afrika."
   },
   "rankings_page": {
-    "title": "Viwango vya Majarida ya AJIF & Robo (Q1-Q4)",
-    "subtitle": "Orodha ya moja kwa moja ya majarida ya utafiti ya Kiafrika yaliyogawanywa katika robo za kisekta (Q1–Q4) na kupangwa kwa viashiria vya athari vya AJIF vilivyothibitishwa.",
+    "title": "Viwango vya Majarida ya AJCI & Robo (Q1-Q4)",
+    "subtitle": "Orodha ya moja kwa moja ya majarida ya utafiti ya Kiafrika yaliyogawanywa katika robo za kisekta (Q1–Q4) na kupangwa kwa viashiria vya athari vya AJCI vilivyothibitishwa.",
     "filter_country": "Chuja kwa Nchi",
     "all_countries": "Nchi Zote za Kiafrika",
     "filter_discipline": "Chuja kwa Taaluma",
@@ -135,7 +135,7 @@
     "col_journal": "Jina la Jarida & Mchapishaji",
     "col_country": "Nchi",
     "col_discipline": "Taaluma",
-    "col_ajif": "AJIF ya Kawaida",
+    "col_ajif": "AJCI ya Kawaida",
     "col_regional": "Alama ya Kikanda",
     "col_quartile": "Robo (Quartile)",
     "col_grade": "Daraja",
@@ -261,7 +261,7 @@
     "filter_all_disciplines": "Taaluma Zote",
     "filter_all_grades": "Madaraja Yote ya Ubora",
     "filter_sort": "Panga Kwa",
-    "sort_ajif": "Kipimo cha Juu cha Athari (AJIF)",
+    "sort_ajif": "Kipimo cha Juu cha Athari (AJCI)",
     "sort_name": "Kialfabeti (A-Z)",
     "sort_citations": "Nukuu Nyingi Zaidi",
     "no_results": "Hakuna majarida yaliyopatikana kulingana na vigezo vyako.",
@@ -270,7 +270,7 @@
     "issn": "ISSN",
     "publisher": "Mchapishaji",
     "country": "Nchi",
-    "score": "Alama ya AJIF"
+    "score": "Alama ya AJCI"
   },
   "journal_page": {
     "back_to_browse": "← Rudi Kwenye Orodha",
@@ -283,9 +283,9 @@
     "issn_print": "ISSN ya Kuchapishwa",
     "issn_electronic": "eISSN ya Mtandaoni",
     "visit_website": "Tembelea Tovuti Rasmi",
-    "impact_metrics_title": "Vipimo vya Athari vya AJIF",
+    "impact_metrics_title": "Vipimo vya Athari vya AJCI",
     "impact_metrics_desc": "Kimehesabiwa kwa dirisha la nukuu la miaka 2 na kizidishi cha kikanda cha Afrika",
-    "standard_ajif": "Alama ya Kawaida ya AJIF",
+    "standard_ajif": "Alama ya Kawaida ya AJCI",
     "regional_ajif": "Alama ya Kikanda Iliyopimwa",
     "citable_articles": "Makala Yanayoweza Kunukuliwa",
     "citations_received": "Nukuu Zilizopokelewa",
@@ -306,7 +306,7 @@
     "not_found_title": "Jarida Halikupatikana",
     "not_found_desc": "Jarida lililoombwa halikuweza kupatikana kwenye sajili ya AfriJournal.",
     "badge_widget_title": "Weka Beji ya Uthibitisho Kwenye Tovuti Yako",
-    "badge_embed_desc": "Weka beji hii hai ya uthibitisho wa AJIF kwenye tovuti ya jarida lako kuonyesha hadhi yako rasmi:",
+    "badge_embed_desc": "Weka beji hii hai ya uthibitisho wa AJCI kwenye tovuti ya jarida lako kuonyesha hadhi yako rasmi:",
     "copy_code": "Nakili Msimbo",
     "copied": "Imenakiliwa!"
   },
@@ -324,8 +324,8 @@
     "basic_title": "Ripoti ya Msingi ya Athari",
     "basic_price": "$99",
     "basic_sub": "/ malipo ya mara moja",
-    "basic_desc": "Hukokotoa kipimo cha athari ya nukuu cha miaka 2 na hutoa ukurasa rasmi wa ukadiriaji.",
-    "basic_feature1": "Hesabu ya Kawaida ya AJIF",
+    "basic_desc": "Hukokotoa kielezo cha nukuu ya nukuu cha miaka 2 na hutoa ukurasa rasmi wa ukadiriaji.",
+    "basic_feature1": "Hesabu ya Kawaida ya AJCI",
     "basic_feature2": "Beji ya Uthibitisho ya Mtandaoni",
     "basic_feature3": "Jedwali la Mgawanyo wa Nukuu",
     "basic_feature4": "Viwango vya Kisekta",
@@ -333,7 +333,7 @@
     "premium_price": "$349",
     "premium_sub": "/ malipo ya mara moja",
     "premium_desc": "Ripoti kamili ya tathmini yenye ramani za njia za nukuu, alama za athari za kikanda, na mwongozo wa maendeleo.",
-    "premium_feature1": "AJIF ya Kawaida + ya Kikanda",
+    "premium_feature1": "AJCI ya Kawaida + ya Kikanda",
     "premium_feature2": "Ramani Shirikishi za Nukuu",
     "premium_feature3": "Ripoti ya Uzingatiaji wa Wizi wa Kitaaluma",
     "premium_feature4": "Mwongozo wa Kuonekana wa Miezi 12",
@@ -373,8 +373,8 @@
   },
   "methodology_page": {
     "desc": "Jinsi tunavyokokotoa viwango vya kawaida vya athari za nukuu na vizidishi vya kikanda vya majarida ya Kiafrika.",
-    "formula_title": "Kipimo cha Athari cha Majarida ya Kiafrika (AJIF)",
-    "formula_desc": "Kipimo cha AJIF huhesabiwa kila mwaka kwa kufuatilia makala yaliyopitiwa na wanazuoni na kuhesabu nukuu zilizosajiliwa ndani ya orodha ya AfriJournal.",
+    "formula_title": "Kielezo cha Nukuu cha Majarida ya Kiafrika (AJCI)",
+    "formula_desc": "Kipimo cha AJCI huhesabiwa kila mwaka kwa kufuatilia makala yaliyopitiwa na wanazuoni na kuhesabu nukuu zilizosajiliwa ndani ya orodha ya AfriJournal.",
     "formula_num": "Nukuu za mwaka 2025 kwa makala yaliyochapishwa mnamo 2023-2024",
     "formula_den": "Jumla ya makala yanayoweza kunukuliwa yaliyochapishwa mnamo 2023-2024",
     "regional_formula_title": "Kizidishi cha Athari cha Kikanda",
@@ -391,7 +391,7 @@
       "items": [
         {
           "q": "AfriJournal Index ni nini?",
-          "a": "AfriJournal Index (AJIF) ni mfumo wa wazi wa uorodheshaji wa kitaaluma uliojengwa mahsusi kwa majarida ya utafiti ya Kiafrika. Tunaorodhesha majarida, tunakokotoa vipimo vya athari, na kutoa wasifu wa watafiti bila malipo."
+          "a": "AfriJournal Index (AJCI) ni mfumo wa wazi wa uorodheshaji wa kitaaluma uliojengwa mahsusi kwa majarida ya utafiti ya Kiafrika. Tunaorodhesha majarida, tunakokotoa vielezo vya nukuu, na kutoa wasifu wa watafiti bila malipo."
         },
         {
           "q": "Je, mfumo huu ni bure kutumia?",
@@ -411,7 +411,7 @@
     "sec2_title": "Maelezo ya Mfumo",
     "sec2_p1": "AfriJournal Index ni injini wazi ya uorodheshaji wa kitaaluma inayoorodhesha na kutathmini majarida ya Kiafrika. Mfumo hutoa:",
     "sec2_li1": "Uwasilishaji wa majarida na tathmini ya kiotomatiki ya uzingatiaji",
-    "sec2_li2": "Kukokotoa alama za athari (AJIF ya kawaida na ya kikanda)",
+    "sec2_li2": "Kukokotoa alama za athari (AJCI ya kawaida na ya kikanda)",
     "sec2_li3": "Wasifu wa watafiti na uchambuzi wa kielezo cha h",
     "sec2_li4": "Dashibodi za vipimo vya kitaasisi",
     "sec2_li5": "Mijadala ya mapitio ya wanazuoni",
@@ -477,7 +477,7 @@
     "sec2_li3_1": "Server logs (IP address, browser user-agent, request timestamps) for security monitoring",
     "sec2_li3_2": "Automated crawler audit logs verifying journal website responsiveness and SSL encryption",
     "sec2_li3_3": "Session cookies required strictly for platform authentication",
-    "sec3_li1": "Verifying journal eligibility and calculating AJIF citation impact indicators",
+    "sec3_li1": "Verifying journal eligibility and calculating AJCI citation impact indicators",
     "sec3_li2": "Generating researcher profile pages, verified authorship records, and h-index metrics",
     "sec3_li3": "Aggregating university-level research outputs for the Institutional Leaderboard",
     "sec3_li4": "Communicating evaluation results, crawler audit logs, and account notices",

@@ -449,7 +449,7 @@ export default function AdminDashboardPage() {
           <div style={{
             maxWidth: "480px",
             margin: "4rem auto",
-            background: "#ffffff",
+            background: "var(--color-bg-card)",
             border: "1px solid var(--color-border, #e2e8f0)",
             borderRadius: "16px",
             padding: "2.5rem",
@@ -459,8 +459,8 @@ export default function AdminDashboardPage() {
             <div style={{ width: "64px", height: "64px", background: "rgba(2, 132, 199, 0.1)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem", color: "#0284c7", fontSize: "1.75rem" }}>
               <i className="fa-solid fa-lock"></i>
             </div>
-            <h2 style={{ fontSize: "1.4rem", fontWeight: 800, color: "#0f172a", marginBottom: "0.5rem" }}>Admin Portal Authentication</h2>
-            <p style={{ color: "#64748b", fontSize: "0.92rem", lineHeight: "1.6", marginBottom: "1.75rem" }}>
+            <h2 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--color-text-main)", marginBottom: "0.5rem" }}>Admin Portal Authentication</h2>
+            <p style={{ color: "var(--color-text-muted)", fontSize: "0.92rem", lineHeight: "1.6", marginBottom: "1.75rem" }}>
               This portal is restricted to AfriJournal Editorial Board Directors and Chief Index Administrators.
             </p>
             <Link 
@@ -478,7 +478,7 @@ export default function AdminDashboardPage() {
           <div style={{
             maxWidth: "520px",
             margin: "4rem auto",
-            background: "#ffffff",
+            background: "var(--color-bg-card)",
             border: "1px solid var(--color-border, #e2e8f0)",
             borderRadius: "16px",
             padding: "2.5rem",
@@ -488,8 +488,8 @@ export default function AdminDashboardPage() {
               <div style={{ width: "60px", height: "60px", background: "rgba(245, 158, 11, 0.15)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", color: "#d97706", fontSize: "1.5rem" }}>
                 <i className="fa-solid fa-shield-halved"></i>
               </div>
-              <h2 style={{ fontSize: "1.35rem", fontWeight: 800, color: "#0f172a", marginBottom: "0.4rem" }}>Elevate Account to Editorial Admin</h2>
-              <p style={{ color: "#64748b", fontSize: "0.9rem" }}>
+              <h2 style={{ fontSize: "1.35rem", fontWeight: 800, color: "var(--color-text-main)", marginBottom: "0.4rem" }}>Elevate Account to Editorial Admin</h2>
+              <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
                 Logged in as <strong>{currentUser.email}</strong> (Role: <span style={{ color: "#0284c7", fontWeight: 700 }}>{currentUser.role}</span>). Enter your Editorial Setup Key to gain full administrative access.
               </p>
             </div>
@@ -502,7 +502,7 @@ export default function AdminDashboardPage() {
 
             <form onSubmit={handleElevate}>
               <div style={{ marginBottom: "1.25rem" }}>
-                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "#334155", marginBottom: "0.4rem" }}>
+                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-body)", marginBottom: "0.4rem" }}>
                   Admin Setup Passcode
                 </label>
                 <input
@@ -514,10 +514,10 @@ export default function AdminDashboardPage() {
                   style={{
                     width: "100%",
                     padding: "0.75rem 1rem",
-                    background: "#ffffff",
-                    border: "1px solid #cbd5e1",
+                    background: "var(--color-bg-card)",
+                    border: "1px solid var(--color-border)",
                     borderRadius: "10px",
-                    color: "#0f172a",
+                    color: "var(--color-text-main)",
                     fontSize: "0.95rem",
                     outline: "none"
                   }}
@@ -555,9 +555,9 @@ export default function AdminDashboardPage() {
                   <span style={{ background: "#ecfdf5", color: "#059669", border: "1px solid #a7f3d0", padding: "3px 10px", borderRadius: "12px", fontSize: "0.75rem", fontWeight: 800, letterSpacing: "0.5px" }}>
                     CHIEF EDITORIAL CONSOLE
                   </span>
-                  <span style={{ color: "#64748b", fontSize: "0.85rem", fontWeight: 500 }}>AfriJournal Index Operations</span>
+                  <span style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", fontWeight: 500 }}>AfriJournal Index Operations</span>
                 </div>
-                <h1 style={{ fontSize: "1.9rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>
+                <h1 style={{ fontSize: "1.9rem", fontWeight: 800, color: "var(--color-text-main)", margin: 0 }}>
                   Administrative Oversight Portal
                 </h1>
               </div>
@@ -566,12 +566,12 @@ export default function AdminDashboardPage() {
                 <button
                   onClick={() => fetchAdminData()}
                   className="btn btn-secondary btn-sm"
-                  style={{ background: "#ffffff", border: "1px solid #cbd5e1", color: "#334155" }}
+                  style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-body)" }}
                   title="Reload Live Datasets"
                 >
                   <i className="fa-solid fa-arrows-rotate"></i> Refresh Data
                 </button>
-                <div style={{ background: "#ffffff", border: "1px solid #cbd5e1", padding: "0.4rem 0.85rem", borderRadius: "8px", fontSize: "0.85rem", color: "#475569" }}>
+                <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", padding: "0.4rem 0.85rem", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
                   Admin: <strong style={{ color: "#0284c7" }}>{currentUser.name || currentUser.email}</strong>
                 </div>
               </div>
@@ -590,25 +590,25 @@ export default function AdminDashboardPage() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.25rem", marginBottom: "2rem" }}>
                 
                 {/* Metric 1: Indexed Journals */}
-                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "1.4rem", display: "flex", alignItems: "center", gap: "1.2rem", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
+                <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", padding: "1.4rem", display: "flex", alignItems: "center", gap: "1.2rem", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
                   <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "#eff6ff", color: "#0284c7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>
                     <i className="fa-solid fa-book-journal-whills"></i>
                   </div>
                   <div>
-                    <div style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>INDEXED JOURNALS</div>
-                    <div style={{ fontSize: "1.65rem", fontWeight: 800, color: "#0f172a" }}>
+                    <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>INDEXED JOURNALS</div>
+                    <div style={{ fontSize: "1.65rem", fontWeight: 800, color: "var(--color-text-main)" }}>
                       {stats.indexedJournals} <span style={{ fontSize: "0.88rem", color: "#94a3b8", fontWeight: 500 }}>/ {stats.totalJournals}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Metric 2: Pending Submissions */}
-                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "1.4rem", display: "flex", alignItems: "center", gap: "1.2rem", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
+                <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", padding: "1.4rem", display: "flex", alignItems: "center", gap: "1.2rem", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
                   <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "#fffbeb", color: "#d97706", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>
                     <i className="fa-solid fa-hourglass-half"></i>
                   </div>
                   <div>
-                    <div style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>PENDING SUBMISSIONS</div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>PENDING SUBMISSIONS</div>
                     <div style={{ fontSize: "1.65rem", fontWeight: 800, color: stats.pendingSubmissions > 0 ? "#d97706" : "#0f172a" }}>
                       {stats.pendingSubmissions}
                     </div>
@@ -616,12 +616,12 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {/* Metric 3: Claims to Audit */}
-                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "1.4rem", display: "flex", alignItems: "center", gap: "1.2rem", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
+                <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", padding: "1.4rem", display: "flex", alignItems: "center", gap: "1.2rem", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
                   <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "#faf5ff", color: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>
                     <i className="fa-solid fa-user-check"></i>
                   </div>
                   <div>
-                    <div style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>CLAIMS TO AUDIT</div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>CLAIMS TO AUDIT</div>
                     <div style={{ fontSize: "1.65rem", fontWeight: 800, color: stats.pendingClaims > 0 ? "#7c3aed" : "#0f172a" }}>
                       {stats.pendingClaims}
                     </div>
@@ -629,12 +629,12 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {/* Metric 4: Paid Certificates */}
-                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "1.4rem", display: "flex", alignItems: "center", gap: "1.2rem", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
+                <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", padding: "1.4rem", display: "flex", alignItems: "center", gap: "1.2rem", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
                   <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "#ecfdf5", color: "#059669", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>
                     <i className="fa-solid fa-certificate"></i>
                   </div>
                   <div>
-                    <div style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>PAID CERTIFICATES ($99)</div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>PAID CERTIFICATES ($99)</div>
                     <div style={{ fontSize: "1.65rem", fontWeight: 800, color: "#059669" }}>
                       {stats.paidCertificates}
                     </div>
@@ -645,7 +645,7 @@ export default function AdminDashboardPage() {
             )}
 
             {/* Main Navigation Tabs */}
-            <div style={{ display: "flex", gap: "0.5rem", borderBottom: "2px solid #e2e8f0", marginBottom: "1.5rem" }}>
+            <div style={{ display: "flex", gap: "0.5rem", borderBottom: "2px solid var(--color-border)", marginBottom: "1.5rem" }}>
               
               <button
                 onClick={() => setActiveTab("submissions")}
@@ -715,7 +715,7 @@ export default function AdminDashboardPage() {
                 }}
               >
                 <i className="fa-solid fa-book"></i> Journal Directory & Certificates
-                <span style={{ background: "#f1f5f9", color: "#475569", fontSize: "0.75rem", padding: "2px 8px", borderRadius: "10px", fontWeight: 800 }}>
+                <span style={{ background: "var(--color-bg-card-subtle)", color: "var(--color-text-muted)", fontSize: "0.75rem", padding: "2px 8px", borderRadius: "10px", fontWeight: 800 }}>
                   {stats ? stats.totalJournals : journals.length}
                 </span>
               </button>
@@ -726,10 +726,10 @@ export default function AdminDashboardPage() {
                 TAB 1: SUBMISSIONS DESK
             ============================================================= */}
             {activeTab === "submissions" && (
-              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
+              <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
                 
                 {/* Search, Filter & Sort Controls */}
-                <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #f1f5f9", background: "#f8fafc", display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #f1f5f9", background: "var(--color-bg-card-subtle)", display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
                   
                   {/* Left: Search & Filter inputs */}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center", flex: 1 }}>
@@ -742,11 +742,11 @@ export default function AdminDashboardPage() {
                         style={{
                           width: "100%",
                           padding: "0.55rem 0.85rem 0.55rem 2.2rem",
-                          background: "#ffffff",
-                          border: "1px solid #cbd5e1",
+                          background: "var(--color-bg-card)",
+                          border: "1px solid var(--color-border)",
                           borderRadius: "8px",
                           fontSize: "0.85rem",
-                          color: "#0f172a",
+                          color: "var(--color-text-main)",
                           outline: "none"
                         }}
                       />
@@ -757,7 +757,7 @@ export default function AdminDashboardPage() {
                     <select
                       value={subStatusFilter}
                       onChange={(e) => setSubStatusFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#334155", fontWeight: 600, outline: "none" }}
+                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", fontWeight: 600, outline: "none" }}
                     >
                       <option value="ALL">All Statuses</option>
                       <option value="PENDING">Needs Review (Pending / Under Review)</option>
@@ -769,7 +769,7 @@ export default function AdminDashboardPage() {
                     <select
                       value={subCountryFilter}
                       onChange={(e) => setSubCountryFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#334155", outline: "none" }}
+                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", outline: "none" }}
                     >
                       <option value="ALL">All Countries</option>
                       {ALL_COUNTRY_NAMES.map(c => (
@@ -781,7 +781,7 @@ export default function AdminDashboardPage() {
                     <select
                       value={subSort}
                       onChange={(e) => setSubSort(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#334155", outline: "none" }}
+                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", outline: "none" }}
                     >
                       <option value="newest">Sort: Newest First</option>
                       <option value="oldest">Sort: Oldest First</option>
@@ -791,7 +791,7 @@ export default function AdminDashboardPage() {
                   </div>
 
                   {/* Right: Counter */}
-                  <span style={{ fontSize: "0.85rem", color: "#64748b", fontWeight: 600 }}>
+                  <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
                     {processedSubmissions.length} submissions found
                   </span>
                 </div>
@@ -800,7 +800,7 @@ export default function AdminDashboardPage() {
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
                     <thead>
-                      <tr style={{ background: "#ffffff", color: "#64748b", borderBottom: "2px solid #e2e8f0", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      <tr style={{ background: "var(--color-bg-card)", color: "var(--color-text-muted)", borderBottom: "2px solid var(--color-border)", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                         <th style={{ padding: "1rem 1.25rem" }}>Journal Details</th>
                         <th style={{ padding: "1rem" }}>Submitter & Institution</th>
                         <th style={{ padding: "1rem" }}>Audit & Date</th>
@@ -818,13 +818,13 @@ export default function AdminDashboardPage() {
                         </tr>
                       ) : (
                         paginatedSubmissions.map(sub => (
-                          <tr key={sub.id} style={{ borderBottom: "1px solid #f1f5f9", background: "#ffffff" }}>
+                          <tr key={sub.id} style={{ borderBottom: "1px solid #f1f5f9", background: "var(--color-bg-card)" }}>
                             
                             <td style={{ padding: "1rem 1.25rem" }}>
-                              <div style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.95rem", marginBottom: "2px" }}>
+                              <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.95rem", marginBottom: "2px" }}>
                                 {sub.journalName}
                               </div>
-                              <div style={{ fontSize: "0.8rem", color: "#64748b", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "flex", gap: "8px", flexWrap: "wrap" }}>
                                 <span>ISSN: <strong>{sub.issn || sub.eissn || "N/A"}</strong></span>
                                 <span>•</span>
                                 <span>Country: <strong>{sub.country || "Pan-African"}</strong></span>
@@ -837,10 +837,10 @@ export default function AdminDashboardPage() {
                             </td>
 
                             <td style={{ padding: "1rem" }}>
-                              <div style={{ fontWeight: 600, color: "#1e293b" }}>
+                              <div style={{ fontWeight: 600, color: "var(--color-text-body)" }}>
                                 {sub.submitter?.name || "Independent Submitter"}
                               </div>
-                              <div style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
                                 {sub.submitter?.email || "No email"}
                               </div>
                               <div style={{ fontSize: "0.76rem", color: "#94a3b8" }}>
@@ -898,7 +898,7 @@ export default function AdminDashboardPage() {
                                     onClick={() => handleUpdateSubmission(sub.id, "UNDER_REVIEW")}
                                     disabled={actionLoadingId === sub.id}
                                     className="btn btn-sm"
-                                    style={{ background: "#ffffff", border: "1px solid #d97706", color: "#d97706", padding: "5px 10px", fontSize: "0.78rem" }}
+                                    style={{ background: "var(--color-bg-card)", border: "1px solid #d97706", color: "#d97706", padding: "5px 10px", fontSize: "0.78rem" }}
                                     title="Mark Under Review"
                                   >
                                     <i className="fa-solid fa-hourglass-half"></i> Under Review
@@ -910,7 +910,7 @@ export default function AdminDashboardPage() {
                                     onClick={() => handleUpdateSubmission(sub.id, "REJECTED")}
                                     disabled={actionLoadingId === sub.id}
                                     className="btn btn-sm"
-                                    style={{ background: "#ffffff", border: "1px solid #ef4444", color: "#dc2626", padding: "5px 10px", fontSize: "0.78rem" }}
+                                    style={{ background: "var(--color-bg-card)", border: "1px solid #ef4444", color: "#dc2626", padding: "5px 10px", fontSize: "0.78rem" }}
                                     title="Reject and enforce 6-month cooldown"
                                   >
                                     <i className="fa-solid fa-xmark"></i> Reject
@@ -928,13 +928,13 @@ export default function AdminDashboardPage() {
 
                 {/* Submissions Pagination */}
                 {processedSubmissions.length > 0 && (
-                  <div style={{ padding: "0.85rem 1.5rem", borderTop: "1px solid #f1f5f9", background: "#f8fafc", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.82rem", color: "#64748b" }}>
+                  <div style={{ padding: "0.85rem 1.5rem", borderTop: "1px solid #f1f5f9", background: "var(--color-bg-card-subtle)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
                       <span>Per page:</span>
                       <select
                         value={subPageSize}
                         onChange={(e) => setSubPageSize(Number(e.target.value))}
-                        style={{ padding: "2px 6px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "#ffffff", fontSize: "0.82rem" }}
+                        style={{ padding: "2px 6px", borderRadius: "6px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)", fontSize: "0.82rem" }}
                       >
                         <option value={10}>10</option>
                         <option value={25}>25</option>
@@ -948,18 +948,18 @@ export default function AdminDashboardPage() {
                         onClick={() => setSubPage(p => Math.max(1, p - 1))}
                         disabled={subPage === 1}
                         className="btn btn-sm"
-                        style={{ background: "#ffffff", border: "1px solid #cbd5e1", color: subPage === 1 ? "#94a3b8" : "#334155", padding: "4px 10px" }}
+                        style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: subPage === 1 ? "#94a3b8" : "#334155", padding: "4px 10px" }}
                       >
                         Previous
                       </button>
-                      <span style={{ fontSize: "0.82rem", color: "#475569", fontWeight: 700, padding: "0 6px" }}>
+                      <span style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", fontWeight: 700, padding: "0 6px" }}>
                         Page {subPage} of {subTotalPages}
                       </span>
                       <button
                         onClick={() => setSubPage(p => Math.min(subTotalPages, p + 1))}
                         disabled={subPage >= subTotalPages}
                         className="btn btn-sm"
-                        style={{ background: "#ffffff", border: "1px solid #cbd5e1", color: subPage >= subTotalPages ? "#94a3b8" : "#334155", padding: "4px 10px" }}
+                        style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: subPage >= subTotalPages ? "#94a3b8" : "#334155", padding: "4px 10px" }}
                       >
                         Next
                       </button>
@@ -974,10 +974,10 @@ export default function AdminDashboardPage() {
                 TAB 2: AUTHORSHIP CLAIMS DESK
             ============================================================= */}
             {activeTab === "claims" && (
-              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
+              <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
                 
                 {/* Search & Filter Bar */}
-                <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #f1f5f9", background: "#f8fafc", display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #f1f5f9", background: "var(--color-bg-card-subtle)", display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center", flex: 1 }}>
                     <div style={{ position: "relative", minWidth: "240px", flex: 1, maxWidth: "340px" }}>
                       <input
@@ -988,11 +988,11 @@ export default function AdminDashboardPage() {
                         style={{
                           width: "100%",
                           padding: "0.55rem 0.85rem 0.55rem 2.2rem",
-                          background: "#ffffff",
-                          border: "1px solid #cbd5e1",
+                          background: "var(--color-bg-card)",
+                          border: "1px solid var(--color-border)",
                           borderRadius: "8px",
                           fontSize: "0.85rem",
-                          color: "#0f172a",
+                          color: "var(--color-text-main)",
                           outline: "none"
                         }}
                       />
@@ -1002,7 +1002,7 @@ export default function AdminDashboardPage() {
                     <select
                       value={claimStatusFilter}
                       onChange={(e) => setClaimStatusFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#334155", fontWeight: 600, outline: "none" }}
+                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", fontWeight: 600, outline: "none" }}
                     >
                       <option value="ALL">All Claim Statuses</option>
                       <option value="NEEDS_AUDIT">Pending Editorial Audit</option>
@@ -1013,7 +1013,7 @@ export default function AdminDashboardPage() {
                     <select
                       value={claimSort}
                       onChange={(e) => setClaimSort(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#334155", outline: "none" }}
+                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", outline: "none" }}
                     >
                       <option value="newest">Sort: Newest Claim</option>
                       <option value="oldest">Sort: Oldest Claim</option>
@@ -1021,7 +1021,7 @@ export default function AdminDashboardPage() {
                     </select>
                   </div>
 
-                  <span style={{ fontSize: "0.85rem", color: "#64748b", fontWeight: 600 }}>
+                  <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
                     {processedClaims.length} authorship claims found
                   </span>
                 </div>
@@ -1030,7 +1030,7 @@ export default function AdminDashboardPage() {
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
                     <thead>
-                      <tr style={{ background: "#ffffff", color: "#64748b", borderBottom: "2px solid #e2e8f0", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      <tr style={{ background: "var(--color-bg-card)", color: "var(--color-text-muted)", borderBottom: "2px solid var(--color-border)", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                         <th style={{ padding: "1rem 1.25rem" }}>Publication & Journal</th>
                         <th style={{ padding: "1rem" }}>Claiming Researcher</th>
                         <th style={{ padding: "1rem" }}>Claimed Role</th>
@@ -1048,13 +1048,13 @@ export default function AdminDashboardPage() {
                         </tr>
                       ) : (
                         paginatedClaims.map(c => (
-                          <tr key={c.id} style={{ borderBottom: "1px solid #f1f5f9", background: "#ffffff" }}>
+                          <tr key={c.id} style={{ borderBottom: "1px solid #f1f5f9", background: "var(--color-bg-card)" }}>
                             
                             <td style={{ padding: "1rem 1.25rem" }}>
-                              <div style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.92rem", marginBottom: "3px" }}>
+                              <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.92rem", marginBottom: "3px" }}>
                                 {c.article?.title || "Unknown Publication"}
                               </div>
-                              <div style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
                                 {c.article?.journal?.name || "AfriJournal Repository"}
                               </div>
                               {c.article?.doi && (
@@ -1070,10 +1070,10 @@ export default function AdminDashboardPage() {
                             </td>
 
                             <td style={{ padding: "1rem" }}>
-                              <div style={{ fontWeight: 600, color: "#1e293b" }}>
+                              <div style={{ fontWeight: 600, color: "var(--color-text-body)" }}>
                                 {c.user?.name || "Registered Scholar"}
                               </div>
-                              <div style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
                                 {c.user?.email}
                               </div>
                               {c.user?.orcid && (
@@ -1084,7 +1084,7 @@ export default function AdminDashboardPage() {
                             </td>
 
                             <td style={{ padding: "1rem" }}>
-                              <span style={{ background: "#f8fafc", border: "1px solid #e2e8f0", padding: "3px 8px", borderRadius: "6px", fontSize: "0.8rem", color: "#334155", fontWeight: 600 }}>
+                              <span style={{ background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", padding: "3px 8px", borderRadius: "6px", fontSize: "0.8rem", color: "var(--color-text-body)", fontWeight: 600 }}>
                                 {c.role}
                               </span>
                               <div style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "4px" }}>
@@ -1125,7 +1125,7 @@ export default function AdminDashboardPage() {
                                     onClick={() => handleUpdateClaim(c.id, "REJECTED")}
                                     disabled={actionLoadingId === c.id}
                                     className="btn btn-sm"
-                                    style={{ background: "#ffffff", border: "1px solid #ef4444", color: "#dc2626", padding: "5px 10px", fontSize: "0.78rem" }}
+                                    style={{ background: "var(--color-bg-card)", border: "1px solid #ef4444", color: "#dc2626", padding: "5px 10px", fontSize: "0.78rem" }}
                                     title="Reject authorship claim"
                                   >
                                     <i className="fa-solid fa-xmark"></i> Reject
@@ -1143,13 +1143,13 @@ export default function AdminDashboardPage() {
 
                 {/* Claims Pagination */}
                 {processedClaims.length > 0 && (
-                  <div style={{ padding: "0.85rem 1.5rem", borderTop: "1px solid #f1f5f9", background: "#f8fafc", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.82rem", color: "#64748b" }}>
+                  <div style={{ padding: "0.85rem 1.5rem", borderTop: "1px solid #f1f5f9", background: "var(--color-bg-card-subtle)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
                       <span>Per page:</span>
                       <select
                         value={claimPageSize}
                         onChange={(e) => setClaimPageSize(Number(e.target.value))}
-                        style={{ padding: "2px 6px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "#ffffff", fontSize: "0.82rem" }}
+                        style={{ padding: "2px 6px", borderRadius: "6px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)", fontSize: "0.82rem" }}
                       >
                         <option value={10}>10</option>
                         <option value={25}>25</option>
@@ -1163,18 +1163,18 @@ export default function AdminDashboardPage() {
                         onClick={() => setClaimPage(p => Math.max(1, p - 1))}
                         disabled={claimPage === 1}
                         className="btn btn-sm"
-                        style={{ background: "#ffffff", border: "1px solid #cbd5e1", color: claimPage === 1 ? "#94a3b8" : "#334155", padding: "4px 10px" }}
+                        style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: claimPage === 1 ? "#94a3b8" : "#334155", padding: "4px 10px" }}
                       >
                         Previous
                       </button>
-                      <span style={{ fontSize: "0.82rem", color: "#475569", fontWeight: 700, padding: "0 6px" }}>
+                      <span style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", fontWeight: 700, padding: "0 6px" }}>
                         Page {claimPage} of {claimTotalPages}
                       </span>
                       <button
                         onClick={() => setClaimPage(p => Math.min(claimTotalPages, p + 1))}
                         disabled={claimPage >= claimTotalPages}
                         className="btn btn-sm"
-                        style={{ background: "#ffffff", border: "1px solid #cbd5e1", color: claimPage >= claimTotalPages ? "#94a3b8" : "#334155", padding: "4px 10px" }}
+                        style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: claimPage >= claimTotalPages ? "#94a3b8" : "#334155", padding: "4px 10px" }}
                       >
                         Next
                       </button>
@@ -1189,10 +1189,10 @@ export default function AdminDashboardPage() {
                 TAB 3: JOURNAL DIRECTORY & CERTIFICATES (ALL SEEDED JOURNALS)
             ============================================================= */}
             {activeTab === "journals" && (
-              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
+              <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
                 
                 {/* Search, Filter & Sort Controls */}
-                <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #f1f5f9", background: "#f8fafc", display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #f1f5f9", background: "var(--color-bg-card-subtle)", display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
                   
                   {/* Left: Search input & Filters */}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center", flex: 1 }}>
@@ -1210,11 +1210,11 @@ export default function AdminDashboardPage() {
                         style={{
                           width: "100%",
                           padding: "0.55rem 0.85rem 0.55rem 2.2rem",
-                          background: "#ffffff",
-                          border: "1px solid #cbd5e1",
+                          background: "var(--color-bg-card)",
+                          border: "1px solid var(--color-border)",
                           borderRadius: "8px",
                           fontSize: "0.85rem",
-                          color: "#0f172a",
+                          color: "var(--color-text-main)",
                           outline: "none"
                         }}
                       />
@@ -1225,7 +1225,7 @@ export default function AdminDashboardPage() {
                     <select
                       value={journalIndexedFilter}
                       onChange={(e) => setJournalIndexedFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#334155", fontWeight: 600, outline: "none" }}
+                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", fontWeight: 600, outline: "none" }}
                     >
                       <option value="ALL">All Indexing States</option>
                       <option value="INDEXED">Indexed (Live)</option>
@@ -1236,7 +1236,7 @@ export default function AdminDashboardPage() {
                     <select
                       value={journalPaidFilter}
                       onChange={(e) => setJournalPaidFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#334155", fontWeight: 600, outline: "none" }}
+                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", fontWeight: 600, outline: "none" }}
                     >
                       <option value="ALL">All Certificate States</option>
                       <option value="PAID">Paid ($99 Full Cert)</option>
@@ -1247,7 +1247,7 @@ export default function AdminDashboardPage() {
                     <select
                       value={journalGradeFilter}
                       onChange={(e) => setJournalGradeFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#334155", outline: "none" }}
+                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", outline: "none" }}
                     >
                       <option value="ALL">All Grades</option>
                       <option value="A+">A+ (Pioneer)</option>
@@ -1260,7 +1260,7 @@ export default function AdminDashboardPage() {
                     <select
                       value={journalCountryFilter}
                       onChange={(e) => setJournalCountryFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#334155", outline: "none" }}
+                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", outline: "none" }}
                     >
                       <option value="ALL">All African Nations</option>
                       {ALL_COUNTRY_NAMES.map(c => (
@@ -1272,7 +1272,7 @@ export default function AdminDashboardPage() {
                     <select
                       value={journalSort}
                       onChange={(e) => setJournalSort(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "8px", fontSize: "0.85rem", color: "#334155", outline: "none" }}
+                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", outline: "none" }}
                     >
                       <option value="name-asc">Sort: Title (A-Z)</option>
                       <option value="name-desc">Sort: Title (Z-A)</option>
@@ -1290,7 +1290,7 @@ export default function AdminDashboardPage() {
                     >
                       <i className="fa-solid fa-magnifying-glass"></i> Deep Query
                     </button>
-                    <span style={{ fontSize: "0.85rem", color: "#64748b", fontWeight: 600 }}>
+                    <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
                       {processedJournals.length} journals
                     </span>
                   </div>
@@ -1300,7 +1300,7 @@ export default function AdminDashboardPage() {
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
                     <thead>
-                      <tr style={{ background: "#ffffff", color: "#64748b", borderBottom: "2px solid #e2e8f0", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      <tr style={{ background: "var(--color-bg-card)", color: "var(--color-text-muted)", borderBottom: "2px solid var(--color-border)", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                         <th style={{ padding: "1rem 1.25rem" }}>Journal & Publisher</th>
                         <th style={{ padding: "1rem" }}>Live Directory</th>
                         <th style={{ padding: "1rem" }}>Accredited Cert ($99)</th>
@@ -1318,13 +1318,13 @@ export default function AdminDashboardPage() {
                         </tr>
                       ) : (
                         paginatedJournals.map(j => (
-                          <tr key={j.id} style={{ borderBottom: "1px solid #f1f5f9", background: "#ffffff" }}>
+                          <tr key={j.id} style={{ borderBottom: "1px solid #f1f5f9", background: "var(--color-bg-card)" }}>
                             
                             <td style={{ padding: "1rem 1.25rem" }}>
-                              <div style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.95rem", marginBottom: "2px" }}>
+                              <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.95rem", marginBottom: "2px" }}>
                                 {j.name}
                               </div>
-                              <div style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
                                 ISSN: <strong>{j.issn || j.eissn || "N/A"}</strong> • {j.country}
                               </div>
                               <div style={{ fontSize: "0.76rem", color: j.publisher ? "#0284c7" : "#94a3b8", marginTop: "2px", fontWeight: j.publisher ? 600 : 400 }}>
@@ -1404,9 +1404,9 @@ export default function AdminDashboardPage() {
                                 value={j.qualityGrade || "A"}
                                 onChange={(e) => handleUpdateGrade(j.id, e.target.value)}
                                 style={{
-                                  background: "#ffffff",
-                                  color: "#0f172a",
-                                  border: "1px solid #cbd5e1",
+                                  background: "var(--color-bg-card)",
+                                  color: "var(--color-text-main)",
+                                  border: "1px solid var(--color-border)",
                                   borderRadius: "6px",
                                   padding: "4px 8px",
                                   fontSize: "0.85rem",
@@ -1427,7 +1427,7 @@ export default function AdminDashboardPage() {
                                 <Link
                                   href={`/journal/${j.id}`}
                                   className="btn btn-secondary btn-sm"
-                                  style={{ padding: "4px 10px", fontSize: "0.78rem", background: "#ffffff", border: "1px solid #cbd5e1" }}
+                                  style={{ padding: "4px 10px", fontSize: "0.78rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}
                                   target="_blank"
                                 >
                                   <i className="fa-solid fa-arrow-up-right-from-square"></i> View Profile
@@ -1435,7 +1435,7 @@ export default function AdminDashboardPage() {
                                 <Link
                                   href={`/verify/${j.id}`}
                                   className="btn btn-secondary btn-sm"
-                                  style={{ padding: "4px 10px", fontSize: "0.78rem", background: "#ffffff", border: "1px solid #cbd5e1" }}
+                                  style={{ padding: "4px 10px", fontSize: "0.78rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}
                                   target="_blank"
                                 >
                                   <i className="fa-solid fa-certificate"></i> Cert
@@ -1452,13 +1452,13 @@ export default function AdminDashboardPage() {
 
                 {/* Journals Pagination */}
                 {processedJournals.length > 0 && (
-                  <div style={{ padding: "0.85rem 1.5rem", borderTop: "1px solid #f1f5f9", background: "#f8fafc", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.82rem", color: "#64748b" }}>
+                  <div style={{ padding: "0.85rem 1.5rem", borderTop: "1px solid #f1f5f9", background: "var(--color-bg-card-subtle)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
                       <span>Per page:</span>
                       <select
                         value={journalPageSize}
                         onChange={(e) => setJournalPageSize(Number(e.target.value))}
-                        style={{ padding: "2px 6px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "#ffffff", fontSize: "0.82rem" }}
+                        style={{ padding: "2px 6px", borderRadius: "6px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)", fontSize: "0.82rem" }}
                       >
                         <option value={15}>15</option>
                         <option value={30}>30</option>
@@ -1473,18 +1473,18 @@ export default function AdminDashboardPage() {
                         onClick={() => setJournalPage(p => Math.max(1, p - 1))}
                         disabled={journalPage === 1}
                         className="btn btn-sm"
-                        style={{ background: "#ffffff", border: "1px solid #cbd5e1", color: journalPage === 1 ? "#94a3b8" : "#334155", padding: "4px 10px" }}
+                        style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: journalPage === 1 ? "#94a3b8" : "#334155", padding: "4px 10px" }}
                       >
                         Previous
                       </button>
-                      <span style={{ fontSize: "0.82rem", color: "#475569", fontWeight: 700, padding: "0 6px" }}>
+                      <span style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", fontWeight: 700, padding: "0 6px" }}>
                         Page {journalPage} of {journalTotalPages}
                       </span>
                       <button
                         onClick={() => setJournalPage(p => Math.min(journalTotalPages, p + 1))}
                         disabled={journalPage >= journalTotalPages}
                         className="btn btn-sm"
-                        style={{ background: "#ffffff", border: "1px solid #cbd5e1", color: journalPage >= journalTotalPages ? "#94a3b8" : "#334155", padding: "4px 10px" }}
+                        style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: journalPage >= journalTotalPages ? "#94a3b8" : "#334155", padding: "4px 10px" }}
                       >
                         Next
                       </button>

@@ -48,3 +48,4 @@ next-env.d.ts
 db-dump.json
 *.zip
 *.sql
+.vscode/

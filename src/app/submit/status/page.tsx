@@ -143,7 +143,7 @@ function StatusContent() {
             </p>
           </div>
 
-          <div className="glass-card" style={{ padding: "2.5rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)" }}>
+          <div className="glass-card" style={{ padding: "2.5rem", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)" }}>
             {error && (
               <div style={{
                 background: "#fef2f2",
@@ -189,7 +189,7 @@ function StatusContent() {
               </div>
             </form>
 
-            <div style={{ borderTop: "1px solid #e2e8f0", marginTop: "2rem", paddingTop: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+            <div style={{ borderTop: "1px solid var(--color-border)", marginTop: "2rem", paddingTop: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
               <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
                 Want to submit a new academic publication?
               </span>
@@ -223,7 +223,7 @@ function StatusContent() {
 
       <main className="container" style={{ padding: "3.5rem 1rem 6rem", maxWidth: "900px" }}>
         {/* Banner Card */}
-        <div className="card-surface" style={{ padding: "2rem", marginBottom: "2rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)", borderLeft: submission.status === "ACCEPTED" ? "6px solid #059669" : submission.status === "REJECTED" ? "6px solid #dc2626" : "6px solid #d97706" }}>
+        <div className="card-surface" style={{ padding: "2rem", marginBottom: "2rem", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderLeft: submission.status === "ACCEPTED" ? "6px solid #059669" : submission.status === "REJECTED" ? "6px solid #dc2626" : "6px solid #d97706" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1.5rem" }}>
             <div>
               <span className="badge badge-slate" style={{ marginBottom: "0.5rem", display: "inline-block" }}>
@@ -273,7 +273,7 @@ function StatusContent() {
         </div>
 
         {hasImpactFactor && latestReport && (
-          <div className="card-surface" style={{ padding: "2rem", marginBottom: "2rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-primary)" }}>
+          <div className="card-surface" style={{ padding: "2rem", marginBottom: "2rem", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-primary)" }}>
             <h3 style={{ color: "var(--color-primary)", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1.2rem", fontWeight: 700 }}>
               <i className="fa-solid fa-chart-line"></i> {t.journal_page.impact_metrics_title}
             </h3>
@@ -325,7 +325,7 @@ function StatusContent() {
         )}
 
         {/* Real-time Crawler Logs */}
-        <div className="card-surface" style={{ padding: "2rem", marginBottom: "2rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)" }}>
+        <div className="card-surface" style={{ padding: "2rem", marginBottom: "2rem", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
           <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "1.25rem", color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <i className="fa-solid fa-terminal" style={{ color: "var(--color-primary)" }}></i>
             {t.submit_status_page.logs_title}
@@ -346,7 +346,7 @@ function StatusContent() {
           }}>
             {logsList.map((log: string, idx: number) => (
               <div key={idx} style={{ display: "flex", gap: "0.5rem" }}>
-                <span style={{ color: "#64748b" }}>&gt;</span>
+                <span style={{ color: "var(--color-text-muted)" }}>&gt;</span>
                 <span style={{ color: log.includes("PASS") || log.includes("OK") ? "#4ade80" : log.includes("FAIL") ? "#f87171" : "#e2e8f0" }}>
                   {log}
                 </span>
@@ -357,7 +357,7 @@ function StatusContent() {
 
         {/* Peer Review Discussion Forum */}
         {journalId && (
-          <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", background: "#ffffff", border: "1px solid var(--color-border)" }}>
+          <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
             <h3 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <i className="fa-solid fa-comments" style={{ color: "var(--color-primary)" }}></i>
               {t.journal_page.reviews_title}
