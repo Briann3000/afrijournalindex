@@ -58,7 +58,17 @@ async function exportSql() {
   writeStream.write(`START TRANSACTION;\n\n`);
 
   try {
-    const tables = ["User", "Journal", "Submission", "Article", "Citation", "ImpactFactorReport", "Comment"];
+    const tables = [
+      "user",
+      "journal",
+      "submission",
+      "article",
+      "citation",
+      "claimedpublication",
+      "comment",
+      "impactfactorreport",
+      "payment"
+    ];
 
     for (const table of tables) {
       console.log(`Exporting table: \`${table}\`...`);

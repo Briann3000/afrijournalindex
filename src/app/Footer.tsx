@@ -70,7 +70,7 @@ export default function Footer() {
           <p className="copyright" style={{ color: "#e2e8f0", fontSize: "0.88rem", fontWeight: 500, margin: 0 }}>
             &copy; 2026 AfriJournal Index. {t.footer.rights}
           </p>
-          <p style={{ fontSize: "0.88rem", color: "#93c5fd", fontWeight: 500, margin: 0 }}>
+          <p style={{ fontSize: "0.88rem", color: "#f59e0b", fontWeight: 500, margin: 0 }}>
             {t.footer.tagline}
           </p>
         </div>

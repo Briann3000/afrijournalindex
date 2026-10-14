@@ -1,53 +1,60 @@
 /* -------------------------------------------------------------
-   AfriJournal Index — Design Tokens & Core Layout
-   Colors: Warm Amber Gold (#D4A04A), Terracotta Clay (#C75B39), Rich Dark Charcoal (#121217)
+   AfriJournal Index — Clean Academic Light Theme with Dark Header & Footer
+   Canvas: Light Slate (#f8fafc), White Cards (#ffffff)
+   Top & Bottom: Deep Dark Slate/Charcoal (#0f172a / #121217)
+   Nav & Brand Accents: Warm Amber Gold (#D4A04A / #b45309)
 ------------------------------------------------------------- */
 
 :root {
-    /* Brand & Accent Colors (Original Amber & Charcoal System) */
-    --color-primary: #D4A04A;        /* Warm Amber Gold */
-    --color-primary-hover: #E2B25F;  /* Lighter Warm Amber */
-    --color-primary-light: rgba(212, 160, 74, 0.12); /* Warm Amber Tint */
-    --color-secondary: #C75B39;      /* Terracotta Clay */
-    --color-secondary-hover: #D66D4C;
-    --color-accent-green: #3E8E62;   /* Success / Verified Tag */
+    /* Brand & Accent Colors */
+    --color-primary: #b45309;        /* Warm Amber / Ochre for high-contrast legible text on light bg */
+    --color-primary-hover: #92400e;  /* Deep Ochre Hover */
+    --color-primary-light: #fef3c7;  /* Soft Warm Amber Tint */
+    --color-secondary: #c2410c;      /* Terracotta Clay Accent */
+    --color-secondary-hover: #9a3412;
+    --color-accent-green: #059669;   /* Verified Emerald Green */
 
-    /* Rich Dark Charcoal Canvas & Card System */
-    --color-bg-dark: #121217;        /* Rich Dark Charcoal */
-    --color-bg-base: #121217;        /* Base Background Canvas */
-    --color-bg-alt: #181820;         /* Slightly distinct Charcoal Section Fill */
-    --color-bg-card: #1C1C24;        /* Card Charcoal */
-    --color-bg-card-subtle: #23232C; /* Container Fill */
-    --color-border: rgba(255, 255, 255, 0.08); /* Crisp translucent border */
-    --color-border-hover: rgba(212, 160, 74, 0.35); /* Amber Accent Border */
-    --color-border-subtle: rgba(255, 255, 255, 0.05);
-
-    /* Text Colors (High Contrast on Dark Surfaces) */
-    --color-text-main: #F4F4F6;      /* Bright Off-White for Headlines */
-    --color-text-body: #E2E2E8;      /* High Legibility Body Text */
-    --color-text-muted: #A0A0B0;     /* Muted Charcoal Text */
-    --color-text-light: #F4F4F6;     /* Light Text */
-    --color-text-lighter: #8A8A9A;   /* Subtle Text */
-    --color-text-subtle: #8A8A9A;    /* Subtle Text */
-    --color-navy: #D4A04A;
+    /* Nav & Dark Surface Accents (Used on Dark Header & Footer) */
+    --color-amber-nav: #f59e0b;      /* Bright Warm Amber for Dark Backgrounds */
+    --color-amber-nav-hover: #fbbf24;
+    --color-header-bg: #121217;      /* Rich Dark Charcoal for Header */
+    --color-footer-bg: #0c0c10;      /* Rich Dark Charcoal Black for Footer */
+    
+    /* Neutral / Light Canvas */
+    --color-bg-base: #f8fafc;        /* Soft Slate Canvas */
+    --color-bg-alt: #f1f5f9;         /* Soft Slate Section Fill */
+    --color-bg-card: #ffffff;        /* Pure White Card */
+    --color-bg-card-subtle: #f8fafc; /* Subtle Container Fill */
+    --color-border: #e2e8f0;         /* Crisp Slate 200 Border */
+    --color-border-hover: #b45309;   /* Warm Amber Hover Border */
+    --color-border-subtle: #f1f5f9;  /* Subtle Border */
+    
+    /* Razor-Sharp Text Colors (High Contrast on Light Canvas) */
+    --color-text-main: #0f172a;      /* Deep Navy / Slate 900 for Headlines & High Legibility */
+    --color-text-body: #1e293b;      /* Slate 800 Solid Body Text */
+    --color-text-muted: #64748b;     /* Slate 500 Clearly Legible Muted Text */
+    --color-text-light: #64748b;     /* Slate 500 Alias */
+    --color-text-lighter: #94a3b8;   /* Slate 400 Subtle Text */
+    --color-text-subtle: #94a3b8;    /* Slate 400 Subtle Text */
+    --color-navy: #0f172a;
 
     /* Form Controls */
-    --input-bg: #1C1C24;
-    --input-border: rgba(255, 255, 255, 0.12);
-    --input-border-focus: #D4A04A;
-    --badge-bg: rgba(212, 160, 74, 0.12);
+    --input-bg: #ffffff;
+    --input-border: #cbd5e1;
+    --input-border-focus: #b45309;
+    --badge-bg: #fef3c7;
 
     /* Layout Tokens */
     --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --border-radius: 14px;
     --border-radius-sm: 8px;
-    --transition: all 0.25s ease;
+    --transition: all 0.2s ease;
     --max-width: 1240px;
 
     /* Shadows & Surface */
-    --card-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.45);
-    --card-shadow-hover: 0 16px 36px -8px rgba(212, 160, 74, 0.18);
+    --card-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.06);
+    --card-shadow-hover: 0 12px 28px -8px rgba(180, 83, 9, 0.18);
 }
 
 /* Base resets */
@@ -100,16 +107,16 @@ a {
 }
 
 /* -------------------------------------------------------------
-   Header & Navigation (Solid Deep Navy Dark Contrast Header)
+   Header & Navigation (Rich Dark Charcoal Contrast Header)
 ------------------------------------------------------------- */
 .header {
-    background-color: #0f172a;
-    border-bottom: 1px solid #1e293b;
+    background-color: #121217;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     position: sticky;
     top: 0;
     width: 100%;
     z-index: 100;
-    box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.3);
+    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5);
 }
 
 .header-container {
@@ -153,7 +160,7 @@ a {
 .nav-link {
     font-weight: 600;
     font-size: 0.9rem;
-    color: #cbd5e1 !important;
+    color: #e2e8f0 !important;
     transition: color 0.15s ease;
     text-decoration: none;
     white-space: nowrap;
@@ -162,11 +169,11 @@ a {
 }
 
 .nav-link:hover {
-    color: #38bdf8 !important;
+    color: #f59e0b !important;
 }
 
 .nav-link.active {
-    color: #38bdf8 !important;
+    color: #f59e0b !important;
     font-weight: 700;
 }
 
@@ -190,7 +197,7 @@ a {
 
 .nav-dropdown-item:hover {
     background-color: #1e293b;
-    color: #38bdf8 !important;
+    color: #f59e0b !important;
     padding-left: 1.25rem;
 }
 
@@ -225,8 +232,8 @@ a {
 }
 
 .lang-selector:focus {
-    border-color: #38bdf8;
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
 }
 
 .menu-toggle {
@@ -300,29 +307,29 @@ a {
 }
 
 .btn-secondary {
-    background-color: var(--color-bg-card);
+    background-color: #ffffff;
     border: 1px solid var(--color-border);
     color: var(--color-text-main);
 }
 
 .btn-secondary:hover {
-    background-color: var(--color-bg-card-subtle);
+    background-color: var(--color-primary-light);
     border-color: var(--color-primary);
     color: var(--color-primary);
     transform: translateY(-1px);
 }
 
 /* -------------------------------------------------------------
-   Cards & Surfaces (Dark Charcoal Cards with Warm Borders)
+   Cards & Surfaces (Solid White with Crisp Borders)
 ------------------------------------------------------------- */
 .glass-card {
-    background: var(--color-bg-card);
+    background: #ffffff;
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius);
     padding: 2.2rem;
     transition: var(--transition);
     box-shadow: var(--card-shadow);
-    color: var(--color-text-main);
+    color: var(--color-text-body);
 }
 
 .glass-card:hover {
@@ -332,12 +339,12 @@ a {
 
 /* Standard Card Surfaces */
 .card-surface {
-    background: var(--color-bg-card);
+    background: #ffffff;
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-sm);
     padding: 1.5rem;
     box-shadow: var(--card-shadow);
-    color: var(--color-text-main);
+    color: var(--color-text-body);
 }
 
 /* -------------------------------------------------------------
@@ -484,10 +491,10 @@ a {
 }
 
 /* -------------------------------------------------------------
-   Tables (High Contrast Academic Tables - Dark Mode)
+   Tables (High Contrast Academic Tables)
 ------------------------------------------------------------- */
 .table-wrapper {
-    background: var(--color-bg-card);
+    background: #ffffff;
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-sm);
     overflow-x: auto;
@@ -502,7 +509,7 @@ a {
 }
 
 .academic-table th {
-    background-color: var(--color-bg-card-subtle);
+    background-color: #f8fafc;
     color: var(--color-text-main);
     font-weight: 700;
     padding: 0.9rem 1.2rem;
@@ -521,7 +528,7 @@ a {
 }
 
 .academic-table tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: #f8fafc;
 }
 
 /* -------------------------------------------------------------
@@ -696,7 +703,7 @@ a {
    Stats Counter Section
 ------------------------------------------------------------- */
 .stats-section {
-    background-color: var(--color-bg-card);
+    background-color: #ffffff;
     padding: 3.5rem 0;
     border-bottom: 1px solid var(--color-border);
 }
@@ -954,9 +961,9 @@ a {
    Footer
 ------------------------------------------------------------- */
 .footer {
-    background-color: #0f172a;
+    background-color: #0c0c10;
     color: #cbd5e1;
-    border-top: 1px solid #1e293b;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     padding: 4.5rem 0 2rem;
 }
 
@@ -1002,11 +1009,11 @@ a {
 }
 
 .footer-links a:hover {
-    color: #38bdf8 !important;
+    color: #f59e0b !important;
 }
 
 .footer-bottom {
-    border-top: 1px solid #1e293b;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     padding-top: 1.8rem;
 }
 
@@ -1127,7 +1134,7 @@ a {
 .step-node-light {
     position: relative;
     z-index: 2;
-    background: var(--color-bg-card);
+    background: #ffffff;
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius);
     padding: 1.8rem 1.5rem;
@@ -1146,14 +1153,14 @@ a {
     height: 48px;
     border-radius: 50%;
     background: var(--color-primary-light);
-    border: 2px solid rgba(212, 160, 74, 0.3);
+    border: 2px solid #fde68a;
     color: var(--color-primary);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 18px;
     margin-bottom: 1rem;
-    box-shadow: 0 4px 12px rgba(34, 113, 177, 0.12);
+    box-shadow: 0 4px 12px rgba(180, 83, 9, 0.12);
     transition: all 0.2s ease;
 }
 
@@ -1197,14 +1204,14 @@ a {
 }
 
 .feature-marquee-card {
-    background: var(--color-bg-card);
+    background: #ffffff;
     border: 1px solid var(--color-border);
     border-radius: 14px;
     padding: 12px 18px;
     display: flex;
     align-items: center;
     gap: 14px;
-    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.05);
     transition: all .25s ease;
     text-decoration: none !important;
     flex-shrink: 0;
@@ -1214,7 +1221,7 @@ a {
 .feature-marquee-card:hover {
     border-color: var(--color-primary);
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px -4px rgba(212, 160, 74, 0.2);
+    box-shadow: 0 12px 28px -8px rgba(180, 83, 9, 0.18);
 }
 
 .feature-marquee-icon {

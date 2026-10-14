@@ -186,8 +186,8 @@ export default function Header({ activePage }: HeaderProps) {
                   top: "100%",
                   left: "0",
                   minWidth: "230px",
-                  background: "#0f172a",
-                  border: "1px solid #1e293b",
+                  background: "#181820",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
                   borderRadius: "10px",
                   padding: "0.6rem 0",
                   boxShadow: "0 14px 30px rgba(0,0,0,0.6)",
@@ -195,15 +195,15 @@ export default function Header({ activePage }: HeaderProps) {
                 }}
               >
                 <a href="/browse" className="nav-dropdown-item">
-                  <i className="fa-solid fa-book-open" style={{ color: "#38bdf8", width: "20px" }}></i>
+                  <i className="fa-solid fa-book-open" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.browse}</span>
                 </a>
                 <a href="/submit" className="nav-dropdown-item">
-                  <i className="fa-solid fa-cloud-arrow-up" style={{ color: "#38bdf8", width: "20px" }}></i>
+                  <i className="fa-solid fa-cloud-arrow-up" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.submit}</span>
                 </a>
                 <a href="/pricing" className="nav-dropdown-item">
-                  <i className="fa-solid fa-tags" style={{ color: "#38bdf8", width: "20px" }}></i>
+                  <i className="fa-solid fa-tags" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.pricing}</span>
                 </a>
               </div>
@@ -232,8 +232,8 @@ export default function Header({ activePage }: HeaderProps) {
                   top: "100%",
                   left: "0",
                   minWidth: "240px",
-                  background: "#0f172a",
-                  border: "1px solid #1e293b",
+                  background: "#181820",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
                   borderRadius: "10px",
                   padding: "0.6rem 0",
                   boxShadow: "0 14px 30px rgba(0,0,0,0.6)",
@@ -241,11 +241,11 @@ export default function Header({ activePage }: HeaderProps) {
                 }}
               >
                 <a href="/rankings" className="nav-dropdown-item">
-                  <i className="fa-solid fa-chart-line" style={{ color: "#38bdf8", width: "20px" }}></i>
+                  <i className="fa-solid fa-chart-line" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.rankings}</span>
                 </a>
                 <a href="/institution" className="nav-dropdown-item">
-                  <i className="fa-solid fa-building-columns" style={{ color: "#38bdf8", width: "20px" }}></i>
+                  <i className="fa-solid fa-building-columns" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.institution}</span>
                 </a>
               </div>
@@ -274,8 +274,8 @@ export default function Header({ activePage }: HeaderProps) {
                   top: "100%",
                   left: "0",
                   minWidth: "220px",
-                  background: "#0f172a",
-                  border: "1px solid #1e293b",
+                  background: "#181820",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
                   borderRadius: "10px",
                   padding: "0.6rem 0",
                   boxShadow: "0 14px 30px rgba(0,0,0,0.6)",
@@ -283,19 +283,19 @@ export default function Header({ activePage }: HeaderProps) {
                 }}
               >
                 <a href="/about" className="nav-dropdown-item">
-                  <i className="fa-solid fa-circle-info" style={{ color: "#38bdf8", width: "20px" }}></i>
+                  <i className="fa-solid fa-circle-info" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.about}</span>
                 </a>
                 <a href="/methodology" className="nav-dropdown-item">
-                  <i className="fa-solid fa-scale-balanced" style={{ color: "#38bdf8", width: "20px" }}></i>
+                  <i className="fa-solid fa-scale-balanced" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.footer.methodology}</span>
                 </a>
                 <a href="/faq" className="nav-dropdown-item">
-                  <i className="fa-solid fa-circle-question" style={{ color: "#38bdf8", width: "20px" }}></i>
+                  <i className="fa-solid fa-circle-question" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.faq}</span>
                 </a>
                 <a href="/contact" className="nav-dropdown-item">
-                  <i className="fa-solid fa-envelope" style={{ color: "#38bdf8", width: "20px" }}></i>
+                  <i className="fa-solid fa-envelope" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.contact}</span>
                 </a>
               </div>
@@ -314,18 +314,18 @@ export default function Header({ activePage }: HeaderProps) {
                 style={{ 
                   display: "flex", 
                   alignItems: "center", 
-                  background: "#1e293b", 
-                  border: "1px solid #38bdf8", 
+                  background: "#1c1c24", 
+                  border: "1px solid #f59e0b", 
                   borderRadius: "20px", 
                   padding: "2px 6px 2px 8px",
-                  boxShadow: "0 0 0 3px rgba(56, 189, 248, 0.2)",
+                  boxShadow: "0 0 0 3px rgba(245, 158, 11, 0.25)",
                   transition: "all 0.25s ease",
                   width: "clamp(120px, 18vw, 200px)",
                   maxWidth: "100%",
                   flexShrink: 1
                 }}
               >
-                <i className="fa-solid fa-magnifying-glass" style={{ color: "#38bdf8", fontSize: "0.78rem", marginRight: "4px" }}></i>
+                <i className="fa-solid fa-magnifying-glass" style={{ color: "#f59e0b", fontSize: "0.78rem", marginRight: "4px" }}></i>
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -380,8 +380,8 @@ export default function Header({ activePage }: HeaderProps) {
                 title="Search Journals & Articles"
                 aria-label="Open Search"
                 style={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "#1c1c24",
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
                   color: "#cbd5e1",
                   borderRadius: "8px",
                   width: "36px",
@@ -394,11 +394,11 @@ export default function Header({ activePage }: HeaderProps) {
                   flexShrink: 0
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#38bdf8";
-                  e.currentTarget.style.color = "#38bdf8";
+                  e.currentTarget.style.borderColor = "#f59e0b";
+                  e.currentTarget.style.color = "#f59e0b";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "#334155";
+                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.12)";
                   e.currentTarget.style.color = "#cbd5e1";
                 }}
               >
@@ -430,12 +430,12 @@ export default function Header({ activePage }: HeaderProps) {
             {user ? (
               <>
                 {user.role === "ADMIN" && (
-                  <Link href="/admin" className="btn btn-sm" style={{ background: "rgba(56, 189, 248, 0.15)", color: "#38bdf8", border: "1px solid rgba(56, 189, 248, 0.4)" }}>
+                  <Link href="/admin" className="btn btn-sm" style={{ background: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", border: "1px solid rgba(245, 158, 11, 0.4)" }}>
                     <i className="fa-solid fa-shield-halved" style={{ marginRight: "5px" }}></i>
                     Admin Console
                   </Link>
                 )}
-                <a href={`/researcher?id=${user.id}`} className="btn btn-secondary btn-sm" style={{ background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}>
+                <a href={`/researcher?id=${user.id}`} className="btn btn-secondary btn-sm" style={{ background: "#1c1c24", color: "#ffffff", border: "1px solid rgba(255, 255, 255, 0.12)" }}>
                   <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`} style={{ marginRight: "5px" }}></i>
                   {user.role === "PUBLISHER" ? "Editor & Scholar Profile" : t.nav.profile}
                 </a>
@@ -445,7 +445,7 @@ export default function Header({ activePage }: HeaderProps) {
                     window.location.reload();
                   }}
                   className="btn btn-secondary btn-sm"
-                  style={{ border: "1px solid rgba(239,68,68,0.4)", color: "#f87171", background: "#1e293b" }}
+                  style={{ border: "1px solid rgba(239,68,68,0.4)", color: "#f87171", background: "#1c1c24" }}
                 >
                   <i className="fa-solid fa-arrow-right-from-bracket" style={{ marginRight: "5px" }}></i>
                   {t.nav.logout}
@@ -453,7 +453,7 @@ export default function Header({ activePage }: HeaderProps) {
               </>
             ) : (
               <>
-                <a href="/login" className="btn btn-secondary btn-sm" style={{ background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}>
+                <a href="/login" className="btn btn-secondary btn-sm" style={{ background: "#1c1c24", color: "#ffffff", border: "1px solid rgba(255, 255, 255, 0.12)" }}>
                   {t.nav.login}
                 </a>
                 <a href="/submit" className="btn btn-primary btn-sm">
@@ -483,7 +483,7 @@ export default function Header({ activePage }: HeaderProps) {
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div 
-            className="mobile-nav-drawer"
+            className="mobile-nav-drawer" 
             onClick={(e) => e.stopPropagation()}
             style={{
               position: "absolute",
@@ -493,15 +493,15 @@ export default function Header({ activePage }: HeaderProps) {
               width: "85%",
               maxWidth: "340px",
               height: "100%",
-              background: "#0f172a",
-              borderLeft: lang === "ar" ? "none" : "1px solid #1e293b",
-              borderRight: lang === "ar" ? "1px solid #1e293b" : "none",
+              background: "#121217",
+              borderLeft: lang === "ar" ? "none" : "1px solid rgba(255, 255, 255, 0.08)",
+              borderRight: lang === "ar" ? "1px solid rgba(255, 255, 255, 0.08)" : "none",
               padding: "1.5rem",
               overflowY: "auto",
               display: "flex",
               flexDirection: "column",
               gap: "1.1rem",
-              boxShadow: "-10px 0 30px rgba(0,0,0,0.5)"
+              boxShadow: "-10px 0 30px rgba(0,0,0,0.6)"
             }}
           >
             {/* Mobile Quick Search Bar */}
@@ -515,15 +515,15 @@ export default function Header({ activePage }: HeaderProps) {
                   style={{
                     width: "100%",
                     padding: "0.65rem 0.85rem 0.65rem 2.2rem",
-                    background: "#1e293b",
-                    border: "1px solid #334155",
+                    background: "#1c1c24",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
                     borderRadius: "10px",
                     color: "#ffffff",
                     fontSize: "0.9rem",
                     outline: "none"
                   }}
                 />
-                <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "0.75rem", color: "#38bdf8", fontSize: "0.85rem" }}></i>
+                <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "0.75rem", color: "#f59e0b", fontSize: "0.85rem" }}></i>
               </div>
             </form>
 
@@ -534,7 +534,7 @@ export default function Header({ activePage }: HeaderProps) {
               onClick={() => setIsMobileMenuOpen(false)}
               style={{ fontSize: "1.05rem", fontWeight: 600, color: "#ffffff", padding: "0.5rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
             >
-              <i className="fa-solid fa-house" style={{ width: "22px", color: "#38bdf8", textAlign: "center" }}></i>
+              <i className="fa-solid fa-house" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
               <span>{t.nav.home}</span>
             </Link>
 
@@ -558,7 +558,7 @@ export default function Header({ activePage }: HeaderProps) {
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <i className="fa-solid fa-book" style={{ width: "22px", color: "#38bdf8", textAlign: "center" }}></i>
+                  <i className="fa-solid fa-book" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
                   <span>{t.nav.journals}</span>
                 </div>
                 <i 
@@ -578,7 +578,7 @@ export default function Header({ activePage }: HeaderProps) {
                     onClick={() => setIsMobileMenuOpen(false)} 
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
-                    <i className="fa-solid fa-book-open" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <i className="fa-solid fa-book-open" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{t.nav.browse}</span>
                   </Link>
                   <Link 
@@ -586,7 +586,7 @@ export default function Header({ activePage }: HeaderProps) {
                     onClick={() => setIsMobileMenuOpen(false)} 
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
-                    <i className="fa-solid fa-cloud-arrow-up" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <i className="fa-solid fa-cloud-arrow-up" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{t.nav.submit}</span>
                   </Link>
                   <Link 
@@ -594,7 +594,7 @@ export default function Header({ activePage }: HeaderProps) {
                     onClick={() => setIsMobileMenuOpen(false)} 
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
-                    <i className="fa-solid fa-tags" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <i className="fa-solid fa-tags" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{t.nav.pricing}</span>
                   </Link>
                 </div>
@@ -621,7 +621,7 @@ export default function Header({ activePage }: HeaderProps) {
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <i className="fa-solid fa-chart-line" style={{ width: "22px", color: "#38bdf8", textAlign: "center" }}></i>
+                  <i className="fa-solid fa-chart-line" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
                   <span>{t.nav.rankings}</span>
                 </div>
                 <i 
@@ -641,7 +641,7 @@ export default function Header({ activePage }: HeaderProps) {
                     onClick={() => setIsMobileMenuOpen(false)} 
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
-                    <i className="fa-solid fa-chart-line" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <i className="fa-solid fa-chart-line" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{t.nav.rankings}</span>
                   </Link>
                   <Link 
@@ -649,7 +649,7 @@ export default function Header({ activePage }: HeaderProps) {
                     onClick={() => setIsMobileMenuOpen(false)} 
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
-                    <i className="fa-solid fa-building-columns" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <i className="fa-solid fa-building-columns" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{t.nav.institution}</span>
                   </Link>
                 </div>
@@ -676,7 +676,7 @@ export default function Header({ activePage }: HeaderProps) {
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <i className="fa-solid fa-circle-info" style={{ width: "22px", color: "#38bdf8", textAlign: "center" }}></i>
+                  <i className="fa-solid fa-circle-info" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
                   <span>{t.nav.about}</span>
                 </div>
                 <i 
@@ -696,7 +696,7 @@ export default function Header({ activePage }: HeaderProps) {
                     onClick={() => setIsMobileMenuOpen(false)} 
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
-                    <i className="fa-solid fa-circle-info" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <i className="fa-solid fa-circle-info" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{t.nav.about}</span>
                   </Link>
                   <Link 
@@ -704,7 +704,7 @@ export default function Header({ activePage }: HeaderProps) {
                     onClick={() => setIsMobileMenuOpen(false)} 
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
-                    <i className="fa-solid fa-scale-balanced" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <i className="fa-solid fa-scale-balanced" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{t.footer.methodology}</span>
                   </Link>
                   <Link 
@@ -712,7 +712,7 @@ export default function Header({ activePage }: HeaderProps) {
                     onClick={() => setIsMobileMenuOpen(false)} 
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
-                    <i className="fa-solid fa-circle-question" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <i className="fa-solid fa-circle-question" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{t.nav.faq}</span>
                   </Link>
                   <Link 
@@ -720,7 +720,7 @@ export default function Header({ activePage }: HeaderProps) {
                     onClick={() => setIsMobileMenuOpen(false)} 
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
-                    <i className="fa-solid fa-envelope" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <i className="fa-solid fa-envelope" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{t.nav.contact}</span>
                   </Link>
                 </div>
@@ -736,7 +736,7 @@ export default function Header({ activePage }: HeaderProps) {
                       href="/admin"
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="btn btn-sm"
-                      style={{ width: "100%", justifyContent: "center", background: "rgba(56, 189, 248, 0.15)", color: "#38bdf8", border: "1px solid rgba(56, 189, 248, 0.4)", padding: "0.6rem 1rem" }}
+                      style={{ width: "100%", justifyContent: "center", background: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", border: "1px solid rgba(245, 158, 11, 0.4)", padding: "0.6rem 1rem" }}
                     >
                       <i className="fa-solid fa-shield-halved"></i> Chief Admin Console
                     </Link>
