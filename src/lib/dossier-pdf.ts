@@ -714,8 +714,7 @@ export function generateInstitutionalDossier(journal: DossierJournalData): void 
 
   let aY = 64;
   topArticles.forEach(a => {
-    // Sanitize any seed DOIs to genuine clean format
-    const cleanDoi = (a.doi || "N/A").replace("10.59235/seed.", "10.4314/").replace("10.5130/", "10.4314/");
+    const cleanDoi = a.doi ? a.doi.trim() : "Unassigned";
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(51, 65, 85);

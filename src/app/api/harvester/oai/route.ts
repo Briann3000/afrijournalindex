@@ -41,13 +41,27 @@ export async function POST(request: Request) {
     if (autoSave && journalId && harvest.records.length > 0) {
       for (const rec of harvest.records) {
         try {
-          const doi = rec.doi || `10.59235/oai.${journalId.substring(0, 6)}.${encodeURIComponent(rec.identifier.substring(0, 20))}`;
-          const existing = await prisma.article.findUnique({ where: { doi } });
-          if (!existing) {
+          const doi = rec.doi ? rec.doi.trim() : null;
+          if (doi) {
+            const existing = await prisma.article.findUnique({ where: { doi } });
+            if (!existing) {
+              await prisma.article.create({
+                data: {
+                  title: rec.title,
+                  doi,
+                  abstract: rec.description || null,
+                  pdfUrl: rec.url || null,
+                  publishDate: new Date(rec.publishDate || Date.now()),
+                  journalId
+                }
+              });
+              savedCount++;
+            }
+          } else {
             await prisma.article.create({
               data: {
                 title: rec.title,
-                doi,
+                doi: null,
                 abstract: rec.description || null,
                 pdfUrl: rec.url || null,
                 publishDate: new Date(rec.publishDate || Date.now()),

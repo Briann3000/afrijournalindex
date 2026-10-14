@@ -1,40 +1,62 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
-
 import { getDisciplines, assignQuartiles } from "../../../../lib/metrics";
+
+// In-memory cache for computed rankings (15 minutes TTL)
+let cachedRankingsData: {
+  timestamp: number;
+  countries: string[];
+  disciplines: string[];
+  rankings: any[];
+} | null = null;
+const CACHE_TTL_MS = 15 * 60 * 1000;
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const country = searchParams.get("country");
     const discipline = searchParams.get("discipline");
+    const forceRefresh = searchParams.get("refresh") === "true";
 
-    // Fetch journals with their latest report and description
-    const journals = await prisma.journal.findMany({
-      include: {
-        reports: {
-          orderBy: {
-            year: "desc"
-          },
-          take: 1
-        },
-        submissions: {
-          select: {
-            country: true
+    const now = Date.now();
+    let baseData = cachedRankingsData;
+
+    if (!baseData || forceRefresh || now - baseData.timestamp > CACHE_TTL_MS) {
+      // Fetch journals with only needed fields
+      const journals = await prisma.journal.findMany({
+        select: {
+          id: true,
+          name: true,
+          issn: true,
+          eissn: true,
+          websiteUrl: true,
+          publisherName: true,
+          qualityGrade: true,
+          country: true,
+          description: true,
+          reports: {
+            orderBy: { year: "desc" },
+            take: 1,
+            select: {
+              standardScore: true,
+              regionalScore: true,
+              citationCount: true,
+              articleCount: true,
+              quartile: true,
+              disciplineRank: true,
+              totalInDiscipline: true,
+              primaryDiscipline: true
+            }
           }
         }
-      }
-    });
+      });
 
     // Build ranking rows with discipline categorization
     const mapped = journals.map((journal) => {
       const latestReport = journal.reports[0];
       const score = latestReport ? latestReport.standardScore : 0;
       const regionalScore = latestReport ? latestReport.regionalScore : 0;
-      const countryName =
-        journal.country?.trim() ||
-        journal.submissions.find((submission) => submission.country?.trim())?.country?.trim() ||
-        "Unknown";
+      const countryName = journal.country?.trim() || "Unknown";
       
       const disciplines = getDisciplines(journal.name, journal.description || "");
       const primaryDiscipline = disciplines[0] || "Multidisciplinary";
@@ -51,7 +73,7 @@ export async function GET(request: Request) {
         disciplines,
         primaryDiscipline: latestReport?.primaryDiscipline || primaryDiscipline,
         score,
-        citescore: latestReport ? Number((latestReport.standardScore * 1.14).toFixed(3)) : 0,
+        ycaScore: latestReport ? Number((latestReport.standardScore * 1.14).toFixed(3)) : 0,
         regionalScore,
         citationCount: latestReport ? latestReport.citationCount : 0,
         articleCount: latestReport ? latestReport.articleCount : 0,
@@ -61,44 +83,37 @@ export async function GET(request: Request) {
       };
     });
 
-    const hasPrecomputed = mapped.some(m => m.precomputedQuartile);
-    let rankings = mapped.map(item => ({
-      ...item,
-      quartile: item.precomputedQuartile || (item.score >= 0.5 ? "Q1" : item.score >= 0.25 ? "Q2" : item.score >= 0.08 ? "Q3" : item.score > 0 ? "Q4" : "Unrated"),
-      disciplineRank: item.precomputedRank || 1,
-      totalInDiscipline: item.precomputedTotal || 1
-    }));
+    // Compute relative discipline rankings using assignQuartiles
+    const disciplineGroups: Record<string, typeof mapped> = {};
+    mapped.forEach((item) => {
+      const d = item.primaryDiscipline || "Multidisciplinary";
+      if (!disciplineGroups[d]) {
+        disciplineGroups[d] = [];
+      }
+      disciplineGroups[d].push(item);
+    });
 
-    if (!hasPrecomputed) {
-      // Compute dynamically as fallback
-      const allRanked = assignQuartiles(mapped);
-      const disciplineGroups: Record<string, typeof mapped> = {};
-      allRanked.forEach((item) => {
-        if (!disciplineGroups[item.primaryDiscipline]) {
-          disciplineGroups[item.primaryDiscipline] = [];
-        }
-        disciplineGroups[item.primaryDiscipline].push(item);
+    const disciplineQuartileMap: Record<string, { quartile: string; rank: number; total: number }> = {};
+    Object.keys(disciplineGroups).forEach((disc) => {
+      const rankedInDisc = assignQuartiles(disciplineGroups[disc]);
+      rankedInDisc.forEach((item) => {
+        disciplineQuartileMap[item.id] = {
+          quartile: item.quartile,
+          rank: item.rank,
+          total: item.totalInGroup
+        };
       });
+    });
 
-      const disciplineQuartileMap: Record<string, { quartile: string; rank: number; total: number }> = {};
-      Object.keys(disciplineGroups).forEach((disc) => {
-        const rankedInDisc = assignQuartiles(disciplineGroups[disc]);
-        rankedInDisc.forEach((item) => {
-          disciplineQuartileMap[item.id] = {
-            quartile: item.quartile,
-            rank: item.rank,
-            total: item.totalInGroup
-          };
-        });
-      });
-
-      rankings = allRanked.map((item) => ({
+    let rankings = mapped.map((item) => {
+      const dynamicMeta = disciplineQuartileMap[item.id];
+      return {
         ...item,
-        quartile: disciplineQuartileMap[item.id]?.quartile || item.quartile,
-        disciplineRank: disciplineQuartileMap[item.id]?.rank || 1,
-        totalInDiscipline: disciplineQuartileMap[item.id]?.total || 1
-      }));
-    }
+        quartile: item.precomputedQuartile || dynamicMeta?.quartile || "Unrated",
+        disciplineRank: item.precomputedRank || dynamicMeta?.rank || 1,
+        totalInDiscipline: item.precomputedTotal || dynamicMeta?.total || 1
+      };
+    }).sort((a, b) => b.score - a.score);
 
     const countries = Array.from(
       new Set(
@@ -112,7 +127,16 @@ export async function GET(request: Request) {
       new Set(rankings.map((r) => r.primaryDiscipline))
     ).sort((a, b) => a.localeCompare(b));
 
-    let filteredRankings = rankings;
+    cachedRankingsData = {
+      timestamp: now,
+      countries,
+      disciplines: disciplinesList,
+      rankings
+    };
+    baseData = cachedRankingsData;
+  }
+
+    let filteredRankings = baseData.rankings;
     if (country) {
       filteredRankings = filteredRankings.filter(
         (ranking) => ranking.country.toLowerCase() === country.toLowerCase()
@@ -120,18 +144,22 @@ export async function GET(request: Request) {
     }
     if (discipline) {
       filteredRankings = filteredRankings.filter(
-        (ranking) => ranking.primaryDiscipline.toLowerCase() === discipline.toLowerCase() || ranking.disciplines.some(d => d.toLowerCase() === discipline.toLowerCase())
+        (ranking) => ranking.primaryDiscipline.toLowerCase() === discipline.toLowerCase() || ranking.disciplines.some((d: string) => d.toLowerCase() === discipline.toLowerCase())
       );
     }
 
     return NextResponse.json({
       success: true,
-      countries,
-      disciplines: disciplinesList,
+      countries: baseData.countries,
+      disciplines: baseData.disciplines,
       rankings: filteredRankings
+    }, {
+      headers: {
+        "Cache-Control": "public, s-maxage=900, stale-while-revalidate=3600"
+      }
     });
   } catch (error: any) {
-    console.error("Fetch AJIF rankings error:", error);
+    console.error("Fetch AJCI rankings error:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

@@ -3,6 +3,9 @@ import { prisma } from "../../../../lib/db";
 import { getDisciplines } from "../../../../lib/metrics";
 import { ALL_AFRICAN_COUNTRIES } from "../../../data/african-countries";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -90,7 +93,8 @@ export async function GET(
 
     const formattedArticles = journal.articles.map(article => {
       const citations = article.citedBy || [];
-      totalCitations += citations.length;
+      const count = (article as any).citationCount > 0 ? (article as any).citationCount : citations.length;
+      totalCitations += count;
       
       citations.forEach(c => {
         if (c.citingArticle && c.citingArticle.journalId === journal.id) {
@@ -114,7 +118,7 @@ export async function GET(
         title: article.title,
         doi: article.doi,
         publishDate: article.publishDate,
-        citationCount: citations.length
+        citationCount: count
       };
     });
 
@@ -183,6 +187,8 @@ export async function GET(
 
     const categoryMedian = 0.42; // standard regional discipline median benchmark
 
+    const hasArticles = formattedArticles.length > 0;
+
     return NextResponse.json({
       success: true,
       journal: {
@@ -204,19 +210,19 @@ export async function GET(
         indexedAt: journal.indexedAt,
         disciplines,
         primaryDiscipline,
-        quartile,
-        disciplineRank,
-        totalInDiscipline,
+        quartile: hasArticles ? quartile : "Pending",
+        disciplineRank: hasArticles ? disciplineRank : null,
+        totalInDiscipline: hasArticles ? totalInDiscipline : null,
         categoryMedian: categoryMedian || 0.5,
         selfCitationRate: Number(selfCitationRate.toFixed(1)),
         externalCitationRate: Number(externalCitationRate.toFixed(1)),
         integrityScore: integrityReport.integrityScore,
         citationOrigin,
         integrityReport,
-        citescore: latestReport ? Number((latestReport.standardScore * 1.14).toFixed(3)) : 0,
-        lifetimeCitations: latestReport ? Math.max(totalCitations, Math.round(latestReport.citationCount * 4.5)) : totalCitations,
-        journalHIndex: latestReport ? Math.max(3, Math.round(latestReport.standardScore * 7)) : 1,
-        latestReport: latestReport ? {
+        ycaScore: hasArticles && latestReport ? Number((latestReport.standardScore * 1.14).toFixed(3)) : 0,
+        lifetimeCitations: hasArticles && latestReport ? Math.max(totalCitations, Math.round(latestReport.citationCount * 4.5)) : totalCitations,
+        journalHIndex: hasArticles && latestReport ? Math.max(3, Math.round(latestReport.standardScore * 7)) : (hasArticles ? 1 : 0),
+        latestReport: hasArticles && latestReport ? {
           year: latestReport.year,
           standardScore: latestReport.standardScore,
           regionalScore: latestReport.regionalScore,
@@ -232,6 +238,12 @@ export async function GET(
         })),
         articles: formattedArticles,
         comments: journal.comments
+      }
+    }, {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0"
       }
     });
   } catch (error: any) {

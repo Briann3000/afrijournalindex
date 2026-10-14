@@ -119,7 +119,7 @@ export async function POST(request: Request) {
         primaryDiscipline: item.primaryDiscipline,
         articlesWindow: item.articleCount,
         citationsWindow: item.citationCount,
-        ajifScore: item.standardScore,
+        ajciScore: item.standardScore,
         regionalScore: item.regionalScore,
         quartile: rankInfo.quartile,
         disciplineRank: rankInfo.rank
@@ -128,7 +128,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "AJIF metrics and subject quartile rankings calculated and saved successfully.",
+      message: "AJCI metrics and subject quartile rankings calculated and saved successfully.",
       totalJournals: results.length,
       results
     });

@@ -41,7 +41,7 @@ export async function GET(
         // Use precomputed quartile or derive directly
         const myQuartile = latest?.quartile || (score >= 0.5 ? "Q1" : score >= 0.25 ? "Q2" : score >= 0.08 ? "Q3" : score > 0 ? "Q4" : "Unrated");
 
-        scoreText = `AJIF ${score.toFixed(2)} • ${myQuartile}`;
+        scoreText = `AJCI ${score.toFixed(2)} • ${myQuartile}`;
 
         if (myQuartile === "Q1") {
           rightBg = "#d4a04a"; // Gold

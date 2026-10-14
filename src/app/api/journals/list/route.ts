@@ -31,6 +31,19 @@ export async function GET(request: Request) {
           where,
           skip,
           take: limit,
+          select: {
+            id: true,
+            name: true,
+            issn: true,
+            eissn: true,
+            publisherName: true,
+            country: true,
+            frequency: true,
+            websiteUrl: true,
+            qualityGrade: true,
+            isIndexed: true,
+            description: true
+          },
           orderBy: { name: "asc" }
         })
       ]);
@@ -41,14 +54,31 @@ export async function GET(request: Request) {
         limit,
         totalPages: Math.ceil(total / limit),
         journals
+      }, {
+        headers: { "Cache-Control": "public, s-maxage=600, stale-while-revalidate=1800" }
       });
     }
 
     const journals = await prisma.journal.findMany({
       where,
+      select: {
+        id: true,
+        name: true,
+        issn: true,
+        eissn: true,
+        publisherName: true,
+        country: true,
+        frequency: true,
+        websiteUrl: true,
+        qualityGrade: true,
+        isIndexed: true,
+        description: true
+      },
       orderBy: { name: "asc" }
     });
-    return NextResponse.json({ success: true, total: journals.length, journals });
+    return NextResponse.json({ success: true, total: journals.length, journals }, {
+      headers: { "Cache-Control": "public, s-maxage=600, stale-while-revalidate=1800" }
+    });
   } catch (error: any) {
     console.error("List journals error:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

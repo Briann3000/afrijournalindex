@@ -224,3 +224,86 @@ export async function POST(request: Request) {
     );
   }
 }
+
+// DELETE: Unlink/disassociate journal from publisher account
+export async function DELETE(request: Request) {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("afriJournalSession");
+
+    if (!sessionCookie?.value) {
+      return NextResponse.json(
+        { success: false, error: "Authentication required." },
+        { status: 401 }
+      );
+    }
+
+    const userId = verifySessionToken(sessionCookie.value);
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "Invalid or expired session." },
+        { status: 401 }
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "User not found." },
+        { status: 404 }
+      );
+    }
+
+    const body = await request.json();
+    const { journalId } = body;
+
+    if (!journalId) {
+      return NextResponse.json(
+        { success: false, error: "Journal ID is required." },
+        { status: 400 }
+      );
+    }
+
+    const journal = await prisma.journal.findUnique({
+      where: { id: journalId }
+    });
+
+    if (!journal) {
+      return NextResponse.json(
+        { success: false, error: "Journal not found." },
+        { status: 404 }
+      );
+    }
+
+    // Must be the owner or an ADMIN
+    if (journal.publisherId !== user.id && user.role !== "ADMIN") {
+      return NextResponse.json(
+        { success: false, error: "You do not have permission to unlink this journal." },
+        { status: 403 }
+      );
+    }
+
+    await prisma.journal.update({
+      where: { id: journalId },
+      data: {
+        publisherId: null
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: `Journal "${journal.name}" has been unlinked successfully.`
+    });
+
+  } catch (error: any) {
+    console.error("Unlink journal error:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to unlink journal." },
+      { status: 500 }
+    );
+  }
+}
+

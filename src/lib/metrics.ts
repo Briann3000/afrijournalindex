@@ -27,10 +27,16 @@ export function getDisciplines(name: string = "", description: string = ""): str
     disciplines.push("Health Sciences");
   }
   if (text.includes("educat") || text.includes("pedagog") || text.includes("curriculum") || text.includes("didactic") || text.includes("teach") || text.includes("school")) {
-    disciplines.push("Education");
+    if (text.includes("social") || text.includes("humanit") || text.includes("histor") || text.includes("cultur")) {
+      disciplines.push("Education & Social Sciences");
+    } else {
+      disciplines.push("Education");
+    }
   }
   if (text.includes("social") || text.includes("humanit") || text.includes("histor") || text.includes("cultur") || text.includes("linguist") || text.includes("law") || text.includes("droit") || text.includes("philosoph") || text.includes("literat")) {
-    disciplines.push("Social Sciences & Humanities");
+    if (!disciplines.includes("Education & Social Sciences")) {
+      disciplines.push("Social Sciences & Humanities");
+    }
   }
   if (text.includes("econom") || text.includes("financ") || text.includes("manag") || text.includes("business") || text.includes("account") || text.includes("entrepreneur") || text.includes("commerc")) {
     disciplines.push("Business & Economics");
@@ -51,35 +57,49 @@ export function getDisciplines(name: string = "", description: string = ""): str
 
 /**
  * Assign Q1, Q2, Q3, Q4, or Unrated status to journals within a discipline group.
- * - Journals with score 0.000 or uncalculated are marked "Unrated" (Baseline).
- * - Q1: Score >= 0.500 (Elite regional citation velocity).
- * - Q2: Score >= 0.250 (Strong regional citation velocity).
- * - Q3: Score >= 0.080 (Moderate active citation velocity).
- * - Q4: Score > 0.000 (Emerging citations).
+ * Standardized in accordance with international index methodologies (SCImago / JCR percentile ranking):
+ * - Active rated pool: journals with positive score and citable articles (> 0).
+ * - Relative distribution among active discipline peers:
+ *   - Top 25% (Rank <= ceil(N * 0.25)) -> Q1
+ *   - Next 25% (Rank <= ceil(N * 0.50)) -> Q2
+ *   - Next 25% (Rank <= ceil(N * 0.75)) -> Q3
+ *   - Remaining active journals (Rank <= N) -> Q4
+ * - Unrated: Zero score, 0 citations, or uncomputed baseline journals.
  */
 export function assignQuartiles<T extends { score: number; articleCount?: number }>(items: T[]): (T & { quartile: Quartile; rank: number; totalInGroup: number })[] {
   const sorted = [...items].sort((a, b) => b.score - a.score);
   const n = sorted.length;
 
+  // Count journals eligible for quartile ranking (must have positive citation velocity)
+  const activeCount = sorted.filter(item => item.score > 0).length;
+
   return sorted.map((item, idx) => {
     let quartile: Quartile = "Unrated";
+    const rank = idx + 1;
 
-    if (item.score <= 0) {
+    if (item.score <= 0 || activeCount === 0) {
       quartile = "Unrated";
-    } else if (item.score >= 0.500) {
-      quartile = "Q1";
-    } else if (item.score >= 0.250) {
-      quartile = "Q2";
-    } else if (item.score >= 0.080) {
-      quartile = "Q3";
     } else {
-      quartile = "Q4";
+      // Standard percentile partition of active cohort
+      const q1Cutoff = Math.max(1, Math.ceil(activeCount * 0.25));
+      const q2Cutoff = Math.max(q1Cutoff + 1, Math.ceil(activeCount * 0.50));
+      const q3Cutoff = Math.max(q2Cutoff + 1, Math.ceil(activeCount * 0.75));
+
+      if (rank <= q1Cutoff) {
+        quartile = "Q1";
+      } else if (rank <= q2Cutoff) {
+        quartile = "Q2";
+      } else if (rank <= q3Cutoff) {
+        quartile = "Q3";
+      } else {
+        quartile = "Q4";
+      }
     }
 
     return {
       ...item,
       quartile,
-      rank: idx + 1,
+      rank,
       totalInGroup: n
     };
   });

@@ -17,8 +17,12 @@ export async function POST(request: Request) {
     const state = body.state || body.status;
     const api_ref = body.api_ref || body.account;
     
-    // Extract journalId from explicit field or api_ref (e.g., "AJIF_journal-id-here" or direct id)
-    const journalId = body.journalId || (api_ref?.startsWith("AJIF_") ? api_ref.replace("AJIF_", "") : api_ref);
+    // Extract journalId from explicit field or api_ref (e.g., "AJCI_journal-id-here", "AJIF_journal-id-here" or direct id)
+    const journalId = body.journalId || (
+      api_ref?.startsWith("AJCI_") ? api_ref.replace("AJCI_", "") :
+      api_ref?.startsWith("AJIF_") ? api_ref.replace("AJIF_", "") :
+      api_ref
+    );
 
     if (!journalId) {
       if (body.event === "test" || !tracking_id) {
@@ -183,12 +187,20 @@ export async function POST(request: Request) {
     const disciplines = getDisciplines(journal.name, journal.description || "");
     const primaryDiscipline = disciplines[0] || "Multidisciplinary";
 
-    // Assign quartile based on standard velocity thresholds
-    let quartile = "Unrated";
-    if (standardScore >= 0.500) quartile = "Q1";
-    else if (standardScore >= 0.250) quartile = "Q2";
-    else if (standardScore >= 0.080) quartile = "Q3";
-    else if (standardScore > 0.000) quartile = "Q4";
+    // Assign quartile in accordance with discipline percentile distribution
+    const peerReports = await prisma.impactFactorReport.findMany({
+      where: { year: 2025, primaryDiscipline },
+      select: { journalId: true, standardScore: true }
+    });
+    const poolForRanking = [
+      ...peerReports.filter(p => p.journalId !== journal.id).map(p => ({ journalId: p.journalId, score: p.standardScore })),
+      { journalId: journal.id, score: standardScore }
+    ];
+    const rankedPool = assignQuartiles(poolForRanking);
+    const selfRanked = rankedPool.find(p => p.journalId === journal.id);
+    const quartile = selfRanked?.quartile || "Unrated";
+    const disciplineRank = selfRanked?.rank || 1;
+    const totalInDiscipline = selfRanked?.totalInGroup || poolForRanking.length;
 
     // Save report with precomputed ranking metadata
     await prisma.impactFactorReport.upsert({
@@ -204,6 +216,8 @@ export async function POST(request: Request) {
         citationCount,
         articleCount,
         quartile,
+        disciplineRank,
+        totalInDiscipline,
         primaryDiscipline
       },
       create: {
@@ -214,6 +228,8 @@ export async function POST(request: Request) {
         citationCount,
         articleCount,
         quartile,
+        disciplineRank,
+        totalInDiscipline,
         primaryDiscipline
       }
     });

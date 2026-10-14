@@ -312,7 +312,7 @@ export async function GET(request: Request) {
           id: j.id,
           name: j.name,
           qualityGrade: j.qualityGrade || "B",
-          ajifScore: latestReport ? latestReport.standardScore : 0,
+          ajciScore: latestReport ? latestReport.standardScore : 0,
           articlesCount: 0,
           citationsCount: 0
         };

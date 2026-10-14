@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
 import { hashPassword, createSessionToken } from "../../../../lib/auth";
-import { normalizeOrcid, verifyOrcidWithRegistry } from "../../researcher/profile/route";
+import { normalizeOrcid, verifyOrcidWithRegistry } from "../../../../lib/orcid";
 
 export async function POST(request: Request) {
   try {
