@@ -133,13 +133,10 @@ export default function Header({ activePage }: HeaderProps) {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "42px",
-              height: "42px",
-              background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
-              borderRadius: "10px",
-              border: "1px solid rgba(56, 189, 248, 0.4)",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
-              padding: "3px",
+              width: "40px",
+              height: "40px",
+              background: "transparent",
+              borderRadius: "50%",
               overflow: "hidden",
               flexShrink: 0
             }}
@@ -147,12 +144,12 @@ export default function Header({ activePage }: HeaderProps) {
             <img 
               src="/logo.png" 
               alt="AfriJournal Indexing Logo" 
-              style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "7px" }}
+              style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} 
             />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             <span className="logo-text-afri" style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.35rem" }}>Afri</span>
-            <span className="logo-text-journal" style={{ color: "#38bdf8", fontWeight: 800, fontSize: "1.35rem" }}>Journal Indexing</span>
+            <span className="logo-text-journal" style={{ color: "var(--color-primary)", fontWeight: 800, fontSize: "1.35rem" }}>Journal Indexing</span>
           </div>
         </a>
         

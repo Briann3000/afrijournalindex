@@ -48,7 +48,7 @@ interface JournalDetail {
     coerciveCitationFlag: boolean;
     recommendation: string;
   };
-  citescore?: number;
+  ycaScore?: number;
   lifetimeCitations?: number;
   journalHIndex?: number;
   latestReport: {
@@ -141,11 +141,32 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
   const [showDossierLockModal, setShowDossierLockModal] = useState<boolean>(false);
   const [showAuditLockModal, setShowAuditLockModal] = useState<boolean>(false);
 
+  // Guest Visitor Academic Access Disclaimer Modal State
+  const [showGuestDisclaimerModal, setShowGuestDisclaimerModal] = useState<boolean>(false);
+  const [guestFeatureName, setGuestFeatureName] = useState<string>("Institutional Dossier");
+
+  // OJS Harvester Dedicated Configuration Modal State
+  const [showOjsModal, setShowOjsModal] = useState<boolean>(false);
+  const [ojsEndpoint, setOjsEndpoint] = useState<string>("");
+  const [ojsTesting, setOjsTesting] = useState<boolean>(false);
+  const [ojsTestMsg, setOjsTestMsg] = useState<string | null>(null);
+
+  // Article Unlink State for Journal Publishers & Admins
+  const [unlinkingArticleId, setUnlinkingArticleId] = useState<string | null>(null);
+  const [unlinkNotice, setUnlinkNotice] = useState<string | null>(null);
+
   const handleDownloadDossier = () => {
     if (!journal) return;
+
+    // 1. If not logged in, trigger Academic Access Disclaimer Modal
+    if (!user) {
+      setGuestFeatureName("12-Page Institutional Evaluation Dossier (Vector PDF)");
+      setShowGuestDisclaimerModal(true);
+      return;
+    }
     
-    // Check if journal has active Premium evaluation tier or editor access
-    const isUnlocked = journal.activeTier === "Premium" || (journal.certificatePaid && journal.activeTier !== "Basic");
+    // 2. Check if journal has paid accreditation package
+    const isUnlocked = Boolean(journal.certificatePaid || journal.activeTier === "Basic" || journal.activeTier === "Premium");
     if (!isUnlocked) {
       setShowDossierLockModal(true);
       return;
@@ -181,6 +202,17 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
 
   const handleOpenEditModal = () => {
     if (!journal) return;
+    if (!user) {
+      setGuestFeatureName("Verified Editorial Management Portal");
+      setShowGuestDisclaimerModal(true);
+      return;
+    }
+    // Paywall: Editor portal requires paid Accreditation Package
+    const isUnlocked = Boolean(journal.certificatePaid || journal.activeTier === "Basic" || journal.activeTier === "Premium" || user?.role === "ADMIN");
+    if (!isUnlocked) {
+      setShowDossierLockModal(true);
+      return;
+    }
     setEditForm({
       publisherName: journal.publisherName || "",
       websiteUrl: journal.websiteUrl || "",
@@ -222,9 +254,15 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
 
   const handleLoadAudit = async () => {
     if (!journal) return;
+
+    if (!user) {
+      setGuestFeatureName("DOAJ & Scopus Indexing Remediation Audit");
+      setShowGuestDisclaimerModal(true);
+      return;
+    }
     
-    // Check if journal has active evaluation tier (Standard/Professional/Premium) or paid certificate
-    const isUnlocked = journal.activeTier === "Premium" || journal.activeTier === "Professional" || journal.activeTier === "Standard" || (journal.certificatePaid && journal.activeTier !== "Basic");
+    // Check if journal has active evaluation tier (Basic) or paid certificate
+    const isUnlocked = Boolean(journal.certificatePaid || journal.activeTier === "Basic" || journal.activeTier === "Premium" || user?.role === "ADMIN");
     if (!isUnlocked) {
       setShowAuditLockModal(true);
       return;
@@ -248,17 +286,36 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
     }
   };
 
-  const handleTriggerHarvest = async () => {
+  const handleOpenOjsModal = () => {
     if (!journal) return;
+    if (!user) {
+      setGuestFeatureName("Automated OJS Back-Catalog Harvesting");
+      setShowGuestDisclaimerModal(true);
+      return;
+    }
+    // Paywall check: requires paid package or admin
+    const isUnlocked = Boolean(journal.certificatePaid || journal.activeTier === "Basic" || journal.activeTier === "Premium" || user?.role === "ADMIN");
+    if (!isUnlocked) {
+      setShowDossierLockModal(true);
+      return;
+    }
+    const defaultUrl = journal.websiteUrl ? `${journal.websiteUrl.replace(/\/+$/, "")}/oai` : "";
+    setOjsEndpoint(defaultUrl);
+    setOjsTestMsg(null);
+    setShowOjsModal(true);
+  };
+
+  const handleExecuteOjsHarvest = async () => {
+    if (!journal || !ojsEndpoint.trim()) return;
     setHarvestLoading(true);
     setHarvestResult(null);
+    setOjsTestMsg(null);
     try {
-      const targetUrl = journal.websiteUrl?.trim();
       const res = await fetch("/api/harvester/oai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          baseUrl: targetUrl,
+          baseUrl: ojsEndpoint.trim(),
           journalId: journal.id,
           maxPages: 10,
           limit: 300
@@ -266,18 +323,18 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
       });
       const data = await res.json();
       if (data.success) {
-        setHarvestResult(`Sync completed: ${data.indexedCount || 0} articles imported/verified across catalog.`);
-        // Reload journal to update article list & citations
-        const reload = await fetch(`/api/journals/${encodeURIComponent(journal.id)}`);
+        setHarvestResult(`Sync completed: ${data.indexedCount || 0} articles imported/verified.`);
+        const reload = await fetch(`/api/journals/${encodeURIComponent(journal.id)}`, { cache: "no-store" });
         const reloadData = await reload.json();
         if (reloadData.success && reloadData.journal) {
           setJournal(reloadData.journal);
         }
+        setShowOjsModal(false);
       } else {
-        setHarvestResult(`Sync result: ${data.error || "Completed with no new articles found"}`);
+        setOjsTestMsg(`Sync error: ${data.error || "No articles retrieved from endpoint."}`);
       }
     } catch {
-      setHarvestResult("Network error during catalog harvest.");
+      setOjsTestMsg("Network error connecting to specified OAI endpoint.");
     } finally {
       setHarvestLoading(false);
     }
@@ -320,18 +377,43 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
   };
 
   // Articles search & pagination state
+  // Articles search, sort & pagination state
   const [articleSearch, setArticleSearch] = useState<string>("");
+  const [articleSort, setArticleSort] = useState<"citations_desc" | "citations_asc" | "newest" | "oldest" | "title">("citations_desc");
   const [articlesPage, setArticlesPage] = useState<number>(1);
   const [articlesPageSize, setArticlesPageSize] = useState<number>(10);
 
   const filteredArticles = useMemo(() => {
     if (!journal?.articles) return [];
-    if (!articleSearch.trim()) return journal.articles;
-    const q = articleSearch.toLowerCase().trim();
-    return journal.articles.filter(a => 
-      a.title.toLowerCase().includes(q) || (a.doi && a.doi.toLowerCase().includes(q))
-    );
-  }, [journal?.articles, articleSearch]);
+    let list = journal.articles;
+    if (articleSearch.trim()) {
+      const q = articleSearch.toLowerCase().trim();
+      list = list.filter(a => 
+        a.title.toLowerCase().includes(q) || (a.doi && a.doi.toLowerCase().includes(q))
+      );
+    }
+
+    // Sort by selected criteria (default: citations descending)
+    const sorted = [...list];
+    switch (articleSort) {
+      case "citations_desc":
+        sorted.sort((a, b) => (b.citationCount || 0) - (a.citationCount || 0));
+        break;
+      case "citations_asc":
+        sorted.sort((a, b) => (a.citationCount || 0) - (b.citationCount || 0));
+        break;
+      case "newest":
+        sorted.sort((a, b) => new Date(b.publishDate || 0).getTime() - new Date(a.publishDate || 0).getTime());
+        break;
+      case "oldest":
+        sorted.sort((a, b) => new Date(a.publishDate || 0).getTime() - new Date(b.publishDate || 0).getTime());
+        break;
+      case "title":
+        sorted.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+        break;
+    }
+    return sorted;
+  }, [journal?.articles, articleSearch, articleSort]);
 
   const totalArticlePages = Math.ceil(filteredArticles.length / articlesPageSize) || 1;
   const paginatedArticles = useMemo(() => {
@@ -341,7 +423,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
 
   useEffect(() => {
     setArticlesPage(1);
-  }, [articleSearch, articlesPageSize]);
+  }, [articleSearch, articleSort, articlesPageSize]);
 
   // Load journal data
   useEffect(() => {
@@ -349,7 +431,10 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/journals/${encodeURIComponent(id)}`);
+        const res = await fetch(`/api/journals/${encodeURIComponent(id)}`, {
+          cache: "no-store",
+          headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" }
+        });
         const data = await res.json();
         if (data.success && data.journal) {
           setJournal(data.journal);
@@ -368,6 +453,38 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
       fetchJournal();
     }
   }, [id]);
+
+  // Unlink misplaced or foreign publication from journal
+  const handleUnlinkArticle = async (articleId: string, articleTitle: string) => {
+    if (!confirm(`Are you sure you want to unlink this publication ("${articleTitle}") from this journal? This permanently removes the misassociation.`)) {
+      return;
+    }
+    setUnlinkingArticleId(articleId);
+    setUnlinkNotice(null);
+    try {
+      const res = await fetch(`/api/journals/${encodeURIComponent(id)}/articles/${encodeURIComponent(articleId)}`, {
+        method: "DELETE"
+      });
+      const data = await res.json();
+      if (data.success) {
+        setJournal(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            articles: prev.articles.filter(a => a.id !== articleId)
+          };
+        });
+        setUnlinkNotice(`Article successfully unlinked from repository.`);
+        setTimeout(() => setUnlinkNotice(null), 5000);
+      } else {
+        alert(data.error || "Failed to unlink article.");
+      }
+    } catch (err: any) {
+      alert("Error unlinking article: " + (err.message || "Network error"));
+    } finally {
+      setUnlinkingArticleId(null);
+    }
+  };
 
   // Check user session
   useEffect(() => {
@@ -447,38 +564,39 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
 
   const articlesList = journal?.articles || [];
   const currentYear = new Date().getFullYear();
-  // Standard international 2-year citable window (T-1 and T-2 items, e.g. 2023 & 2024)
-  const windowArticles = articlesList.filter(a => {
-    if (!a.publishDate) return false;
-    const y = new Date(a.publishDate).getFullYear();
-    return y === currentYear - 1 || y === currentYear - 2;
-  });
+  const evaluationArticles = articlesList;
+  const totalCitableCount = (journal?.latestReport?.articleCount && journal.latestReport.articleCount > 0)
+    ? journal.latestReport.articleCount
+    : (evaluationArticles.length > 0 ? evaluationArticles.length : 0);
 
-  const evaluationArticles = windowArticles.length > 0 ? windowArticles : articlesList;
-  const totalCitableCount = evaluationArticles.length > 0 ? evaluationArticles.length : (journal?.latestReport?.articleCount || 1);
-  const totalCalculatedCites = evaluationArticles.length > 0 
-    ? evaluationArticles.reduce((acc, a) => acc + (a.citationCount || 0), 0) 
-    : (journal?.latestReport?.citationCount || 0);
-  const computedAJCI = totalCitableCount > 0 ? totalCalculatedCites / totalCitableCount : (journal?.latestReport?.standardScore || 0);
-  const computedAJCIStr = computedAJCI.toFixed(3);
+  const totalCalculatedCites = evaluationArticles.reduce((acc, a) => acc + (a.citationCount || 0), 0);
 
-  // Harmonized Quartile from computed score
+  // Single Source of Truth: Use official database report standardScore (matches Rankings 1:1)
+  const computedAJCI = journal?.latestReport?.standardScore ?? (
+    totalCalculatedCites > 0 && totalCitableCount > 0 ? totalCalculatedCites / totalCitableCount : 0
+  );
+
+  const computedAJCIStr = computedAJCI > 0 
+    ? computedAJCI.toFixed(3) 
+    : (totalCitableCount > 0 ? "0.000" : "—");
+
+  // Harmonized Quartile from journal or computed score
   const computedQuartile: "Q1" | "Q2" | "Q3" | "Q4" | "Unrated" = useMemo(() => {
-    if (computedAJCI <= 0) return "Unrated";
+    if (journal?.quartile && ["Q1", "Q2", "Q3", "Q4"].includes(journal.quartile)) {
+      return journal.quartile;
+    }
+    if (totalCitableCount === 0 || computedAJCI <= 0) return "Unrated";
     if (computedAJCI >= 0.500) return "Q1";
     if (computedAJCI >= 0.250) return "Q2";
     if (computedAJCI >= 0.080) return "Q3";
     return "Q4";
-  }, [computedAJCI]);
+  }, [totalCitableCount, computedAJCI, journal?.quartile]);
 
-  // Harmonized Discipline Rank consistent with Quartile
-  const computedRank = useMemo(() => {
-    const total = journal?.totalInDiscipline || 20;
-    if (computedQuartile === "Q1") return Math.min(2, Math.max(1, journal?.disciplineRank || 1));
-    if (computedQuartile === "Q2") return Math.max(3, Math.min(Math.round(total * 0.4), 8));
-    if (computedQuartile === "Q3") return Math.max(9, Math.min(Math.round(total * 0.7), 14));
-    return Math.max(16, total - 2); // Q4 lower tier e.g. #18 of 20
-  }, [computedQuartile, journal?.totalInDiscipline, journal?.disciplineRank]);
+
+
+  // Discipline Rank strictly from Database SSOT (no artificial heuristics)
+  const computedRank = journal?.disciplineRank || (journal as any)?.latestReport?.disciplineRank || "—";
+
 
   const currentQuartile = computedQuartile;
   const qStyle = quartileColors[currentQuartile] || quartileColors["Unrated"];
@@ -602,16 +720,21 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     <div>
                       <strong style={{ color: "var(--color-text-main)" }}>{jp.publisher || "Publisher"}:</strong> {journal.publisherName}
                     </div>
-                    {journal.issn && (
+                    {journal.issn && /^[0-9]{4}-[0-9]{3}[0-9xX]$/.test(journal.issn.trim()) && journal.issn.trim() !== "0000-0000" ? (
                       <div>
                         <strong style={{ color: "var(--color-text-main)" }}>{jp.issn_print || "Print ISSN"}:</strong> {journal.issn}
                       </div>
-                    )}
-                    {journal.eissn && (
+                    ) : null}
+                    {journal.eissn && /^[0-9]{4}-[0-9]{3}[0-9xX]$/.test(journal.eissn.trim()) && journal.eissn.trim() !== "0000-0000" ? (
                       <div>
                         <strong style={{ color: "var(--color-text-main)" }}>{jp.issn_electronic || "Electronic ISSN"}:</strong> {journal.eissn}
                       </div>
-                    )}
+                    ) : null}
+                    {(!journal.issn || !/^[0-9]{4}-[0-9]{3}[0-9xX]$/.test(journal.issn.trim())) && (!journal.eissn || !/^[0-9]{4}-[0-9]{3}[0-9xX]$/.test(journal.eissn.trim())) ? (
+                      <div>
+                        <strong style={{ color: "var(--color-text-main)" }}>ISSN:</strong> <span style={{ fontStyle: "italic", color: "var(--color-text-muted)" }}>Pending Verification</span>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
 
@@ -652,26 +775,28 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   {/* Claim Journal Action if unassigned, or controls if owned by current user */}
                   {user && journal.publisherId === user.id ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                      <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "0.45rem 0.8rem", textAlign: "center", fontSize: "0.8rem", color: "#166534", fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}>
-                        <i className="fa-solid fa-check"></i>
-                        <span>Managed by You</span>
+                      <div style={{ background: journal.certificatePaid ? "#f0fdf4" : "var(--color-bg-card-subtle)", border: `1px solid ${journal.certificatePaid ? "#bbf7d0" : "var(--color-border)"}`, borderRadius: "8px", padding: "0.45rem 0.8rem", textAlign: "center", fontSize: "0.8rem", color: journal.certificatePaid ? "#166534" : "var(--color-text-main)", fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}>
+                        <i className={`fa-solid ${journal.certificatePaid ? "fa-circle-check" : "fa-shield"}`} style={{ color: journal.certificatePaid ? "#16a34a" : "var(--color-primary)" }}></i>
+                        <span>{journal.certificatePaid ? "Managed by You (Accredited)" : "Managed by You (Standard)"}</span>
                       </div>
                       <button 
                         onClick={handleOpenEditModal}
                         className="btn btn-secondary"
-                        style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.82rem", background: "#f8fafc" }}
+                        style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.82rem", background: "var(--color-bg-card-subtle)" }}
                       >
                         <i className="fa-solid fa-pen-to-square"></i>
                         <span>Edit Journal Metadata</span>
+                        {!journal.certificatePaid && <i className="fa-solid fa-lock" style={{ fontSize: "0.7rem", color: "var(--color-primary)", marginLeft: "auto" }}></i>}
                       </button>
                       <button 
-                        onClick={handleTriggerHarvest}
+                        onClick={handleOpenOjsModal}
                         disabled={harvestLoading}
                         className="btn btn-secondary"
-                        style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.82rem", background: "#f8fafc" }}
+                        style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.82rem", background: "var(--color-bg-card-subtle)" }}
                       >
                         <i className={`fa-solid ${harvestLoading ? "fa-spinner fa-spin" : "fa-rotate"}`}></i>
                         <span>{harvestLoading ? "Harvesting Catalog..." : "Sync OJS Back-Catalog"}</span>
+                        {!journal.certificatePaid && <i className="fa-solid fa-lock" style={{ fontSize: "0.7rem", color: "var(--color-primary)", marginLeft: "auto" }}></i>}
                       </button>
                       {harvestResult && (
                         <div style={{ fontSize: "0.75rem", color: "#0d9488", background: "#f0fdfa", padding: "0.4rem 0.6rem", borderRadius: "6px", border: "1px solid #ccfbf1" }}>
@@ -738,14 +863,14 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
               </div>
 
               {/* Verified Bibliometric Provenance Pill Bar (Clickable Drill-down) */}
-              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.6rem", background: "#f8fafc", padding: "0.75rem 1rem", borderRadius: "10px", border: "1px solid #e2e8f0", marginBottom: "1.5rem", fontSize: "0.8rem" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.6rem", background: "var(--color-bg-card-subtle)", padding: "0.75rem 1rem", borderRadius: "10px", border: "1px solid var(--color-border)", marginBottom: "1.5rem", fontSize: "0.8rem" }}>
                 <span style={{ fontWeight: 700, color: "var(--color-navy)", display: "inline-flex", alignItems: "center", gap: "5px" }}>
                   <i className="fa-solid fa-database" style={{ color: "var(--color-primary)" }}></i> Bibliometric Provenance:
                 </span>
                 <button 
                   type="button" 
                   onClick={() => setShowProvenanceModal(true)} 
-                  style={{ background: "#ffffff", padding: "0.2rem 0.55rem", borderRadius: "6px", border: "1px solid #cbd5e1", color: "#334155", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px", cursor: "pointer" }}
+                  style={{ background: "var(--color-bg-card)", padding: "0.2rem 0.55rem", borderRadius: "6px", border: "1px solid var(--color-border)", color: "var(--color-text-body)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px", cursor: "pointer" }}
                   title="Click to view registry verification records"
                 >
                   <i className="fa-solid fa-fingerprint" style={{ color: "#d97706" }}></i> Crossref I4OC
@@ -753,7 +878,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 <button 
                   type="button" 
                   onClick={() => setShowProvenanceModal(true)} 
-                  style={{ background: "#ffffff", padding: "0.2rem 0.55rem", borderRadius: "6px", border: "1px solid #cbd5e1", color: "#334155", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px", cursor: "pointer" }}
+                  style={{ background: "var(--color-bg-card)", padding: "0.2rem 0.55rem", borderRadius: "6px", border: "1px solid var(--color-border)", color: "var(--color-text-body)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px", cursor: "pointer" }}
                   title="Click to view DOAJ compliance checks"
                 >
                   <i className="fa-solid fa-check-circle" style={{ color: "#16a34a" }}></i> DOAJ Peer Audit
@@ -761,7 +886,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 <button 
                   type="button" 
                   onClick={() => setShowProvenanceModal(true)} 
-                  style={{ background: "#ffffff", padding: "0.2rem 0.55rem", borderRadius: "6px", border: "1px solid #cbd5e1", color: "#334155", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px", cursor: "pointer" }}
+                  style={{ background: "var(--color-bg-card)", padding: "0.2rem 0.55rem", borderRadius: "6px", border: "1px solid var(--color-border)", color: "var(--color-text-body)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px", cursor: "pointer" }}
                   title="Click to view OpenAlex institutional graphs"
                 >
                   <i className="fa-solid fa-network-wired" style={{ color: "#2563eb" }}></i> OpenAlex Graph
@@ -769,7 +894,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 <button 
                   type="button" 
                   onClick={() => setShowProvenanceModal(true)} 
-                  style={{ background: "#ffffff", padding: "0.2rem 0.55rem", borderRadius: "6px", border: "1px solid #cbd5e1", color: "#334155", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px", cursor: "pointer" }}
+                  style={{ background: "var(--color-bg-card)", padding: "0.2rem 0.55rem", borderRadius: "6px", border: "1px solid var(--color-border)", color: "var(--color-text-body)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px", cursor: "pointer" }}
                   title="Click to view OAI-PMH harvest sync"
                 >
                   <i className="fa-solid fa-building-columns" style={{ color: "#7c3aed" }}></i> African OAI-PMH Harvest
@@ -798,8 +923,8 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                       2-Year Mean Citation Rate
                     </div>
                   </div>
-                  {/* How was this calculated? only accessible to paid evaluation tiers */}
-                  {((journal.activeTier && journal.activeTier !== "Basic") || journal.certificatePaid) && (
+                  {/* How was this calculated? only visible to paid evaluation tiers (Basic or Premium) */}
+                  {Boolean(journal.certificatePaid || journal.activeTier === "Basic" || journal.activeTier === "Premium") && (
                     <button 
                       onClick={() => setShowFormulaDrawer(!showFormulaDrawer)}
                       style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: "0.78rem", fontWeight: 700, padding: 0, textAlign: "left", cursor: "pointer", marginTop: "0.6rem", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}
@@ -816,7 +941,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     3-Year Citation Avg (3-YCA)
                   </div>
                   <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "#2563eb" }}>
-                    {(computedAJCI * 1.14).toFixed(3)}
+                    {totalCitableCount > 0 ? (computedAJCI * 1.14).toFixed(3) : "—"}
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.3rem" }}>
                     Extended 3-Year Window
@@ -830,7 +955,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                       Regional Rep Quotient (RRQ)
                     </div>
                     <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--color-text-main)" }}>
-                      {journal.citationOrigin?.regionalPercentage !== undefined ? `${journal.citationOrigin.regionalPercentage.toFixed(1)}%` : "64.2%"}
+                      {totalCitableCount > 0 ? (journal.citationOrigin?.regionalPercentage !== undefined ? `${journal.citationOrigin.regionalPercentage.toFixed(1)}%` : "64.2%") : "—"}
                     </div>
                     <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.3rem" }}>
                       Pan-African Authorship Share
@@ -848,7 +973,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     Lifetime Citations
                   </div>
                   <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--color-primary)" }}>
-                    {(journal.lifetimeCitations ?? Math.max(totalCalculatedCites, Math.round(totalCalculatedCites * 4))).toLocaleString()}
+                    {totalCitableCount > 0 ? (journal.lifetimeCitations ?? Math.max(totalCalculatedCites, Math.round(totalCalculatedCites * 4))).toLocaleString() : "0"}
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.3rem" }}>
                     Cumulative Impact Footprint
@@ -861,12 +986,13 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     Journal h-Index
                   </div>
                   <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "#0d9488" }}>
-                    h-{journal.journalHIndex || Math.max(1, Math.round(computedAJCI * 7))}
+                    {totalCitableCount > 0 ? `h-${journal.journalHIndex || Math.max(1, Math.round(computedAJCI * 7))}` : "—"}
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.3rem" }}>
                     Citation Depth Metric
                   </div>
                 </div>
+
 
                 {/* Citable Articles (Synchronized to journal.articles.length) */}
                 <div style={{ padding: "1.5rem", background: "var(--color-bg-card-subtle)", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)" }}>
@@ -882,9 +1008,9 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 </div>
               </div>
 
-              {/* Expandable Mathematical Formula & Attribution Drawer ("Explain") - Paid only */}
-              {showFormulaDrawer && ((journal.activeTier && journal.activeTier !== "Basic") || journal.certificatePaid) && (
-                <div style={{ background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "10px", padding: "1.5rem", marginBottom: "2rem" }}>
+              {/* Expandable Mathematical Formula & Attribution Drawer ("Explain") - Unlocked with Basic Accreditation */}
+              {showFormulaDrawer && Boolean(journal.certificatePaid || journal.activeTier === "Basic" || journal.activeTier === "Premium") && (
+                <div style={{ background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", borderRadius: "10px", padding: "1.5rem", marginBottom: "2rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
                     <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                       <i className="fa-solid fa-calculator" style={{ color: "var(--color-primary)" }}></i>
@@ -895,27 +1021,27 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     </span>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.2rem", fontSize: "0.85rem", color: "#334155" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.2rem", fontSize: "0.85rem", color: "var(--color-text-body)" }}>
                     {/* Formula Calculation Box */}
-                    <div style={{ background: "#ffffff", padding: "1rem", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                    <div style={{ background: "var(--color-bg-card)", padding: "1rem", borderRadius: "8px", border: "1px solid var(--color-border)" }}>
                       <div style={{ fontWeight: 700, color: "var(--color-primary)", marginBottom: "0.4rem" }}>Standard AJCI Formula:</div>
                       <div style={{ fontFamily: "serif", fontSize: "0.95rem", padding: "0.5rem 0", borderBottom: "1px solid #e2e8f0", marginBottom: "0.5rem" }}>
                         AJCI = <span style={{ textDecoration: "underline" }}>Citations in {new Date().getFullYear()} to (T-1 + T-2) items</span>
                         <br />
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Citable Articles in (T-1 + T-2)
                       </div>
-                      <div style={{ fontSize: "0.82rem", color: "#64748b" }}>
+                      <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
                         Evaluated Fraction: <strong>{totalCalculatedCites} citations</strong> ÷ <strong>{totalCitableCount} articles</strong> = <strong style={{ color: "var(--color-primary)" }}>{computedAJCIStr}</strong>
                       </div>
                     </div>
 
                     {/* Regional Representation Box */}
-                    <div style={{ background: "#ffffff", padding: "1rem", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                    <div style={{ background: "var(--color-bg-card)", padding: "1rem", borderRadius: "8px", border: "1px solid var(--color-border)" }}>
                       <div style={{ fontWeight: 700, color: "#b45309", marginBottom: "0.4rem" }}>Regional Representation Quotient (RRQ):</div>
-                      <p style={{ margin: "0 0 0.5rem", fontSize: "0.8rem", color: "#475569", lineHeight: "1.4" }}>
+                      <p style={{ margin: "0 0 0.5rem", fontSize: "0.8rem", color: "var(--color-text-muted)", lineHeight: "1.4" }}>
                         The percentage of citations originating from institutions across the African Union (<strong>{journal.citationOrigin?.regionalPercentage ?? 64.2}%</strong>), reported as an uncorrupted standalone metric.
                       </p>
-                      <div style={{ fontSize: "0.82rem", color: "#64748b" }}>
+                      <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
                         Pan-African Citations: <strong>{journal.citationOrigin?.regionalCount ?? Math.round(totalCalculatedCites * 0.642)}</strong> • Global Citations: <strong>{journal.citationOrigin?.globalCount ?? Math.max(0, totalCalculatedCites - Math.round(totalCalculatedCites * 0.642))}</strong>
                       </div>
                     </div>
@@ -931,7 +1057,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                       onClick={handleDownloadDossier}
                       disabled={downloadingDossier}
                       className="btn btn-secondary btn-sm"
-                      style={{ fontSize: "0.78rem", background: "#ffffff", color: "#166534", borderColor: "#86efac" }}
+                      style={{ fontSize: "0.78rem", background: "var(--color-bg-card)", color: "#166534", borderColor: "#86efac" }}
                     >
                       Export Full 12-Page Dossier
                     </button>
@@ -959,7 +1085,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
 
                 {/* 6-Point Compliance Grid */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.8rem" }}>
-                  <div style={{ padding: "0.75rem 1rem", background: "#ffffff", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                  <div style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card)", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
                     <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", fontSize: "0.9rem" }}></i>
                     <div style={{ fontSize: "0.8rem" }}>
                       <span style={{ color: "var(--color-text-main)", fontWeight: 600, display: "block" }}>ISSN Active Registry</span>
@@ -967,7 +1093,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     </div>
                   </div>
 
-                  <div style={{ padding: "0.75rem 1rem", background: "#ffffff", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                  <div style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card)", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
                     <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", fontSize: "0.9rem" }}></i>
                     <div style={{ fontSize: "0.8rem" }}>
                       <span style={{ color: "var(--color-text-main)", fontWeight: 600, display: "block" }}>Open Access Mandate</span>
@@ -975,7 +1101,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     </div>
                   </div>
 
-                  <div style={{ padding: "0.75rem 1rem", background: "#ffffff", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                  <div style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card)", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
                     <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", fontSize: "0.9rem" }}></i>
                     <div style={{ fontSize: "0.8rem" }}>
                       <span style={{ color: "var(--color-text-main)", fontWeight: 600, display: "block" }}>Editorial Governance</span>
@@ -983,7 +1109,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     </div>
                   </div>
 
-                  <div style={{ padding: "0.75rem 1rem", background: "#ffffff", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                  <div style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card)", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
                     <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", fontSize: "0.9rem" }}></i>
                     <div style={{ fontSize: "0.8rem" }}>
                       <span style={{ color: "var(--color-text-main)", fontWeight: 600, display: "block" }}>DOI & CrossRef Index</span>
@@ -991,7 +1117,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     </div>
                   </div>
 
-                  <div style={{ padding: "0.75rem 1rem", background: "#ffffff", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                  <div style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card)", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
                     <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", fontSize: "0.9rem" }}></i>
                     <div style={{ fontSize: "0.8rem" }}>
                       <span style={{ color: "var(--color-text-main)", fontWeight: 600, display: "block" }}>Citation Firewall</span>
@@ -999,7 +1125,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     </div>
                   </div>
 
-                  <div style={{ padding: "0.75rem 1rem", background: "#ffffff", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                  <div style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card)", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
                     <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", fontSize: "0.9rem" }}></i>
                     <div style={{ fontSize: "0.8rem" }}>
                       <span style={{ color: "var(--color-text-main)", fontWeight: 600, display: "block" }}>Cadence Regularity</span>
@@ -1025,7 +1151,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 {journal.citationOrigin && (
                   <div style={{ position: "relative", overflow: "hidden", borderRadius: "8px", marginTop: "0.5rem" }}>
                     <div style={{ 
-                      background: "#ffffff", 
+                      background: "var(--color-bg-card)", 
                       padding: "1.2rem", 
                       borderRadius: "8px", 
                       border: "1px solid var(--color-border)",
@@ -1043,7 +1169,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                         </span>
                       </div>
 
-                      <div style={{ display: "flex", height: "10px", borderRadius: "5px", overflow: "hidden", background: "#f1f5f9", marginBottom: "0.75rem" }}>
+                      <div style={{ display: "flex", height: "10px", borderRadius: "5px", overflow: "hidden", background: "var(--color-bg-card-subtle)", marginBottom: "0.75rem" }}>
                         <div style={{ width: `${journal.citationOrigin.regionalPercentage}%`, background: "#0d9488", height: "100%" }}></div>
                         <div style={{ width: `${journal.citationOrigin.globalPercentage}%`, background: "#3b82f6", height: "100%" }}></div>
                       </div>
@@ -1061,7 +1187,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                         <div style={{ borderTop: "1px dashed #e2e8f0", paddingTop: "0.6rem", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.4rem", fontSize: "0.78rem" }}>
                           <span style={{ color: "var(--color-text-muted)", fontWeight: 600 }}>Top Citing Geographies:</span>
                           {journal.citationOrigin.topCitingCountries.map(c => (
-                            <span key={c.country} style={{ background: "#f8fafc", padding: "0.15rem 0.5rem", borderRadius: "4px", border: "1px solid #e2e8f0", color: "#334155" }}>
+                            <span key={c.country} style={{ background: "var(--color-bg-card-subtle)", padding: "0.15rem 0.5rem", borderRadius: "4px", border: "1px solid var(--color-border)", color: "var(--color-text-body)" }}>
                               {c.country} ({c.count})
                             </span>
                           ))}
@@ -1070,34 +1196,36 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     </div>
 
                     {/* Paywall Overlay for Free Journals */}
-                    {!journal.certificatePaid && journal.activeTier !== "Premium" && (
+                    {!journal.certificatePaid && journal.activeTier !== "Basic" && journal.activeTier !== "Premium" && (
                       <div style={{
                         position: "absolute",
                         top: 0,
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        background: "rgba(255, 255, 255, 0.72)",
+                        background: "rgba(18, 18, 23, 0.88)",
+                        backdropFilter: "blur(4px)",
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
                         justifyContent: "center",
                         padding: "1rem",
-                        textAlign: "center"
+                        textAlign: "center",
+                        borderRadius: "8px"
                       }}>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: "#fef3c7", border: "1px solid #fde68a", color: "#92400e", padding: "0.3rem 0.75rem", borderRadius: "20px", fontSize: "0.78rem", fontWeight: 700, marginBottom: "0.4rem" }}>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: "rgba(212, 160, 74, 0.15)", border: "1px solid rgba(212, 160, 74, 0.35)", color: "var(--color-primary)", padding: "0.3rem 0.75rem", borderRadius: "20px", fontSize: "0.78rem", fontWeight: 700, marginBottom: "0.4rem" }}>
                           <i className="fa-solid fa-lock"></i>
-                          <span>Institutional Evaluation Dossier Feature</span>
+                          <span>Evaluation Suite Feature</span>
                         </div>
-                        <p style={{ margin: "0 0 0.6rem", fontSize: "0.8rem", color: "#475569", maxWidth: "420px" }}>
-                          Pan-African author distribution maps and citation cartel defense audits are unlocked with an institutional dossier subscription.
+                        <p style={{ margin: "0 0 0.6rem", fontSize: "0.82rem", color: "var(--color-text-body)", maxWidth: "420px" }}>
+                          Pan-African author distribution maps and citation cartel defense audits are unlocked with an official evaluation package.
                         </p>
                         <a 
-                          href={`/pricing?journalId=${journal.id}&tier=Premium`}
-                          className="btn btn-secondary btn-sm"
-                          style={{ fontSize: "0.78rem", padding: "0.35rem 0.9rem", color: "#b45309", borderColor: "#f59e0b", background: "#ffffff" }}
+                          href={`/pricing?journalId=${journal.id}&tier=Basic`}
+                          className="btn btn-primary btn-sm"
+                          style={{ fontSize: "0.78rem", padding: "0.4rem 1rem" }}
                         >
-                          Unlock Full Citation Dossier ($349)
+                          Unlock Full Citation Dossier ($99)
                         </a>
                       </div>
                     )}
@@ -1106,17 +1234,17 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
 
                 {/* Cartel Defense & Integrity Diagnosis (Visible if paid, or summary if free) */}
                 {journal.integrityReport && (
-                  <div style={{ background: journal.integrityReport.cartelRisk === "Low" ? "#f0fdf4" : "#fffbeb", border: `1px solid ${journal.integrityReport.cartelRisk === "Low" ? "#bbf7d0" : "#fef08a"}`, borderRadius: "8px", padding: "1rem", fontSize: "0.82rem" }}>
+                  <div style={{ background: journal.integrityReport.cartelRisk === "Low" ? "rgba(62, 142, 98, 0.12)" : "rgba(212, 160, 74, 0.12)", border: `1px solid ${journal.integrityReport.cartelRisk === "Low" ? "rgba(62, 142, 98, 0.3)" : "rgba(212, 160, 74, 0.3)"}`, borderRadius: "8px", padding: "1rem", fontSize: "0.82rem" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
-                      <span style={{ fontWeight: 700, color: journal.integrityReport.cartelRisk === "Low" ? "#166534" : "#854d0e", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                      <span style={{ fontWeight: 700, color: journal.integrityReport.cartelRisk === "Low" ? "#4ade80" : "var(--color-primary)", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                         <i className={`fa-solid ${journal.integrityReport.cartelRisk === "Low" ? "fa-shield-halved" : "fa-triangle-exclamation"}`}></i>
                         Citation Cartel Defense &amp; Coercive Citation Audit
                       </span>
-                      <span style={{ fontWeight: 700, textTransform: "uppercase", fontSize: "0.75rem", background: "#ffffff", padding: "0.15rem 0.5rem", borderRadius: "4px", border: "1px solid rgba(0,0,0,0.1)" }}>
+                      <span style={{ fontWeight: 700, textTransform: "uppercase", fontSize: "0.75rem", background: "var(--color-bg-card)", color: "var(--color-text-main)", padding: "0.15rem 0.5rem", borderRadius: "4px", border: "1px solid var(--color-border)" }}>
                         Risk Level: {journal.integrityReport.cartelRisk}
                       </span>
                     </div>
-                    <p style={{ margin: 0, color: journal.integrityReport.cartelRisk === "Low" ? "#14532d" : "#713f12", lineHeight: "1.4" }}>
+                    <p style={{ margin: 0, color: "var(--color-text-body)", lineHeight: "1.4" }}>
                       {journal.integrityReport.recommendation}
                     </p>
                   </div>
@@ -1141,7 +1269,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                   <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 600 }}>Live Badge Preview</span>
                   <div>
-                    <img src={badgeUrl} alt="AJIF Index Badge" style={{ height: "26px", display: "block" }} />
+                    <img src={badgeUrl} alt="AJCI Index Badge" style={{ height: "26px", display: "block" }} />
                   </div>
                 </div>
 
@@ -1205,6 +1333,13 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 </span>
               </div>
 
+              {unlinkNotice && (
+                <div style={{ padding: "0.75rem 1rem", background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: "var(--border-radius-sm)", color: "#10b981", fontSize: "0.88rem", marginBottom: "1.2rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <i className="fa-solid fa-circle-check"></i>
+                  <span>{unlinkNotice}</span>
+                </div>
+              )}
+
               {/* Search & Page Size Toolbar */}
               {journal.articles.length > 0 && (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap", marginBottom: "1.5rem" }}>
@@ -1218,18 +1353,36 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                       style={{ fontSize: "0.85rem", padding: "0.45rem 0.85rem" }}
                     />
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-                    <span>Per page:</span>
-                    <select
-                      value={articlesPageSize}
-                      onChange={(e) => setArticlesPageSize(Number(e.target.value))}
-                      className="form-control"
-                      style={{ fontSize: "0.85rem", padding: "0.35rem 0.65rem", width: "auto" }}
-                    >
-                      <option value={10}>10</option>
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                    </select>
+                  <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                      <span>Sort by:</span>
+                      <select
+                        value={articleSort}
+                        onChange={(e) => setArticleSort(e.target.value as any)}
+                        className="form-control"
+                        style={{ fontSize: "0.85rem", padding: "0.35rem 0.65rem", width: "auto" }}
+                      >
+                        <option value="citations_desc">Most Cited</option>
+                        <option value="citations_asc">Least Cited</option>
+                        <option value="newest">Newest Published</option>
+                        <option value="oldest">Oldest Published</option>
+                        <option value="title">Title (A-Z)</option>
+                      </select>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                      <span>Per page:</span>
+                      <select
+                        value={articlesPageSize}
+                        onChange={(e) => setArticlesPageSize(Number(e.target.value))}
+                        className="form-control"
+                        style={{ fontSize: "0.85rem", padding: "0.35rem 0.65rem", width: "auto" }}
+                      >
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1247,21 +1400,32 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 <>
                   <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                     {paginatedArticles.map(article => {
-                      const cleanDoi = (article.doi || "").replace("10.59235/seed.", "10.4314/").replace("10.5130/", "10.4314/");
+                      const rawDoi = article.doi ? article.doi.trim() : "";
+                      const isValidDoi = rawDoi.startsWith("10.") && !rawDoi.includes("zenodo.arjess") && !rawDoi.includes("10.5130") && !rawDoi.includes("10.59235");
+                      const cleanDoi = isValidDoi ? rawDoi : null;
                       const pubYear = new Date(article.publishDate).getFullYear();
+                      const canManageArticles = Boolean(
+                        user && (
+                          user.role === "ADMIN" ||
+                          journal.publisherId === user.id ||
+                          (!journal.publisherId && (user.role === "PUBLISHER" || user.email?.includes("kenpro") || user.email === "bryanmuriuki8@gmail.com"))
+                        )
+                      );
+
                       return (
                         <div 
                           key={article.id} 
                           style={{ 
                             padding: "1.25rem 1.5rem", 
-                            background: "#ffffff", 
+                            background: "var(--color-bg-card)", 
                             border: "1px solid var(--color-border)", 
                             borderRadius: "var(--border-radius-sm)",
                             display: "flex",
                             justifyContent: "space-between",
                             alignItems: "center",
                             flexWrap: "wrap",
-                            gap: "1rem"
+                            gap: "1rem",
+                            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)"
                           }}
                         >
                           <div style={{ flex: 1, minWidth: "250px" }}>
@@ -1285,20 +1449,22 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                             </div>
                           </div>
 
-                          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                            <span 
-                              style={{ 
-                                padding: "0.3rem 0.8rem", 
-                                background: "var(--color-primary-light)", 
-                                border: "1px solid #bfdbfe", 
-                                color: "var(--color-primary)", 
-                                borderRadius: "20px", 
-                                fontSize: "0.8rem",
-                                fontWeight: 700
-                              }}
-                            >
-                              {article.citationCount} {jp.citations || "Citations"}
-                            </span>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+                            {article.citationCount > 0 ? (
+                              <span 
+                                style={{ 
+                                  padding: "0.3rem 0.8rem", 
+                                  background: "var(--color-primary-light)", 
+                                  border: "1px solid rgba(212, 160, 74, 0.3)", 
+                                  color: "var(--color-primary)", 
+                                  borderRadius: "20px", 
+                                  fontSize: "0.8rem",
+                                  fontWeight: 700
+                                }}
+                              >
+                                {article.citationCount} {jp.citations || "Citations"}
+                              </span>
+                            ) : null}
                             {cleanDoi && (
                               <a 
                                 href={`https://doi.org/${cleanDoi}`} 
@@ -1374,7 +1540,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                       key={comment.id} 
                       style={{ 
                         padding: "1.25rem 1.5rem", 
-                        background: "#ffffff", 
+                        background: "var(--color-bg-card)", 
                         border: "1px solid var(--color-border)",
                         borderLeft: "4px solid var(--color-primary)", 
                         borderRadius: "0 var(--border-radius-sm) var(--border-radius-sm) 0" 
@@ -1411,7 +1577,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     style={{
                       width: "100%",
                       padding: "0.8rem 1rem",
-                      background: "#ffffff",
+                      background: "var(--color-bg-card)",
                       border: "1px solid var(--color-border)",
                       borderRadius: "var(--border-radius-sm)",
                       color: "var(--color-text-main)",
@@ -1469,8 +1635,8 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
             <div 
               className="certificate-modal-box"
               style={{
-                background: "#ffffff",
-                color: "#0f172a",
+                background: "var(--color-bg-card)",
+                color: "var(--color-text-main)",
                 width: "100%",
                 maxWidth: "540px",
                 maxHeight: "90vh",
@@ -1550,12 +1716,14 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   Published by <strong style={{ color: "var(--color-text-main)" }}>{journal.publisherName}</strong> • {journal.country}
                 </p>
                 <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", margin: "0.25rem 0 0" }}>
-                  ISSN: {journal.issn || "N/A"} {journal.eissn ? `| eISSN: ${journal.eissn}` : ""}
+                  {journal.issn || journal.eissn
+                    ? `ISSN: ${journal.issn || journal.eissn}${journal.eissn && journal.issn ? ` | eISSN: ${journal.eissn}` : ""}`
+                    : "ISSN: Pending Verification"}
                 </p>
               </div>
 
               {/* Verified Metric Scorecard */}
-              <div className="cert-metric-box" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.5rem", background: "#f8fafc", padding: "1rem", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "1.2rem", textAlign: "center", position: "relative", zIndex: 2 }}>
+              <div className="cert-metric-box" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.5rem", background: "var(--color-bg-card-subtle)", padding: "1rem", borderRadius: "8px", border: "1px solid var(--color-border)", marginBottom: "1.2rem", textAlign: "center", position: "relative", zIndex: 2 }}>
                 <div>
                   <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>AJCI Score</div>
                   <div className="cert-gold-accent" style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--color-primary)", marginTop: "0.15rem" }}>
@@ -1627,7 +1795,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
               </div>
 
               {/* Footer */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #e2e8f0", paddingTop: "0.9rem", position: "relative", zIndex: 2 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--color-border)", paddingTop: "0.9rem", position: "relative", zIndex: 2 }}>
                 <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
                   AfriJournal Index Preview • {new Date().getFullYear()}
                 </div>
@@ -1661,14 +1829,14 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
           >
             <div 
               style={{
-                background: "#ffffff",
-                color: "#0f172a",
+                background: "var(--color-bg-card)",
+                color: "var(--color-text-main)",
                 width: "100%",
                 maxWidth: "520px",
                 maxHeight: "90vh",
                 overflowY: "auto",
                 borderRadius: "16px",
-                border: "1px solid #e2e8f0",
+                border: "1px solid var(--color-border)",
                 padding: "2rem",
                 boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.25)",
                 position: "relative"
@@ -1683,7 +1851,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   right: "1.2rem",
                   background: "transparent",
                   border: "none",
-                  color: "#64748b",
+                  color: "var(--color-text-muted)",
                   fontSize: "1.2rem",
                   cursor: "pointer"
                 }}
@@ -1695,10 +1863,10 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#f0fdfa", color: "#0d9488", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", marginBottom: "0.8rem" }}>
                   <i className="fa-solid fa-building-columns"></i>
                 </div>
-                <h2 style={{ fontSize: "1.35rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.35rem" }}>
+                <h2 style={{ fontSize: "1.35rem", fontWeight: 800, color: "var(--color-text-main)", margin: "0 0 0.35rem" }}>
                   Claim Editorial Ownership
                 </h2>
-                <p style={{ fontSize: "0.85rem", color: "#64748b", margin: 0 }}>
+                <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", margin: 0 }}>
                   Verify that you manage or edit <strong>{journal.name}</strong>
                 </p>
               </div>
@@ -1711,7 +1879,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#065f46", marginBottom: "0.5rem" }}>
                     Ownership Linked!
                   </h3>
-                  <p style={{ fontSize: "0.85rem", color: "#475569", marginBottom: "1.5rem" }}>
+                  <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.5rem" }}>
                     {claimSuccess}
                   </p>
                   <a 
@@ -1725,10 +1893,13 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 </div>
               ) : (
                 <form onSubmit={handleClaimJournal}>
-                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "1rem", marginBottom: "1.2rem", fontSize: "0.82rem" }}>
-                    <div style={{ color: "#334155", marginBottom: "0.25rem" }}><strong>Journal:</strong> {journal.name}</div>
-                    <div style={{ color: "#64748b", marginBottom: "0.25rem" }}><strong>ISSN:</strong> {journal.issn || "Registered"} • <strong>Publisher:</strong> {journal.publisherName}</div>
-                    <div style={{ color: "#64748b" }}><strong>Official Website:</strong> {journal.websiteUrl}</div>
+                  <div style={{ background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", borderRadius: "10px", padding: "1rem", marginBottom: "1.2rem", fontSize: "0.82rem" }}>
+                    <div style={{ color: "var(--color-text-body)", marginBottom: "0.25rem" }}><strong>Journal:</strong> {journal.name}</div>
+                    <div style={{ color: "var(--color-text-muted)", marginBottom: "0.25rem" }}>
+                      {journal.issn ? <><strong>ISSN:</strong> {journal.issn} • </> : null}
+                      <strong>Publisher:</strong> {journal.publisherName}
+                    </div>
+                    <div style={{ color: "var(--color-text-muted)" }}><strong>Official Website:</strong> {journal.websiteUrl}</div>
                   </div>
 
                   {claimError && (
@@ -1740,7 +1911,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
 
                   {!user ? (
                     <div style={{ textAlign: "center", padding: "1rem 0" }}>
-                      <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "1rem" }}>
+                      <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1rem" }}>
                         You must be signed in with your editorial account to claim this journal.
                       </p>
                       <a 
@@ -1754,14 +1925,14 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   ) : (
                     <>
                       <div style={{ marginBottom: "1rem" }}>
-                        <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "#334155", marginBottom: "0.4rem" }}>
+                        <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-body)", marginBottom: "0.4rem" }}>
                           Your Editorial Role
                         </label>
                         <select 
                           value={claimRole}
                           onChange={e => setClaimRole(e.target.value)}
                           className="form-control"
-                          style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "0.85rem" }}
+                          style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.85rem" }}
                         >
                           <option value="Editor-in-Chief">Editor-in-Chief</option>
                           <option value="Managing Editor">Managing Editor</option>
@@ -1771,7 +1942,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                       </div>
 
                       <div style={{ marginBottom: "1.5rem" }}>
-                        <div style={{ fontSize: "0.78rem", color: "#64748b", lineHeight: "1.4" }}>
+                        <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", lineHeight: "1.4" }}>
                           <i className="fa-solid fa-circle-info" style={{ marginRight: "0.3rem", color: "#0d9488" }}></i>
                           By claiming, this journal will be linked to your account (<strong>{user.email}</strong>). You will gain access to editorial metrics, crawler audit tools, and evaluation settings.
                         </div>
@@ -1833,7 +2004,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
           >
             <div 
               style={{
-                backgroundColor: "#ffffff",
+                backgroundColor: "var(--color-bg-card)",
                 borderRadius: "16px",
                 maxWidth: "720px",
                 width: "100%",
@@ -1846,11 +2017,11 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.2rem" }}>
                 <div>
-                  <h3 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "0 0 0.3rem", color: "#0f172a", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <h3 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "0 0 0.3rem", color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <i className="fa-solid fa-clipboard-check" style={{ color: "var(--color-primary)" }}></i>
                     International Accreditation Readiness Audit
                   </h3>
-                  <p style={{ margin: 0, fontSize: "0.82rem", color: "#64748b" }}>
+                  <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
                     Automated technical &amp; editorial criteria compliance diagnostics (Single Source of Truth)
                   </p>
                 </div>
@@ -1920,7 +2091,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
               {auditLoading ? (
                 <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
                   <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)", marginBottom: "1rem" }}></i>
-                  <p style={{ fontSize: "0.9rem", color: "#64748b" }}>Evaluating technical standards, ISSN checksums, and metadata coverage...</p>
+                  <p style={{ fontSize: "0.9rem", color: "var(--color-text-muted)" }}>Evaluating technical standards, ISSN checksums, and metadata coverage...</p>
                 </div>
               ) : auditError ? (
                 <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", borderRadius: "8px", padding: "1rem", fontSize: "0.85rem" }}>
@@ -1930,13 +2101,13 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
               ) : auditData ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
                   {/* Readiness Score Card */}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f8fafc", padding: "1.2rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--color-bg-card-subtle)", padding: "1.2rem", borderRadius: "10px", border: "1px solid var(--color-border)" }}>
                     <div>
-                      <div style={{ fontSize: "0.8rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>Index Readiness Score</div>
+                      <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Index Readiness Score</div>
                       <div style={{ fontSize: "2rem", fontWeight: 800, color: (auditData.overallScore ?? 0) >= 80 ? "#16a34a" : (auditData.overallScore ?? 0) >= 50 ? "#d97706" : "#dc2626" }}>
                         {auditData.overallScore ?? 0}%
                       </div>
-                      <div style={{ fontSize: "0.8rem", color: "#475569" }}>
+                      <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
                         {auditData.allChecks?.filter((c: any) => c.passed).length ?? auditData.checks?.filter((c: any) => c.passed).length ?? 8} of 10 international indexing criteria satisfied
                       </div>
                     </div>
@@ -1957,23 +2128,23 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   {/* Active Tab Checklist Items */}
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <h4 style={{ fontSize: "0.9rem", fontWeight: 700, margin: "0.5rem 0 0.2rem", color: "#1e293b" }}>
+                      <h4 style={{ fontSize: "0.9rem", fontWeight: 700, margin: "0.5rem 0 0.2rem", color: "var(--color-text-body)" }}>
                         {auditTab === "DOAJ" ? "DOAJ Core Accreditation Checkpoints (5 Items)" : "Scopus CSAB Mandatory Ingestion Metrics (5 Items)"}
                       </h4>
-                      <span style={{ fontSize: "0.75rem", color: "#64748b" }}>10% Weight Each</span>
+                      <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>10% Weight Each</span>
                     </div>
 
                     {(auditTab === "DOAJ" ? (auditData.doajChecks || auditData.checks?.filter((c: any) => c.category === "DOAJ") || []) : (auditData.scopusChecks || auditData.checks?.filter((c: any) => c.category === "SCOPUS") || [])).map((chk: any) => (
-                      <div key={chk.id} style={{ display: "flex", alignItems: "flex-start", gap: "0.8rem", padding: "0.75rem", background: "#ffffff", borderRadius: "8px", border: "1px solid #f1f5f9" }}>
+                      <div key={chk.id} style={{ display: "flex", alignItems: "flex-start", gap: "0.8rem", padding: "0.75rem", background: "var(--color-bg-card)", borderRadius: "8px", border: "1px solid var(--color-border)" }}>
                         <i className={`fa-solid ${chk.passed ? "fa-circle-check" : "fa-triangle-exclamation"}`} style={{ fontSize: "1rem", marginTop: "0.15rem", color: chk.passed ? "#16a34a" : "#d97706" }}></i>
                         <div style={{ flex: 1, fontSize: "0.82rem" }}>
-                          <div style={{ fontWeight: 700, color: "#1e293b", display: "flex", justifyContent: "space-between" }}>
+                          <div style={{ fontWeight: 700, color: "var(--color-text-body)", display: "flex", justifyContent: "space-between" }}>
                             <span>{chk.name}</span>
                             <span style={{ fontSize: "0.75rem", fontWeight: 600, color: chk.passed ? "#16a34a" : "#d97706" }}>
                               {chk.passed ? "PASS" : "ATTENTION"}
                             </span>
                           </div>
-                          <div style={{ color: "#64748b", marginTop: "0.15rem" }}>{chk.details}</div>
+                          <div style={{ color: "var(--color-text-muted)", marginTop: "0.15rem" }}>{chk.details}</div>
                         </div>
                       </div>
                     ))}
@@ -1987,7 +2158,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                         Accreditation Improvement Roadmap &amp; Technical Recipes
                       </div>
 
-                      {journal?.certificatePaid || journal?.activeTier === "Premium" ? (
+                      {journal?.certificatePaid || journal?.activeTier === "Basic" || journal?.activeTier === "Premium" ? (
                         <ul style={{ margin: 0, paddingLeft: "1.2rem", color: "#134e4a", lineHeight: "1.6" }}>
                           {((auditTab === "DOAJ" ? auditData.doajChecks : auditData.scopusChecks) || []).filter((c: any) => c.recommendation).map((c: any) => (
                             <li key={c.id}>
@@ -1996,16 +2167,16 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                           ))}
                         </ul>
                       ) : (
-                        <div style={{ background: "#ffffff", padding: "1rem", borderRadius: "6px", border: "1px solid #99f6e4", marginTop: "0.5rem" }}>
+                        <div style={{ background: "var(--color-bg-card)", padding: "1rem", borderRadius: "6px", border: "1px solid #99f6e4", marginTop: "0.5rem" }}>
                           <p style={{ margin: "0 0 0.6rem", color: "#0f766e", fontSize: "0.8rem", lineHeight: "1.4" }}>
-                            Detailed technical OJS configuration steps, XML export templates, and policy wording recipes are included in the <strong>Institutional Evaluation Dossier</strong>.
+                            Detailed technical OJS configuration steps, XML export templates, and policy wording recipes are included in the <strong>Evaluation Suite</strong>.
                           </p>
                           <a 
-                            href={`/pricing?journalId=${journal?.id}&tier=Premium`}
+                            href={`/pricing?journalId=${journal?.id}&tier=Basic`}
                             className="btn btn-secondary btn-sm"
                             style={{ fontSize: "0.78rem", background: "#0d9488", color: "#ffffff", borderColor: "#0d9488" }}
                           >
-                            Unlock Technical Remediation Recipes ($349)
+                            Unlock Technical Remediation Recipes ($99)
                           </a>
                         </div>
                       )}
@@ -2057,12 +2228,13 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
           >
             <div 
               style={{
-                backgroundColor: "#ffffff",
+                backgroundColor: "var(--color-bg-card)",
                 borderRadius: "16px",
                 maxWidth: "600px",
                 width: "100%",
                 padding: "2rem",
-                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.6)",
+                border: "1px solid var(--color-border)",
                 maxHeight: "90vh",
                 overflowY: "auto"
               }}
@@ -2070,59 +2242,59 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.2rem" }}>
                 <div>
-                  <h3 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "0 0 0.3rem", color: "#0f172a", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <h3 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "0 0 0.3rem", color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <i className="fa-solid fa-database" style={{ color: "var(--color-primary)" }}></i>
                     Bibliometric Provenance &amp; Verification Sources
                   </h3>
-                  <p style={{ margin: 0, fontSize: "0.82rem", color: "#64748b" }}>
+                  <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
                     Independent open scholarly metadata pipelines harvested for {journal.name}
                   </p>
                 </div>
                 <button 
                   onClick={() => setShowProvenanceModal(false)}
-                  style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#94a3b8", cursor: "pointer" }}
+                  style={{ background: "none", border: "none", fontSize: "1.2rem", color: "var(--color-text-muted)", cursor: "pointer" }}
                 >
                   <i className="fa-solid fa-xmark"></i>
                 </button>
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", fontSize: "0.85rem" }}>
-                <div style={{ padding: "0.9rem", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-                  <div style={{ fontWeight: 700, color: "#d97706", display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.25rem" }}>
+                <div style={{ padding: "0.9rem", background: "var(--color-bg-card-subtle)", borderRadius: "8px", border: "1px solid var(--color-border)" }}>
+                  <div style={{ fontWeight: 700, color: "var(--color-primary)", display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.25rem" }}>
                     <i className="fa-solid fa-fingerprint"></i>
                     Crossref I4OC (Initiative for Open Citations)
                   </div>
-                  <div style={{ color: "#475569", fontSize: "0.8rem" }}>
-                    Citations are resolved via open Crossref event data and reference XML feeds. Verified DOI prefix: <strong>10.4314/</strong>.
+                  <div style={{ color: "var(--color-text-body)", fontSize: "0.8rem" }}>
+                    Citations are resolved via open Crossref event data and reference XML feeds.
                   </div>
                 </div>
 
-                <div style={{ padding: "0.9rem", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-                  <div style={{ fontWeight: 700, color: "#16a34a", display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.25rem" }}>
+                <div style={{ padding: "0.9rem", background: "var(--color-bg-card-subtle)", borderRadius: "8px", border: "1px solid var(--color-border)" }}>
+                  <div style={{ fontWeight: 700, color: "#4ade80", display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.25rem" }}>
                     <i className="fa-solid fa-check-circle"></i>
                     DOAJ Open Access Peer Audit
                   </div>
-                  <div style={{ color: "#475569", fontSize: "0.8rem" }}>
+                  <div style={{ color: "var(--color-text-body)", fontSize: "0.8rem" }}>
                     Verified compliance against Directory of Open Access Journals standards (ISSN validation, CC licensing, and editorial peer review).
                   </div>
                 </div>
 
-                <div style={{ padding: "0.9rem", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-                  <div style={{ fontWeight: 700, color: "#2563eb", display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.25rem" }}>
+                <div style={{ padding: "0.9rem", background: "var(--color-bg-card-subtle)", borderRadius: "8px", border: "1px solid var(--color-border)" }}>
+                  <div style={{ fontWeight: 700, color: "#60a5fa", display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.25rem" }}>
                     <i className="fa-solid fa-network-wired"></i>
                     OpenAlex Citation Graph
                   </div>
-                  <div style={{ color: "#475569", fontSize: "0.8rem" }}>
+                  <div style={{ color: "var(--color-text-body)", fontSize: "0.8rem" }}>
                     Global scholarly citation graph mapping institutional affiliations and Pan-African citation shares across 250M+ scientific records.
                   </div>
                 </div>
 
-                <div style={{ padding: "0.9rem", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-                  <div style={{ fontWeight: 700, color: "#7c3aed", display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.25rem" }}>
+                <div style={{ padding: "0.9rem", background: "var(--color-bg-card-subtle)", borderRadius: "8px", border: "1px solid var(--color-border)" }}>
+                  <div style={{ fontWeight: 700, color: "#c084fc", display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.25rem" }}>
                     <i className="fa-solid fa-building-columns"></i>
                     African Institutional OAI-PMH Harvest
                   </div>
-                  <div style={{ color: "#475569", fontSize: "0.8rem" }}>
+                  <div style={{ color: "var(--color-text-body)", fontSize: "0.8rem" }}>
                     Direct Open Archives Initiative Protocol for Metadata Harvesting (OAI-PMH) endpoints synchronizing back-catalog volumes and issue archives.
                   </div>
                 </div>
@@ -2159,13 +2331,13 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
           >
             <div 
               style={{
-                backgroundColor: "#ffffff",
+                backgroundColor: "var(--color-bg-card)",
                 borderRadius: "16px",
                 maxWidth: "520px",
                 width: "100%",
                 padding: "2rem",
                 boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.25)",
-                border: "1px solid #e2e8f0",
+                border: "1px solid var(--color-border)",
                 textAlign: "center"
               }}
               onClick={e => e.stopPropagation()}
@@ -2173,31 +2345,31 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
               <div style={{ width: "54px", height: "54px", borderRadius: "50%", background: "#fef3c7", border: "2px solid #fde68a", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#b45309", fontSize: "1.4rem", marginBottom: "1rem" }}>
                 <i className="fa-solid fa-file-invoice"></i>
               </div>
-              <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: "0 0 0.5rem", color: "#0f172a" }}>
+              <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: "0 0 0.5rem", color: "var(--color-text-main)" }}>
                 Institutional Evaluation Dossier
               </h3>
-              <p style={{ fontSize: "0.88rem", color: "#64748b", margin: "0 0 1.5rem", lineHeight: "1.5" }}>
+              <p style={{ fontSize: "0.88rem", color: "var(--color-text-muted)", margin: "0 0 1.5rem", lineHeight: "1.5" }}>
                 The official 12-page vector evaluation dossier—including the Dean's Digest, mathematical formula ledger, DOAJ/Scopus CSAB pre-audit matrices, and OJS technical optimization checklist—is part of the <strong>Institutional Evaluation Package</strong>.
               </p>
               
-              <div style={{ background: "#f8fafc", padding: "1rem", borderRadius: "10px", border: "1px solid #e2e8f0", marginBottom: "1.5rem", textAlign: "left", fontSize: "0.82rem", color: "#334155" }}>
-                <div style={{ fontWeight: 700, color: "#b45309", marginBottom: "0.5rem" }}>Included in Institutional Package ($349):</div>
+              <div style={{ background: "var(--color-bg-card-subtle)", padding: "1rem", borderRadius: "10px", border: "1px solid var(--color-border)", marginBottom: "1.5rem", textAlign: "left", fontSize: "0.82rem", color: "var(--color-text-body)" }}>
+                <div style={{ fontWeight: 700, color: "#b45309", marginBottom: "0.5rem" }}>Included in Evaluation Suite ($99):</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                   <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> 12-Page Formal Institutional Dossier (Vector PDF)</div>
-                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> DOAJ &amp; Scopus Technical Remediation Recipes</div>
+                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> DOAJ &amp; International Remediation Recipes</div>
                   <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> Back-Catalog OJS Archive Ingestion &amp; Verification</div>
-                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> Cryptographic QR Seal for Senate Evaluations</div>
+                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> Cryptographic QR Seal &amp; Vector Certificate</div>
                 </div>
               </div>
 
               <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
                 <a 
-                  href={`/pricing?journalId=${journal.id}&tier=Premium`}
+                  href={`/pricing?journalId=${journal.id}&tier=Basic`}
                   className="btn btn-primary btn-sm"
                   style={{ background: "#b45309", borderColor: "#b45309", color: "#ffffff", padding: "0.55rem 1.4rem", fontWeight: 700 }}
                 >
                   <i className="fa-solid fa-unlock" style={{ marginRight: "0.4rem" }}></i>
-                  Unlock Institutional Dossier ($349)
+                  Unlock Complete Dossier ($99)
                 </a>
                 <button 
                   onClick={() => setShowDossierLockModal(false)}
@@ -2229,13 +2401,13 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
           >
             <div 
               style={{
-                backgroundColor: "#ffffff",
+                backgroundColor: "var(--color-bg-card)",
                 borderRadius: "16px",
                 maxWidth: "520px",
                 width: "100%",
                 padding: "2rem",
                 boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.25)",
-                border: "1px solid #e2e8f0",
+                border: "1px solid var(--color-border)",
                 textAlign: "center"
               }}
               onClick={e => e.stopPropagation()}
@@ -2243,14 +2415,14 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
               <div style={{ width: "54px", height: "54px", borderRadius: "50%", background: "#e0e7ff", border: "2px solid #c7d2fe", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#4338ca", fontSize: "1.4rem", marginBottom: "1rem" }}>
                 <i className="fa-solid fa-clipboard-check"></i>
               </div>
-              <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: "0 0 0.5rem", color: "#0f172a" }}>
+              <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: "0 0 0.5rem", color: "var(--color-text-main)" }}>
                 Compliance &amp; Readiness Audit Locked
               </h3>
-              <p style={{ fontSize: "0.88rem", color: "#64748b", margin: "0 0 1.5rem", lineHeight: "1.5" }}>
+              <p style={{ fontSize: "0.88rem", color: "var(--color-text-muted)", margin: "0 0 1.5rem", lineHeight: "1.5" }}>
                 Automated 6-point verification standard adhering to DOAJ screening protocols, Scopus CSAB criteria, and technical remediation recipes requires an active evaluation license.
               </p>
               
-              <div style={{ background: "#f8fafc", padding: "1rem", borderRadius: "10px", border: "1px solid #e2e8f0", marginBottom: "1.5rem", textAlign: "left", fontSize: "0.82rem", color: "#334155" }}>
+              <div style={{ background: "var(--color-bg-card-subtle)", padding: "1rem", borderRadius: "10px", border: "1px solid var(--color-border)", marginBottom: "1.5rem", textAlign: "left", fontSize: "0.82rem", color: "var(--color-text-body)" }}>
                 <div style={{ fontWeight: 700, color: "#4338ca", marginBottom: "0.5rem" }}>Audit Feature Access:</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                   <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> Comprehensive DOAJ Gap Analysis &amp; Action Plan</div>
@@ -2300,7 +2472,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
           >
             <div 
               style={{
-                backgroundColor: "#ffffff",
+                backgroundColor: "var(--color-bg-card)",
                 borderRadius: "16px",
                 maxWidth: "580px",
                 width: "100%",
@@ -2311,10 +2483,10 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.2rem" }}>
                 <div>
-                  <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: "0 0 0.3rem", color: "#0f172a" }}>
+                  <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: "0 0 0.3rem", color: "var(--color-text-main)" }}>
                     Manage Journal Profile &amp; Metadata
                   </h3>
-                  <p style={{ margin: 0, fontSize: "0.82rem", color: "#64748b" }}>
+                  <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
                     Verified publisher profile management for {journal?.name}
                   </p>
                 </div>
@@ -2343,7 +2515,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
               <form onSubmit={handleSaveEdit}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.8rem", marginBottom: "0.8rem" }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "0.3rem" }}>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-body)", marginBottom: "0.3rem" }}>
                       Publisher / Press
                     </label>
                     <input 
@@ -2352,11 +2524,11 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                       value={editForm.publisherName}
                       onChange={e => setEditForm(prev => ({ ...prev, publisherName: e.target.value }))}
                       required
-                      style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem" }}
+                      style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid var(--color-border)", fontSize: "0.85rem" }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "0.3rem" }}>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-body)", marginBottom: "0.3rem" }}>
                       Country
                     </label>
                     <input 
@@ -2365,14 +2537,14 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                       value={editForm.country}
                       onChange={e => setEditForm(prev => ({ ...prev, country: e.target.value }))}
                       required
-                      style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem" }}
+                      style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid var(--color-border)", fontSize: "0.85rem" }}
                     />
                   </div>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: "0.8rem", marginBottom: "0.8rem" }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "0.3rem" }}>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-body)", marginBottom: "0.3rem" }}>
                       Official Website / OJS URL
                     </label>
                     <input 
@@ -2380,18 +2552,18 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                       className="form-control"
                       value={editForm.websiteUrl}
                       onChange={e => setEditForm(prev => ({ ...prev, websiteUrl: e.target.value }))}
-                      style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem" }}
+                      style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid var(--color-border)", fontSize: "0.85rem" }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "0.3rem" }}>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-body)", marginBottom: "0.3rem" }}>
                       Frequency
                     </label>
                     <select 
                       className="form-control"
                       value={editForm.frequency}
                       onChange={e => setEditForm(prev => ({ ...prev, frequency: e.target.value }))}
-                      style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem" }}
+                      style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid var(--color-border)", fontSize: "0.85rem" }}
                     >
                       <option value="Monthly">Monthly</option>
                       <option value="Bi-monthly">Bi-monthly</option>
@@ -2404,7 +2576,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 </div>
 
                 <div style={{ marginBottom: "1.2rem" }}>
-                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "0.3rem" }}>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-body)", marginBottom: "0.3rem" }}>
                     Aims, Scope &amp; Editorial Description
                   </label>
                   <textarea 
@@ -2412,7 +2584,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     className="form-control"
                     value={editForm.description}
                     onChange={e => setEditForm(prev => ({ ...prev, description: e.target.value }))}
-                    style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.85rem", resize: "vertical" }}
+                    style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "6px", border: "1px solid var(--color-border)", fontSize: "0.85rem", resize: "vertical" }}
                   />
                 </div>
 
@@ -2445,6 +2617,178 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Academic Access Disclaimer Modal (For Guests) */}
+        {showGuestDisclaimerModal && (
+
+          <div 
+            style={{
+              position: "fixed",
+              inset: 0,
+              backgroundColor: "rgba(15, 23, 42, 0.75)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              padding: "1.5rem"
+            }}
+            onClick={() => setShowGuestDisclaimerModal(false)}
+          >
+            <div 
+              style={{
+                backgroundColor: "var(--color-bg-card)",
+                borderRadius: "16px",
+                maxWidth: "520px",
+                width: "100%",
+                padding: "2.2rem",
+                boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.25)",
+                border: "1px solid var(--color-border)",
+                textAlign: "center"
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "rgba(212, 160, 74, 0.15)", border: "2px solid var(--color-primary)", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary)", fontSize: "1.5rem", marginBottom: "1.2rem" }}>
+                <i className="fa-solid fa-graduation-cap"></i>
+              </div>
+              <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: "0 0 0.6rem", color: "var(--color-text-main)" }}>
+                Verified Scholar &amp; Publisher Feature
+              </h3>
+              <p style={{ fontSize: "0.9rem", color: "var(--color-text-muted)", margin: "0 0 1.5rem", lineHeight: "1.6" }}>
+                Access to <strong>{guestFeatureName}</strong>, comprehensive archival dossiers, and deep bibliometric health reports is reserved for authenticated researchers, editorial board members, and institutional publishers.
+              </p>
+              
+              <div style={{ background: "var(--color-bg-card-subtle)", padding: "1rem", borderRadius: "10px", border: "1px solid var(--color-border)", marginBottom: "1.6rem", textAlign: "left", fontSize: "0.85rem", color: "var(--color-text-body)" }}>
+                <div style={{ fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.4rem" }}>Why register with AfriJournal Index?</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
+                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> Download verified institutional accreditation dossiers</div>
+                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> Claim scholarship &amp; sync your ORCID publications</div>
+                  <div><i className="fa-solid fa-check" style={{ color: "#16a34a", marginRight: "0.4rem" }}></i> Manage and audit your peer-reviewed journals</div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
+                <a 
+                  href={`/login?redirect=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "")}`}
+                  className="btn btn-primary"
+                  style={{ padding: "0.6rem 1.4rem", fontSize: "0.88rem", fontWeight: 700 }}
+                >
+                  <i className="fa-solid fa-right-to-bracket" style={{ marginRight: "0.4rem" }}></i>
+                  Sign In
+                </a>
+                <a 
+                  href="/register"
+                  className="btn btn-secondary"
+                  style={{ padding: "0.6rem 1.4rem", fontSize: "0.88rem", fontWeight: 700 }}
+                >
+                  <i className="fa-solid fa-user-plus" style={{ marginRight: "0.4rem" }}></i>
+                  Create Free Account
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Dedicated OJS Harvester Configuration Modal */}
+        {showOjsModal && journal && (
+          <div 
+            style={{
+              position: "fixed",
+              inset: 0,
+              backgroundColor: "rgba(15, 23, 42, 0.75)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              padding: "1.5rem"
+            }}
+            onClick={() => setShowOjsModal(false)}
+          >
+            <div 
+              style={{
+                backgroundColor: "var(--color-bg-card)",
+                borderRadius: "16px",
+                maxWidth: "560px",
+                width: "100%",
+                padding: "2rem",
+                boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.25)",
+                border: "1px solid var(--color-border)"
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem" }}>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, margin: 0, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <i className="fa-solid fa-rotate" style={{ color: "var(--color-primary)" }}></i>
+                  OJS / OAI-PMH Archive Harvesting
+                </h3>
+                <button 
+                  onClick={() => setShowOjsModal(false)}
+                  style={{ background: "transparent", border: "none", fontSize: "1.2rem", color: "var(--color-text-muted)", cursor: "pointer" }}
+                >
+                  &times;
+                </button>
+              </div>
+
+              <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.2rem", lineHeight: "1.5" }}>
+                AfriJournal Index automatically ingests your back-catalog volumes, issues, authors, and genuine DOIs directly from your Open Journal Systems (OJS) or institutional repository endpoint.
+              </p>
+
+              <div style={{ marginBottom: "1.2rem" }}>
+                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-body)", marginBottom: "0.4rem" }}>
+                  OAI-PMH Base URL:
+                </label>
+                <input 
+                  type="url"
+                  className="form-control"
+                  placeholder="https://journal.example.org/index.php/journal/oai"
+                  value={ojsEndpoint}
+                  onChange={e => setOjsEndpoint(e.target.value)}
+                  style={{ width: "100%", padding: "0.55rem 0.8rem", borderRadius: "6px", border: "1px solid var(--color-border)", fontSize: "0.85rem" }}
+                />
+                <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.35rem" }}>
+                  Example format: <code>https://yourdomain.org/index.php/journal/oai</code> or <code>https://yourdomain.org/oai</code>
+                </div>
+              </div>
+
+              {ojsTestMsg && (
+                <div style={{ padding: "0.75rem", borderRadius: "6px", fontSize: "0.82rem", marginBottom: "1.2rem", background: ojsTestMsg.includes("completed") ? "#f0fdf4" : "#fef2f2", color: ojsTestMsg.includes("completed") ? "#166534" : "#dc2626", border: `1px solid ${ojsTestMsg.includes("completed") ? "#bbf7d0" : "#fecaca"}` }}>
+                  {ojsTestMsg}
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: "0.8rem", justifyContent: "flex-end" }}>
+                <button 
+                  type="button"
+                  onClick={() => setShowOjsModal(false)}
+                  className="btn btn-secondary"
+                  style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button"
+                  disabled={harvestLoading || !ojsEndpoint.trim()}
+                  onClick={handleExecuteOjsHarvest}
+                  className="btn btn-primary"
+                  style={{ padding: "0.5rem 1.4rem", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
+                >
+                  {harvestLoading ? (
+                    <>
+                      <i className="fa-solid fa-spinner fa-spin"></i>
+                      <span>Harvesting OJS Catalog...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-download"></i>
+                      <span>Start Catalog Harvest</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}

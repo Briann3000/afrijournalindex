@@ -1,13 +1,49 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useLang } from "./LangContext";
 import Header from "./Header";
 import Footer from "./Footer";
 import AfricaMap from "./AfricaMap";
 
+interface ShowcaseJournal {
+  id: string;
+  name: string;
+  issn: string;
+  country: string;
+  description: string;
+  qualityGrade: string;
+  score: number;
+  ycaScore: number;
+  regionalScore: number;
+  citationCount: number;
+  articleCount: number;
+  quartile: string;
+  primaryDiscipline: string;
+  disciplineRank: number;
+  totalInDiscipline: number;
+}
+
 export default function Home() {
   const { t } = useLang();
+  const [heroJournal, setHeroJournal] = useState<ShowcaseJournal | null>(null);
+  const [showcaseJournals, setShowcaseJournals] = useState<ShowcaseJournal[]>([]);
+
+  useEffect(() => {
+    async function loadShowcase() {
+      try {
+        const res = await fetch("/api/journals/showcase", { cache: "no-store" });
+        const data = await res.json();
+        if (data.success) {
+          if (data.heroJournal) setHeroJournal(data.heroJournal);
+          if (data.showcaseJournals) setShowcaseJournals(data.showcaseJournals);
+        }
+      } catch (err) {
+        console.error("Failed to load showcase journals:", err);
+      }
+    }
+    loadShowcase();
+  }, []);
 
   const disciplinesMarquee = [
     { name: t.disciplines.health, icon: "fa-stethoscope", count: "380+ " + t.disciplines.journals_count },
@@ -69,7 +105,7 @@ export default function Home() {
             
             {/* Hero Visual: Prestige Academic Indexation & Bibliometric Card */}
             <div className="hero-visual">
-              <div className="glass-card visual-card" style={{ background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "20px", padding: "1.75rem", boxShadow: "0 20px 40px -10px rgba(15, 23, 42, 0.12)" }}>
+              <div className="glass-card visual-card" style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "20px", padding: "1.75rem", boxShadow: "0 20px 40px -10px rgba(15, 23, 42, 0.12)" }}>
                 {/* Visual Header / Live Verification Pill */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "0.85rem" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -78,74 +114,82 @@ export default function Home() {
                       Verified Continental Index
                     </span>
                   </div>
-                  <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>
-                    AJIF 2025/2026
+                  <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
+                    AJCI 2025/2026
                   </span>
                 </div>
 
                 {/* Journal Showcase Profile */}
-                <div style={{ marginBottom: "1.25rem" }}>
-                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "0.5rem" }}>
-                    <span className="journal-tag" style={{ fontSize: "0.72rem", background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe" }}>
-                      <i className="fa-solid fa-award" style={{ marginRight: "4px" }}></i> Q1 Quartile
-                    </span>
-                    <span className="journal-tag" style={{ fontSize: "0.72rem", background: "#ecfdf5", color: "#047857", border: "1px solid #a7f3d0" }}>
-                      <i className="fa-solid fa-circle-check" style={{ marginRight: "4px" }}></i> Open Access
-                    </span>
-                  </div>
-                  <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--color-navy)", margin: "0.3rem 0", lineHeight: "1.4" }}>
-                    African Research Journal of Education and Social Sciences (ARJESS)
-                  </h3>
-                  <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", margin: "0.2rem 0 0" }}>
-                    ISSN: 2312-0134 • Verified Open Access
-                  </p>
-                </div>
-
-                {/* Primary Metric Highlights in 3 Columns */}
-                <div style={{ background: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0", padding: "1rem", marginBottom: "1.2rem" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.75rem", textAlign: "center" }}>
-                    <div>
-                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--color-primary)", lineHeight: 1.1 }}>1.545</div>
-                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>2-Yr AJCI</div>
+                {heroJournal ? (
+                  <>
+                    <div style={{ marginBottom: "1.25rem" }}>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+                        <span className="journal-tag" style={{ fontSize: "0.72rem", background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe" }}>
+                          <i className="fa-solid fa-award" style={{ marginRight: "4px" }}></i> {heroJournal.quartile} Quartile
+                        </span>
+                        <span className="journal-tag" style={{ fontSize: "0.72rem", background: "#ecfdf5", color: "#047857", border: "1px solid #a7f3d0" }}>
+                          <i className="fa-solid fa-circle-check" style={{ marginRight: "4px" }}></i> Open Access
+                        </span>
+                      </div>
+                      <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--color-navy)", margin: "0.3rem 0", lineHeight: "1.4" }}>
+                        {heroJournal.name}
+                      </h3>
+                      <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", margin: "0.2rem 0 0" }}>
+                        ISSN: {heroJournal.issn} • {heroJournal.country} • Verified Open Access
+                      </p>
                     </div>
-                    <div style={{ borderLeft: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
-                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#0284c7", lineHeight: 1.1 }}>1.762</div>
-                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>3-Yr Citation Avg</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#16a34a", lineHeight: 1.1 }}>Grade A+</div>
-                      <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginTop: "4px" }}>Q1 Quartile</div>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Bibliometric Verification List */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.82rem", color: "#334155" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "#64748b" }}>Lifetime Impact (Indexed):</span>
-                    <strong style={{ color: "var(--color-navy)" }}><i className="fa-solid fa-chart-line" style={{ color: "#2563eb", marginRight: "4px" }}></i> 522+ Citations (h-17)</strong>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "#64748b" }}>Evaluated Citable Articles:</span>
-                    <strong style={{ color: "var(--color-navy)" }}>44 Catalog Papers</strong>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "#64748b" }}>Data Provenance:</span>
-                    <strong style={{ color: "#16a34a" }}><i className="fa-solid fa-circle-check" style={{ marginRight: "4px" }}></i> Crossref & DOAJ Verified</strong>
-                  </div>
-                </div>
+                    {/* Primary Metric Highlights in 3 Columns */}
+                    <div style={{ background: "var(--color-bg-card-subtle)", borderRadius: "12px", border: "1px solid var(--color-border)", padding: "1rem", marginBottom: "1.2rem" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.75rem", textAlign: "center" }}>
+                        <div>
+                          <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--color-primary)", lineHeight: 1.1 }}>{heroJournal.score.toFixed(3)}</div>
+                          <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", fontWeight: 700, marginTop: "4px" }}>2-Yr AJCI</div>
+                        </div>
+                        <div style={{ borderLeft: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
+                          <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#0284c7", lineHeight: 1.1 }}>{heroJournal.ycaScore.toFixed(3)}</div>
+                          <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", fontWeight: 700, marginTop: "4px" }}>3-Yr Citation Avg</div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#16a34a", lineHeight: 1.1 }}>Grade {heroJournal.qualityGrade}</div>
+                          <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", fontWeight: 700, marginTop: "4px" }}>{heroJournal.quartile} Quartile</div>
+                        </div>
+                      </div>
+                    </div>
 
-                {/* Card Action Link */}
-                <div style={{ marginTop: "1.2rem", paddingTop: "0.85rem", borderTop: "1px solid #f1f5f9" }}>
-                  <a 
-                    href="/journal/264679fc-eb2d-4d55-b26e-3204dd06b46a" 
-                    className="hover-primary" 
-                    style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "space-between" }}
-                  >
-                    <span>View Complete Bibliometric Report & Certificate</span>
-                    <i className="fa-solid fa-arrow-right"></i>
-                  </a>
-                </div>
+                    {/* Bibliometric Verification List */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.82rem", color: "var(--color-text-body)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ color: "var(--color-text-muted)" }}>Lifetime Impact (Indexed):</span>
+                        <strong style={{ color: "var(--color-navy)" }}><i className="fa-solid fa-chart-line" style={{ color: "#2563eb", marginRight: "4px" }}></i> {heroJournal.citationCount.toLocaleString()} Citations</strong>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ color: "var(--color-text-muted)" }}>Evaluated Citable Articles:</span>
+                        <strong style={{ color: "var(--color-navy)" }}>{heroJournal.articleCount} Catalog Papers</strong>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ color: "var(--color-text-muted)" }}>Data Provenance:</span>
+                        <strong style={{ color: "#16a34a" }}><i className="fa-solid fa-circle-check" style={{ marginRight: "4px" }}></i> Crossref & DOAJ Verified</strong>
+                      </div>
+                    </div>
+
+                    {/* Card Action Link */}
+                    <div style={{ marginTop: "1.2rem", paddingTop: "0.85rem", borderTop: "1px solid #f1f5f9" }}>
+                      <a 
+                        href={`/journal/${heroJournal.id}`} 
+                        className="hover-primary" 
+                        style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                      >
+                        <span>View Complete Bibliometric Report & Certificate</span>
+                        <i className="fa-solid fa-arrow-right"></i>
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ padding: "2rem", textAlign: "center", color: "var(--color-text-muted)" }}>
+                    <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: "0.5rem" }}></i> Loading verified journal showcase...
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -174,7 +218,7 @@ export default function Home() {
         </section>
 
         {/* 4. Infinite Horizontal Discipline Marquee Ticker */}
-        <section style={{ background: "#ffffff", borderBottom: "1px solid var(--color-border)", padding: "10px 0" }}>
+        <section style={{ background: "var(--color-bg-card)", borderBottom: "1px solid var(--color-border)", padding: "10px 0" }}>
           <div className="feature-marquee-container">
             <div className="feature-marquee-track">
               {[...disciplinesMarquee, ...disciplinesMarquee].map((disc, idx) => (
@@ -213,7 +257,7 @@ export default function Home() {
         </section>
 
         {/* 6. Institutional Research Leaderboard Preview */}
-        <section style={{ padding: "4.5rem 0", background: "#ffffff", borderTop: "1px solid var(--color-border)" }}>
+        <section style={{ padding: "4.5rem 0", background: "var(--color-bg-card)", borderTop: "1px solid var(--color-border)" }}>
           <div className="container">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
               <div>
@@ -230,7 +274,7 @@ export default function Home() {
               </a>
             </div>
 
-            <div className="table-responsive" style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid var(--color-border)", overflowX: "auto" }}>
+            <div className="table-responsive" style={{ background: "var(--color-bg-card)", borderRadius: "14px", border: "1px solid var(--color-border)", overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.92rem" }}>
                 <thead>
                   <tr style={{ background: "var(--color-bg-alt)", borderBottom: "1px solid var(--color-border)" }}>
@@ -290,65 +334,40 @@ export default function Home() {
             </div>
 
             <div className="journals-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem" }}>
-              {/* Journal Card 1: ARJESS */}
-              <div className="glass-card" style={{ padding: "1.75rem", background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
-                  <span className="journal-tag">Q1 Quartile</span>
-                  <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: 700, background: "#dcfce7", padding: "0.2rem 0.6rem", borderRadius: "6px" }}>
-                    {t.showcase.badge_verified}
-                  </span>
+              {showcaseJournals.length > 0 ? (
+                showcaseJournals.map((journal) => (
+                  <div key={journal.id} className="glass-card" style={{ padding: "1.75rem", background: "var(--color-bg-card)", borderRadius: "16px", border: "1px solid var(--color-border)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+                        <span className="journal-tag" style={{ background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe" }}>
+                          {journal.quartile} Quartile
+                        </span>
+                        <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: 700, background: "#dcfce7", padding: "0.2rem 0.6rem", borderRadius: "6px" }}>
+                          AJCI {journal.score.toFixed(3)}
+                        </span>
+                      </div>
+                      <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.5rem", lineHeight: "1.4" }}>
+                        {journal.name}
+                      </h3>
+                      <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.2rem", lineHeight: "1.5" }}>
+                        {journal.description}
+                      </p>
+                    </div>
+                    <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
+                        ISSN: {journal.issn} • {journal.country}
+                      </span>
+                      <a href={`/journal/${journal.id}`} className="btn btn-primary btn-sm">
+                        {t.showcase.view_journal}
+                      </a>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{ padding: "3rem", textAlign: "center", gridColumn: "1 / -1", color: "var(--color-text-muted)" }}>
+                  <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: "0.5rem" }}></i> Loading verified continental journals...
                 </div>
-                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.5rem" }}>
-                  African Research Journal of Education and Social Sciences (ARJESS)
-                </h3>
-                <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.2rem", lineHeight: "1.5" }}>
-                  Peer-reviewed scholarly forum publishing original empirical research across pedagogy, sociology, humanities, and African social development.
-                </p>
-                <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "0.8rem", color: "#64748b" }}>ISSN: 2312-0134</span>
-                  <a href="/journal/264679fc-eb2d-4d55-b26e-3204dd06b46a" className="btn btn-primary btn-sm">{t.showcase.view_journal}</a>
-                </div>
-              </div>
-
-              {/* Journal Card 2: JMBA */}
-              <div className="glass-card" style={{ padding: "1.75rem", background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
-                  <span className="journal-tag">Q2 Quartile</span>
-                  <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: 700, background: "#dcfce7", padding: "0.2rem 0.6rem", borderRadius: "6px" }}>
-                    {t.showcase.badge_verified}
-                  </span>
-                </div>
-                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.5rem" }}>
-                  Journal of Management and Business Administration (JMBA)
-                </h3>
-                <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.2rem", lineHeight: "1.5" }}>
-                  Dedicated to African business innovations, microfinance systems, public sector leadership, and commercial economics.
-                </p>
-                <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "0.8rem", color: "#64748b" }}>ISSN: 2520-4106</span>
-                  <a href="/browse" className="btn btn-primary btn-sm">{t.showcase.view_journal}</a>
-                </div>
-              </div>
-
-              {/* Journal Card 3: IJEHS */}
-              <div className="glass-card" style={{ padding: "1.75rem", background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
-                  <span className="journal-tag">Q1 Quartile</span>
-                  <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: 700, background: "#dcfce7", padding: "0.2rem 0.6rem", borderRadius: "6px" }}>
-                    {t.showcase.badge_verified}
-                  </span>
-                </div>
-                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.5rem" }}>
-                  International Journal of Environmental and Health Sciences (IJEHS)
-                </h3>
-                <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.2rem", lineHeight: "1.5" }}>
-                  Focusing on tropical epidemiology, climate resilience in sub-Saharan Africa, sanitation policy, and community health.
-                </p>
-                <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "0.8rem", color: "#64748b" }}>ISSN: 2617-6432</span>
-                  <a href="/browse" className="btn btn-primary btn-sm">{t.showcase.view_journal}</a>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </section>

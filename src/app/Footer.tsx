@@ -17,27 +17,25 @@ export default function Footer() {
               justifyContent: "center",
               width: "40px",
               height: "40px",
-              background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
-              borderRadius: "10px",
-              border: "1px solid rgba(56, 189, 248, 0.4)",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
-              padding: "3px",
-              overflow: "hidden"
+              background: "transparent",
+              borderRadius: "50%",
+              overflow: "hidden",
+              flexShrink: 0
             }}>
               <img 
                 src="/logo.png" 
                 alt="AfriJournal Indexing Logo" 
-                style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "7px" }}
+                style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
               />
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
               <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.35rem" }}>Afri</span>
-              <span style={{ color: "#38bdf8", fontWeight: 800, fontSize: "1.35rem" }}>Journal Indexing</span>
+              <span style={{ color: "var(--color-primary)", fontWeight: 800, fontSize: "1.35rem" }}>Journal Indexing</span>
             </div>
           </a>
           <p className="footer-desc">{t.footer.desc}</p>
           <div style={{ marginTop: "0.8rem" }}>
-            <a href="mailto:afrijournalindex@gmail.com" style={{ color: "#38bdf8", fontSize: "0.86rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+            <a href="mailto:afrijournalindex@gmail.com" style={{ color: "var(--color-primary)", fontSize: "0.86rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
               <i className="fa-regular fa-envelope"></i> afrijournalindex@gmail.com
             </a>
           </div>

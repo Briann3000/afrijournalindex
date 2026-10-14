@@ -19,7 +19,7 @@ interface RankedJournal {
   disciplineRank?: number;
   totalInDiscipline?: number;
   score: number;
-  citescore?: number;
+  ycaScore?: number;
   regionalScore: number;
   citationCount: number;
   articleCount: number;
@@ -35,10 +35,10 @@ export default function RankingsPage() {
   const [loading, setLoading] = useState<boolean>(true);
 
   // Sorting state
-  const [sortBy, setSortBy] = useState<"score" | "citescore" | "regionalScore" | "citationCount" | "name">("score");
+  const [sortBy, setSortBy] = useState<"score" | "ycaScore" | "regionalScore" | "citationCount" | "name">("score");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  const handleSort = (field: "score" | "citescore" | "regionalScore" | "citationCount" | "name") => {
+  const handleSort = (field: "score" | "ycaScore" | "regionalScore" | "citationCount" | "name") => {
     if (sortBy === field) {
       setSortOrder(prev => prev === "desc" ? "asc" : "desc");
     } else {
@@ -104,7 +104,7 @@ export default function RankingsPage() {
         </div>
 
         {/* Filter & Analytics Card */}
-        <div className="card-surface" style={{ padding: "1.75rem", marginBottom: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "#ffffff" }}>
+        <div className="card-surface" style={{ padding: "1.75rem", marginBottom: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.25rem", alignItems: "flex-end" }}>
             
             {/* Country Filter */}
@@ -162,8 +162,8 @@ export default function RankingsPage() {
                   setSortOrder(order);
                 }}
               >
-                <option value="score-desc">AJIF Score (Highest First)</option>
-                <option value="score-asc">AJIF Score (Lowest First)</option>
+                <option value="score-desc">AJCI Score (Highest First)</option>
+                <option value="score-asc">AJCI Score (Lowest First)</option>
                 <option value="regionalScore-desc">Regional Score (Highest First)</option>
                 <option value="citationCount-desc">Citations (Most First)</option>
                 <option value="name-asc">Journal Name (A → Z)</option>
@@ -210,7 +210,7 @@ export default function RankingsPage() {
         </div>
 
         {/* Rankings Table with Horizontal Scroll Support for Mobile */}
-        <div className="table-responsive" style={{ background: "#ffffff", borderRadius: "16px", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)", overflowX: "auto" }}>
+        <div className="table-responsive" style={{ background: "var(--color-bg-card)", borderRadius: "16px", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)", overflowX: "auto" }}>
           {loading ? (
             <div style={{ textAlign: "center", padding: "4rem 0", color: "var(--color-text-muted)" }}>
               <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)", marginBottom: "1rem" }}></i>
@@ -255,15 +255,15 @@ export default function RankingsPage() {
                     </span>
                   </th>
                   <th 
-                    onClick={() => handleSort("citescore")}
+                    onClick={() => handleSort("ycaScore")}
                     style={{ textAlign: "right", width: "115px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
                     title="Click to sort by 3-Year Citation Average (3-YCA)"
                   >
                     <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: "6px", width: "100%" }}>
                       3-YCA
                       <i 
-                        className={`fa-solid ${sortBy === "citescore" ? (sortOrder === "asc" ? "fa-sort-up" : "fa-sort-down") : "fa-sort"}`}
-                        style={{ opacity: sortBy === "citescore" ? 1 : 0.35, color: sortBy === "citescore" ? "var(--color-primary)" : "inherit" }}
+                        className={`fa-solid ${sortBy === "ycaScore" ? (sortOrder === "asc" ? "fa-sort-up" : "fa-sort-down") : "fa-sort"}`}
+                        style={{ opacity: sortBy === "ycaScore" ? 1 : 0.35, color: sortBy === "ycaScore" ? "var(--color-primary)" : "inherit" }}
                       ></i>
                     </span>
                   </th>
@@ -343,7 +343,7 @@ export default function RankingsPage() {
                         {journal.score.toFixed(3)}
                       </td>
                       <td style={{ textAlign: "right", fontWeight: 700, color: "#0284c7", fontSize: "0.95rem", padding: "1rem" }}>
-                        {(journal.citescore ?? Number((journal.score * 1.14).toFixed(3))).toFixed(3)}
+                        {(journal.ycaScore ?? Number((journal.score * 1.14).toFixed(3))).toFixed(3)}
                       </td>
                       <td style={{ textAlign: "right", color: "var(--color-text-body)", fontSize: "0.9rem", fontWeight: 600, padding: "1rem" }}>
                         {journal.regionalScore.toFixed(3)}

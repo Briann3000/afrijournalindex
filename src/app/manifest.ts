@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "AfriJournal Index",
-    short_name: "AJIF",
+    short_name: "AJCI",
     description: "African Scientific Citation Impact Index Directory",
     start_url: "/",
     display: "standalone",

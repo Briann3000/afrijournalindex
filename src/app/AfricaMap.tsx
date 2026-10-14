@@ -93,18 +93,18 @@ export default function AfricaMap() {
     router.push(`/browse?country=${encodeURIComponent(countryName)}`);
   };
 
-  // Dynamic Choropleth Fill based on TRUE Database Counts
+  // Dynamic Choropleth Fill based on TRUE Database Counts (Emerald / Forest Green System)
   const getFillColor = (name: string, isHovered: boolean) => {
-    if (isHovered) return "#0284c7"; // Bright interactive blue on hover
+    if (isHovered) return "#10b981"; // Bright interactive emerald on hover
     
     const live = liveCountryStats[name] || liveCountryStats[name.toLowerCase()];
     const count = live?.journals || 0;
 
-    if (count > 25) return "#1e3a8a"; // Deep Royal Navy (Major Hubs: Kenya, South Africa, Nigeria)
-    if (count > 10) return "#2271b1"; // Medium Brand Blue
-    if (count > 3)  return "#60a5fa"; // Light Blue
-    if (count > 0)  return "#93c5fd"; // Soft Accent Blue
-    return "#e2e8f0"; // Neutral Slate 200 for unindexed nations
+    if (count > 25) return "#065f46"; // Deep Forest Green (Major Hubs: Kenya, South Africa, Nigeria)
+    if (count > 10) return "#047857"; // Strong Emerald Green
+    if (count > 3)  return "#059669"; // Medium Green
+    if (count > 0)  return "#34d399"; // Soft Mint Green
+    return "#2a2d37"; // Dark Charcoal Surface for unindexed nations on dark map
   };
 
   // Calculate real Regional Percentages
@@ -126,10 +126,10 @@ export default function AfricaMap() {
 
     const total = totalLiveJournals || 1;
     return [
-      { region: "East Africa", count: regionCounts.East, percentage: Math.round((regionCounts.East / total) * 100), color: "#2271b1", icon: "fa-compass" },
-      { region: "West Africa", count: regionCounts.West, percentage: Math.round((regionCounts.West / total) * 100), color: "#0284c7", icon: "fa-sun" },
-      { region: "Southern Africa", count: regionCounts.South, percentage: Math.round((regionCounts.South / total) * 100), color: "#10b981", icon: "fa-mountain-sun" },
-      { region: "North Africa", count: regionCounts.North, percentage: Math.round((regionCounts.North / total) * 100), color: "#f59e0b", icon: "fa-landmark" },
+      { region: "East Africa", count: regionCounts.East, percentage: Math.round((regionCounts.East / total) * 100), color: "#10b981", icon: "fa-compass" },
+      { region: "West Africa", count: regionCounts.West, percentage: Math.round((regionCounts.West / total) * 100), color: "#059669", icon: "fa-sun" },
+      { region: "Southern Africa", count: regionCounts.South, percentage: Math.round((regionCounts.South / total) * 100), color: "#34d399", icon: "fa-mountain-sun" },
+      { region: "North Africa", count: regionCounts.North, percentage: Math.round((regionCounts.North / total) * 100), color: "#d97706", icon: "fa-landmark" },
       { region: "Central Africa", count: regionCounts.Central, percentage: Math.round((regionCounts.Central / total) * 100), color: "#8b5cf6", icon: "fa-tree" }
     ];
   }, [liveCountryStats, totalLiveJournals]);
@@ -141,7 +141,7 @@ export default function AfricaMap() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "2rem", alignItems: "center" }}>
         
         {/* Left Column: Full Pan-African Topology Vector Map */}
-        <div style={{ minWidth: 0, width: "100%", position: "relative", background: "#ffffff", borderRadius: "16px", padding: "1.25rem", border: "1px solid var(--color-border)", boxShadow: "0 4px 20px -4px rgba(15, 23, 42, 0.06)" }}>
+        <div style={{ minWidth: 0, width: "100%", position: "relative", background: "var(--color-bg-card)", borderRadius: "16px", padding: "1.25rem", border: "1px solid var(--color-border)", boxShadow: "0 4px 20px -4px rgba(15, 23, 42, 0.06)" }}>
           <svg
             viewBox="20 -10 660 720"
             preserveAspectRatio="xMidYMid meet"
@@ -211,7 +211,7 @@ export default function AfricaMap() {
         <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           
           {/* Active Highlight Card */}
-          <div style={{ background: "#ffffff", border: "1px solid var(--color-primary)", borderRadius: "16px", padding: "1.8rem", boxShadow: "0 10px 25px -5px rgba(34, 113, 177, 0.15)" }}>
+          <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-primary)", borderRadius: "16px", padding: "1.8rem", boxShadow: "0 10px 25px -5px rgba(34, 113, 177, 0.15)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                 <span style={{ fontSize: "1.8rem" }}>{currentMeta.flag}</span>
