@@ -86,7 +86,7 @@ async function main() {
     for (const p of posts) {
       const title = cleanHtml(p.title?.rendered || 'Untitled Article');
       const pdfUrl = extractPdfUrl(p.content?.rendered) || (p.link ? p.link : null);
-      const doi = extractDoi(p.content?.rendered) || `10.5281/zenodo.arjess.${p.id}`;
+      const doi = extractDoi(p.content?.rendered) || null;
       const abstract = extractAbstract(p.content?.rendered);
       const pubDate = new Date(p.date || '2024-01-01');
       const year = pubDate.getFullYear();

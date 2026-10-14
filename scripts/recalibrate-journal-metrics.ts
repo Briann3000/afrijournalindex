@@ -6,6 +6,7 @@ const DISCIPLINE_WEIGHTS: Record<string, { baseMin: number; baseMax: number }> =
   "Engineering & Physical Sciences": { baseMin: 1.4, baseMax: 2.8 },
   "Agricultural & Environmental Sciences": { baseMin: 1.3, baseMax: 2.6 },
   "Business & Economics": { baseMin: 1.1, baseMax: 2.2 },
+  "Education & Social Sciences": { baseMin: 1.1, baseMax: 2.2 },
   "Education": { baseMin: 1.2, baseMax: 2.3 },
   "Social Sciences & Humanities": { baseMin: 0.9, baseMax: 1.9 },
   "Multidisciplinary": { baseMin: 1.0, baseMax: 2.1 }
@@ -17,6 +18,10 @@ function getDiscipline(name: string, description: string = ""): string {
   if (text.includes("engin") || text.includes("technol") || text.includes("physic") || text.includes("chem") || text.includes("math")) return "Engineering & Physical Sciences";
   if (text.includes("agri") || text.includes("environ") || text.includes("forest") || text.includes("ecolog") || text.includes("animal")) return "Agricultural & Environmental Sciences";
   if (text.includes("econom") || text.includes("financ") || text.includes("manag") || text.includes("business") || text.includes("commerc")) return "Business & Economics";
+  if ((text.includes("educat") || text.includes("pedagog") || text.includes("teach") || text.includes("school")) &&
+      (text.includes("social") || text.includes("humanit") || text.includes("histor") || text.includes("cultur"))) {
+    return "Education & Social Sciences";
+  }
   if (text.includes("educat") || text.includes("pedagog") || text.includes("teach") || text.includes("school")) return "Education";
   if (text.includes("social") || text.includes("humanit") || text.includes("histor") || text.includes("law") || text.includes("cultur")) return "Social Sciences & Humanities";
   return "Multidisciplinary";
@@ -43,7 +48,7 @@ async function recalibrateAll() {
   for (const j of journals) {
     const isArjess = j.issn === "2312-0134" || j.name.includes("ARJESS");
     const isJmba = j.issn === "2519-0024" || j.name.includes("JMBA");
-    const isIjehs = j.issn === "2708-0463" || j.name.includes("IJEHS");
+    const isIjehs = j.name.includes("IJEHS") || j.name.includes("International Journal of Environmental Health Studies");
 
     let articleCount = 0;
     let citationCount = 0;

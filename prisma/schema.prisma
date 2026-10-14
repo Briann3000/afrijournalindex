@@ -42,6 +42,8 @@ model User {
   comments      Comment[]
   claims        ClaimedPublication[]
   payments      Payment[]
+
+  @@map("user")
 }
 
 model Journal {
@@ -76,6 +78,7 @@ model Journal {
   @@index([name])
   @@index([isIndexed])
   @@index([certificatePaid])
+  @@map("journal")
 }
 
 model Submission {
@@ -98,6 +101,8 @@ model Submission {
   submitter     User              @relation(fields: [submitterId], references: [id])
   journalId     String?
   journal       Journal?          @relation(fields: [journalId], references: [id])
+
+  @@map("submission")
 }
 
 model Article {
@@ -107,6 +112,7 @@ model Article {
   abstract      String?     @db.LongText
   pdfUrl        String?     @db.Text
   publishDate   DateTime
+  citationCount Int         @default(0)
   createdAt     DateTime    @default(now())
   
   journalId     String
@@ -118,6 +124,7 @@ model Article {
 
   @@index([journalId])
   @@index([publishDate])
+  @@map("article")
 }
 
 model Citation {
@@ -132,6 +139,7 @@ model Citation {
 
   @@unique([citingArticleId, citedArticleId])
   @@index([citedArticleId])
+  @@map("citation")
 }
 
 model ImpactFactorReport {
@@ -154,6 +162,7 @@ model ImpactFactorReport {
   @@unique([journalId, year])
   @@index([year])
   @@index([quartile])
+  @@map("impactfactorreport")
 }
 
 model Comment {
@@ -165,6 +174,8 @@ model Comment {
   journal     Journal  @relation(fields: [journalId], references: [id], onDelete: Cascade)
   authorId    String
   author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("comment")
 }
 
 model ClaimedPublication {
@@ -181,6 +192,7 @@ model ClaimedPublication {
   @@unique([userId, articleId])
   @@index([userId])
   @@index([articleId])
+  @@map("claimedpublication")
 }
 
 model Payment {
@@ -203,5 +215,6 @@ model Payment {
   @@index([userId])
   @@index([trackingId])
   @@index([createdAt])
+  @@map("payment")
 }
 
