@@ -6,7 +6,7 @@
     "submit": "Submit Journal",
     "pricing": "Pricing",
     "rankings": "Rankings & Quartiles",
-    "institution": "Institutional Console",
+    "institution": "Institutional Rankings",
     "researcher": "Researcher Profile",
     "about": "About Us",
     "contact": "Contact Support",
@@ -31,7 +31,7 @@
     "search_btn": "Search Index",
     "cta_submit": "Index Your Journal (Free)",
     "cta_explore": "Explore Directory",
-    "cta_institution": "Institutional Console",
+    "cta_institution": "Institutional Rankings",
     "card_title": "Featured Metrics: ARJESS",
     "card_if": "AfriJournal Citation Index (AJCI)",
     "card_grade": "Quality Grade",
@@ -69,7 +69,7 @@
     "citations": "Citations",
     "h_index": "h-Index",
     "view_all": "View Full Leaderboard",
-    "view_console": "Open Institutional Console"
+    "view_console": "View Institutional Rankings"
   },
   "valprop": {
     "title": "Empowering the African Knowledge Economy",
@@ -169,7 +169,7 @@
     "close_modal": "Close"
   },
   "institution_page": {
-    "title": "Institutional Research Console",
+    "title": "Institutional Rankings",
     "subtitle": "Comprehensive university benchmarking, research output analytics, and faculty citation performance across Africa.",
     "tab_leaderboard": "University Rankings",
     "tab_profile": "Institution Profile",

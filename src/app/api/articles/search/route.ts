@@ -70,7 +70,7 @@ export async function GET(request: Request) {
     if (sortBy === "oldest") {
       orderByClause = { publishDate: "asc" };
     } else if (sortBy === "citations") {
-      orderByClause = { citedBy: { _count: "desc" } };
+      orderByClause = { citationCount: "desc" };
     } else if (sortBy === "title") {
       orderByClause = { title: "asc" };
     }
@@ -112,7 +112,7 @@ export async function GET(request: Request) {
       country: art.journal?.country || "Pan-African",
       issn: art.journal?.issn || art.journal?.eissn || null,
       qualityGrade: art.journal?.qualityGrade || "A",
-      citationCount: art._count.citedBy
+      citationCount: Math.max(art.citationCount || 0, art._count?.citedBy || 0)
     }));
 
     return NextResponse.json({

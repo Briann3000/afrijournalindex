@@ -6,7 +6,7 @@
     "submit": "Wasilisha Jarida",
     "pricing": "Gharama & Ripoti",
     "rankings": "Viwango & Robo (Q1-Q4)",
-    "institution": "Dashibodi ya Chuo",
+    "institution": "Viwango vya Vyuo Vikuu",
     "researcher": "Wasifu wa Mtafiti",
     "about": "Kuhusu Sisi",
     "contact": "Wasiliana Nasi",
@@ -31,7 +31,7 @@
     "search_btn": "Tafuta",
     "cta_submit": "Orodhesha Jarida Lako (Bure)",
     "cta_explore": "Vinjari Majarida",
-    "cta_institution": "Dashibodi ya Taasisi",
+    "cta_institution": "Viwango vya Vyuo Vikuu",
     "card_title": "Vipimo vya Jarida Lililoangaziwa",
     "card_if": "Kielezo cha Nukuu (AJCI)",
     "card_grade": "Daraja la Ubora",
@@ -69,7 +69,7 @@
     "citations": "Nukuu",
     "h_index": "Kielezo cha h",
     "view_all": "Tazama Orodha Kamili",
-    "view_console": "Fungua Dashibodi ya Chuo"
+    "view_console": "Tazama Viwango vya Vyuo"
   },
   "valprop": {
     "title": "Kuwezesha Uchumi wa Maarifa wa Kiafrika",
@@ -169,7 +169,7 @@
     "close_modal": "Funga"
   },
   "institution_page": {
-    "title": "Dashibodi ya Utafiti ya Taasisi",
+    "title": "Viwango vya Vyuo Vikuu",
     "subtitle": "Ulinganisho wa vyuo vikuu, uchambuzi wa matokeo ya utafiti, na utendaji wa nukuu za wahadhiri kote barani Afrika.",
     "tab_leaderboard": "Viwango vya Vyuo Vikuu",
     "tab_profile": "Wasifu wa Chuo",

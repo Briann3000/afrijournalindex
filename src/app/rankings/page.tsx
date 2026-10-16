@@ -105,7 +105,7 @@ export default function RankingsPage() {
 
         {/* Filter & Analytics Card */}
         <div className="card-surface" style={{ padding: "1.75rem", marginBottom: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.25rem", alignItems: "flex-end" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1.25rem", alignItems: "flex-end" }}>
             
             {/* Country Filter */}
             <div className="form-group" style={{ marginBottom: 0 }}>
@@ -170,42 +170,6 @@ export default function RankingsPage() {
                 <option value="name-desc">Journal Name (Z → A)</option>
               </select>
             </div>
-
-            {/* University Search */}
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label htmlFor="instInput" className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
-                <i className="fa-solid fa-building-columns" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i> {t.institution_page.title}
-              </label>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                const formEl = e.target as HTMLFormElement;
-                const inputEl = formEl.elements.namedItem("instInput") as HTMLInputElement;
-                const input = inputEl ? inputEl.value.trim() : "";
-                if (input) {
-                  window.location.href = `/institution?name=${encodeURIComponent(input)}`;
-                }
-              }} style={{ display: "flex", gap: "0.5rem", width: "100%" }}>
-                <input
-                  type="text"
-                  id="instInput"
-                  name="instInput"
-                  placeholder={t.institution_page.search_univ_placeholder}
-                  className="form-control"
-                />
-                <button type="submit" className="btn btn-secondary" style={{ padding: "0 1.25rem", whiteSpace: "nowrap", minHeight: "44px" }}>
-                  {t.common.search}
-                </button>
-              </form>
-            </div>
-          </div>
-
-          <div style={{ marginTop: "1.2rem", fontSize: "0.85rem", color: "var(--color-text-muted)", borderTop: "1px solid var(--color-border)", paddingTop: "0.85rem", display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
-            <span style={{ fontWeight: 600 }}>{t.institution_page.featured_label}</span>
-            <a href="/institution?name=University+of+Nairobi" style={{ color: "var(--color-primary)", fontWeight: 600 }}>University of Nairobi</a>
-            <span>•</span>
-            <a href="/institution?name=Makerere+University" style={{ color: "var(--color-primary)", fontWeight: 600 }}>Makerere University</a>
-            <span>•</span>
-            <a href="/institution?name=University+of+Cape+Town" style={{ color: "var(--color-primary)", fontWeight: 600 }}>University of Cape Town</a>
           </div>
         </div>
 

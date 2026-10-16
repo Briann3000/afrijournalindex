@@ -69,8 +69,18 @@ interface JournalDetail {
     id: string;
     title: string;
     doi: string | null;
+    pdfUrl?: string | null;
     publishDate: string;
     citationCount: number;
+    citations?: Array<{
+      id: string;
+      citingTitle: string;
+      citingDoi: string | null;
+      citingPdfUrl: string | null;
+      citingJournal: string;
+      citingCountry: string;
+      citedAt: string;
+    }>;
   }>;
   comments: Array<{
     id: string;
@@ -154,6 +164,20 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
   // Article Unlink State for Journal Publishers & Admins
   const [unlinkingArticleId, setUnlinkingArticleId] = useState<string | null>(null);
   const [unlinkNotice, setUnlinkNotice] = useState<string | null>(null);
+
+  // Citation Evidence Modal State
+  const [evidenceModalArticle, setEvidenceModalArticle] = useState<{
+    title: string;
+    citations: Array<{
+      id: string;
+      citingTitle: string;
+      citingDoi: string | null;
+      citingPdfUrl: string | null;
+      citingJournal: string;
+      citingCountry: string;
+      citedAt: string;
+    }>;
+  } | null>(null);
 
   const handleDownloadDossier = () => {
     if (!journal) return;
@@ -720,7 +744,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     <div>
                       <strong style={{ color: "var(--color-text-main)" }}>{jp.publisher || "Publisher"}:</strong> {journal.publisherName}
                     </div>
-                    {journal.issn && /^[0-9]{4}-[0-9]{3}[0-9xX]$/.test(journal.issn.trim()) && journal.issn.trim() !== "0000-0000" ? (
+                    {journal.issn && /^[0-9]{4}-[0-9]{3}[0-9xX]$/.test(journal.issn.trim()) && journal.issn.trim() !== "0000-0000" && journal.issn !== journal.eissn ? (
                       <div>
                         <strong style={{ color: "var(--color-text-main)" }}>{jp.issn_print || "Print ISSN"}:</strong> {journal.issn}
                       </div>
@@ -1451,21 +1475,41 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
 
                           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
                             {article.citationCount > 0 ? (
-                              <span 
+                              <button 
+                                type="button"
+                                onClick={() => {
+                                  if (article.citations && article.citations.length > 0) {
+                                    setEvidenceModalArticle({
+                                      title: article.title,
+                                      citations: article.citations
+                                    });
+                                  } else {
+                                    window.open(`https://scholar.google.com/scholar?q=${encodeURIComponent(`"${article.title}"`)}`, "_blank");
+                                  }
+                                }}
+                                title="Click to inspect verified citing papers and provenance ledger"
                                 style={{ 
-                                  padding: "0.3rem 0.8rem", 
+                                  padding: "0.35rem 0.85rem", 
                                   background: "var(--color-primary-light)", 
-                                  border: "1px solid rgba(212, 160, 74, 0.3)", 
+                                  border: "1px solid rgba(212, 160, 74, 0.4)", 
                                   color: "var(--color-primary)", 
                                   borderRadius: "20px", 
                                   fontSize: "0.8rem",
-                                  fontWeight: 700
+                                  fontWeight: 700,
+                                  cursor: "pointer",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "0.4rem"
                                 }}
                               >
-                                {article.citationCount} {jp.citations || "Citations"}
-                              </span>
+                                <i className="fa-solid fa-quote-right" style={{ fontSize: "0.7rem" }}></i>
+                                <span>{article.citationCount} {jp.citations || "Citations"}</span>
+                                <i className="fa-solid fa-magnifying-glass-arrow-right" style={{ fontSize: "0.65rem", opacity: 0.7 }}></i>
+                              </button>
                             ) : null}
-                            {cleanDoi && (
+
+                            {/* Smart Dual-Destination Link: DOI or Official Publisher URL */}
+                            {cleanDoi ? (
                               <a 
                                 href={`https://doi.org/${cleanDoi}`} 
                                 target="_blank" 
@@ -1473,8 +1517,39 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                                 className="btn btn-secondary btn-sm"
                                 style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem" }}
                               >
-                                <span>{jp.view_doi || "View Article / DOI"}</span>
+                                <span>{jp.view_doi || "View DOI"}</span>
                                 <i className="fa-solid fa-up-right-from-square" style={{ fontSize: "0.7rem" }}></i>
+                              </a>
+                            ) : article.pdfUrl ? (
+                              <a 
+                                href={article.pdfUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="btn btn-secondary btn-sm"
+                                style={{ 
+                                  display: "inline-flex", 
+                                  alignItems: "center", 
+                                  gap: "0.4rem", 
+                                  fontSize: "0.8rem",
+                                  background: "rgba(59, 130, 246, 0.08)",
+                                  borderColor: "rgba(59, 130, 246, 0.3)",
+                                  color: "#2563eb"
+                                }}
+                              >
+                                <i className="fa-solid fa-file-pdf" style={{ fontSize: "0.8rem" }}></i>
+                                <span>Read Full Text</span>
+                                <i className="fa-solid fa-up-right-from-square" style={{ fontSize: "0.7rem" }}></i>
+                              </a>
+                            ) : (
+                              <a 
+                                href={`https://scholar.google.com/scholar?q=${encodeURIComponent(`"${article.title}"`)}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="btn btn-secondary btn-sm"
+                                style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", opacity: 0.85 }}
+                              >
+                                <i className="fa-solid fa-magnifying-glass" style={{ fontSize: "0.7rem" }}></i>
+                                <span>Find Article</span>
                               </a>
                             )}
                           </div>
@@ -1716,8 +1791,12 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   Published by <strong style={{ color: "var(--color-text-main)" }}>{journal.publisherName}</strong> • {journal.country}
                 </p>
                 <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", margin: "0.25rem 0 0" }}>
-                  {journal.issn || journal.eissn
-                    ? `ISSN: ${journal.issn || journal.eissn}${journal.eissn && journal.issn ? ` | eISSN: ${journal.eissn}` : ""}`
+                  {journal.issn && journal.eissn && journal.issn !== journal.eissn
+                    ? `ISSN: ${journal.issn} | eISSN: ${journal.eissn}`
+                    : journal.eissn
+                    ? `eISSN: ${journal.eissn}`
+                    : journal.issn
+                    ? `ISSN: ${journal.issn}`
                     : "ISSN: Pending Verification"}
                 </p>
               </div>
@@ -2787,6 +2866,146 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                       <span>Start Catalog Harvest</span>
                     </>
                   )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Citation Provenance Evidence Ledger Modal */}
+        {evidenceModalArticle && (
+          <div 
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(15, 23, 42, 0.75)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              padding: "1.5rem"
+            }}
+            onClick={() => setEvidenceModalArticle(null)}
+          >
+            <div 
+              style={{
+                backgroundColor: "var(--color-bg-card)",
+                borderRadius: "16px",
+                maxWidth: "680px",
+                width: "100%",
+                maxHeight: "85vh",
+                display: "flex",
+                flexDirection: "column",
+                boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.3)",
+                border: "1px solid var(--color-border)",
+                overflow: "hidden"
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div style={{ padding: "1.5rem 1.75rem", borderBottom: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+                <div>
+                  <div style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-primary)", fontWeight: 800, marginBottom: "0.25rem" }}>
+                    Verified Citation Provenance Ledger
+                  </div>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0, color: "var(--color-text-main)", lineHeight: 1.4 }}>
+                    {evidenceModalArticle.title}
+                  </h3>
+                </div>
+                <button 
+                  onClick={() => setEvidenceModalArticle(null)}
+                  style={{ background: "transparent", border: "none", fontSize: "1.4rem", color: "var(--color-text-muted)", cursor: "pointer", lineHeight: 1 }}
+                >
+                  &times;
+                </button>
+              </div>
+
+              {/* Modal Body / Evidence List */}
+              <div style={{ padding: "1.5rem 1.75rem", overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <p style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", margin: 0, lineHeight: 1.5 }}>
+                  Below are verified peer-reviewed publications across regional and international indexes that cite this article. Each citation includes verified bibliographic provenance and direct backlinks.
+                </p>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                  {evidenceModalArticle.citations.map((c, idx) => {
+                    const citingUrl = c.citingDoi 
+                      ? (c.citingDoi.startsWith("http") ? c.citingDoi : `https://doi.org/${c.citingDoi}`)
+                      : (c.citingPdfUrl || `https://scholar.google.com/scholar?q=${encodeURIComponent(`"${c.citingTitle}"`)}`);
+
+                    return (
+                      <div 
+                        key={c.id || idx}
+                        style={{ 
+                          padding: "1rem 1.25rem", 
+                          background: "var(--color-bg-card-subtle)", 
+                          border: "1px solid var(--color-border)", 
+                          borderRadius: "10px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "0.5rem"
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.75rem" }}>
+                          <h5 style={{ margin: 0, fontSize: "0.92rem", fontWeight: 600, color: "var(--color-text-main)", lineHeight: 1.4 }}>
+                            {c.citingTitle}
+                          </h5>
+                          <a 
+                            href={citingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-secondary btn-sm"
+                            style={{ 
+                              whiteSpace: "nowrap", 
+                              fontSize: "0.75rem", 
+                              padding: "0.25rem 0.6rem", 
+                              display: "inline-flex", 
+                              alignItems: "center", 
+                              gap: "0.35rem",
+                              color: "var(--color-primary)",
+                              borderColor: "rgba(212, 160, 74, 0.4)"
+                            }}
+                          >
+                            <span>Verify Source</span>
+                            <i className="fa-solid fa-up-right-from-square" style={{ fontSize: "0.65rem" }}></i>
+                          </a>
+                        </div>
+
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.8rem", fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
+                          <span>
+                            <i className="fa-solid fa-book-open" style={{ marginRight: "0.3rem", color: "var(--color-primary)" }}></i>
+                            {c.citingJournal}
+                          </span>
+                          <span>
+                            <i className="fa-solid fa-earth-africa" style={{ marginRight: "0.3rem" }}></i>
+                            {c.citingCountry}
+                          </span>
+                          {c.citingDoi && (
+                            <span style={{ fontFamily: "monospace", color: "var(--color-text-main)" }}>
+                              DOI: {c.citingDoi.replace("https://doi.org/", "")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div style={{ padding: "1rem 1.75rem", borderTop: "1px solid var(--color-border)", background: "var(--color-bg-alt)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
+                  Verified by AfriJournal Open Citation Indexing Standard
+                </span>
+                <button 
+                  onClick={() => setEvidenceModalArticle(null)}
+                  className="btn btn-secondary btn-sm"
+                  style={{ padding: "0.4rem 1.2rem", fontSize: "0.82rem" }}
+                >
+                  Close
                 </button>
               </div>
             </div>

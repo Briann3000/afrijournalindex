@@ -311,7 +311,7 @@ function BrowseContent() {
   };
 
   return (
-    <main className="container" style={{ padding: "3rem 0 5rem", maxWidth: "1280px" }}>
+    <main className="container" style={{ padding: "3rem 1.5rem 5rem", maxWidth: "1240px", margin: "0 auto" }}>
       
       {/* Page Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem", marginBottom: "1.8rem" }}>
@@ -388,19 +388,19 @@ function BrowseContent() {
       {activeTab === "journals" && (
         <>
           {/* Filter and Search Card */}
-          <div className="card-surface" style={{ padding: "1.4rem", marginBottom: "1.5rem" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 0.8fr", gap: "1rem", alignItems: "center" }}>
+          <div className="card-surface" style={{ padding: "1.4rem", marginBottom: "1.5rem", borderRadius: "14px" }}>
+            <div className="browse-filter-grid">
               
               {/* Search Input */}
-              <div style={{ position: "relative" }}>
-                <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "var(--color-text-muted)", fontSize: "0.88rem" }}></i>
+              <div className="browse-search-wrapper">
+                <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "0.95rem", top: "50%", transform: "translateY(-50%)", color: "var(--color-primary)", fontSize: "0.9rem", zIndex: 2 }}></i>
                 <input 
                   type="text" 
                   placeholder="Search journal title, ISSN, publisher..." 
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="form-control"
-                  style={{ paddingLeft: "2.3rem", fontSize: "0.9rem" }}
+                  className="form-control browse-search-input"
+                  style={{ paddingLeft: "2.4rem", fontSize: "0.92rem", height: "46px" }}
                 />
               </div>
 
@@ -653,12 +653,12 @@ function BrowseContent() {
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           
           {/* Article Search & Multi-Filter Card */}
-          <div className="card-surface" style={{ padding: "1.4rem" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: "1rem", alignItems: "center" }}>
+          <div className="card-surface" style={{ padding: "1.4rem", borderRadius: "14px" }}>
+            <div className="browse-filter-grid">
               
               {/* Search Input */}
-              <div style={{ position: "relative" }}>
-                <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--color-text-muted)" }}></i>
+              <div className="browse-search-wrapper">
+                <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--color-primary)", fontSize: "0.92rem", zIndex: 2 }}></i>
                 <input
                   type="text"
                   placeholder="Search title, keywords, abstract, DOI..."
@@ -667,13 +667,13 @@ function BrowseContent() {
                     setArticleSearch(e.target.value);
                     setArticlePage(1);
                   }}
-                  className="form-control"
-                  style={{ paddingLeft: "2.6rem", paddingRight: articleSearch ? "2.2rem" : "0.75rem", fontSize: "0.92rem" }}
+                  className="form-control browse-search-input"
+                  style={{ paddingLeft: "2.6rem", paddingRight: articleSearch ? "2.2rem" : "0.75rem", fontSize: "0.92rem", height: "46px" }}
                 />
                 {articleSearch && (
                   <button
                     onClick={() => { setArticleSearch(""); setArticlePage(1); }}
-                    style={{ position: "absolute", right: "0.8rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--color-text-muted)", cursor: "pointer", padding: "4px" }}
+                    style={{ position: "absolute", right: "0.8rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--color-text-muted)", cursor: "pointer", padding: "4px", zIndex: 2 }}
                     title="Clear search"
                   >
                     <i className="fa-solid fa-xmark"></i>

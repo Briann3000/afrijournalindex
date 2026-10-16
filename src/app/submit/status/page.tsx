@@ -233,7 +233,17 @@ function StatusContent() {
                 {submission.journalName}
               </h1>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.9rem", color: "var(--color-text-muted)" }}>
-                <p><strong>ISSN:</strong> <span style={{ color: "var(--color-text-body)" }}>{submission.issn || "N/A"}</span> | <strong>eISSN:</strong> <span style={{ color: "var(--color-text-body)" }}>{submission.eissn || "N/A"}</span></p>
+                <p>
+                  {submission.issn && submission.eissn && submission.issn !== submission.eissn ? (
+                    <><strong>Print ISSN:</strong> <span style={{ color: "var(--color-text-body)" }}>{submission.issn}</span> | <strong>Electronic ISSN:</strong> <span style={{ color: "var(--color-text-body)" }}>{submission.eissn}</span></>
+                  ) : submission.eissn ? (
+                    <><strong>Electronic ISSN (e-ISSN):</strong> <span style={{ color: "var(--color-text-body)" }}>{submission.eissn}</span></>
+                  ) : submission.issn ? (
+                    <><strong>Print ISSN:</strong> <span style={{ color: "var(--color-text-body)" }}>{submission.issn}</span></>
+                  ) : (
+                    <><strong>ISSN:</strong> <span style={{ color: "var(--color-text-body)" }}>Pending Verification</span></>
+                  )}
+                </p>
                 <p><strong>Publisher:</strong> <span style={{ color: "var(--color-text-body)" }}>{submission.publisherName}</span></p>
                 <p><strong>Country:</strong> <span style={{ color: "var(--color-text-body)" }}>{submission.country}</span></p>
               </div>

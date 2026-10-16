@@ -33,7 +33,15 @@ export default function AfricaMap() {
           let totalCount = 0;
 
           data.journals.forEach((j: any) => {
-            const countryName = (j.country || "Kenya").trim();
+            const rawCountry = (j.country || "Kenya").trim();
+            const lower = rawCountry.toLowerCase();
+            let countryName = rawCountry;
+            if (lower === "cote d'ivoire" || lower === "ivory coast") {
+              countryName = "Ivory Coast";
+            } else if (lower.includes("democratic republic of the congo") || lower === "dr congo") {
+              countryName = "Democratic Republic of the Congo";
+            }
+
             if (!statsMap[countryName]) {
               statsMap[countryName] = { journals: 0, articles: 0, disciplineCounts: {} };
             }
@@ -71,6 +79,12 @@ export default function AfricaMap() {
             finalizedStats[cName.toLowerCase()] = finalizedStats[cName];
           });
 
+          // Also mirror Côte d'Ivoire and DR Congo aliases in finalizedStats
+          if (finalizedStats["Ivory Coast"]) {
+            finalizedStats["Cote d'Ivoire"] = finalizedStats["Ivory Coast"];
+            finalizedStats["cote d'ivoire"] = finalizedStats["Ivory Coast"];
+          }
+
           setLiveCountryStats(finalizedStats);
           setTotalLiveJournals(totalCount);
         }
@@ -100,19 +114,19 @@ export default function AfricaMap() {
     const live = liveCountryStats[name] || liveCountryStats[name.toLowerCase()];
     const count = live?.journals || 0;
 
-    if (count > 25) return "#b45309"; // Deep Rich Amber (Major Hubs: Kenya, South Africa, Nigeria)
+    if (count > 25) return "#b45309"; // Deep Rich Amber (Major Hubs: Kenya, South Africa, Nigeria, Egypt)
     if (count > 10) return "#d97706"; // Strong Amber
     if (count > 3)  return "#f59e0b"; // Medium Warm Amber
     if (count > 0)  return "#fbbf24"; // Soft Amber Gold
     return "#e2e8f0"; // Slate surface for unindexed nations
   };
 
-  // Calculate real Regional Percentages
+  // Calculate real Regional Percentages matching true Database counts
   const regionalBreakdown = useMemo(() => {
     const regionCounts: Record<string, number> = {
       East: 0,
       West: 0,
-      South: 0,
+      Southern: 0,
       North: 0,
       Central: 0
     };
@@ -126,10 +140,10 @@ export default function AfricaMap() {
 
     const total = totalLiveJournals || 1;
     return [
+      { region: "North Africa", count: regionCounts.North, percentage: Math.round((regionCounts.North / total) * 100), color: "#c2410c", icon: "fa-landmark" },
+      { region: "Southern Africa", count: regionCounts.Southern, percentage: Math.round((regionCounts.Southern / total) * 100), color: "#f59e0b", icon: "fa-mountain-sun" },
       { region: "East Africa", count: regionCounts.East, percentage: Math.round((regionCounts.East / total) * 100), color: "#b45309", icon: "fa-compass" },
       { region: "West Africa", count: regionCounts.West, percentage: Math.round((regionCounts.West / total) * 100), color: "#d97706", icon: "fa-sun" },
-      { region: "Southern Africa", count: regionCounts.South, percentage: Math.round((regionCounts.South / total) * 100), color: "#f59e0b", icon: "fa-mountain-sun" },
-      { region: "North Africa", count: regionCounts.North, percentage: Math.round((regionCounts.North / total) * 100), color: "#c2410c", icon: "fa-landmark" },
       { region: "Central Africa", count: regionCounts.Central, percentage: Math.round((regionCounts.Central / total) * 100), color: "#fbbf24", icon: "fa-tree" }
     ];
   }, [liveCountryStats, totalLiveJournals]);

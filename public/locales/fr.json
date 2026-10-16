@@ -6,7 +6,7 @@
     "submit": "Soumettre une Revue",
     "pricing": "Tarifs",
     "rankings": "Classements & Quartiles",
-    "institution": "Console Institutionnelle",
+    "institution": "Classements Institutionnels",
     "researcher": "Profil Chercheur",
     "about": "À Propos",
     "contact": "Contact & Support",
@@ -31,7 +31,7 @@
     "search_btn": "Rechercher",
     "cta_submit": "Indexer Votre Revue (Gratuit)",
     "cta_explore": "Explorer l'Annuaire",
-    "cta_institution": "Console Institutionnelle",
+    "cta_institution": "Classements Institutionnels",
     "card_title": "Métriques de la Revue en Vedette",
     "card_if": "AfriJournal IF (AJCI)",
     "card_grade": "Note de Qualité",
@@ -69,7 +69,7 @@
     "citations": "Citations",
     "h_index": "Indice h",
     "view_all": "Voir le Classement Complet",
-    "view_console": "Ouvrir la Console Institutionnelle"
+    "view_console": "Voir les Classements Institutionnels"
   },
   "valprop": {
     "title": "Renforcer l'Économie du Savoir Africain",
@@ -169,7 +169,7 @@
     "close_modal": "Fermer"
   },
   "institution_page": {
-    "title": "Console de Recherche Institutionnelle",
+    "title": "Classements Institutionnels",
     "subtitle": "Évaluation comparative des universités, analyse de la production scientifique et performance des citations des professeurs en Afrique.",
     "tab_leaderboard": "Classement Universitaire",
     "tab_profile": "Profil Institutionnel",

@@ -117,8 +117,18 @@ export async function GET(
         id: article.id,
         title: article.title,
         doi: article.doi,
+        pdfUrl: (article as any).pdfUrl || null,
         publishDate: article.publishDate,
-        citationCount: count
+        citationCount: count,
+        citations: citations.map(c => ({
+          id: c.id,
+          citingTitle: c.citingArticle?.title || "Scholarly Article",
+          citingDoi: c.citingArticle?.doi || null,
+          citingPdfUrl: (c.citingArticle as any)?.pdfUrl || null,
+          citingJournal: c.citingArticle?.journal?.name || "Peer-Reviewed Journal",
+          citingCountry: c.citingArticle?.journal?.country || "International",
+          citedAt: c.citedAt
+        }))
       };
     });
 
