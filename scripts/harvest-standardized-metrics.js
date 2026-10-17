@@ -90,11 +90,32 @@ async function harvestStandardizedMetrics() {
             const data = await res.json();
             const sourceObj = data.results?.[0];
             if (sourceObj) {
+              const sourceId = sourceObj.id.split('/').pop();
+              // Query strict works published in 2023-2024 for this source
+              const worksUrl = `https://api.openalex.org/works?filter=primary_location.source.id:${sourceId},publication_year:2023|2024&per_page=100&api_key=${OPENALEX_KEY}&mailto=admin@afrijournalindex.org`;
+              const worksRes = await fetch(worksUrl, {
+                headers: { 'User-Agent': 'AfriJournalIndexHarvester/1.0 (mailto:admin@afrijournalindex.org)' }
+              });
+
+              if (worksRes.ok) {
+                const worksData = await worksRes.json();
+                const totalWindowWorks = worksData.meta?.count || 0;
+                const worksList = worksData.results || [];
+                const totalWindowCitations = worksList.reduce((acc, w) => acc + (w.cited_by_count || 0), 0);
+
+                if (totalWindowWorks > 0) {
+                  articleCount = totalWindowWorks;
+                  citationCount = totalWindowCitations;
+                  standardScore = parseFloat((citationCount / articleCount).toFixed(3));
+                  source = 'openalex-strict-window';
+                  break;
+                }
+              }
+
+              // Fallback to sourceObj summary stats if works query didn't return works
               const openAlexMean = sourceObj.summary_stats?.['2yr_mean_citedness'];
-              if (openAlexMean !== undefined && openAlexMean !== null) {
+              if (openAlexMean !== undefined && openAlexMean !== null && openAlexMean < 25) {
                 standardScore = parseFloat(Number(openAlexMean).toFixed(3));
-                
-                // Get 2-year works count from counts_by_year
                 const counts = sourceObj.counts_by_year || [];
                 const c2024 = counts.find(c => c.year === 2024)?.works_count || 0;
                 const c2023 = counts.find(c => c.year === 2023)?.works_count || 0;

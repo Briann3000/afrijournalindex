@@ -110,6 +110,7 @@ model Article {
   title         String      @db.Text
   doi           String?     @unique @db.VarChar(255)
   abstract      String?     @db.LongText
+  url           String?     @db.Text
   pdfUrl        String?     @db.Text
   publishDate   DateTime
   citationCount Int         @default(0)
@@ -130,6 +131,8 @@ model Article {
 model Citation {
   id              String   @id @default(uuid())
   citedAt         DateTime @default(now())
+  citingVenue     String?  @db.VarChar(500)
+  citingCountry   String?  @db.VarChar(100)
   
   citingArticleId String
   citingArticle   Article  @relation("ArticleCitations", fields: [citingArticleId], references: [id], onDelete: Cascade)

@@ -96,11 +96,13 @@ export async function GET(
       const count = (article as any).citationCount > 0 ? (article as any).citationCount : citations.length;
       totalCitations += count;
       
-      citations.forEach(c => {
-        if (c.citingArticle && c.citingArticle.journalId === journal.id) {
+      citations.forEach((c: any) => {
+        // True self-citation check: only if citingArticle is within the same journal AND citingVenue is not an external journal
+        const isExternalVenue = c.citingVenue && c.citingVenue.trim().toLowerCase() !== journal.name.trim().toLowerCase();
+        if (!isExternalVenue && c.citingArticle && c.citingArticle.journalId === journal.id) {
           selfCitations++;
         }
-        const citingCountry = c.citingArticle?.journal?.country?.trim() || "";
+        const citingCountry = c.citingCountry?.trim() || c.citingArticle?.journal?.country?.trim() || "";
         if (citingCountry) {
           citingCountryCounts[citingCountry] = (citingCountryCounts[citingCountry] || 0) + 1;
           if (africanCountryNames.has(citingCountry.toLowerCase())) {
@@ -117,16 +119,17 @@ export async function GET(
         id: article.id,
         title: article.title,
         doi: article.doi,
+        url: (article as any).url || null,
         pdfUrl: (article as any).pdfUrl || null,
         publishDate: article.publishDate,
         citationCount: count,
-        citations: citations.map(c => ({
+        citations: citations.map((c: any) => ({
           id: c.id,
           citingTitle: c.citingArticle?.title || "Scholarly Article",
           citingDoi: c.citingArticle?.doi || null,
           citingPdfUrl: (c.citingArticle as any)?.pdfUrl || null,
-          citingJournal: c.citingArticle?.journal?.name || "Peer-Reviewed Journal",
-          citingCountry: c.citingArticle?.journal?.country || "International",
+          citingJournal: c.citingVenue || c.citingArticle?.journal?.name || "Peer-Reviewed Journal",
+          citingCountry: c.citingCountry || c.citingArticle?.journal?.country || "International",
           citedAt: c.citedAt
         }))
       };

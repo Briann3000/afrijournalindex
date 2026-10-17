@@ -3,6 +3,7 @@
 ## 1. Code Verification & Fact Checking (No Hallucinations)
 * **Always Check Code Before Answering**: Always read the relevant files, source code, `.env`, database records, and configurations before making any claims or explanations.
 * **Zero Guesswork / Zero Hallucination**: Never guess, assume, or fabricate gateways (e.g. citing Pesapal or PayPal when `.env` uses IntaSend), credentials, pricing tiers, or database contents.
+* **Strict Scientific Integrity (Zero Synthetic/Mock Data in DB)**: NEVER insert mock, placeholder, synthetic, or randomly matched data into the database (e.g. creating fake citation links or linking unrelated papers to fulfill foreign key constraints). All citations, metrics, counts, and ledger records must originate from genuine, verifiable external sources (OpenAlex, Crossref, etc.) with real titles, DOIs, and venues. If real data is missing or incomplete, leave it null/zero or explicitly report it as unavailable rather than fabricating records.
 * **Inspect the Single Source of Truth**: When the user asks how something works or why something behaves a certain way, inspect the actual implementation in the codebase first.
 
 ## 2. Plan First / "Acknowledge First, Don't Code"

@@ -34,6 +34,10 @@ export default function RankingsPage() {
   const [disciplineFilter, setDisciplineFilter] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(25);
+
   // Sorting state
   const [sortBy, setSortBy] = useState<"score" | "ycaScore" | "regionalScore" | "citationCount" | "name">("score");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -45,6 +49,7 @@ export default function RankingsPage() {
       setSortBy(field);
       setSortOrder(field === "name" ? "asc" : "desc");
     }
+    setCurrentPage(1);
   };
 
   const sortedRankings = [...rankings].sort((a, b) => {
@@ -57,6 +62,10 @@ export default function RankingsPage() {
     const valB = b[sortBy] ?? 0;
     return sortOrder === "asc" ? valA - valB : valB - valA;
   });
+
+  const totalPages = Math.max(1, Math.ceil(sortedRankings.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedRankings = sortedRankings.slice(startIndex, startIndex + itemsPerPage);
 
   useEffect(() => {
     async function fetchRankings() {
@@ -82,6 +91,7 @@ export default function RankingsPage() {
     }
 
     fetchRankings();
+    setCurrentPage(1);
   }, [countryFilter, disciplineFilter]);
 
   const quartileStyles: Record<string, { bg: string; text: string; border: string }> = {
@@ -260,7 +270,8 @@ export default function RankingsPage() {
                 </tr>
               </thead>
               <tbody>
-                {sortedRankings.map((journal, idx) => {
+                {paginatedRankings.map((journal, idx) => {
+                  const globalIdx = startIndex + idx;
                   const q = journal.quartile || "Q2";
                   const qColor = quartileStyles[q] || quartileStyles["Q2"];
 
@@ -268,9 +279,9 @@ export default function RankingsPage() {
                     <tr key={journal.id} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.2s" }} className="hover-row">
                       <td style={{ textAlign: "center", fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.95rem", padding: "1rem" }}>
                         {sortBy === "score" && sortOrder === "desc" ? (
-                          idx === 0 ? "🥇 1" : idx === 1 ? "🥈 2" : idx === 2 ? "🥉 3" : `#${idx + 1}`
+                          globalIdx === 0 ? "🥇 1" : globalIdx === 1 ? "🥈 2" : globalIdx === 2 ? "🥉 3" : `#${globalIdx + 1}`
                         ) : (
-                          `#${idx + 1}`
+                          `#${globalIdx + 1}`
                         )}
                       </td>
                       <td style={{ padding: "1rem" }}>
@@ -320,6 +331,104 @@ export default function RankingsPage() {
                 })}
               </tbody>
             </table>
+          )}
+
+          {/* Clean Pagination Bar */}
+          {!loading && sortedRankings.length > 0 && (
+            <div style={{ 
+              display: "flex", 
+              justifyContent: "space-between", 
+              alignItems: "center", 
+              flexWrap: "wrap", 
+              gap: "1rem", 
+              padding: "1.25rem 1.5rem", 
+              background: "var(--color-bg-card-subtle)", 
+              borderTop: "1px solid var(--color-border)",
+              fontSize: "0.85rem"
+            }}>
+              <div style={{ color: "var(--color-text-muted)" }}>
+                Showing <strong>{startIndex + 1}</strong> – <strong>{Math.min(startIndex + itemsPerPage, sortedRankings.length)}</strong> of <strong>{sortedRankings.length.toLocaleString()}</strong> ranked journals
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="btn btn-secondary btn-sm"
+                  style={{ opacity: currentPage === 1 ? 0.5 : 1, padding: "0.35rem 0.75rem", fontSize: "0.82rem" }}
+                >
+                  <i className="fa-solid fa-chevron-left" style={{ marginRight: "4px" }}></i> Previous
+                </button>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum = currentPage;
+                    if (currentPage <= 3) pageNum = i + 1;
+                    else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                    else pageNum = currentPage - 2 + i;
+
+                    if (pageNum < 1 || pageNum > totalPages) return null;
+
+                    const isActive = pageNum === currentPage;
+                    return (
+                      <button
+                        key={pageNum}
+                        type="button"
+                        onClick={() => setCurrentPage(pageNum)}
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "6px",
+                          border: isActive ? "1px solid var(--color-primary)" : "1px solid var(--color-border)",
+                          background: isActive ? "var(--color-primary)" : "var(--color-bg-card)",
+                          color: isActive ? "#ffffff" : "var(--color-text-main)",
+                          fontWeight: isActive ? 700 : 500,
+                          cursor: "pointer",
+                          fontSize: "0.82rem"
+                        }}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="btn btn-secondary btn-sm"
+                  style={{ opacity: currentPage === totalPages ? 0.5 : 1, padding: "0.35rem 0.75rem", fontSize: "0.82rem" }}
+                >
+                  Next <i className="fa-solid fa-chevron-right" style={{ marginLeft: "4px" }}></i>
+                </button>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span style={{ color: "var(--color-text-muted)" }}>Rows per page:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    padding: "0.25rem 0.5rem",
+                    borderRadius: "6px",
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-card)",
+                    color: "var(--color-text-main)",
+                    fontSize: "0.82rem",
+                    cursor: "pointer"
+                  }}
+                >
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
           )}
         </div>
       </main>

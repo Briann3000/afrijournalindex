@@ -594,10 +594,13 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
     : (evaluationArticles.length > 0 ? evaluationArticles.length : 0);
 
   const totalCalculatedCites = evaluationArticles.reduce((acc, a) => acc + (a.citationCount || 0), 0);
+  const reportCites = (journal?.latestReport?.citationCount !== undefined && journal?.latestReport?.citationCount !== null)
+    ? journal.latestReport.citationCount
+    : totalCalculatedCites;
 
   // Single Source of Truth: Use official database report standardScore (matches Rankings 1:1)
   const computedAJCI = journal?.latestReport?.standardScore ?? (
-    totalCalculatedCites > 0 && totalCitableCount > 0 ? totalCalculatedCites / totalCitableCount : 0
+    reportCites > 0 && totalCitableCount > 0 ? reportCites / totalCitableCount : 0
   );
 
   const computedAJCIStr = computedAJCI > 0 
@@ -1055,7 +1058,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Citable Articles in (T-1 + T-2)
                       </div>
                       <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
-                        Evaluated Fraction: <strong>{totalCalculatedCites} citations</strong> ÷ <strong>{totalCitableCount} articles</strong> = <strong style={{ color: "var(--color-primary)" }}>{computedAJCIStr}</strong>
+                        Evaluated Fraction: <strong>{reportCites} citations</strong> ÷ <strong>{totalCitableCount} articles</strong> = <strong style={{ color: "var(--color-primary)" }}>{computedAJCIStr}</strong>
                       </div>
                     </div>
 
@@ -1066,7 +1069,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                         The percentage of citations originating from institutions across the African Union (<strong>{journal.citationOrigin?.regionalPercentage ?? 64.2}%</strong>), reported as an uncorrupted standalone metric.
                       </p>
                       <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
-                        Pan-African Citations: <strong>{journal.citationOrigin?.regionalCount ?? Math.round(totalCalculatedCites * 0.642)}</strong> • Global Citations: <strong>{journal.citationOrigin?.globalCount ?? Math.max(0, totalCalculatedCites - Math.round(totalCalculatedCites * 0.642))}</strong>
+                        Pan-African Citations: <strong>{journal.citationOrigin?.regionalCount ?? Math.round(reportCites * 0.642)}</strong> • Global Citations: <strong>{journal.citationOrigin?.globalCount ?? Math.max(0, reportCites - Math.round(reportCites * 0.642))}</strong>
                       </div>
                     </div>
                   </div>
@@ -1473,7 +1476,8 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                             </div>
                           </div>
 
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+                            {/* 1. Verified Citations Pill (Rendered ONLY IF citationCount > 0) */}
                             {article.citationCount > 0 ? (
                               <button 
                                 type="button"
@@ -1487,7 +1491,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                                     window.open(`https://scholar.google.com/scholar?q=${encodeURIComponent(`"${article.title}"`)}`, "_blank");
                                   }
                                 }}
-                                title="Click to inspect verified citing papers and provenance ledger"
+                                title={article.citations && article.citations.length > 0 ? "Click to inspect verified citing papers in platform ledger" : "Click to view citing publications on Google Scholar"}
                                 style={{ 
                                   padding: "0.35rem 0.85rem", 
                                   background: "var(--color-primary-light)", 
@@ -1508,19 +1512,30 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                               </button>
                             ) : null}
 
-                            {/* Smart Dual-Destination Link: DOI or Official Publisher URL */}
-                            {cleanDoi ? (
+                            {/* 2. Direct Article Webpage Link (Rendered ONLY IF article has specific url AND url is not identical to DOI) */}
+                            {(article as any).url && !(cleanDoi && ((article as any).url.includes(cleanDoi) || (article as any).url.startsWith("https://doi.org/"))) ? (
                               <a 
-                                href={`https://doi.org/${cleanDoi}`} 
+                                href={(article as any).url} 
                                 target="_blank" 
                                 rel="noopener noreferrer" 
                                 className="btn btn-secondary btn-sm"
-                                style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem" }}
+                                style={{ 
+                                  display: "inline-flex", 
+                                  alignItems: "center", 
+                                  gap: "0.4rem", 
+                                  fontSize: "0.8rem",
+                                  borderColor: "var(--color-border)"
+                                }}
+                                title="View article on journal's official website"
                               >
-                                <span>{jp.view_doi || "View DOI"}</span>
-                                <i className="fa-solid fa-up-right-from-square" style={{ fontSize: "0.7rem" }}></i>
+                                <i className="fa-solid fa-globe" style={{ fontSize: "0.75rem", color: "var(--color-primary)" }}></i>
+                                <span>Website</span>
+                                <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.65rem", opacity: 0.7 }}></i>
                               </a>
-                            ) : article.pdfUrl ? (
+                            ) : null}
+
+                            {/* 3. Direct PDF Download (Rendered ONLY IF article has direct pdfUrl) */}
+                            {article.pdfUrl ? (
                               <a 
                                 href={article.pdfUrl} 
                                 target="_blank" 
@@ -1535,23 +1550,36 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                                   borderColor: "rgba(59, 130, 246, 0.3)",
                                   color: "#2563eb"
                                 }}
+                                title="Open or download official PDF document"
                               >
                                 <i className="fa-solid fa-file-pdf" style={{ fontSize: "0.8rem" }}></i>
-                                <span>Read Full Text</span>
-                                <i className="fa-solid fa-up-right-from-square" style={{ fontSize: "0.7rem" }}></i>
+                                <span>View PDF</span>
+                                <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.65rem", opacity: 0.7 }}></i>
                               </a>
-                            ) : (
+                            ) : null}
+
+                            {/* 4. Registered DOI Link (Rendered ONLY IF article has valid cleanDoi) */}
+                            {cleanDoi ? (
                               <a 
-                                href={`https://scholar.google.com/scholar?q=${encodeURIComponent(`"${article.title}"`)}`} 
+                                href={`https://doi.org/${cleanDoi}`} 
                                 target="_blank" 
                                 rel="noopener noreferrer" 
                                 className="btn btn-secondary btn-sm"
-                                style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", opacity: 0.85 }}
+                                style={{ 
+                                  display: "inline-flex", 
+                                  alignItems: "center", 
+                                  gap: "0.4rem", 
+                                  fontSize: "0.8rem",
+                                  fontFamily: "monospace",
+                                  borderColor: "var(--color-border)"
+                                }}
+                                title={`Resolve official DOI: ${cleanDoi}`}
                               >
-                                <i className="fa-solid fa-magnifying-glass" style={{ fontSize: "0.7rem" }}></i>
-                                <span>Find Article</span>
+                                <i className="fa-solid fa-link" style={{ fontSize: "0.7rem", color: "var(--color-primary)" }}></i>
+                                <span>DOI</span>
+                                <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.65rem", opacity: 0.7 }}></i>
                               </a>
-                            )}
+                            ) : null}
                           </div>
                         </div>
                       );
