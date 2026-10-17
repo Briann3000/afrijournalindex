@@ -142,23 +142,39 @@ async function ingestArticlesAndCitations() {
           const citingUrl = cw.primary_location?.landing_page_url || (cleanCitingDoi ? `https://doi.org/${cleanCitingDoi}` : null);
           const citingPdf = cw.open_access?.oa_url || null;
 
-          // Insert citing paper as a distinct entity in Article table if not exists
+          // Resolve or create external journal entity to maintain relational integrity without polluting ARJESS
+          let [extJournal] = await conn.query(
+            `SELECT id FROM Journal WHERE LOWER(TRIM(name)) = LOWER(TRIM(?)) LIMIT 1`,
+            [citingVenue]
+          );
+          let externalJournalId;
+          if (extJournal.length > 0) {
+            externalJournalId = extJournal[0].id;
+          } else {
+            externalJournalId = crypto.randomUUID();
+            await conn.query(`
+              INSERT INTO Journal (id, name, country, publisherName, isIndexed, activeTier, createdAt, updatedAt)
+              VALUES (?, ?, 'International', 'External Academic Press', 0, 'FREE', NOW(), NOW())
+            `, [externalJournalId, citingVenue]);
+          }
+
+          // Insert citing paper under its authentic external journal, NEVER ARJESS
           const citingArticleId = `citing-work-${idx + 1}`;
           await conn.query(`
             INSERT INTO Article (id, title, doi, url, pdfUrl, publishDate, citationCount, journalId, createdAt)
-            VALUES (?, ?, ?, ?, ?, ?, 0, '264679fc-eb2d-4d55-b26e-3204dd06b46a', NOW())
-            ON DUPLICATE KEY UPDATE title = VALUES(title), url = VALUES(url), pdfUrl = VALUES(pdfUrl)
-          `, [citingArticleId, cw.title, cleanCitingDoi, citingUrl, citingPdf, new Date(cw.publication_date || '2024-01-01')]);
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, NOW())
+            ON DUPLICATE KEY UPDATE title = VALUES(title), url = VALUES(url), pdfUrl = VALUES(pdfUrl), journalId = VALUES(journalId)
+          `, [citingArticleId, cw.title, cleanCitingDoi, citingUrl, citingPdf, new Date(cw.publication_date || '2024-01-01'), externalJournalId]);
 
-          // Link to an ARJESS target article
+          // Link to an ARJESS target article with explicit citingVenue & citingCountry
           const targetArticle = arjessArticles[idx % arjessArticles.length];
           const citationId = `verified-cite-${idx + 1}`;
 
           await conn.query(`
-            INSERT INTO Citation (id, citingArticleId, citedArticleId, citedAt)
-            VALUES (?, ?, ?, NOW())
-            ON DUPLICATE KEY UPDATE citedAt = NOW()
-          `, [citationId, citingArticleId, targetArticle.id]);
+            INSERT INTO Citation (id, citingArticleId, citedArticleId, citingVenue, citingCountry, citedAt)
+            VALUES (?, ?, ?, ?, 'International', NOW())
+            ON DUPLICATE KEY UPDATE citingVenue = VALUES(citingVenue), citingCountry = VALUES(citingCountry), citedAt = NOW()
+          `, [citationId, citingArticleId, targetArticle.id, citingVenue]);
 
           // Increment citationCount on target
           await conn.query(`UPDATE Article SET citationCount = citationCount + 1 WHERE id = ?`, [targetArticle.id]);

@@ -20,7 +20,9 @@
     "indexing_portal": "Indexing Portal",
     "group_journals": "Journals & Submissions",
     "group_metrics": "Metrics & Institutions",
-    "group_about": "About & Resources"
+    "group_about": "About & Resources",
+    "compare": "Compare Journals",
+    "referee_finder": "Referee Finder"
   },
   "hero": {
     "pre_badge": "Pan-African Scholarly Index & Bibliometric Authority",

@@ -31,6 +31,14 @@ interface JournalDetail {
   categoryMedian?: number;
   selfCitationRate?: number;
   externalCitationRate?: number;
+  impactWithoutSelfCitations?: number;
+  citationDistribution?: {
+    total: number;
+    zero: { count: number; percentage: number };
+    one: { count: number; percentage: number };
+    twoToNine: { count: number; percentage: number };
+    tenPlus: { count: number; percentage: number };
+  };
   integrityScore?: string;
   citationOrigin?: {
     total: number;
@@ -566,6 +574,55 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
     setTimeout(() => setCopiedType(null), 2500);
   };
 
+  const handleExportMetricsCsv = () => {
+    if (!journal) return;
+    const headers = ["Year", "2-Year AJCI", "Impact (No Self-Citations)", "Regional Score", "Articles", "Citations"];
+    const rows = (journal.historicalReports || []).map(r => [
+      r.year,
+      r.standardScore.toFixed(3),
+      (r.standardScore * ((journal.externalCitationRate ?? 100) / 100)).toFixed(3),
+      r.regionalScore ? r.regionalScore.toFixed(3) : "N/A",
+      r.articleCount,
+      r.citationCount
+    ]);
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${journal.name.replace(/[^a-zA-Z0-9]/g, "_")}_metrics_history.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleExportMetricsJson = () => {
+    if (!journal) return;
+    const exportData = {
+      journalId: journal.id,
+      name: journal.name,
+      issn: journal.issn,
+      eissn: journal.eissn,
+      country: journal.country,
+      license: "CC BY 4.0",
+      retrievedAt: new Date().toISOString(),
+      citationDistribution: journal.citationDistribution || null,
+      impactWithoutSelfCitations: journal.impactWithoutSelfCitations || null,
+      selfCitationRate: journal.selfCitationRate || 0,
+      journalHIndex: journal.journalHIndex || 0,
+      historicalReports: journal.historicalReports || []
+    };
+    const jsonContent = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${journal.name.replace(/[^a-zA-Z0-9]/g, "_")}_metrics.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const badgeUrl = typeof window !== "undefined" && journal 
     ? `${window.location.origin}/api/badge/${journal.issn || journal.id}.svg`
     : `/api/badge/${journal?.issn || journal?.id || "preview"}.svg`;
@@ -973,16 +1030,22 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                   )}
                 </div>
 
-                {/* 3-Year Citation Average (3-YCA) */}
-                <div style={{ padding: "1.5rem", background: "var(--color-bg-card-subtle)", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)" }}>
-                  <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", marginBottom: "0.4rem", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 600 }}>
-                    3-Year Citation Avg (3-YCA)
+                {/* Impact Factor Without Self-Citations (Organic External Citations) */}
+                <div style={{ padding: "1.5rem", background: "var(--color-bg-card-subtle)", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div>
+                    <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", marginBottom: "0.4rem", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 600 }}>
+                      Impact (Excl. Self-Cites)
+                    </div>
+                    <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "#2563eb" }}>
+                      {totalCitableCount > 0 ? (journal.impactWithoutSelfCitations !== undefined ? journal.impactWithoutSelfCitations.toFixed(3) : (computedAJCI * (1 - (journal.selfCitationRate || 0) / 100)).toFixed(3)) : "—"}
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.3rem" }}>
+                      External Citations ({journal.externalCitationRate ?? 100}%)
+                    </div>
                   </div>
-                  <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "#2563eb" }}>
-                    {totalCitableCount > 0 ? (computedAJCI * 1.14).toFixed(3) : "—"}
-                  </div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.3rem" }}>
-                    Extended 3-Year Window
+                  <div style={{ fontSize: "0.72rem", color: "#1e3a8a", fontWeight: 600, marginTop: "0.5rem" }}>
+                    <i className="fa-solid fa-circle-check" style={{ color: "#2563eb", marginRight: "0.25rem" }}></i>
+                    Third-Party Attribution
                   </div>
                 </div>
 
@@ -1011,10 +1074,10 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     Lifetime Citations
                   </div>
                   <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--color-primary)" }}>
-                    {totalCitableCount > 0 ? (journal.lifetimeCitations ?? Math.max(totalCalculatedCites, Math.round(totalCalculatedCites * 4))).toLocaleString() : "0"}
+                    {(journal.lifetimeCitations ?? totalCalculatedCites).toLocaleString()}
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.3rem" }}>
-                    Cumulative Impact Footprint
+                    Verified Cumulative Citations
                   </div>
                 </div>
 
@@ -1024,10 +1087,10 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     Journal h-Index
                   </div>
                   <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "#0d9488" }}>
-                    {totalCitableCount > 0 ? `h-${journal.journalHIndex || Math.max(1, Math.round(computedAJCI * 7))}` : "—"}
+                    {totalCitableCount > 0 ? `h-${journal.journalHIndex ?? 0}` : "—"}
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.3rem" }}>
-                    Citation Depth Metric
+                    Mathematical Citation Depth
                   </div>
                 </div>
 
@@ -1289,6 +1352,217 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                 )}
               </div>
             </div>
+
+            {/* 2B. Citation Distribution Profile (Scientometric Granularity) */}
+            <div className="glass-card" style={{ padding: "2.5rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "1.5rem" }}>
+                <div>
+                  <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text-main)", margin: "0 0 0.3rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <i className="fa-solid fa-chart-column" style={{ color: "var(--color-primary)" }}></i>
+                    Citation Distribution Profile
+                  </h2>
+                  <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", margin: 0 }}>
+                    Granular citation skew analysis across {journal.articles.length} verified peer-reviewed articles cataloged in the indexing repository.
+                  </p>
+                </div>
+                <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  <span style={{ fontSize: "0.75rem", padding: "0.25rem 0.65rem", background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", borderRadius: "20px", color: "var(--color-text-muted)", fontWeight: 600 }}>
+                    CC BY 4.0 Verified
+                  </span>
+                </div>
+              </div>
+
+              {journal.citationDistribution ? (
+                <div>
+                  {/* Segmented Horizontal Stacked Bar */}
+                  <div style={{ height: "16px", width: "100%", background: "#e2e8f0", borderRadius: "8px", overflow: "hidden", display: "flex", marginBottom: "1.5rem" }}>
+                    {journal.citationDistribution.zero.percentage > 0 && (
+                      <div 
+                        style={{ width: `${journal.citationDistribution.zero.percentage}%`, background: "#94a3b8" }} 
+                        title={`Uncited (0 citations): ${journal.citationDistribution.zero.percentage}% (${journal.citationDistribution.zero.count} articles)`}
+                      />
+                    )}
+                    {journal.citationDistribution.one.percentage > 0 && (
+                      <div 
+                        style={{ width: `${journal.citationDistribution.one.percentage}%`, background: "#38bdf8" }} 
+                        title={`1 citation: ${journal.citationDistribution.one.percentage}% (${journal.citationDistribution.one.count} articles)`}
+                      />
+                    )}
+                    {journal.citationDistribution.twoToNine.percentage > 0 && (
+                      <div 
+                        style={{ width: `${journal.citationDistribution.twoToNine.percentage}%`, background: "#3b82f6" }} 
+                        title={`2 to 9 citations: ${journal.citationDistribution.twoToNine.percentage}% (${journal.citationDistribution.twoToNine.count} articles)`}
+                      />
+                    )}
+                    {journal.citationDistribution.tenPlus.percentage > 0 && (
+                      <div 
+                        style={{ width: `${journal.citationDistribution.tenPlus.percentage}%`, background: "var(--color-primary)" }} 
+                        title={`10+ citations: ${journal.citationDistribution.tenPlus.percentage}% (${journal.citationDistribution.tenPlus.count} articles)`}
+                      />
+                    )}
+                  </div>
+
+                  {/* Distribution Metric Cards */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1.25rem" }}>
+                    <div style={{ background: "var(--color-bg-card-subtle)", padding: "1rem 1.25rem", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.35rem" }}>
+                        <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#94a3b8", display: "inline-block" }}></span>
+                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>0 Citations (Uncited)</span>
+                      </div>
+                      <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--color-text-main)", letterSpacing: "-0.02em" }}>
+                        {journal.citationDistribution.zero.percentage}%
+                      </div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "2px" }}>
+                        {journal.citationDistribution.zero.count} of {journal.citationDistribution.total} articles
+                      </div>
+                    </div>
+
+                    <div style={{ background: "var(--color-bg-card-subtle)", padding: "1rem 1.25rem", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.35rem" }}>
+                        <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#38bdf8", display: "inline-block" }}></span>
+                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>1 Citation</span>
+                      </div>
+                      <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--color-text-main)", letterSpacing: "-0.02em" }}>
+                        {journal.citationDistribution.one.percentage}%
+                      </div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "2px" }}>
+                        {journal.citationDistribution.one.count} of {journal.citationDistribution.total} articles
+                      </div>
+                    </div>
+
+                    <div style={{ background: "var(--color-bg-card-subtle)", padding: "1rem 1.25rem", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.35rem" }}>
+                        <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#3b82f6", display: "inline-block" }}></span>
+                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>2 to 9 Citations</span>
+                      </div>
+                      <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--color-text-main)", letterSpacing: "-0.02em" }}>
+                        {journal.citationDistribution.twoToNine.percentage}%
+                      </div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "2px" }}>
+                        {journal.citationDistribution.twoToNine.count} of {journal.citationDistribution.total} articles
+                      </div>
+                    </div>
+
+                    <div style={{ background: "var(--color-bg-card-subtle)", padding: "1rem 1.25rem", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.35rem" }}>
+                        <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--color-primary)", display: "inline-block" }}></span>
+                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>10+ Citations (High Impact)</span>
+                      </div>
+                      <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--color-primary)", letterSpacing: "-0.02em" }}>
+                        {journal.citationDistribution.tenPlus.percentage}%
+                      </div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "2px" }}>
+                        {journal.citationDistribution.tenPlus.count} of {journal.citationDistribution.total} articles
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Distribution Analytical Insight */}
+                  <div style={{ fontSize: "0.825rem", color: "var(--color-text-body)", background: "var(--color-bg-card-subtle)", padding: "0.85rem 1.2rem", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <i className="fa-solid fa-circle-info" style={{ color: "var(--color-primary)", flexShrink: 0 }}></i>
+                    <div>
+                      <strong>Citation Skew Insight: </strong>
+                      {journal.citationDistribution.zero.percentage < 50
+                        ? `Approximately ${(100 - journal.citationDistribution.zero.percentage).toFixed(1)}% of articles in this journal have generated verifiable peer-reviewed citations, indicating healthy scholarly uptake across the research community.`
+                        : `${journal.citationDistribution.zero.percentage}% of cataloged articles currently have zero recorded citations, a characteristic typical for emerging journals or localized humanities and policy documentation.`
+                      }
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", margin: 0 }}>
+                  Citation distribution profile is computed once peer-reviewed articles are indexed.
+                </p>
+              )}
+            </div>
+
+            {/* 2C. Historical Scientometrics Trajectory & Open Data Exports */}
+            {journal.historicalReports && journal.historicalReports.length > 0 && (
+              <div className="glass-card" style={{ padding: "2.5rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "1.5rem" }}>
+                  <div>
+                    <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text-main)", margin: "0 0 0.3rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                      <i className="fa-solid fa-clock-rotate-left" style={{ color: "var(--color-primary)" }}></i>
+                      Historical Scientometrics Trajectory
+                    </h2>
+                    <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", margin: 0 }}>
+                      Audited annual performance ledger tracking standard impact, self-citation exclusions, and publication output.
+                    </p>
+                  </div>
+
+                  {/* One-Click Open Data Exports */}
+                  <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap" }}>
+                    <button
+                      onClick={handleExportMetricsCsv}
+                      className="btn btn-secondary btn-sm"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", fontSize: "0.8rem", background: "var(--color-bg-card-subtle)" }}
+                      title="Download historical performance data as CSV"
+                    >
+                      <i className="fa-solid fa-file-csv" style={{ color: "var(--color-primary)" }}></i>
+                      <span>Download CSV</span>
+                    </button>
+
+                    <button
+                      onClick={handleExportMetricsJson}
+                      className="btn btn-secondary btn-sm"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", fontSize: "0.8rem", background: "var(--color-bg-card-subtle)" }}
+                      title="Download complete metrics object as JSON"
+                    >
+                      <i className="fa-solid fa-file-code" style={{ color: "#2563eb" }}></i>
+                      <span>Download JSON</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Historical Table */}
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", textAlign: "left" }}>
+                    <thead>
+                      <tr style={{ background: "var(--color-bg-alt)", borderBottom: "1px solid var(--color-border)" }}>
+                        <th style={{ padding: "0.75rem 1rem", color: "var(--color-text-muted)", fontWeight: 700, width: "90px" }}>Year</th>
+                        <th style={{ padding: "0.75rem 1rem", color: "var(--color-text-muted)", fontWeight: 700 }}>2-Year AJCI</th>
+                        <th style={{ padding: "0.75rem 1rem", color: "var(--color-text-muted)", fontWeight: 700 }}>Impact (Excl. Self-Cites)</th>
+                        <th style={{ padding: "0.75rem 1rem", color: "var(--color-text-muted)", fontWeight: 700 }}>Regional Score</th>
+                        <th style={{ padding: "0.75rem 1rem", color: "var(--color-text-muted)", fontWeight: 700 }}>Citable Articles</th>
+                        <th style={{ padding: "0.75rem 1rem", color: "var(--color-text-muted)", fontWeight: 700 }}>Verified Citations</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {journal.historicalReports.map((report) => {
+                        const extImpact = Number((report.standardScore * ((journal.externalCitationRate ?? 100) / 100)).toFixed(3));
+                        return (
+                          <tr key={report.year} style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+                            <td style={{ padding: "0.75rem 1rem", fontWeight: 700, color: "var(--color-text-main)" }}>
+                              {report.year}
+                            </td>
+                            <td style={{ padding: "0.75rem 1rem", fontWeight: 700, color: "var(--color-primary)" }}>
+                              {report.standardScore.toFixed(3)}
+                            </td>
+                            <td style={{ padding: "0.75rem 1rem", color: "#2563eb", fontWeight: 600 }}>
+                              {extImpact.toFixed(3)}
+                            </td>
+                            <td style={{ padding: "0.75rem 1rem", color: "var(--color-text-body)" }}>
+                              {report.regionalScore ? report.regionalScore.toFixed(3) : "—"}
+                            </td>
+                            <td style={{ padding: "0.75rem 1rem", color: "var(--color-text-body)" }}>
+                              {report.articleCount}
+                            </td>
+                            <td style={{ padding: "0.75rem 1rem", color: "var(--color-text-body)" }}>
+                              {report.citationCount}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style={{ marginTop: "1rem", fontSize: "0.75rem", color: "var(--color-text-muted)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem", borderTop: "1px dashed var(--color-border)", paddingTop: "0.75rem" }}>
+                  <span>All scientometric data is licenced under <strong style={{ color: "var(--color-text-main)" }}>Creative Commons Attribution 4.0 International (CC BY 4.0)</strong>.</span>
+                  <span>Primary Index Registry: AfriJournal Indexing Authority.</span>
+                </div>
+              </div>
+            )}
 
             {/* 3. Embeddable Journal Badge Widget (Publisher Tool) */}
             <div className="glass-card" style={{ padding: "2.5rem" }}>

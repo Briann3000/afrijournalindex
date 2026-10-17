@@ -202,6 +202,47 @@ export async function GET(
 
     const hasArticles = formattedArticles.length > 0;
 
+    // Authentic Citation Distribution calculation
+    const totalArticlesCount = formattedArticles.length;
+    const zeroCitations = formattedArticles.filter(a => a.citationCount === 0).length;
+    const oneCitation = formattedArticles.filter(a => a.citationCount === 1).length;
+    const twoToNineCitations = formattedArticles.filter(a => a.citationCount >= 2 && a.citationCount <= 9).length;
+    const tenPlusCitations = formattedArticles.filter(a => a.citationCount >= 10).length;
+
+    const citationDistribution = {
+      total: totalArticlesCount,
+      zero: {
+        count: zeroCitations,
+        percentage: totalArticlesCount > 0 ? Number(((zeroCitations / totalArticlesCount) * 100).toFixed(1)) : 0
+      },
+      one: {
+        count: oneCitation,
+        percentage: totalArticlesCount > 0 ? Number(((oneCitation / totalArticlesCount) * 100).toFixed(1)) : 0
+      },
+      twoToNine: {
+        count: twoToNineCitations,
+        percentage: totalArticlesCount > 0 ? Number(((twoToNineCitations / totalArticlesCount) * 100).toFixed(1)) : 0
+      },
+      tenPlus: {
+        count: tenPlusCitations,
+        percentage: totalArticlesCount > 0 ? Number(((tenPlusCitations / totalArticlesCount) * 100).toFixed(1)) : 0
+      }
+    };
+
+    // Authentic mathematical h-index calculation from genuine article citations
+    const sortedCitations = formattedArticles.map(a => a.citationCount).sort((a, b) => b - a);
+    let trueHIndex = 0;
+    for (let i = 0; i < sortedCitations.length; i++) {
+      if (sortedCitations[i] >= i + 1) {
+        trueHIndex = i + 1;
+      } else {
+        break;
+      }
+    }
+
+    // Impact Factor without self-citations
+    const impactWithoutSelfCitations = Number((standardScore * (externalCitationRate / 100)).toFixed(3));
+
     return NextResponse.json({
       success: true,
       journal: {
@@ -229,12 +270,14 @@ export async function GET(
         categoryMedian: categoryMedian || 0.5,
         selfCitationRate: Number(selfCitationRate.toFixed(1)),
         externalCitationRate: Number(externalCitationRate.toFixed(1)),
+        impactWithoutSelfCitations,
         integrityScore: integrityReport.integrityScore,
         citationOrigin,
+        citationDistribution,
         integrityReport,
         ycaScore: hasArticles && latestReport ? Number((latestReport.standardScore * 1.14).toFixed(3)) : 0,
-        lifetimeCitations: hasArticles && latestReport ? Math.max(totalCitations, Math.round(latestReport.citationCount * 4.5)) : totalCitations,
-        journalHIndex: hasArticles && latestReport ? Math.max(3, Math.round(latestReport.standardScore * 7)) : (hasArticles ? 1 : 0),
+        lifetimeCitations: totalCitations,
+        journalHIndex: trueHIndex,
         latestReport: hasArticles && latestReport ? {
           year: latestReport.year,
           standardScore: latestReport.standardScore,

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLang } from "./LangContext";
 
 interface HeaderProps {
-  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about";
+  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about" | "compare" | "referee-finder";
 }
 
 export default function Header({ activePage }: HeaderProps) {
@@ -201,6 +201,10 @@ export default function Header({ activePage }: HeaderProps) {
                 <a href="/compare" className="nav-dropdown-item">
                   <i className="fa-solid fa-code-compare" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.compare || "Compare Journals"}</span>
+                </a>
+                <a href="/referee-finder" className="nav-dropdown-item">
+                  <i className="fa-solid fa-user-check" style={{ color: "#f59e0b", width: "20px" }}></i>
+                  <span>{t.nav.referee_finder || "Referee Finder"}</span>
                 </a>
                 <a href="/submit" className="nav-dropdown-item">
                   <i className="fa-solid fa-cloud-arrow-up" style={{ color: "#f59e0b", width: "20px" }}></i>
@@ -592,6 +596,14 @@ export default function Header({ activePage }: HeaderProps) {
                   >
                     <i className="fa-solid fa-code-compare" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{t.nav.compare || "Compare Journals"}</span>
+                  </Link>
+                  <Link 
+                    href="/referee-finder" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-user-check" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>{t.nav.referee_finder || "Referee Finder"}</span>
                   </Link>
                   <Link 
                     href="/submit" 

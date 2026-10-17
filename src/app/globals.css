@@ -1610,3 +1610,10 @@ a {
         gap: 0.85rem;
     }
 }
+
+@media (max-width: 960px) {
+    .referee-split-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+    }
+}
