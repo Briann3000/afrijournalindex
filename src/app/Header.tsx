@@ -198,6 +198,10 @@ export default function Header({ activePage }: HeaderProps) {
                   <i className="fa-solid fa-book-open" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.browse}</span>
                 </a>
+                <a href="/compare" className="nav-dropdown-item">
+                  <i className="fa-solid fa-code-compare" style={{ color: "#f59e0b", width: "20px" }}></i>
+                  <span>{t.nav.compare || "Compare Journals"}</span>
+                </a>
                 <a href="/submit" className="nav-dropdown-item">
                   <i className="fa-solid fa-cloud-arrow-up" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.submit}</span>
@@ -580,6 +584,14 @@ export default function Header({ activePage }: HeaderProps) {
                   >
                     <i className="fa-solid fa-book-open" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{t.nav.browse}</span>
+                  </Link>
+                  <Link 
+                    href="/compare" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-code-compare" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>{t.nav.compare || "Compare Journals"}</span>
                   </Link>
                   <Link 
                     href="/submit" 

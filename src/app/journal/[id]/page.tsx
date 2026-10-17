@@ -864,6 +864,17 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                     <i className={`fa-solid ${downloadingDossier ? "fa-spinner fa-spin" : "fa-file-invoice"}`}></i>
                     <span>{downloadingDossier ? "Compiling 12-Page Dossier..." : "Download Institutional Dossier (12-Page PDF)"}</span>
                   </button>
+
+                  {/* Compare Journal Action */}
+                  <a 
+                    href={`/compare?j1=${encodeURIComponent(journal.id)}`}
+                    className="btn btn-secondary"
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.82rem", background: "var(--color-bg-card-subtle)" }}
+                    title="Compare this journal with other venues"
+                  >
+                    <i className="fa-solid fa-code-compare" style={{ color: "var(--color-primary)" }}></i>
+                    <span>Compare with Another Journal</span>
+                  </a>
                 </div>
               </div>
             </div>
