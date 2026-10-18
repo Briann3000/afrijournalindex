@@ -140,10 +140,10 @@ export async function GET(
 
     const regionalPercentage = totalCitations > 0 
       ? Number(((regionalAfricanCitations / totalCitations) * 100).toFixed(1))
-      : 82.0;
+      : 0;
     const globalPercentage = totalCitations > 0
       ? Number((100 - regionalPercentage).toFixed(1))
-      : 18.0;
+      : 0;
 
     const topCitingCountries = Object.entries(citingCountryCounts)
       .map(([country, count]) => ({ country, count }))
@@ -156,9 +156,7 @@ export async function GET(
       globalCount: globalCitations,
       regionalPercentage,
       globalPercentage,
-      topCitingCountries: topCitingCountries.length > 0 ? topCitingCountries : [
-        { country: journal.country || "Kenya", count: Math.max(1, totalCitations) }
-      ]
+      topCitingCountries: topCitingCountries
     };
 
     let cartelRisk = "Low";
@@ -267,7 +265,7 @@ export async function GET(
         quartile: hasArticles ? quartile : "Pending",
         disciplineRank: hasArticles ? disciplineRank : null,
         totalInDiscipline: hasArticles ? totalInDiscipline : null,
-        categoryMedian: categoryMedian || 0.5,
+        categoryMedian: categoryMedian || null,
         selfCitationRate: Number(selfCitationRate.toFixed(1)),
         externalCitationRate: Number(externalCitationRate.toFixed(1)),
         impactWithoutSelfCitations,
@@ -275,7 +273,7 @@ export async function GET(
         citationOrigin,
         citationDistribution,
         integrityReport,
-        ycaScore: hasArticles && latestReport ? Number((latestReport.standardScore * 1.14).toFixed(3)) : 0,
+        ycaScore: hasArticles && latestReport ? latestReport.standardScore : 0,
         lifetimeCitations: totalCitations,
         journalHIndex: trueHIndex,
         latestReport: hasArticles && latestReport ? {

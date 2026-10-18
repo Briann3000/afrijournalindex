@@ -191,13 +191,13 @@
     "col_hindex": "h-Index",
     "col_top_discipline": "Lead Field",
     "col_action": "Analytics",
-    "view_details": "View Console",
+    "view_details": "View Profile",
     "departments_heading": "Departmental Performance Breakdown",
     "affiliated_journals": "Affiliated University Press Journals",
     "no_results": "No institutional records found matching criteria.",
     "search_table": "Filter institutional table...",
     "sort_by": "Sort By",
-    "back_to_leaderboard": "← Back to University Leaderboard"
+    "back_to_leaderboard": "Back to Continental Leaderboard"
   },
   "submit_page": {
     "title": "Journal Submission Portal",

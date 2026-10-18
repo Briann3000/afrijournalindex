@@ -30,20 +30,68 @@ model User {
   role          Role        @default(RESEARCHER)
   orcid         String?     @unique @db.VarChar(191)
   institution   String?     @db.VarChar(255)
+  department    String?     @db.VarChar(255)
   bio           String?     @db.Text
+  totalCitations Int        @default(0)
+  hIndex        Int         @default(0)
+  i10Index      Int         @default(0)
+  citations5Yr  Int         @default(0)
+  hIndex5Yr     Int         @default(0)
+  i10Index5Yr   Int         @default(0)
+  googleScholarId String?   @db.VarChar(100)
+  googleScholarUrl String?  @db.Text
+  openAlexId    String?     @db.VarChar(100)
+  isClaimed     Boolean     @default(false)
+  claimToken    String?     @db.VarChar(255)
+  claimTokenExpiry DateTime?
+  metricsSource String?     @default("OPENALEX") @db.VarChar(50)
+  lastMetricsSyncAt DateTime?
   resetToken    String?     @db.VarChar(255)
   resetTokenExpiry DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   
   // Relations
+  institutionId String?
+  institutionRelation Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
   journals      Journal[]
   submissions   Submission[]
   comments      Comment[]
   claims        ClaimedPublication[]
   payments      Payment[]
 
+  @@index([institutionId])
+  @@index([totalCitations])
+  @@index([hIndex])
   @@map("user")
+}
+
+model Institution {
+  id                     String    @id @default(uuid())
+  name                   String    @unique @db.VarChar(500)
+  country                String    @db.VarChar(100)
+  countryCode            String?   @db.VarChar(10)
+  openAlexId             String?   @unique @db.VarChar(100)
+  rorId                  String?   @unique @db.VarChar(100)
+  domain                 String?   @db.VarChar(255)
+  websiteUrl             String?   @db.Text
+  totalPublications      Int       @default(0)
+  totalCitations         Int       @default(0)
+  institutionalHIndex    Int       @default(0)
+  twoYearMeanCitedness   Float     @default(0.0)
+  topDiscipline          String?   @default("Multidisciplinary") @db.VarChar(100)
+  isClaimed              Boolean   @default(false)
+  claimedByUserId        String?   @db.VarChar(191)
+  lastMetricsSyncAt      DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  // Relations
+  facultyMembers         User[]
+
+  @@index([country])
+  @@index([name])
+  @@map("institution")
 }
 
 model Journal {

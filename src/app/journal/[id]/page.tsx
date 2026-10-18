@@ -121,6 +121,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
   const [showCertificate, setShowCertificate] = useState<boolean>(false);
   const [showClaimModal, setShowClaimModal] = useState<boolean>(false);
   const [claimRole, setClaimRole] = useState<string>("Editor-in-Chief");
+  const [claimEditorialEmail, setClaimEditorialEmail] = useState<string>("");
   const [claimLoading, setClaimLoading] = useState<boolean>(false);
   const [claimSuccess, setClaimSuccess] = useState<string | null>(null);
   const [claimError, setClaimError] = useState<string | null>(null);
@@ -390,7 +391,8 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           journalId: journal.id,
-          roleTitle: claimRole
+          roleTitle: claimRole,
+          editorialEmail: claimEditorialEmail.trim() || undefined
         })
       });
 
@@ -1767,16 +1769,9 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                               <button 
                                 type="button"
                                 onClick={() => {
-                                  if (article.citations && article.citations.length > 0) {
-                                    setEvidenceModalArticle({
-                                      title: article.title,
-                                      citations: article.citations
-                                    });
-                                  } else {
-                                    window.open(`https://scholar.google.com/scholar?q=${encodeURIComponent(`"${article.title}"`)}`, "_blank");
-                                  }
+                                  window.open(`https://scholar.google.com/scholar?q=${encodeURIComponent(`"${article.title}"`)}`, "_blank");
                                 }}
-                                title={article.citations && article.citations.length > 0 ? "Click to inspect verified citing papers in platform ledger" : "Click to view citing publications on Google Scholar"}
+                                title="Click to view citing publications on Google Scholar"
                                 style={{ 
                                   padding: "0.35rem 0.85rem", 
                                   background: "var(--color-primary-light)", 
@@ -1793,7 +1788,7 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                               >
                                 <i className="fa-solid fa-quote-right" style={{ fontSize: "0.7rem" }}></i>
                                 <span>{article.citationCount} {jp.citations || "Citations"}</span>
-                                <i className="fa-solid fa-magnifying-glass-arrow-right" style={{ fontSize: "0.65rem", opacity: 0.7 }}></i>
+                                <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.65rem", opacity: 0.7 }}></i>
                               </button>
                             ) : null}
 
@@ -2331,6 +2326,20 @@ export default function JournalPage({ params }: { params: Promise<{ id: string }
                           <option value="Associate Editor">Associate Editor / Board Member</option>
                           <option value="Publisher / University Press">Publisher / University Press Director</option>
                         </select>
+                      </div>
+
+                      <div style={{ marginBottom: "1rem" }}>
+                        <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-body)", marginBottom: "0.4rem" }}>
+                          Official Editorial Email <span style={{ fontSize: "0.75rem", fontWeight: 400, color: "var(--color-text-muted)" }}>(Optional if matching journal domain)</span>
+                        </label>
+                        <input
+                          type="email"
+                          placeholder={user.email}
+                          value={claimEditorialEmail}
+                          onChange={e => setClaimEditorialEmail(e.target.value)}
+                          className="form-control"
+                          style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.85rem" }}
+                        />
                       </div>
 
                       <div style={{ marginBottom: "1.5rem" }}>

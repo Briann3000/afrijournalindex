@@ -347,8 +347,28 @@ export async function GET(request: Request) {
         email: true,
         orcid: true,
         institution: true,
+        department: true,
         bio: true,
         role: true,
+        totalCitations: true,
+        hIndex: true,
+        i10Index: true,
+        citations5Yr: true,
+        hIndex5Yr: true,
+        i10Index5Yr: true,
+        googleScholarId: true,
+        googleScholarUrl: true,
+        openAlexId: true,
+        isClaimed: true,
+        metricsSource: true,
+        institutionRelation: {
+          select: {
+            id: true,
+            name: true,
+            country: true,
+            domain: true
+          }
+        },
         createdAt: true,
         claims: {
           where: { status: "VERIFIED" },
@@ -380,12 +400,22 @@ export async function GET(request: Request) {
       const articles = (u.claims || []).map(c => c.article).filter(Boolean);
       const articlesCount = articles.length;
 
-      // Query Authoritative Scientometrics (Google Scholar takes strict precedence)
+      // Query Authoritative Scientometrics (Google Scholar / Synced DB takes strict precedence)
       const verifiedScholar = getScholarScientometrics({
         id: u.id,
         name: u.name,
         orcid: u.orcid,
-        bio: u.bio
+        bio: u.bio,
+        totalCitations: u.totalCitations,
+        hIndex: u.hIndex,
+        i10Index: u.i10Index,
+        citations5Yr: u.citations5Yr,
+        hIndex5Yr: u.hIndex5Yr,
+        i10Index5Yr: u.i10Index5Yr,
+        googleScholarId: u.googleScholarId,
+        googleScholarUrl: u.googleScholarUrl,
+        openAlexId: u.openAlexId,
+        department: u.department
       });
 
       // Extract citation counts per article
@@ -394,11 +424,15 @@ export async function GET(request: Request) {
         return Math.max(directCites, a.citationCount || 0);
       }).sort((a, b) => b - a);
 
-      const totalCitations = verifiedScholar ? verifiedScholar.totalCitations : citationCounts.reduce((acc, c) => acc + c, 0);
+      const totalCitations = verifiedScholar 
+        ? verifiedScholar.totalCitations 
+        : (u.totalCitations > 0 ? u.totalCitations : citationCounts.reduce((acc, c) => acc + c, 0));
 
-      // Compute h-index with Google Scholar taking precedence
-      let hIndex = verifiedScholar ? verifiedScholar.hIndex : 0;
-      if (!verifiedScholar) {
+      // Compute h-index with verified scientometrics taking precedence
+      let hIndex = verifiedScholar 
+        ? verifiedScholar.hIndex 
+        : (u.hIndex > 0 ? u.hIndex : 0);
+      if (!verifiedScholar && !u.hIndex) {
         for (let i = 0; i < citationCounts.length; i++) {
           if (citationCounts[i] >= i + 1) {
             hIndex = i + 1;
@@ -434,7 +468,7 @@ export async function GET(request: Request) {
       if (!broadDiscipline) {
         broadDiscipline = researchInterests.length > 0
           ? mapToBroadDiscipline(researchInterests[0])
-          : mapToBroadDiscipline(u.institution || bioText);
+          : mapToBroadDiscipline(u.institutionRelation?.name || u.institution || bioText);
       }
 
       if (researchInterests.length === 0) {
@@ -450,26 +484,29 @@ export async function GET(request: Request) {
         emailDomain.endsWith(".ac") ||
         emailDomain.endsWith(".org");
 
-      const isVerified = Boolean(isAcademic || (u.orcid && u.institution));
-      const verifiedDomain = isAcademic ? emailDomain : (u.institution ? `${u.institution.toLowerCase().replace(/[^a-z]/g, "").slice(0, 16)}.ac` : "academic.org");
+      const isVerified = Boolean(isAcademic || (u.orcid && (u.institution || u.institutionRelation)));
+      const verifiedDomain = isAcademic ? emailDomain : (u.institutionRelation?.domain || (u.institution ? `${u.institution.toLowerCase().replace(/[^a-z]/g, "").slice(0, 16)}.ac` : "academic.org"));
 
       // Accurate Affiliation Resolution (ZERO Fallback to Kenya)
-      const { country: institutionCountry, originCountry, isAfrican, isDiaspora } = resolveInstitutionAffiliation(u.institution || "", u.email || "", bioText, u.name);
+      const rawInst = u.institutionRelation?.name || u.institution || "";
+      const { country: institutionCountry, originCountry, isAfrican, isDiaspora } = resolveInstitutionAffiliation(rawInst, u.email || "", bioText, u.name);
 
       return {
         id: u.id,
         name: u.name,
         email: u.email,
         orcid: u.orcid,
-        institution: u.institution || "Affiliation Unspecified",
-        department: verifiedScholar?.department,
-        googleScholarUrl: verifiedScholar?.googleScholarUrl,
-        institutionCountry,
+        institution: u.institutionRelation?.name || u.institution || "Affiliation Unspecified",
+        department: verifiedScholar?.department || u.department,
+        googleScholarUrl: verifiedScholar?.googleScholarUrl || u.googleScholarUrl,
+        institutionCountry: u.institutionRelation?.country || institutionCountry,
         originCountry,
         isAfrican,
         isDiaspora,
         isVerified,
         verifiedDomain,
+        isClaimed: u.isClaimed,
+        metricsSource: u.metricsSource || (verifiedScholar?.googleScholarId ? "GOOGLE_SCHOLAR" : "OPENALEX"),
         bio: bioText,
         broadDiscipline,
         researchInterests,

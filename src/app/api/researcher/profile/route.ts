@@ -175,7 +175,20 @@ export async function GET(request: Request) {
         orcid: true,
         role: true,
         institution: true,
-        bio: true
+        department: true,
+        bio: true,
+        totalCitations: true,
+        hIndex: true,
+        i10Index: true,
+        citations5Yr: true,
+        hIndex5Yr: true,
+        i10Index5Yr: true,
+        googleScholarId: true,
+        googleScholarUrl: true,
+        openAlexId: true,
+        isClaimed: true,
+        metricsSource: true,
+        lastMetricsSyncAt: true
       }
     });
 
@@ -272,15 +285,25 @@ export async function GET(request: Request) {
       };
     });
 
-    // Query Authoritative Scientometrics (Google Scholar takes strict precedence)
+    // Query Authoritative Scientometrics (Google Scholar / Synced DB takes strict precedence)
     const verifiedScholar = getScholarScientometrics({
       id: user.id,
       name: user.name,
       orcid: user.orcid,
-      bio: user.bio
+      bio: user.bio,
+      totalCitations: user.totalCitations,
+      hIndex: user.hIndex,
+      i10Index: user.i10Index,
+      citations5Yr: user.citations5Yr,
+      hIndex5Yr: user.hIndex5Yr,
+      i10Index5Yr: user.i10Index5Yr,
+      googleScholarId: user.googleScholarId,
+      googleScholarUrl: user.googleScholarUrl,
+      openAlexId: user.openAlexId,
+      department: user.department
     });
 
-    let department = verifiedScholar?.department;
+    let department = user.department || verifiedScholar?.department;
     if (!department && bioText.includes("[Department:")) {
       const dMatch = bioText.match(/\[Department:\s*(.*?)\]/);
       if (dMatch && dMatch[1]) department = dMatch[1].trim();
@@ -289,11 +312,11 @@ export async function GET(request: Request) {
       researchFocus = verifiedScholar.researchInterests;
     }
 
-    // Compute citation metrics with Google Scholar taking precedence
+    // Compute citation metrics with verified scientometrics taking precedence
     const citationCounts = articles.map(art => art.citationsCount).sort((a, b) => b - a);
     
-    let hIndex = verifiedScholar ? verifiedScholar.hIndex : 0;
-    if (!verifiedScholar) {
+    let hIndex = verifiedScholar ? verifiedScholar.hIndex : (user.hIndex > 0 ? user.hIndex : 0);
+    if (!verifiedScholar && !user.hIndex) {
       for (let i = 0; i < citationCounts.length; i++) {
         if (citationCounts[i] >= i + 1) {
           hIndex = i + 1;
@@ -303,8 +326,8 @@ export async function GET(request: Request) {
       }
     }
 
-    let i10Index = verifiedScholar ? verifiedScholar.i10Index : citationCounts.filter(c => c >= 10).length;
-    let totalCitations = verifiedScholar ? verifiedScholar.totalCitations : citationCounts.reduce((sum, c) => sum + c, 0);
+    let i10Index = verifiedScholar ? verifiedScholar.i10Index : (user.i10Index > 0 ? user.i10Index : citationCounts.filter(c => c >= 10).length);
+    let totalCitations = verifiedScholar ? verifiedScholar.totalCitations : (user.totalCitations > 0 ? user.totalCitations : citationCounts.reduce((sum, c) => sum + c, 0));
 
     // Authentic 5-Year Window & Annual Citation Growth Velocity
     const currentYear = new Date().getFullYear();
@@ -533,12 +556,14 @@ export async function GET(request: Request) {
           email: user.email,
           orcid: user.orcid,
           institution: user.institution || "Affiliation Unspecified",
-          department: department || undefined,
-          googleScholarUrl: verifiedScholar?.googleScholarUrl,
+          department: department || user.department || undefined,
+          googleScholarUrl: verifiedScholar?.googleScholarUrl || user.googleScholarUrl,
           country: instResolved.country,
           originCountry: instResolved.originCountry,
           isAfrican: instResolved.isAfrican,
           isDiaspora: instResolved.isDiaspora,
+          isClaimed: user.isClaimed,
+          metricsSource: user.metricsSource || (verifiedScholar?.googleScholarId ? "GOOGLE_SCHOLAR" : "OPENALEX"),
           bio: bioText,
           role: user.role,
           isEditor: user.role === "PUBLISHER" || journals.length > 0 || submissions.length > 0,

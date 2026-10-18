@@ -789,6 +789,29 @@ function ScholarsDirectoryContent() {
                         {/* Column 6: Actions */}
                         <td style={{ padding: "1rem 1.25rem", textAlign: "right" }}>
                           <div style={{ display: "flex", gap: "0.45rem", justifyContent: "flex-end", alignItems: "center" }}>
+                            {!scholar.isClaimed && (
+                              <a
+                                href={`/researcher?id=${scholar.id}&claim=true`}
+                                style={{
+                                  background: "rgba(234, 88, 12, 0.1)",
+                                  color: "#ea580c",
+                                  border: "1px solid rgba(234, 88, 12, 0.3)",
+                                  padding: "0.32rem 0.65rem",
+                                  fontSize: "0.74rem",
+                                  fontWeight: 700,
+                                  textDecoration: "none",
+                                  borderRadius: "6px",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "4px"
+                                }}
+                                title="Are you this scholar? Claim your verified profile"
+                              >
+                                <i className="fa-solid fa-key" style={{ fontSize: "0.68rem" }}></i>
+                                <span>Claim</span>
+                              </a>
+                            )}
+
                             <button
                               type="button"
                               onClick={() => handleToggleFollow(scholar.id, scholar.name)}

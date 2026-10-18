@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useLang } from "../LangContext";
 import Header from "../Header";
@@ -36,9 +36,17 @@ function InstitutionContent() {
   const [tableSearch, setTableSearch] = useState<string>("");
   const [loadingLeaderboard, setLoadingLeaderboard] = useState<boolean>(true);
 
+  // Table Interactive Sorting
+  const [tableSortKey, setTableSortKey] = useState<string>("rank");
+  const [tableSortDirection, setTableSortDirection] = useState<"asc" | "desc">("asc");
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
+
+  // Faculty Pagination states
+  const [facultyCurrentPage, setFacultyCurrentPage] = useState<number>(1);
+  const [facultyPageSize, setFacultyPageSize] = useState<number>(10);
 
   // Profile states
   const [currentUnivName, setCurrentUnivName] = useState<string>(nameParam || "University of Nairobi");
@@ -54,6 +62,46 @@ function InstitutionContent() {
   const [followedFacultyIds, setFollowedFacultyIds] = useState<string[]>([]);
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Institution Claiming States
+  const [showInstitutionClaimModal, setShowInstitutionClaimModal] = useState<boolean>(false);
+  const [claimInstRole, setClaimInstRole] = useState<string>("Director of Research / University Press");
+  const [claimInstEmail, setClaimInstEmail] = useState<string>("");
+  const [claimInstLoading, setClaimInstLoading] = useState<boolean>(false);
+  const [claimInstSuccess, setClaimInstSuccess] = useState<string | null>(null);
+  const [claimInstError, setClaimInstError] = useState<string | null>(null);
+
+  const handleClaimInstitution = async () => {
+    if (!profileData) return;
+    setClaimInstLoading(true);
+    setClaimInstError(null);
+    setClaimInstSuccess(null);
+    try {
+      const res = await fetch("/api/institutions/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          institutionId: profileData.id,
+          roleTitle: claimInstRole,
+          officialEmail: claimInstEmail.trim() || undefined
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setClaimInstSuccess(json.message);
+        setTimeout(() => {
+          loadUniversityProfile(currentUnivName);
+          setShowInstitutionClaimModal(false);
+        }, 1500);
+      } else {
+        setClaimInstError(json.error || "Failed to claim institution.");
+      }
+    } catch {
+      setClaimInstError("Network error while submitting institution claim.");
+    } finally {
+      setClaimInstLoading(false);
+    }
+  };
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -127,17 +175,51 @@ function InstitutionContent() {
     }
   }, [activeTab, selectedCountry, selectedDiscipline, sortBy, tableSearch]);
 
+  // Sort Leaderboard interactively by clicked header
+  const sortedLeaderboard = useMemo(() => {
+    const list = [...leaderboard];
+    list.sort((a, b) => {
+      let comp = 0;
+      if (tableSortKey === "rank") comp = a.rank - b.rank;
+      else if (tableSortKey === "name") comp = a.name.localeCompare(b.name);
+      else if (tableSortKey === "topDiscipline") comp = (a.topDiscipline || "").localeCompare(b.topDiscipline || "");
+      else if (tableSortKey === "publications") comp = a.totalPublications - b.totalPublications;
+      else if (tableSortKey === "citations") comp = a.totalCitations - b.totalCitations;
+      else if (tableSortKey === "hIndex") comp = a.institutionalHIndex - b.institutionalHIndex;
+      else comp = a.rank - b.rank;
+
+      return tableSortDirection === "asc" ? comp : -comp;
+    });
+    return list;
+  }, [leaderboard, tableSortKey, tableSortDirection]);
+
+  // Handle header click to toggle asc/desc
+  const handleHeaderSort = (key: string) => {
+    if (tableSortKey === key) {
+      setTableSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setTableSortKey(key);
+      setTableSortDirection(key === "rank" || key === "name" || key === "topDiscipline" ? "asc" : "desc");
+    }
+    setCurrentPage(1);
+  };
+
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedCountry, selectedDiscipline, sortBy, tableSearch]);
 
+  // Reset faculty page when search/sort changes
+  useEffect(() => {
+    setFacultyCurrentPage(1);
+  }, [facultySearch, facultySort, currentUnivName]);
+
   // Pagination calculation
-  const totalItems = leaderboard.length;
+  const totalItems = sortedLeaderboard.length;
   const totalPages = Math.ceil(totalItems / pageSize) || 1;
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = Math.min(startIndex + pageSize, totalItems);
-  const paginatedLeaderboard = leaderboard.slice(startIndex, endIndex);
+  const paginatedLeaderboard = sortedLeaderboard.slice(startIndex, endIndex);
 
   // Fetch University Profile Drilldown
   const loadUniversityProfile = async (univName: string) => {
@@ -377,13 +459,15 @@ function InstitutionContent() {
                     return (
                       <div
                         key={item.name}
+                        onClick={() => handleSelectUniversity(item.name)}
                         className="card-surface"
                         style={{
                           padding: "1.15rem",
                           borderRadius: "14px",
                           border: isTop3 ? "1.5px solid rgba(13, 148, 136, 0.3)" : "1px solid var(--color-border)",
                           boxShadow: "var(--card-shadow)",
-                          background: "var(--color-bg-card)"
+                          background: "var(--color-bg-card)",
+                          cursor: "pointer"
                         }}
                       >
                         {/* Header: Rank + University + Country + h-Index */}
@@ -455,7 +539,10 @@ function InstitutionContent() {
                             {item.topDiscipline}
                           </span>
                           <button
-                            onClick={() => handleSelectUniversity(item.name)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectUniversity(item.name);
+                            }}
                             className="btn btn-secondary btn-sm"
                             style={{ fontSize: "0.8rem", padding: "0.4rem 0.85rem", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
                           >
@@ -472,13 +559,97 @@ function InstitutionContent() {
                 <div className="institution-desktop-table table-responsive" style={{ background: "var(--color-bg-card)", borderRadius: "16px", border: "1px solid var(--color-border)", boxShadow: "var(--card-shadow)", overflowX: "auto" }}>
                   <table className="academic-table" style={{ width: "100%", minWidth: "720px", borderCollapse: "collapse", textAlign: "left" }}>
                     <thead>
-                      <tr style={{ background: "var(--color-bg-alt)", borderBottom: "1px solid var(--color-border)" }}>
-                        <th style={{ width: "80px", textAlign: "center", padding: "1rem" }}>{t.institution_page.col_rank}</th>
-                        <th style={{ padding: "1rem" }}>{t.institution_page.col_institution}</th>
-                        <th style={{ textAlign: "center", padding: "1rem" }}>{t.institution_page.col_top_discipline}</th>
-                        <th style={{ textAlign: "right", padding: "1rem" }}>{t.institution_page.col_publications}</th>
-                        <th style={{ textAlign: "right", padding: "1rem" }}>{t.institution_page.col_citations}</th>
-                        <th style={{ textAlign: "center", width: "120px", padding: "1rem" }}>{t.institution_page.col_hindex}</th>
+                      <tr style={{ background: "var(--color-bg-alt)", borderBottom: "1px solid var(--color-border)", userSelect: "none" }}>
+                        <th 
+                          onClick={() => handleHeaderSort("rank")}
+                          style={{ width: "80px", textAlign: "center", padding: "1rem", cursor: "pointer" }}
+                          title="Click to sort by rank"
+                        >
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                            <span>{t.institution_page.col_rank}</span>
+                            {tableSortKey === "rank" ? (
+                              <i className={`fa-solid fa-arrow-${tableSortDirection === "asc" ? "up-1-9" : "down-9-1"}`} style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>
+                            ) : (
+                              <i className="fa-solid fa-sort" style={{ color: "var(--color-text-muted)", fontSize: "0.7rem", opacity: 0.4 }}></i>
+                            )}
+                          </div>
+                        </th>
+
+                        <th 
+                          onClick={() => handleHeaderSort("name")}
+                          style={{ padding: "1rem", cursor: "pointer" }}
+                          title="Click to sort by institution name"
+                        >
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                            <span>{t.institution_page.col_institution}</span>
+                            {tableSortKey === "name" ? (
+                              <i className={`fa-solid fa-arrow-${tableSortDirection === "asc" ? "down-a-z" : "up-z-a"}`} style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>
+                            ) : (
+                              <i className="fa-solid fa-sort" style={{ color: "var(--color-text-muted)", fontSize: "0.7rem", opacity: 0.4 }}></i>
+                            )}
+                          </div>
+                        </th>
+
+                        <th 
+                          onClick={() => handleHeaderSort("topDiscipline")}
+                          style={{ textAlign: "center", padding: "1rem", cursor: "pointer" }}
+                          title="Click to sort by lead field"
+                        >
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", justifyContent: "center" }}>
+                            <span>{t.institution_page.col_top_discipline}</span>
+                            {tableSortKey === "topDiscipline" ? (
+                              <i className={`fa-solid fa-arrow-${tableSortDirection === "asc" ? "down-a-z" : "up-z-a"}`} style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>
+                            ) : (
+                              <i className="fa-solid fa-sort" style={{ color: "var(--color-text-muted)", fontSize: "0.7rem", opacity: 0.4 }}></i>
+                            )}
+                          </div>
+                        </th>
+
+                        <th 
+                          onClick={() => handleHeaderSort("publications")}
+                          style={{ textAlign: "right", padding: "1rem", cursor: "pointer" }}
+                          title="Click to sort by total publications"
+                        >
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", justifyContent: "flex-end", width: "100%" }}>
+                            <span>{t.institution_page.col_publications}</span>
+                            {tableSortKey === "publications" ? (
+                              <i className={`fa-solid fa-arrow-${tableSortDirection === "asc" ? "up-wide-short" : "down-wide-short"}`} style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>
+                            ) : (
+                              <i className="fa-solid fa-sort" style={{ color: "var(--color-text-muted)", fontSize: "0.7rem", opacity: 0.4 }}></i>
+                            )}
+                          </div>
+                        </th>
+
+                        <th 
+                          onClick={() => handleHeaderSort("citations")}
+                          style={{ textAlign: "right", padding: "1rem", cursor: "pointer" }}
+                          title="Click to sort by citations"
+                        >
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", justifyContent: "flex-end", width: "100%" }}>
+                            <span>{t.institution_page.col_citations}</span>
+                            {tableSortKey === "citations" ? (
+                              <i className={`fa-solid fa-arrow-${tableSortDirection === "asc" ? "up-wide-short" : "down-wide-short"}`} style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>
+                            ) : (
+                              <i className="fa-solid fa-sort" style={{ color: "var(--color-text-muted)", fontSize: "0.7rem", opacity: 0.4 }}></i>
+                            )}
+                          </div>
+                        </th>
+
+                        <th 
+                          onClick={() => handleHeaderSort("hIndex")}
+                          style={{ textAlign: "center", width: "120px", padding: "1rem", cursor: "pointer" }}
+                          title="Click to sort by institutional h-index"
+                        >
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", justifyContent: "center" }}>
+                            <span>{t.institution_page.col_hindex}</span>
+                            {tableSortKey === "hIndex" ? (
+                              <i className={`fa-solid fa-arrow-${tableSortDirection === "asc" ? "up-wide-short" : "down-wide-short"}`} style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>
+                            ) : (
+                              <i className="fa-solid fa-sort" style={{ color: "var(--color-text-muted)", fontSize: "0.7rem", opacity: 0.4 }}></i>
+                            )}
+                          </div>
+                        </th>
+
                         <th style={{ textAlign: "right", padding: "1rem" }}>{t.institution_page.col_action}</th>
                       </tr>
                     </thead>
@@ -489,7 +660,12 @@ function InstitutionContent() {
                         const rankBadgeColor = item.rank === 1 ? "var(--color-primary)" : item.rank === 2 ? "#475569" : item.rank === 3 ? "#b45309" : "var(--color-text-muted)";
 
                         return (
-                          <tr key={item.name} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.2s" }} className="hover-row">
+                          <tr 
+                            key={item.name} 
+                            onClick={() => handleSelectUniversity(item.name)}
+                            style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.2s", cursor: "pointer" }} 
+                            className="hover-row"
+                          >
                             <td style={{ textAlign: "center", padding: "1rem" }}>
                               <span style={{ 
                                 display: "inline-flex", 
@@ -546,11 +722,14 @@ function InstitutionContent() {
 
                             <td style={{ textAlign: "right", padding: "1rem" }}>
                               <button
-                                onClick={() => handleSelectUniversity(item.name)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSelectUniversity(item.name);
+                                }}
                                 className="btn btn-secondary btn-sm"
-                                style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem" }}
+                                style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}
                               >
-                                {t.institution_page.view_details} <i className="fa-solid fa-chevron-right" style={{ marginLeft: "0.25rem", fontSize: "0.7rem" }}></i>
+                                View Profile <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.7rem" }}></i>
                               </button>
                             </td>
                           </tr>
@@ -733,6 +912,45 @@ function InstitutionContent() {
                     </div>
 
                     <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", alignItems: "center" }}>
+                      {profileData.isClaimed ? (
+                        <span style={{ 
+                          display: "inline-flex", 
+                          alignItems: "center", 
+                          gap: "0.4rem", 
+                          padding: "0.35rem 0.75rem", 
+                          borderRadius: "20px", 
+                          background: "rgba(22, 163, 74, 0.12)", 
+                          color: "#16a34a", 
+                          fontSize: "0.8rem", 
+                          fontWeight: 700 
+                        }}>
+                          <i className="fa-solid fa-circle-check"></i> Verified Institutional Profile
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setClaimInstError(null);
+                            setClaimInstSuccess(null);
+                            setShowInstitutionClaimModal(true);
+                          }}
+                          className="btn btn-secondary btn-sm"
+                          style={{ 
+                            fontSize: "0.82rem", 
+                            display: "inline-flex", 
+                            alignItems: "center", 
+                            gap: "0.45rem", 
+                            whiteSpace: "nowrap",
+                            borderColor: "var(--color-primary)",
+                            color: "var(--color-primary)",
+                            background: "rgba(2, 132, 199, 0.05)"
+                          }}
+                          title="Claim this institution profile as an authorized university official"
+                        >
+                          <i className="fa-solid fa-shield-halved"></i> Claim Institution Profile
+                        </button>
+                      )}
+
                       <a 
                         href={`/scholars?q=${encodeURIComponent(profileData.name)}`}
                         className="btn btn-primary btn-sm"
@@ -747,7 +965,7 @@ function InstitutionContent() {
                         className="btn btn-secondary btn-sm"
                         style={{ fontSize: "0.82rem", display: "inline-flex", alignItems: "center", gap: "0.4rem", whiteSpace: "nowrap" }}
                       >
-                        <i className="fa-solid fa-arrow-left"></i> {t.institution_page.back_to_leaderboard}
+                        <i className="fa-solid fa-arrow-left"></i> {typeof t.institution_page.back_to_leaderboard === "string" ? t.institution_page.back_to_leaderboard.replace(/^[←\s]+/, "") : "Back to Leaderboard"}
                       </button>
                     </div>
                   </div>
@@ -916,148 +1134,355 @@ function InstitutionContent() {
                       );
                     }
 
+                    const facultyTotal = filteredFaculty.length;
+                    const facultyTotalPages = Math.ceil(facultyTotal / facultyPageSize) || 1;
+                    const facultyStartIndex = (facultyCurrentPage - 1) * facultyPageSize;
+                    const facultyEndIndex = Math.min(facultyStartIndex + facultyPageSize, facultyTotal);
+                    const paginatedFaculty = filteredFaculty.slice(facultyStartIndex, facultyEndIndex);
+
                     return (
-                      <div className="table-responsive" style={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
-                          <thead>
-                            <tr style={{ borderBottom: "2px solid var(--color-border)", color: "var(--color-text-muted)", fontSize: "0.78rem", textTransform: "uppercase" }}>
-                              <th style={{ padding: "0.75rem 0.5rem", width: "45px", textAlign: "center" }}>#</th>
-                              <th style={{ padding: "0.75rem 1rem" }}>Scholar & Field</th>
-                              <th style={{ padding: "0.75rem 1rem", textAlign: "right" }}>Citations</th>
-                              <th style={{ padding: "0.75rem 1rem", textAlign: "center", width: "90px" }}>h-index</th>
-                              <th style={{ padding: "0.75rem 1rem", textAlign: "center", width: "90px" }}>Articles</th>
-                              <th style={{ padding: "0.75rem 1rem", textAlign: "right", minWidth: "140px" }}>Action</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {filteredFaculty.map((f: any, idx: number) => {
-                              const initials = f.name
-                                .split(" ")
-                                .map((n: string) => n[0])
-                                .slice(0, 2)
-                                .join("")
-                                .toUpperCase();
-                              const isFollowed = followedFacultyIds.includes(f.id);
+                      <>
+                        <div className="table-responsive" style={{ overflowX: "auto" }}>
+                          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
+                            <thead>
+                              <tr style={{ borderBottom: "2px solid var(--color-border)", color: "var(--color-text-muted)", fontSize: "0.78rem", textTransform: "uppercase" }}>
+                                <th style={{ padding: "0.75rem 0.5rem", width: "45px", textAlign: "center" }}>#</th>
+                                <th style={{ padding: "0.75rem 1rem" }}>Scholar & Field</th>
+                                <th style={{ padding: "0.75rem 1rem", textAlign: "right" }}>Citations</th>
+                                <th style={{ padding: "0.75rem 1rem", textAlign: "center", width: "90px" }}>h-index</th>
+                                <th style={{ padding: "0.75rem 1rem", textAlign: "center", width: "90px" }}>Articles</th>
+                                <th style={{ padding: "0.75rem 1rem", textAlign: "right", minWidth: "140px" }}>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {paginatedFaculty.map((f: any, idx: number) => {
+                                const rowNum = facultyStartIndex + idx + 1;
+                                const initials = f.name
+                                  .split(" ")
+                                  .map((n: string) => n[0])
+                                  .slice(0, 2)
+                                  .join("")
+                                  .toUpperCase();
+                                const isFollowed = followedFacultyIds.includes(f.id);
 
-                              return (
-                                <tr key={f.id} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.15s ease" }}>
-                                  <td style={{ padding: "0.85rem 0.5rem", textAlign: "center", fontWeight: 700, color: "var(--color-text-muted)", fontSize: "0.82rem" }}>
-                                    {idx + 1}
-                                  </td>
+                                return (
+                                  <tr key={f.id} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.15s ease" }}>
+                                    <td style={{ padding: "0.85rem 0.5rem", textAlign: "center", fontWeight: 700, color: "var(--color-text-muted)", fontSize: "0.82rem" }}>
+                                      {rowNum}
+                                    </td>
 
-                                  <td style={{ padding: "0.85rem 1rem" }}>
-                                    <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-                                      <div style={{
-                                        width: "36px",
-                                        height: "36px",
-                                        borderRadius: "50%",
-                                        background: "linear-gradient(135deg, var(--color-primary), #0369a1)",
-                                        color: "#ffffff",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        fontWeight: 800,
-                                        fontSize: "0.82rem",
-                                        flexShrink: 0
-                                      }}>
-                                        {initials}
-                                      </div>
+                                    <td style={{ padding: "0.85rem 1rem" }}>
+                                      <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                                        <div style={{
+                                          width: "36px",
+                                          height: "36px",
+                                          borderRadius: "50%",
+                                          background: "linear-gradient(135deg, var(--color-primary), #0369a1)",
+                                          color: "#ffffff",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          fontWeight: 800,
+                                          fontSize: "0.82rem",
+                                          flexShrink: 0
+                                        }}>
+                                          {initials}
+                                        </div>
 
-                                      <div>
-                                        <a 
-                                          href={`/researcher?id=${f.id}`}
-                                          style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "0.92rem", display: "inline-block" }}
-                                        >
-                                          {f.name}
-                                        </a>
+                                        <div>
+                                          <a 
+                                            href={`/researcher?id=${f.id}`}
+                                            style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "0.92rem", display: "inline-block" }}
+                                          >
+                                            {f.name}
+                                          </a>
 
-                                        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", marginTop: "2px", flexWrap: "wrap" }}>
-                                          {f.discipline && f.discipline !== "Unspecified" && (
-                                            <span style={{ fontSize: "0.72rem", background: "rgba(2, 132, 199, 0.08)", color: "var(--color-primary)", padding: "0.1rem 0.45rem", borderRadius: "4px", fontWeight: 600 }}>
-                                              {f.discipline}
-                                            </span>
-                                          )}
+                                          <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", marginTop: "2px", flexWrap: "wrap" }}>
+                                            {f.discipline && f.discipline !== "Unspecified" && (
+                                              <span style={{ fontSize: "0.72rem", background: "rgba(2, 132, 199, 0.08)", color: "var(--color-primary)", padding: "0.1rem 0.45rem", borderRadius: "4px", fontWeight: 600 }}>
+                                                {f.discipline}
+                                              </span>
+                                            )}
 
-                                          {f.verifiedDomain && (
-                                            <span style={{ fontSize: "0.72rem", color: "#16a34a", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "3px" }}>
-                                              <i className="fa-solid fa-circle-check" style={{ fontSize: "0.65rem" }}></i>
-                                              {f.verifiedDomain}
-                                            </span>
-                                          )}
+                                            {f.verifiedDomain && (
+                                              <span style={{ fontSize: "0.72rem", color: "#16a34a", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                                                <i className="fa-solid fa-circle-check" style={{ fontSize: "0.65rem" }}></i>
+                                                {f.verifiedDomain}
+                                              </span>
+                                            )}
 
-                                          {f.googleScholarUrl && (
-                                            <a 
-                                              href={f.googleScholarUrl} 
-                                              target="_blank" 
-                                              rel="noreferrer"
-                                              style={{ fontSize: "0.72rem", color: "#0284c7", fontWeight: 600, textDecoration: "none" }}
-                                            >
-                                              <i className="fa-brands fa-google-scholar"></i> Scholar
-                                            </a>
-                                          )}
+                                            {f.googleScholarUrl && (
+                                              <a 
+                                                href={f.googleScholarUrl} 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                style={{ fontSize: "0.72rem", color: "#0284c7", fontWeight: 600, textDecoration: "none" }}
+                                              >
+                                                <i className="fa-brands fa-google-scholar"></i> Scholar
+                                              </a>
+                                            )}
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  </td>
+                                    </td>
 
-                                  <td style={{ padding: "0.85rem 1rem", textAlign: "right", fontWeight: 800, color: "var(--color-primary)" }}>
-                                    {f.totalCitations.toLocaleString()}
-                                  </td>
+                                    <td style={{ padding: "0.85rem 1rem", textAlign: "right", fontWeight: 800, color: "var(--color-primary)" }}>
+                                      {f.totalCitations.toLocaleString()}
+                                    </td>
 
-                                  <td style={{ padding: "0.85rem 1rem", textAlign: "center" }}>
-                                    <span style={{
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      padding: "0.15rem 0.5rem",
-                                      borderRadius: "6px",
-                                      fontSize: "0.78rem",
-                                      fontWeight: 800,
-                                      background: f.hIndex >= 20 ? "rgba(22, 163, 74, 0.1)" : "rgba(2, 132, 199, 0.08)",
-                                      color: f.hIndex >= 20 ? "#16a34a" : "var(--color-primary)"
-                                    }}>
-                                      h-{f.hIndex}
-                                    </span>
-                                  </td>
+                                    <td style={{ padding: "0.85rem 1rem", textAlign: "center" }}>
+                                      <span style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        padding: "0.15rem 0.5rem",
+                                        borderRadius: "6px",
+                                        fontSize: "0.78rem",
+                                        fontWeight: 800,
+                                        background: f.hIndex >= 20 ? "rgba(22, 163, 74, 0.1)" : "rgba(2, 132, 199, 0.08)",
+                                        color: f.hIndex >= 20 ? "#16a34a" : "var(--color-primary)"
+                                      }}>
+                                        h-{f.hIndex}
+                                      </span>
+                                    </td>
 
-                                  <td style={{ padding: "0.85rem 1rem", textAlign: "center", fontWeight: 600, color: "var(--color-text-main)" }}>
-                                    {f.articlesCount}
-                                  </td>
+                                    <td style={{ padding: "0.85rem 1rem", textAlign: "center", fontWeight: 600, color: "var(--color-text-main)" }}>
+                                      {f.articlesCount}
+                                    </td>
 
-                                  <td style={{ padding: "0.85rem 1rem", textAlign: "right" }}>
-                                    <div style={{ display: "flex", gap: "0.4rem", justifyContent: "flex-end", alignItems: "center" }}>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleToggleFollowFaculty(f.id, f.name)}
-                                        className={isFollowed ? "btn btn-secondary btn-sm" : "btn btn-primary btn-sm"}
-                                        style={{ fontSize: "0.75rem", padding: "0.25rem 0.65rem" }}
-                                      >
-                                        <i className={isFollowed ? "fa-solid fa-check" : "fa-solid fa-user-plus"} style={{ marginRight: "3px" }}></i>
-                                        {isFollowed ? "Following" : "Follow"}
-                                      </button>
+                                    <td style={{ padding: "0.85rem 1rem", textAlign: "right" }}>
+                                      <div style={{ display: "flex", gap: "0.4rem", justifyContent: "flex-end", alignItems: "center" }}>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleToggleFollowFaculty(f.id, f.name)}
+                                          className={isFollowed ? "btn btn-secondary btn-sm" : "btn btn-primary btn-sm"}
+                                          style={{ fontSize: "0.75rem", padding: "0.25rem 0.65rem" }}
+                                        >
+                                          <i className={isFollowed ? "fa-solid fa-check" : "fa-solid fa-user-plus"} style={{ marginRight: "3px" }}></i>
+                                          {isFollowed ? "Following" : "Follow"}
+                                        </button>
 
-                                      <a
-                                        href={`/researcher?id=${f.id}`}
-                                        className="btn btn-secondary btn-sm"
-                                        style={{ padding: "0.25rem 0.55rem", fontSize: "0.75rem" }}
-                                        title="View Scholar Profile"
-                                      >
-                                        <i className="fa-solid fa-arrow-up-right-from-square"></i>
-                                      </a>
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
+                                        <a
+                                          href={`/researcher?id=${f.id}`}
+                                          className="btn btn-secondary btn-sm"
+                                          style={{ padding: "0.25rem 0.55rem", fontSize: "0.75rem" }}
+                                          title="View Scholar Profile"
+                                        >
+                                          <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                                        </a>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Faculty Pagination Controls */}
+                        {facultyTotalPages > 1 && (
+                          <div style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            flexWrap: "wrap",
+                            gap: "0.75rem",
+                            marginTop: "1.25rem",
+                            padding: "0.85rem 1rem",
+                            background: "var(--color-bg-base)",
+                            borderRadius: "10px",
+                            border: "1px solid var(--color-border)",
+                            fontSize: "0.82rem"
+                          }}>
+                            <div style={{ color: "var(--color-text-muted)" }}>
+                              Showing <strong style={{ color: "var(--color-text-main)" }}>{facultyStartIndex + 1}</strong> to <strong style={{ color: "var(--color-text-main)" }}>{facultyEndIndex}</strong> of <strong style={{ color: "var(--color-text-main)" }}>{facultyTotal}</strong> scholars
+                            </div>
+                            <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+                              <button
+                                type="button"
+                                disabled={facultyCurrentPage <= 1}
+                                onClick={() => setFacultyCurrentPage(prev => Math.max(prev - 1, 1))}
+                                className="btn btn-secondary btn-sm"
+                                style={{ padding: "0.25rem 0.65rem", fontSize: "0.78rem" }}
+                              >
+                                <i className="fa-solid fa-chevron-left"></i> Previous
+                              </button>
+                              <span style={{ padding: "0 0.5rem", fontWeight: 700, color: "var(--color-text-main)" }}>
+                                Page {facultyCurrentPage} of {facultyTotalPages}
+                              </span>
+                              <button
+                                type="button"
+                                disabled={facultyCurrentPage >= facultyTotalPages}
+                                onClick={() => setFacultyCurrentPage(prev => Math.min(prev + 1, facultyTotalPages))}
+                                className="btn btn-secondary btn-sm"
+                                style={{ padding: "0.25rem 0.65rem", fontSize: "0.78rem" }}
+                              >
+                                Next <i className="fa-solid fa-chevron-right"></i>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     );
                   })()}
                 </div>
 
               </div>
             )}
+          </div>
+        )}
+
+        {/* Institution Profile Claim Modal */}
+        {showInstitutionClaimModal && profileData && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(15, 23, 42, 0.65)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              padding: "1rem"
+            }}
+            onClick={() => setShowInstitutionClaimModal(false)}
+          >
+            <div
+              style={{
+                background: "var(--color-bg-card)",
+                borderRadius: "16px",
+                maxWidth: "540px",
+                width: "100%",
+                padding: "2rem",
+                boxShadow: "0 20px 40px -15px rgba(0,0,0,0.3)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text-main)"
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem" }}>
+                <div>
+                  <h3 style={{ fontSize: "1.25rem", fontWeight: 700, margin: "0 0 0.3rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <i className="fa-solid fa-building-columns" style={{ color: "var(--color-primary)" }}></i>
+                    Claim Institutional Profile
+                  </h3>
+                  <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                    {profileData.name} ({profileData.country || "Africa"})
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowInstitutionClaimModal(false)}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem", color: "var(--color-text-muted)" }}
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              {!currentUser ? (
+                <div style={{ padding: "1.5rem", borderRadius: "10px", background: "rgba(2, 132, 199, 0.06)", border: "1px solid rgba(2, 132, 199, 0.2)", marginBottom: "1.25rem", textAlign: "center" }}>
+                  <i className="fa-solid fa-lock" style={{ fontSize: "1.5rem", color: "var(--color-primary)", marginBottom: "0.6rem", display: "block" }}></i>
+                  <p style={{ fontSize: "0.9rem", fontWeight: 600, margin: "0 0 0.5rem" }}>Authentication Required</p>
+                  <p style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", margin: "0 0 1rem" }}>
+                    To claim administration rights for {profileData.name}, please log in or register with your official university email address.
+                  </p>
+                  <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
+                    <a href={`/login?redirect=/institution?univ=${encodeURIComponent(profileData.name)}`} className="btn btn-primary btn-sm">
+                      Sign In
+                    </a>
+                    <a href={`/register?role=institution&institution=${encodeURIComponent(profileData.name)}`} className="btn btn-secondary btn-sm">
+                      Register Official Account
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ padding: "0.85rem 1rem", borderRadius: "8px", background: "rgba(2, 132, 199, 0.05)", border: "1px solid rgba(2, 132, 199, 0.15)", marginBottom: "1.25rem", fontSize: "0.82rem", lineHeight: 1.5, color: "var(--color-text-muted)" }}>
+                    <strong style={{ color: "var(--color-text-main)", display: "block", marginBottom: "0.2rem" }}>
+                      <i className="fa-solid fa-shield-check" style={{ color: "var(--color-primary)", marginRight: "0.3rem" }}></i>
+                      Institutional Verification Policy
+                    </strong>
+                    Institutional profiles are designated for university administrations, research offices, and library consortia. Claims are validated against your verified email domain ({profileData.domain ? `@${profileData.domain}` : "official university domain"}).
+                  </div>
+
+                  {claimInstError && (
+                    <div style={{ padding: "0.75rem 1rem", borderRadius: "8px", background: "rgba(239, 68, 68, 0.1)", border: "1px solid #ef4444", color: "#dc2626", fontSize: "0.84rem", marginBottom: "1rem" }}>
+                      <i className="fa-solid fa-circle-exclamation" style={{ marginRight: "0.4rem" }}></i>
+                      {claimInstError}
+                    </div>
+                  )}
+
+                  {claimInstSuccess && (
+                    <div style={{ padding: "0.75rem 1rem", borderRadius: "8px", background: "rgba(22, 163, 74, 0.1)", border: "1px solid #16a34a", color: "#16a34a", fontSize: "0.84rem", marginBottom: "1rem" }}>
+                      <i className="fa-solid fa-circle-check" style={{ marginRight: "0.4rem" }}></i>
+                      {claimInstSuccess}
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1.5rem" }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--color-text-main)" }}>
+                        Administrative Role / Title <span style={{ color: "#ef4444" }}>*</span>
+                      </label>
+                      <select
+                        value={claimInstRole}
+                        onChange={(e) => setClaimInstRole(e.target.value)}
+                        className="form-control"
+                        style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
+                      >
+                        <option value="Director of Research / University Press">Director of Research / University Press</option>
+                        <option value="Dean of Academic Affairs / Graduate Studies">Dean of Academic Affairs / Graduate Studies</option>
+                        <option value="University Librarian / Institutional Repository Manager">University Librarian / Repository Manager</option>
+                        <option value="Research Data Officer / Scientometrician">Research Data Officer / Scientometrician</option>
+                        <option value="Vice Chancellor / Principal Executive Office">Vice Chancellor / Principal Executive Office</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--color-text-main)" }}>
+                        Official University Email <span style={{ color: "#ef4444" }}>*</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={claimInstEmail}
+                        onChange={(e) => setClaimInstEmail(e.target.value)}
+                        placeholder={currentUser?.email || (profileData.domain ? `research@${profileData.domain}` : "official@university.edu")}
+                        className="form-control"
+                        style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
+                      />
+                      <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.3rem", display: "block" }}>
+                        Logged in as: <strong>{currentUser?.email}</strong>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowInstitutionClaimModal(false)}
+                      className="btn btn-secondary btn-sm"
+                      disabled={claimInstLoading}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleClaimInstitution}
+                      className="btn btn-primary btn-sm"
+                      disabled={claimInstLoading}
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
+                    >
+                      {claimInstLoading && <i className="fa-solid fa-spinner fa-spin"></i>}
+                      Submit Verification & Claim Profile
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         )}
 

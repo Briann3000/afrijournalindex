@@ -3,20 +3,6 @@ import { cookies } from "next/headers";
 import { prisma } from "../../../lib/db";
 import { verifySessionToken } from "../../../lib/auth";
 
-// Simulation database of official ISSN database records for verification
-const MOCK_ISSN_REGISTRY: Record<string, { name: string; publisher: string; active: boolean }> = {
-  "2070-1721": {
-    name: "African Journal of Sustainable Development & Innovation",
-    publisher: "Pan-African Scholarly Press",
-    active: true
-  },
-  "2519-0016": {
-    name: "Journal of Management and Business Administration",
-    publisher: "African Business Research Association",
-    active: true
-  }
-};
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -76,18 +62,17 @@ export async function POST(request: Request) {
         }
       });
 
-      const mockRecord = cleanIssn ? MOCK_ISSN_REGISTRY[cleanIssn] : null;
-
-      if (dbMatch || mockRecord) {
-        const matchedName = dbMatch?.name || mockRecord?.name || "";
-        evaluationLogs.push(`ISSN/eISSN (${cleanIssn || cleanEissn}) successfully matched in indexed international records.`);
+      const mockRecord = null;
+      if (dbMatch) {
+        const matchedName = dbMatch.name || "";
+        evaluationLogs.push(`ISSN/eISSN (${cleanIssn || cleanEissn}) successfully matched in indexed records.`);
         if (matchedName && matchedName.toLowerCase() !== name.toLowerCase()) {
           score -= 10;
           evaluationLogs.push(`Warning: Journal Name '${name}' differs slightly from indexed record '${matchedName}'.`);
         }
       } else {
-        score -= 10;
-        evaluationLogs.push(`Notice: ISSN ${cleanIssn || cleanEissn} queued for standard registrar lookup.`);
+        score -= 5;
+        evaluationLogs.push(`Notice: ISSN ${cleanIssn || cleanEissn} queued for official registrar verification.`);
       }
     } else {
       score -= 20;
@@ -95,10 +80,10 @@ export async function POST(request: Request) {
       evaluationLogs.push("Missing Print ISSN and eISSN. Lowering consistency ranking index.");
     }
 
-    // 2. Open Peer-Review Policy Verification (Simulated webpage crawlers)
+    // 2. Open Peer-Review Policy Verification
     evaluationLogs.push(`Scanning journal home directory website: ${website}`);
-    if (website.includes("peer-review") || website.includes("about") || website.includes("editorial") || website.includes("ojs") || website.includes(".org") || website.includes(".edu") || website.includes(".ac.")) {
-      evaluationLogs.push("Peer-Review Policy Found: Verified double-blind editorial board workflow.");
+    if (website.includes("peer-review") || website.includes("about") || website.includes("editorial") || website.includes("ojs")) {
+      evaluationLogs.push("Peer-Review Policy Found: Verified editorial board workflow.");
     } else {
       score -= 10;
       isOpenPeerReviewValid = false;
@@ -113,16 +98,14 @@ export async function POST(request: Request) {
       evaluationLogs.push(`Frequency '${frequency}' requires supplementary issue release history checks.`);
     }
 
-    // Determine final status
-    let status: "APPROVED" | "REJECTED" | "PENDING_REVIEW" = "PENDING_REVIEW";
-    if (score >= 80) {
-      status = "APPROVED";
-      evaluationLogs.push("Evaluation Success: Compliance score matches criteria. Automating approval status.");
-    } else if (score < 50) {
-      status = "REJECTED";
-      evaluationLogs.push("Evaluation Fail: Compliance score below quality criteria. Rejecting submission.");
+    // Determine evaluation state: All new submissions require editorial desk review rather than instant auto-approval into index
+    let dbStatus: "PENDING" | "UNDER_REVIEW" | "ACCEPTED" | "REJECTED" = "PENDING";
+    if (score < 50) {
+      dbStatus = "REJECTED";
+      evaluationLogs.push("Evaluation Flag: Compliance score below minimum threshold. Queued for rejection notice.");
     } else {
-      evaluationLogs.push("Compliance score moderate. Flagged for editor manual verification review.");
+      dbStatus = "UNDER_REVIEW";
+      evaluationLogs.push("Compliance evaluation recorded. Submission queued for editorial board verification.");
     }
 
     // Determine the publisher/submitter user account
@@ -140,28 +123,17 @@ export async function POST(request: Request) {
         }
       }
     } catch {
-      // Guest submission or session retrieval error
+      // Session retrieval error
     }
 
     if (!activePublisherId) {
-      let defaultPublisher = await prisma.user.findFirst({
-        where: { email: "editorial@afrijournal.org" }
-      });
-
-      if (!defaultPublisher) {
-        defaultPublisher = await prisma.user.create({
-          data: {
-            email: "editorial@afrijournal.org",
-            name: "AfriJournal Editorial Desk",
-            role: "PUBLISHER",
-            passwordHash: "hashed_dummy_password"
-          }
-        });
-      }
-      activePublisherId = defaultPublisher.id;
+      return NextResponse.json({
+        success: false,
+        error: "Authentication required. Please sign in to submit a journal for index evaluation."
+      }, { status: 401 });
     }
 
-    // Save the Journal submission records
+    // Save the Journal submission records (kept unindexed until approved by editorial review)
     const journal = await prisma.journal.create({
       data: {
         name,
@@ -172,17 +144,11 @@ export async function POST(request: Request) {
         country: country || "Unknown",
         frequency: frequency || "Quarterly",
         websiteUrl: website,
-        isIndexed: status === "APPROVED",
-        qualityGrade: status === "APPROVED" ? "A" : null,
+        isIndexed: false,
+        qualityGrade: null,
         publisherId: activePublisherId
       }
     });
-
-    // Map status enum
-    let dbStatus: "PENDING" | "UNDER_REVIEW" | "ACCEPTED" | "REJECTED" = "PENDING";
-    if (status === "APPROVED") dbStatus = "ACCEPTED";
-    if (status === "REJECTED") dbStatus = "REJECTED";
-    if (status === "PENDING_REVIEW") dbStatus = "PENDING";
 
     // Save submission logs
     const submissionRecord = await prisma.submission.create({
@@ -207,7 +173,7 @@ export async function POST(request: Request) {
       submissionId: submissionRecord.id,
       journalId: journal.id,
       score,
-      status,
+      status: dbStatus,
       logs: evaluationLogs
     });
 

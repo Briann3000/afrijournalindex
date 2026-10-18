@@ -60,77 +60,64 @@ export async function GET(request: Request) {
 
     // 1. LEADERBOARD MODE
     if (view === "leaderboard" || (!name && !searchParams.get("detail"))) {
-      // Collect DB-specific publisher and journal counts efficiently using _count
-      const dbJournals = await prisma.journal.findMany({
-        select: {
-          id: true,
-          name: true,
-          publisherName: true,
-          country: true,
+      // Query authentic institutions from the database
+      const dbInstitutions = await prisma.institution.findMany({
+        include: {
           _count: {
             select: {
-              articles: true
+              facultyMembers: true
             }
           }
         }
       });
 
-      // Aggregate DB stats by publisher name
-      const dbInstMap = new Map<string, { country: string; publications: number; citations: number; journalsCount: number }>();
+      // Query affiliated journals by publisher
+      const dbJournals = await prisma.journal.findMany({
+        select: {
+          id: true,
+          publisherName: true,
+          country: true
+        }
+      });
+
+      const journalCountsByPublisher = new Map<string, number>();
       for (const j of dbJournals) {
         if (!j.publisherName) continue;
-        const pubKey = j.publisherName.trim();
-        const existing = dbInstMap.get(pubKey) || {
-          country: j.country || "Africa",
-          publications: 0,
-          citations: 0,
-          journalsCount: 0
-        };
-        const pubArts = j._count?.articles || 0;
-        const pubCits = Math.round(pubArts * 12.5);
-        existing.publications += pubArts;
-        existing.citations += pubCits;
-        existing.journalsCount += 1;
-        dbInstMap.set(pubKey, existing);
+        const key = j.publisherName.trim().toLowerCase();
+        journalCountsByPublisher.set(key, (journalCountsByPublisher.get(key) || 0) + 1);
       }
 
-      // Merge continental benchmarks with DB records
-      const combinedMap = new Map<string, BenchmarkUniversity>();
+      let leaderboard: BenchmarkUniversity[] = [];
 
-      for (const b of CONTINENTAL_BENCHMARKS) {
-        combinedMap.set(b.name.toLowerCase(), {
-          ...b,
-          rank: 0
+      if (dbInstitutions.length > 0) {
+        leaderboard = dbInstitutions.map(inst => {
+          const instKey = inst.name.toLowerCase();
+          let affiliatedJournalsCount = 0;
+          for (const [pubKey, count] of journalCountsByPublisher.entries()) {
+            if (pubKey.includes(instKey) || instKey.includes(pubKey)) {
+              affiliatedJournalsCount += count;
+            }
+          }
+
+          const avgCits = inst.totalPublications > 0
+            ? (inst.totalCitations / inst.totalPublications).toFixed(2)
+            : "0.00";
+
+          return {
+            name: inst.name,
+            country: inst.country,
+            totalPublications: inst.totalPublications,
+            totalCitations: inst.totalCitations,
+            averageCitations: avgCits,
+            institutionalHIndex: inst.institutionalHIndex,
+            topDiscipline: inst.topDiscipline || "Multidisciplinary",
+            affiliatedJournalsCount
+          };
         });
+      } else {
+        // Fallback to continental benchmarks if DB has not yet been populated
+        leaderboard = CONTINENTAL_BENCHMARKS.map(b => ({ ...b }));
       }
-
-      // Merge DB-specific records
-      for (const [pubName, stats] of dbInstMap.entries()) {
-        const key = pubName.toLowerCase();
-        if (combinedMap.has(key)) {
-          const item = combinedMap.get(key)!;
-          item.totalPublications += stats.publications;
-          item.totalCitations += stats.citations;
-          item.affiliatedJournalsCount += stats.journalsCount;
-          item.averageCitations = item.totalPublications > 0 ? (item.totalCitations / item.totalPublications).toFixed(2) : "0.00";
-          item.institutionalHIndex = Math.max(item.institutionalHIndex, Math.min(Math.floor(Math.sqrt(item.totalCitations)), item.totalPublications));
-        } else if (stats.publications > 0 || stats.journalsCount > 0) {
-          const totalPublications = Math.max(stats.publications, 10);
-          const totalCitations = Math.max(stats.citations, 25);
-          combinedMap.set(key, {
-            name: pubName,
-            country: stats.country,
-            totalPublications,
-            totalCitations,
-            averageCitations: (totalCitations / totalPublications).toFixed(2),
-            institutionalHIndex: Math.min(Math.floor(Math.sqrt(totalCitations)), totalPublications),
-            topDiscipline: "Multidisciplinary",
-            affiliatedJournalsCount: stats.journalsCount
-          });
-        }
-      }
-
-      let leaderboard = Array.from(combinedMap.values());
 
       // Apply Filters
       if (countryFilter && countryFilter !== "All") {
@@ -158,7 +145,7 @@ export async function GET(request: Request) {
       } else if (sortBy === "hIndex") {
         leaderboard.sort((a, b) => b.institutionalHIndex - a.institutionalHIndex || b.totalCitations - a.totalCitations);
       } else {
-        // default rank (composite power score = totalCitations * 0.6 + totalPublications * 20 + hIndex * 50)
+        // composite power score = totalCitations * 0.6 + totalPublications * 20 + hIndex * 50
         leaderboard.sort((a, b) => {
           const scoreA = (a.totalCitations * 0.6) + (a.totalPublications * 20) + (a.institutionalHIndex * 50);
           const scoreB = (b.totalCitations * 0.6) + (b.totalPublications * 20) + (b.institutionalHIndex * 50);
@@ -172,16 +159,14 @@ export async function GET(request: Request) {
         rank: idx + 1
       }));
 
-      // Extract unique countries for filters from benchmarks & DB
-      const dbCountries = Array.from(new Set(dbJournals.map(j => j.country).filter(Boolean)));
-      const benchmarkCountries = CONTINENTAL_BENCHMARKS.map(b => b.country);
-      const allCountries = Array.from(new Set([...benchmarkCountries, ...dbCountries])).sort();
+      // Extract unique countries
+      const uniqueCountries = Array.from(new Set(leaderboard.map(i => i.country).filter(Boolean))).sort();
 
       return NextResponse.json({
         success: true,
         leaderboard,
         totalInstitutions: leaderboard.length,
-        countries: allCountries
+        countries: uniqueCountries
       });
     }
 
@@ -242,9 +227,19 @@ export async function GET(request: Request) {
     else if (instLower.includes("kwazulu")) specificDomain = "ukzn.ac.za";
     else if (instLower.includes("lagos")) specificDomain = "unilag.edu.ng";
 
+    const dbInstitution = await prisma.institution.findFirst({
+      where: {
+        OR: [
+          { name: { contains: institutionName } },
+          ...(specificDomain ? [{ domain: { contains: specificDomain } }] : [])
+        ]
+      }
+    });
+
     const faculty = await prisma.user.findMany({
       where: {
         OR: [
+          ...(dbInstitution ? [{ institutionId: dbInstitution.id }] : []),
           { institution: { contains: institutionName } },
           ...(specificDomain ? [{ email: { contains: specificDomain } }] : [])
         ]
@@ -255,7 +250,13 @@ export async function GET(request: Request) {
         email: true,
         orcid: true,
         institution: true,
+        department: true,
         bio: true,
+        totalCitations: true,
+        hIndex: true,
+        i10Index: true,
+        googleScholarUrl: true,
+        isClaimed: true,
         claims: {
           where: { status: "VERIFIED" },
           select: {
@@ -277,12 +278,17 @@ export async function GET(request: Request) {
       const articles = (f.claims || []).map(c => c.article).filter(Boolean);
       const articlesCount = articles.length;
 
-      // Check Tier-1 Google Scholar precedence
+      // Check Tier-1 Google Scholar precedence or synced DB metrics
       const verifiedScholar = getScholarScientometrics({
         id: f.id,
         name: f.name,
         orcid: f.orcid,
-        bio: f.bio
+        bio: f.bio,
+        totalCitations: f.totalCitations,
+        hIndex: f.hIndex,
+        i10Index: f.i10Index,
+        googleScholarUrl: f.googleScholarUrl,
+        department: f.department
       });
 
       const citationCounts: number[] = articles.map(a => {
@@ -292,10 +298,10 @@ export async function GET(request: Request) {
 
       const totalCitations = verifiedScholar 
         ? verifiedScholar.totalCitations 
-        : citationCounts.reduce((acc, c) => acc + c, 0);
+        : (f.totalCitations > 0 ? f.totalCitations : citationCounts.reduce((acc, c) => acc + c, 0));
 
-      let hIndex = verifiedScholar ? verifiedScholar.hIndex : 0;
-      if (!verifiedScholar) {
+      let hIndex = verifiedScholar ? verifiedScholar.hIndex : (f.hIndex > 0 ? f.hIndex : 0);
+      if (!verifiedScholar && !f.hIndex) {
         for (let i = 0; i < citationCounts.length; i++) {
           if (citationCounts[i] >= i + 1) {
             hIndex = i + 1;
@@ -313,6 +319,8 @@ export async function GET(request: Request) {
         if (dMatch && dMatch[1]) discipline = dMatch[1].trim();
       } else if (verifiedScholar?.researchInterests && verifiedScholar.researchInterests.length > 0) {
         discipline = verifiedScholar.researchInterests[0];
+      } else if (f.department) {
+        discipline = f.department;
       } else if (bioText.includes("[Interests:")) {
         const iMatch = bioText.match(/\[Interests:\s*(.*?)\]/);
         if (iMatch && iMatch[1]) {
@@ -330,13 +338,15 @@ export async function GET(request: Request) {
         email: f.email,
         orcid: f.orcid,
         institution: f.institution || institutionName,
+        department: f.department || verifiedScholar?.department,
         discipline,
         articlesCount,
         totalCitations,
         hIndex,
+        isClaimed: f.isClaimed,
         isVerified: Boolean(isAcademic || (f.orcid && f.institution)),
         verifiedDomain: isAcademic ? emailDomain : (f.institution ? `${f.institution.toLowerCase().replace(/[^a-z]/g, "").slice(0, 14)}.ac` : "academic.org"),
-        googleScholarUrl: verifiedScholar?.googleScholarUrl
+        googleScholarUrl: verifiedScholar?.googleScholarUrl || f.googleScholarUrl
       };
     }).sort((a, b) => b.totalCitations - a.totalCitations || b.hIndex - a.hIndex || b.articlesCount - a.articlesCount);
 
@@ -348,16 +358,9 @@ export async function GET(request: Request) {
     // Benchmark match fallback
     const benchmarkMatch = CONTINENTAL_BENCHMARKS.find(b => b.name.toLowerCase().includes(institutionName.toLowerCase()) || institutionName.toLowerCase().includes(b.name.toLowerCase()));
 
-    let totalPublications = articles.length;
-    let totalCitations = articles.reduce((sum, art) => sum + art.citedBy.length, 0);
-
-    if (totalPublications === 0 && benchmarkMatch) {
-      totalPublications = benchmarkMatch.totalPublications;
-      totalCitations = benchmarkMatch.totalCitations;
-    } else if (totalPublications === 0) {
-      totalPublications = 14;
-      totalCitations = 38;
-    }
+    let totalPublications = dbInstitution?.totalPublications || (articles.length > 0 ? articles.length : (benchmarkMatch?.totalPublications || 100));
+    let totalCitations = dbInstitution?.totalCitations || (articles.reduce((sum, art) => sum + art.citedBy.length, 0) || benchmarkMatch?.totalCitations || 500);
+    let institutionalHIndex = dbInstitution?.institutionalHIndex || (benchmarkMatch ? benchmarkMatch.institutionalHIndex : Math.min(Math.floor(Math.sqrt(totalCitations)), totalPublications));
 
     const averageCitations = totalPublications > 0 ? (totalCitations / totalPublications).toFixed(2) : "0.00";
 
@@ -374,24 +377,19 @@ export async function GET(request: Request) {
     }
 
     if (Object.keys(disciplineCount).length === 0) {
-      if (benchmarkMatch) {
-        disciplineCount[benchmarkMatch.topDiscipline] = { 
-          publications: Math.floor(totalPublications * 0.45), 
-          citations: Math.floor(totalCitations * 0.50) 
-        };
-        disciplineCount["Social Sciences & Humanities"] = { 
-          publications: Math.floor(totalPublications * 0.30), 
-          citations: Math.floor(totalCitations * 0.28) 
-        };
-        disciplineCount["Agricultural & Environmental Sciences"] = { 
-          publications: Math.floor(totalPublications * 0.25), 
-          citations: Math.floor(totalCitations * 0.22) 
-        };
-      } else {
-        disciplineCount["Health Sciences"] = { publications: 6, citations: 18 };
-        disciplineCount["Social Sciences & Humanities"] = { publications: 5, citations: 12 };
-        disciplineCount["Agricultural & Environmental Sciences"] = { publications: 3, citations: 8 };
-      }
+      const topDisc = dbInstitution?.topDiscipline || benchmarkMatch?.topDiscipline || "Health Sciences";
+      disciplineCount[topDisc] = { 
+        publications: Math.floor(totalPublications * 0.45), 
+        citations: Math.floor(totalCitations * 0.50) 
+      };
+      disciplineCount["Social Sciences & Humanities"] = { 
+        publications: Math.floor(totalPublications * 0.30), 
+        citations: Math.floor(totalCitations * 0.28) 
+      };
+      disciplineCount["Agricultural & Environmental Sciences"] = { 
+        publications: Math.floor(totalPublications * 0.25), 
+        citations: Math.floor(totalCitations * 0.22) 
+      };
     }
 
     // Group and map affiliated journals
@@ -415,12 +413,16 @@ export async function GET(request: Request) {
     }
 
     const institutionData = {
-      name: benchmarkMatch ? benchmarkMatch.name : institutionName,
-      country: benchmarkMatch ? benchmarkMatch.country : "African Institution",
+      id: dbInstitution?.id,
+      name: dbInstitution?.name || (benchmarkMatch ? benchmarkMatch.name : institutionName),
+      country: dbInstitution?.country || (benchmarkMatch ? benchmarkMatch.country : "African Institution"),
+      domain: dbInstitution?.domain,
+      websiteUrl: dbInstitution?.websiteUrl,
+      isClaimed: dbInstitution?.isClaimed || false,
       totalPublications,
       totalCitations,
       averageCitations,
-      institutionalHIndex: benchmarkMatch ? benchmarkMatch.institutionalHIndex : Math.min(Math.floor(Math.sqrt(totalCitations)), totalPublications),
+      institutionalHIndex,
       totalFacultyIndexed,
       facultyTotalCitations,
       topFacultyHIndex,

@@ -103,6 +103,116 @@ function ResearcherProfileContent() {
   const [coAuthorsExpanded, setCoAuthorsExpanded] = useState<boolean>(false);
   const [coAuthorsCardMinimized, setCoAuthorsCardMinimized] = useState<boolean>(false);
 
+  // Profile Claiming States
+  const claimParam = searchParams.get("claim") === "true";
+  const [showClaimProfileModal, setShowClaimProfileModal] = useState<boolean>(claimParam);
+  const [claimTab, setClaimTab] = useState<"email" | "orcid">("email");
+  const [claimEmailInput, setClaimEmailInput] = useState<string>("");
+  const [claimOtpInput, setClaimOtpInput] = useState<string>("");
+  const [claimPasswordInput, setClaimPasswordInput] = useState<string>("");
+  const [claimOrcidInput, setClaimOrcidInput] = useState<string>("");
+  const [claimStep, setClaimStep] = useState<"request" | "verify">("request");
+  const [claimLoading, setClaimLoading] = useState<boolean>(false);
+  const [claimSuccessMessage, setClaimSuccessMessage] = useState<string | null>(null);
+  const [claimErrorMessage, setClaimErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (claimParam) {
+      setShowClaimProfileModal(true);
+    }
+  }, [claimParam]);
+
+  const handleRequestClaimOtp = async () => {
+    if (!targetId) return;
+    setClaimLoading(true);
+    setClaimErrorMessage(null);
+    setClaimSuccessMessage(null);
+    try {
+      const res = await fetch("/api/scholars/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "request_otp",
+          scholarId: targetId,
+          email: claimEmailInput.trim() || undefined
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setClaimStep("verify");
+        setClaimSuccessMessage(json.message);
+      } else {
+        setClaimErrorMessage(json.error || "Failed to send verification code.");
+      }
+    } catch {
+      setClaimErrorMessage("Network error requesting verification code.");
+    } finally {
+      setClaimLoading(false);
+    }
+  };
+
+  const handleVerifyClaimOtp = async () => {
+    if (!targetId) return;
+    setClaimLoading(true);
+    setClaimErrorMessage(null);
+    try {
+      const res = await fetch("/api/scholars/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "verify_otp",
+          scholarId: targetId,
+          otp: claimOtpInput.trim(),
+          newPassword: claimPasswordInput
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setClaimSuccessMessage("Profile verified and claimed successfully!");
+        setTimeout(() => {
+          window.location.href = `/researcher?id=${targetId}`;
+        }, 1200);
+      } else {
+        setClaimErrorMessage(json.error || "Failed to verify code.");
+      }
+    } catch {
+      setClaimErrorMessage("Network error verifying code.");
+    } finally {
+      setClaimLoading(false);
+    }
+  };
+
+  const handleClaimViaOrcid = async () => {
+    if (!targetId) return;
+    setClaimLoading(true);
+    setClaimErrorMessage(null);
+    try {
+      const res = await fetch("/api/scholars/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "claim_orcid",
+          scholarId: targetId,
+          orcid: claimOrcidInput.trim(),
+          newPassword: claimPasswordInput
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setClaimSuccessMessage("Profile verified and claimed successfully via official ORCID registry!");
+        setTimeout(() => {
+          window.location.href = `/researcher?id=${targetId}`;
+        }, 1200);
+      } else {
+        setClaimErrorMessage(json.error || "ORCID verification failed.");
+      }
+    } catch {
+      setClaimErrorMessage("Network error verifying ORCID.");
+    } finally {
+      setClaimLoading(false);
+    }
+  };
+
   const handleSearchUnclaimedJournals = async (q: string) => {
     setClaimJournalSearch(q);
     if (q.trim().length < 2) {
@@ -944,6 +1054,64 @@ function ResearcherProfileContent() {
 
       <main className="container" style={{ padding: "2.5rem 1rem 6rem", maxWidth: "1080px" }}>
         
+        {/* Unclaimed Profile Notice Banner */}
+        {!profile.isClaimed && (
+          <div style={{
+            background: "linear-gradient(135deg, rgba(234, 88, 12, 0.08), rgba(249, 115, 22, 0.04))",
+            border: "1px solid rgba(234, 88, 12, 0.25)",
+            padding: "1rem 1.35rem",
+            borderRadius: "12px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "1.5rem",
+            gap: "1rem",
+            flexWrap: "wrap"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1, minWidth: "260px" }}>
+              <div style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
+                background: "rgba(234, 88, 12, 0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0
+              }}>
+                <i className="fa-solid fa-key" style={{ color: "#ea580c", fontSize: "1.1rem" }}></i>
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#9a3412" }}>
+                  Unclaimed Scholar Profile
+                </div>
+                <div style={{ fontSize: "0.84rem", color: "#c2410c", marginTop: "2px" }}>
+                  Are you <strong>{profile.name}</strong>? This profile has been curated from verified academic registries. Claim your profile to edit affiliations, manage works, and access your dashboard.
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowClaimProfileModal(true)}
+              className="btn btn-sm"
+              style={{
+                background: "#ea580c",
+                color: "#ffffff",
+                fontWeight: 700,
+                padding: "0.55rem 1.25rem",
+                borderRadius: "8px",
+                border: "none",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "0.85rem"
+              }}
+            >
+              <i className="fa-solid fa-check-to-slot"></i> Claim Profile
+            </button>
+          </div>
+        )}
+
         {/* 1. Scholar Identity Header Card (Clean Academic Design - No AI Cliches) */}
         <div 
           className="card-surface" 
@@ -1145,6 +1313,29 @@ function ResearcherProfileContent() {
 
             {/* Right: Clean Action Toolbar */}
             <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem", minWidth: "190px" }}>
+              {!profile.isClaimed && (
+                <button
+                  onClick={() => setShowClaimProfileModal(true)}
+                  className="btn btn-primary"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.5rem",
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    padding: "0.55rem 1rem",
+                    borderRadius: "8px",
+                    background: "#ea580c",
+                    borderColor: "#ea580c",
+                    color: "#ffffff"
+                  }}
+                >
+                  <i className="fa-solid fa-key"></i>
+                  <span>Claim Profile</span>
+                </button>
+              )}
+
               {isOwner ? (
                 <button
                   onClick={() => setShowEditProfileModal(true)}
@@ -3410,6 +3601,319 @@ function ResearcherProfileContent() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Claim Scholar Profile Modal */}
+        {showClaimProfileModal && (
+          <div 
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(15, 23, 42, 0.75)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              padding: "1rem"
+            }}
+            onClick={() => setShowClaimProfileModal(false)}
+          >
+            <div 
+              className="card-surface" 
+              onClick={e => e.stopPropagation()} 
+              style={{ 
+                width: "100%",
+                maxWidth: "580px", 
+                maxHeight: "90vh",
+                overflowY: "auto",
+                padding: "2rem", 
+                borderRadius: "16px",
+                background: "var(--color-bg-card)",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                border: "1px solid var(--color-border)"
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.2rem" }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <i className="fa-solid fa-key" style={{ color: "#ea580c", fontSize: "1.2rem" }}></i>
+                    <h3 style={{ margin: 0, fontSize: "1.3rem", fontWeight: 800, color: "var(--color-text-main)" }}>
+                      Claim Researcher Profile
+                    </h3>
+                  </div>
+                  <p style={{ margin: "0.3rem 0 0", fontSize: "0.86rem", color: "var(--color-text-muted)" }}>
+                    Verify your identity to claim <strong>{profile.name}</strong> ({profile.institution || "African Academic Institution"}).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowClaimProfileModal(false)}
+                  style={{ background: "transparent", border: "none", fontSize: "1.2rem", cursor: "pointer", color: "var(--color-text-muted)" }}
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              {/* Authentication Notice if not signed in */}
+              {!currentUser && (
+                <div style={{ padding: "1.1rem 1.25rem", borderRadius: "10px", background: "rgba(2, 132, 199, 0.06)", border: "1px solid rgba(2, 132, 199, 0.2)", marginBottom: "1.25rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "0.35rem" }}>
+                    <i className="fa-solid fa-user-lock" style={{ color: "var(--color-primary)", fontSize: "0.95rem" }}></i>
+                    <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--color-text-main)" }}>
+                      Account Authentication
+                    </span>
+                  </div>
+                  <p style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", margin: "0 0 0.85rem", lineHeight: 1.45 }}>
+                    Already have an AfriJournal account? Sign in to claim this profile directly. New scholar? Verify your email OTP or ORCID below to claim and activate your account.
+                  </p>
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                    <a 
+                      href={`/login?redirect=${encodeURIComponent(`/researcher?id=${targetId}&claim=true`)}`} 
+                      className="btn btn-primary btn-sm"
+                      style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                    >
+                      <i className="fa-solid fa-right-to-bracket"></i> Sign In to Account
+                    </a>
+                    <a 
+                      href={`/register?role=researcher&claimId=${encodeURIComponent(targetId)}`} 
+                      className="btn btn-secondary btn-sm"
+                      style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                    >
+                      <i className="fa-solid fa-user-plus"></i> Register
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* Claim Verification Method Tabs */}
+              <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", borderBottom: "1px solid var(--color-border)", paddingBottom: "0.5rem" }}>
+                <button
+                  type="button"
+                  onClick={() => { setClaimTab("email"); setClaimErrorMessage(null); setClaimSuccessMessage(null); }}
+                  style={{
+                    flex: 1,
+                    padding: "0.6rem",
+                    borderRadius: "8px",
+                    border: "none",
+                    background: claimTab === "email" ? "var(--color-primary)" : "var(--color-bg-card-subtle)",
+                    color: claimTab === "email" ? "#ffffff" : "var(--color-text-muted)",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px"
+                  }}
+                >
+                  <i className="fa-solid fa-envelope"></i>
+                  <span>Institutional Email OTP</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setClaimTab("orcid"); setClaimErrorMessage(null); setClaimSuccessMessage(null); }}
+                  style={{
+                    flex: 1,
+                    padding: "0.6rem",
+                    borderRadius: "8px",
+                    border: "none",
+                    background: claimTab === "orcid" ? "#a6ce39" : "var(--color-bg-card-subtle)",
+                    color: claimTab === "orcid" ? "#1e293b" : "var(--color-text-muted)",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px"
+                  }}
+                >
+                  <i className="fa-brands fa-orcid"></i>
+                  <span>Official ORCID Registry</span>
+                </button>
+              </div>
+
+              {/* Status Notifications */}
+              {claimSuccessMessage && (
+                <div style={{ background: "rgba(22, 163, 74, 0.1)", border: "1px solid rgba(22, 163, 74, 0.3)", color: "#16a34a", padding: "0.75rem 1rem", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <i className="fa-solid fa-circle-check"></i>
+                  <span>{claimSuccessMessage}</span>
+                </div>
+              )}
+
+              {claimErrorMessage && (
+                <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.3)", color: "#dc2626", padding: "0.75rem 1rem", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <i className="fa-solid fa-triangle-exclamation"></i>
+                  <span>{claimErrorMessage}</span>
+                </div>
+              )}
+
+              {/* TAB 1: Institutional Email OTP */}
+              {claimTab === "email" && (
+                <div>
+                  {claimStep === "request" ? (
+                    <div>
+                      <p style={{ fontSize: "0.85rem", color: "var(--color-text-body)", lineHeight: 1.5, marginBottom: "1.2rem" }}>
+                        We will send a 6-digit one-time code to your registered academic email address or an official university email matching your institution.
+                      </p>
+                      <div style={{ marginBottom: "1.2rem" }}>
+                        <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
+                          Academic Email Address
+                        </label>
+                        <input
+                          type="email"
+                          value={claimEmailInput}
+                          onChange={e => setClaimEmailInput(e.target.value)}
+                          placeholder="e.g. name@university.ac.ke or university.ac.za"
+                          className="form-control"
+                          style={{ width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.9rem" }}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRequestClaimOtp}
+                        disabled={claimLoading}
+                        className="btn btn-primary"
+                        style={{ width: "100%", padding: "0.75rem", borderRadius: "8px", fontWeight: 700, fontSize: "0.9rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                      >
+                        {claimLoading ? (
+                          <>
+                            <i className="fa-solid fa-spinner fa-spin"></i>
+                            <span>Sending Verification Code...</span>
+                          </>
+                        ) : (
+                          <>
+                            <i className="fa-solid fa-paper-plane"></i>
+                            <span>Send 6-Digit Code</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <p style={{ fontSize: "0.85rem", color: "var(--color-text-body)", lineHeight: 1.5, marginBottom: "1.2rem" }}>
+                        Enter the 6-digit code sent to your academic email address and choose a permanent password for your AfriJournal researcher portal.
+                      </p>
+                      <div style={{ marginBottom: "1rem" }}>
+                        <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
+                          6-Digit Verification Code
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={claimOtpInput}
+                          onChange={e => setClaimOtpInput(e.target.value)}
+                          placeholder="123456"
+                          className="form-control"
+                          style={{ width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "1.2rem", fontWeight: 800, letterSpacing: "4px", textAlign: "center" }}
+                        />
+                      </div>
+                      <div style={{ marginBottom: "1.2rem" }}>
+                        <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
+                          Choose New Permanent Password (min. 8 characters)
+                        </label>
+                        <input
+                          type="password"
+                          value={claimPasswordInput}
+                          onChange={e => setClaimPasswordInput(e.target.value)}
+                          placeholder="••••••••"
+                          className="form-control"
+                          style={{ width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.9rem" }}
+                        />
+                      </div>
+                      <div style={{ display: "flex", gap: "0.6rem" }}>
+                        <button
+                          type="button"
+                          onClick={() => setClaimStep("request")}
+                          className="btn btn-secondary"
+                          style={{ padding: "0.75rem 1rem", borderRadius: "8px", fontSize: "0.85rem" }}
+                        >
+                          Back
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleVerifyClaimOtp}
+                          disabled={claimLoading}
+                          className="btn btn-primary"
+                          style={{ flex: 1, padding: "0.75rem", borderRadius: "8px", fontWeight: 700, fontSize: "0.9rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                        >
+                          {claimLoading ? (
+                            <>
+                              <i className="fa-solid fa-spinner fa-spin"></i>
+                              <span>Verifying...</span>
+                            </>
+                          ) : (
+                            <>
+                              <i className="fa-solid fa-check"></i>
+                              <span>Verify & Activate Profile</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 2: Official ORCID Registry */}
+              {claimTab === "orcid" && (
+                <div>
+                  <p style={{ fontSize: "0.85rem", color: "var(--color-text-body)", lineHeight: 1.5, marginBottom: "1.2rem" }}>
+                    Instant identity verification: provide your official 16-digit ORCID iD. We will verify your identity against the international ORCID registry.
+                  </p>
+                  <div style={{ marginBottom: "1rem" }}>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
+                      Your ORCID iD
+                    </label>
+                    <input
+                      type="text"
+                      value={claimOrcidInput}
+                      onChange={e => setClaimOrcidInput(e.target.value)}
+                      placeholder="0000-0002-1825-0097"
+                      className="form-control"
+                      style={{ width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.9rem" }}
+                    />
+                  </div>
+                  <div style={{ marginBottom: "1.2rem" }}>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
+                      Set Account Password (min. 8 characters)
+                    </label>
+                    <input
+                      type="password"
+                      value={claimPasswordInput}
+                      onChange={e => setClaimPasswordInput(e.target.value)}
+                      placeholder="••••••••"
+                      className="form-control"
+                      style={{ width: "100%", padding: "0.65rem 0.9rem", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.9rem" }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleClaimViaOrcid}
+                    disabled={claimLoading}
+                    className="btn btn-primary"
+                    style={{ width: "100%", padding: "0.75rem", borderRadius: "8px", fontWeight: 700, fontSize: "0.9rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                  >
+                    {claimLoading ? (
+                      <>
+                        <i className="fa-solid fa-spinner fa-spin"></i>
+                        <span>Verifying with ORCID...</span>
+                      </>
+                    ) : (
+                      <>
+                        <i className="fa-brands fa-orcid"></i>
+                        <span>Verify ORCID & Claim Profile</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

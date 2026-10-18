@@ -175,7 +175,36 @@ export async function POST(request: Request) {
       });
     }
 
-    // 5. Transfer/Assign ownership to current user
+    // 5. Verification Check: Claimant email domain vs Journal official website
+    const candidateEmail = (editorialEmail || user.email).toLowerCase().trim();
+    const candidateDomain = candidateEmail.includes("@") ? candidateEmail.split("@")[1] : "";
+    
+    // Extract domain from journal's websiteUrl if available
+    let journalDomain = "";
+    if (journal.websiteUrl) {
+      try {
+        const parsedUrl = new URL(journal.websiteUrl.startsWith("http") ? journal.websiteUrl : `https://${journal.websiteUrl}`);
+        journalDomain = parsedUrl.hostname.replace(/^www\./, "").toLowerCase();
+      } catch {
+        journalDomain = "";
+      }
+    }
+
+    // If user is not an ADMIN, enforce verification against public domains (block arbitrary free webmails if journal has an official domain)
+    const isFreeWebmail = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com", "icloud.com"].includes(candidateDomain);
+    
+    if (user.role !== "ADMIN") {
+      if (journalDomain && !candidateDomain.includes(journalDomain) && !journalDomain.includes(candidateDomain)) {
+        if (isFreeWebmail) {
+          return NextResponse.json({
+            success: false,
+            error: `To claim "${journal.name}", please provide your official editorial email matching the journal or university publishing domain (@${journalDomain}). Free webmail addresses (@${candidateDomain}) cannot directly claim indexed journals without editorial email verification.`
+          }, { status: 400 });
+        }
+      }
+    }
+
+    // 6. Transfer/Assign ownership to current user
     await prisma.journal.update({
       where: { id: journal.id },
       data: {
