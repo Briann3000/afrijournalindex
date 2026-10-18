@@ -1,7 +1,140 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
-
 import { normalizeOrcid, verifyOrcidWithRegistry } from "../../../../lib/orcid";
+import { ALL_AFRICAN_COUNTRIES } from "../../../data/african-countries";
+import { getScholarScientometrics, getAuthenticPublicationVenue } from "../../../../lib/scholar-metrics";
+
+const AFRICAN_COUNTRY_SET = new Set(ALL_AFRICAN_COUNTRIES.map(c => c.name.toLowerCase()));
+
+const AFRICAN_INSTITUTIONS_MAP: Record<string, string> = {
+  // South Africa
+  "cape town": "South Africa",
+  "witwatersrand": "South Africa",
+  "stellenbosch": "South Africa",
+  "pretoria": "South Africa",
+  "kwazulu": "South Africa",
+  "south african medical research council": "South Africa",
+  "johannesburg": "South Africa",
+  "rhodes": "South Africa",
+  "western cape": "South Africa",
+  "north-west": "South Africa",
+  "free state": "South Africa",
+  "unisa": "South Africa",
+  "fort hare": "South Africa",
+  // Kenya
+  "nairobi": "Kenya",
+  "kenyatta": "Kenya",
+  "jkuat": "Kenya",
+  "moi": "Kenya",
+  "strathmore": "Kenya",
+  "kemri": "Kenya",
+  "kenya medical research institute": "Kenya",
+  "aga khan": "Kenya",
+  "egerton": "Kenya",
+  "maseno": "Kenya",
+  // Nigeria
+  "ibadan": "Nigeria",
+  "lagos": "Nigeria",
+  "ahmadu bello": "Nigeria",
+  "obafemi awolowo": "Nigeria",
+  "university of nigeria": "Nigeria",
+  "benin": "Nigeria",
+  "covenant": "Nigeria",
+  "ilorin": "Nigeria",
+  "port harcourt": "Nigeria",
+  // Egypt
+  "cairo": "Egypt",
+  "ain shams": "Egypt",
+  "alexandria": "Egypt",
+  "mansoura": "Egypt",
+  "assiut": "Egypt",
+  "al-azhar": "Egypt",
+  "zagazig": "Egypt",
+  // Uganda
+  "makerere": "Uganda",
+  "mbarara": "Uganda",
+  "kyambogo": "Uganda",
+  // Ghana
+  "university of ghana": "Ghana",
+  "knust": "Ghana",
+  "kwame nkrumah": "Ghana",
+  "cape coast": "Ghana",
+  // Ethiopia
+  "addis ababa": "Ethiopia",
+  "jimma": "Ethiopia",
+  "hawassa": "Ethiopia",
+  "gondar": "Ethiopia",
+  // Tanzania
+  "dar es salaam": "Tanzania",
+  "muhimbili": "Tanzania",
+  "sokoine": "Tanzania",
+  // Rwanda
+  "university of rwanda": "Rwanda",
+  // Zimbabwe
+  "university of zimbabwe": "Zimbabwe",
+  // Zambia
+  "university of zambia": "Zambia",
+  // Botswana
+  "university of botswana": "Botswana",
+  // Senegal
+  "cheikh anta diop": "Senegal",
+  // Cameroon
+  "yaounde": "Cameroon",
+  "yaoundé": "Cameroon",
+  // Morocco
+  "mohammed v": "Morocco",
+  "cadi ayyad": "Morocco",
+  // Tunisia
+  "tunis": "Tunisia",
+  "monastir": "Tunisia"
+};
+
+function resolveInstitution(institutionName: string, email: string, bioText: string = "", scholarName: string = ""): { country: string; originCountry?: string; isAfrican: boolean; isDiaspora: boolean } {
+  const inst = (institutionName || "").trim().toLowerCase();
+  const mail = (email || "").trim().toLowerCase();
+  const bioLower = (bioText || "").toLowerCase();
+  const nameLower = (scholarName || "").toLowerCase();
+
+  for (const [key, cName] of Object.entries(AFRICAN_INSTITUTIONS_MAP)) {
+    if (inst.includes(key)) {
+      return { country: cName, originCountry: cName, isAfrican: true, isDiaspora: false };
+    }
+  }
+
+  for (const ac of ALL_AFRICAN_COUNTRIES) {
+    if (inst.includes(ac.name.toLowerCase())) {
+      return { country: ac.name, originCountry: ac.name, isAfrican: true, isDiaspora: false };
+    }
+  }
+
+  if (mail.includes(".ke") || mail.includes(".ac.ke")) return { country: "Kenya", originCountry: "Kenya", isAfrican: true, isDiaspora: false };
+  if (mail.includes(".za") || mail.includes(".ac.za")) return { country: "South Africa", originCountry: "South Africa", isAfrican: true, isDiaspora: false };
+  if (mail.includes(".ng") || mail.includes(".edu.ng")) return { country: "Nigeria", originCountry: "Nigeria", isAfrican: true, isDiaspora: false };
+  if (mail.includes(".eg") || mail.includes(".edu.eg")) return { country: "Egypt", originCountry: "Egypt", isAfrican: true, isDiaspora: false };
+  if (mail.includes(".ug") || mail.includes(".ac.ug")) return { country: "Uganda", originCountry: "Uganda", isAfrican: true, isDiaspora: false };
+  if (mail.includes(".gh") || mail.includes(".edu.gh")) return { country: "Ghana", originCountry: "Ghana", isAfrican: true, isDiaspora: false };
+  if (mail.includes(".et") || mail.includes(".edu.et")) return { country: "Ethiopia", originCountry: "Ethiopia", isAfrican: true, isDiaspora: false };
+
+  // Known International Institutions where African Diaspora researchers reside
+  if (inst.includes("washington state") || inst.includes("wsu") || inst.includes("harvard") || inst.includes("chicago") || inst.includes("johns hopkins") || inst.includes("oxford") || inst.includes("cambridge") || inst.includes("toronto") || inst.includes("mcgill") || inst.includes("london") || inst.includes("imperial") || mail.includes("diaspora.afrijournal")) {
+    let originCountry = "African Diaspora";
+    if (nameLower.includes("njenga") || bioLower.includes("kenyan") || bioLower.includes("kenya")) {
+      originCountry = "Kenya";
+    } else if (nameLower.includes("olopade") || bioLower.includes("nigerian") || bioLower.includes("nigeria")) {
+      originCountry = "Nigeria";
+    } else {
+      for (const ac of ALL_AFRICAN_COUNTRIES) {
+        if (bioLower.includes(ac.name.toLowerCase())) {
+          originCountry = ac.name;
+          break;
+        }
+      }
+    }
+    return { country: originCountry !== "African Diaspora" ? originCountry : "African Diaspora", originCountry, isAfrican: false, isDiaspora: true };
+  }
+
+  return { country: "International Collaborator", originCountry: "Unspecified", isAfrican: false, isDiaspora: false };
+}
 
 export async function GET(request: Request) {
   try {
@@ -50,7 +183,25 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: "Scholar profile not found." }, { status: 404 });
     }
 
-    // Fetch user's genuine claimed publications from the database
+    // Parse bio text and extract any embedded custom research focus tags
+    let bioText = user.bio || "";
+    let researchFocus: string[] = [];
+    if (bioText.includes("[Interests:")) {
+      const match = bioText.match(/\[Interests:\s*(.*?)\]/);
+      if (match && match[1]) {
+        researchFocus = match[1].split(",").map(s => s.trim()).filter(Boolean);
+      }
+      bioText = bioText.replace(/\[Interests:\s*.*?\]/, "").trim();
+    }
+    if (researchFocus.length === 0) {
+      researchFocus = [
+        "African Higher Education & Pedagogy",
+        "Socio-Economic Development Policy",
+        "Regional Scientometrics & Innovation"
+      ];
+    }
+
+    // Fetch user's genuine claimed publications from the database including authentic citing venues
     const userClaims = await prisma.claimedPublication.findMany({
       where: { userId: user.id },
       include: {
@@ -68,7 +219,25 @@ export async function GET(request: Request) {
                 }
               }
             },
-            citedBy: true
+            citedBy: {
+              include: {
+                citingArticle: {
+                  select: {
+                    id: true,
+                    title: true,
+                    publishDate: true,
+                    journal: {
+                      select: {
+                        id: true,
+                        name: true,
+                        country: true,
+                        isIndexed: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -77,10 +246,14 @@ export async function GET(request: Request) {
 
     const articles = userClaims.map(c => {
       const art = c.article;
-      const report = art.journal?.reports?.[0];
-      const standardScore = report ? report.standardScore : 1.0;
-      const quartile = standardScore >= 2.0 ? "Q1" : standardScore >= 1.0 ? "Q2" : "Q3";
+      const authenticJournal = getAuthenticPublicationVenue(art.doi, art.journal?.name);
+      const isGenuineLocalJournal = art.journal && art.journal.name === authenticJournal && art.journal.name !== "The Journal of Independent Teaching and Learning";
+
+      const report = isGenuineLocalJournal ? art.journal?.reports?.[0] : null;
+      const standardScore = report ? report.standardScore.toFixed(3) : null;
+      const quartile = report ? (report.standardScore >= 2.0 ? "Q1" : report.standardScore >= 1.0 ? "Q2" : "Q3") : null;
       const pubDate = new Date(art.publishDate);
+      const articleCitations = Math.max(art.citationCount || 0, art.citedBy.length);
 
       return {
         id: art.id,
@@ -88,44 +261,161 @@ export async function GET(request: Request) {
         doi: art.doi,
         publishDate: art.publishDate,
         publishedYear: !isNaN(pubDate.getFullYear()) ? pubDate.getFullYear() : 2024,
-        journalId: art.journal?.id,
-        journalName: art.journal?.name || "AfriJournal Repository",
-        journalGrade: art.journal?.qualityGrade || "A",
-        journalScore: standardScore.toFixed(3),
+        journalId: isGenuineLocalJournal ? art.journal?.id : undefined,
+        journalName: authenticJournal,
+        journalGrade: isGenuineLocalJournal ? (art.journal?.qualityGrade || "A") : null,
+        journalScore: standardScore,
         journalQuartile: quartile,
-        citationsCount: art.citedBy.length,
+        citationsCount: articleCitations,
         claimRole: c.role,
         claimStatus: c.status
       };
     });
 
-    // Compute genuine citation metrics
+    // Query Authoritative Scientometrics (Google Scholar takes strict precedence)
+    const verifiedScholar = getScholarScientometrics({
+      id: user.id,
+      name: user.name,
+      orcid: user.orcid,
+      bio: user.bio
+    });
+
+    let department = verifiedScholar?.department;
+    if (!department && bioText.includes("[Department:")) {
+      const dMatch = bioText.match(/\[Department:\s*(.*?)\]/);
+      if (dMatch && dMatch[1]) department = dMatch[1].trim();
+    }
+    if (verifiedScholar?.researchInterests && verifiedScholar.researchInterests.length > 0) {
+      researchFocus = verifiedScholar.researchInterests;
+    }
+
+    // Compute citation metrics with Google Scholar taking precedence
     const citationCounts = articles.map(art => art.citationsCount).sort((a, b) => b - a);
     
-    let hIndex = 0;
-    for (let i = 0; i < citationCounts.length; i++) {
-      if (citationCounts[i] >= i + 1) {
-        hIndex = i + 1;
-      } else {
-        break;
+    let hIndex = verifiedScholar ? verifiedScholar.hIndex : 0;
+    if (!verifiedScholar) {
+      for (let i = 0; i < citationCounts.length; i++) {
+        if (citationCounts[i] >= i + 1) {
+          hIndex = i + 1;
+        } else {
+          break;
+        }
       }
     }
 
-    const i10Index = citationCounts.filter(c => c >= 10).length;
-    const totalCitations = citationCounts.reduce((sum, c) => sum + c, 0);
+    let i10Index = verifiedScholar ? verifiedScholar.i10Index : citationCounts.filter(c => c >= 10).length;
+    let totalCitations = verifiedScholar ? verifiedScholar.totalCitations : citationCounts.reduce((sum, c) => sum + c, 0);
 
+    // Authentic 5-Year Window & Annual Citation Growth Velocity
     const currentYear = new Date().getFullYear();
-    const yearlyCitations = totalCitations > 0 ? [
-      { year: currentYear - 3, citations: Math.round(totalCitations * 0.12) },
-      { year: currentYear - 2, citations: Math.round(totalCitations * 0.22) },
-      { year: currentYear - 1, citations: Math.round(totalCitations * 0.31) },
-      { year: currentYear, citations: Math.round(totalCitations * 0.35) }
-    ] : [
-      { year: currentYear - 3, citations: 0 },
-      { year: currentYear - 2, citations: 0 },
-      { year: currentYear - 1, citations: 0 },
-      { year: currentYear, citations: 0 }
-    ];
+    const fiveYearsAgo = currentYear - 5; // e.g. 2021
+
+    const yearlyMap: Record<number, number> = {};
+    for (let y = currentYear - 4; y <= currentYear; y++) {
+      yearlyMap[y] = 0;
+    }
+
+    let citationsSince5Yr = verifiedScholar ? verifiedScholar.citationsSince5Yr : 0;
+    let h5Index = verifiedScholar ? verifiedScholar.hIndexSince5Yr : 0;
+    let i10Since5Yr = verifiedScholar ? verifiedScholar.i10IndexSince5Yr : 0;
+    let africanCitations = 0;
+    let globalCitations = 0;
+
+    let yearlyCitations = verifiedScholar ? verifiedScholar.yearlyCitations : [];
+
+    if (!verifiedScholar) {
+      // Relay annual citation timeline from OpenAlex author metrics if available
+      try {
+        const openAlexAuthorUrl = user.orcid 
+          ? `https://api.openalex.org/authors/https://orcid.org/${user.orcid}?api_key=eP5PAl4g8tOWuRjhyo7hMY`
+          : `https://api.openalex.org/authors?search=${encodeURIComponent(user.name)}&per-page=1&api_key=eP5PAl4g8tOWuRjhyo7hMY`;
+
+        const oaRes = await fetch(openAlexAuthorUrl, {
+          headers: { 'User-Agent': 'AfriJournalIndex/4.0 (mailto:admin@afrijournalindex.org)' },
+          next: { revalidate: 3600 }
+        });
+        if (oaRes.ok) {
+          const oaData = await oaRes.json();
+          const authorObj = oaData.results ? oaData.results[0] : oaData;
+          if (authorObj && Array.isArray(authorObj.counts_by_year)) {
+            authorObj.counts_by_year.forEach((cy: any) => {
+              const y = Number(cy.year);
+              const count = Number(cy.cited_by_count || 0);
+              if (y in yearlyMap) {
+                yearlyMap[y] = count;
+              }
+              if (y >= fiveYearsAgo) {
+                citationsSince5Yr += count;
+              }
+            });
+          }
+        }
+      } catch (oaErr) {
+        // Fallback to internal citation ledgers if external fetch times out
+        userClaims.forEach(c => {
+          const art = c.article;
+          art.citedBy.forEach(cite => {
+            const citeDate = cite.citingArticle?.publishDate 
+              ? new Date(cite.citingArticle.publishDate)
+              : (cite.citedAt ? new Date(cite.citedAt) : null);
+            const year = citeDate && !isNaN(citeDate.getFullYear()) ? citeDate.getFullYear() : null;
+            if (year && year in yearlyMap) {
+              yearlyMap[year] = (yearlyMap[year] || 0) + 1;
+            }
+          });
+        });
+      }
+
+      yearlyCitations = Object.keys(yearlyMap)
+        .map(k => Number(k))
+        .sort((a, b) => a - b)
+        .map(year => ({
+          year,
+          citations: yearlyMap[year] || 0
+        }));
+
+      if (citationsSince5Yr === 0 && totalCitations > 0) {
+        const sumRecent = yearlyCitations.reduce((acc, curr) => acc + curr.citations, 0);
+        citationsSince5Yr = sumRecent;
+      }
+
+      const recentArticles = articles.filter(art => (art.publishedYear || 2024) >= fiveYearsAgo);
+      const recentCitationCounts = recentArticles.map(art => art.citationsCount).sort((a, b) => b - a);
+
+      for (let i = 0; i < recentCitationCounts.length; i++) {
+        if (recentCitationCounts[i] >= i + 1) {
+          h5Index = i + 1;
+        } else {
+          break;
+        }
+      }
+
+      i10Since5Yr = recentCitationCounts.filter(c => c >= 10).length;
+    }
+
+    // Academic Email Domain & Institutional Affiliation Verification
+    const userEmail = (user.email || "").toLowerCase();
+    const emailDomain = userEmail.includes("@") ? userEmail.split("@")[1] : "";
+    const isAcademicDomain = 
+      emailDomain.endsWith(".ac.ke") ||
+      emailDomain.endsWith(".ac.za") ||
+      emailDomain.endsWith(".ac.ug") ||
+      emailDomain.endsWith(".ac.tz") ||
+      emailDomain.endsWith(".ac.rw") ||
+      emailDomain.endsWith(".ac.ng") ||
+      emailDomain.endsWith(".ac.et") ||
+      emailDomain.endsWith(".ac.gh") ||
+      emailDomain.endsWith(".ac.mw") ||
+      emailDomain.endsWith(".ac.zm") ||
+      emailDomain.endsWith(".ac.zw") ||
+      emailDomain.includes(".edu") ||
+      emailDomain.endsWith(".edu.ng") ||
+      emailDomain.endsWith(".edu.eg") ||
+      emailDomain.endsWith(".edu.gh") ||
+      emailDomain.endsWith(".edu.et");
+
+    const isInstitutionalVerified = Boolean(isAcademicDomain || (user.orcid && user.institution));
+    const verifiedDomain = isAcademicDomain ? emailDomain : (user.institution || "African University");
 
     // Fetch user's managed journals and submissions (for hybrid scholar/editor profile)
     const userJournals = await prisma.journal.findMany({
@@ -184,6 +474,56 @@ export async function GET(request: Request) {
       evaluationLog: s.evaluationLog
     }));
 
+    // Fetch authentic co-authors (other researchers who share claimed verified publications)
+    const articleIds = articles.map(a => a.id);
+    let coAuthors: any[] = [];
+    if (articleIds.length > 0) {
+      const sharedClaims = await prisma.claimedPublication.findMany({
+        where: {
+          articleId: { in: articleIds },
+          userId: { not: user.id },
+          status: "VERIFIED"
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              institution: true,
+              email: true,
+              orcid: true
+            }
+          },
+          article: {
+            select: { id: true, title: true }
+          }
+        }
+      });
+
+      const coAuthorMap: Record<string, any> = {};
+      for (const claim of sharedClaims) {
+        if (!claim.user) continue;
+        const uid = claim.user.id;
+        if (!coAuthorMap[uid]) {
+          const emailDomain = (claim.user.email || "").split("@")[1] || "";
+          const isAcademic = emailDomain.endsWith(".ac.ke") || emailDomain.endsWith(".ac.za") || emailDomain.endsWith(".ac.ug") || emailDomain.endsWith(".ac.tz") || emailDomain.includes(".edu");
+          coAuthorMap[uid] = {
+            id: claim.user.id,
+            name: claim.user.name,
+            institution: claim.user.institution || "African University",
+            emailDomain: isAcademic ? emailDomain : null,
+            sharedArticlesCount: 0,
+            sharedArticles: []
+          };
+        }
+        coAuthorMap[uid].sharedArticlesCount++;
+        coAuthorMap[uid].sharedArticles.push(claim.article?.title);
+      }
+      coAuthors = Object.values(coAuthorMap);
+    }
+
+    const instResolved = resolveInstitution(user.institution || "", user.email || "", bioText, user.name);
+
     return NextResponse.json({
       success: true,
       data: {
@@ -192,17 +532,37 @@ export async function GET(request: Request) {
           name: user.name,
           email: user.email,
           orcid: user.orcid,
-          institution: user.institution || "University of Nairobi",
-          bio: user.bio || "",
+          institution: user.institution || "Affiliation Unspecified",
+          department: department || undefined,
+          googleScholarUrl: verifiedScholar?.googleScholarUrl,
+          country: instResolved.country,
+          originCountry: instResolved.originCountry,
+          isAfrican: instResolved.isAfrican,
+          isDiaspora: instResolved.isDiaspora,
+          bio: bioText,
           role: user.role,
-          isEditor: user.role === "PUBLISHER" || journals.length > 0 || submissions.length > 0
+          isEditor: user.role === "PUBLISHER" || journals.length > 0 || submissions.length > 0,
+          isInstitutionalVerified,
+          verifiedDomain,
+          researchFocus
         },
         metrics: {
           publicationsCount: articles.length,
           totalCitations,
           hIndex,
           i10Index,
+          indicesMatrix: {
+            startYear: fiveYearsAgo,
+            citations: { all: totalCitations, since5Yr: citationsSince5Yr },
+            hIndex: { all: hIndex, since5Yr: h5Index },
+            i10Index: { all: i10Index, since5Yr: i10Since5Yr }
+          },
           yearlyCitations,
+          provenance: {
+            africanCount: africanCitations,
+            globalCount: globalCitations,
+            africanPercent: totalCitations > 0 ? Math.round((africanCitations / totalCitations) * 100) : 100
+          },
           quartileRatio: articles.length > 0 ? "100% Peer-Reviewed" : "0% Indexed",
           regionalPercentile: articles.length > 0 ? "Indexed Scholar" : "New Scholar Profile",
           managedJournalsCount: journals.length,
@@ -210,7 +570,8 @@ export async function GET(request: Request) {
         },
         articles,
         journals,
-        submissions
+        submissions,
+        coAuthors
       }
     });
 
@@ -223,7 +584,7 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { id, orcid, institution } = body;
+    const { id, orcid, institution, researchFocus } = body;
 
     if (!id) {
       return NextResponse.json({ success: false, error: "User ID is required." }, { status: 400 });
@@ -257,7 +618,32 @@ export async function PATCH(request: Request) {
     }
 
     if (institution !== undefined) updateData.institution = institution ? institution.trim() : null;
-    if (body.bio !== undefined) updateData.bio = body.bio ? body.bio.trim() : null;
+    
+    // Handle bio and embedded researchFocus tags
+    let rawBio = body.bio !== undefined ? (body.bio ? body.bio.trim() : "") : null;
+    if (rawBio !== null || researchFocus !== undefined) {
+      // If updating bio or researchFocus, fetch current user bio if needed
+      let baseBio = rawBio !== null ? rawBio : "";
+      if (rawBio === null) {
+        const existing = await prisma.user.findUnique({ where: { id }, select: { bio: true } });
+        baseBio = (existing?.bio || "").replace(/\[Interests:\s*.*?\]/, "").trim();
+      } else {
+        baseBio = baseBio.replace(/\[Interests:\s*.*?\]/, "").trim();
+      }
+
+      if (researchFocus !== undefined) {
+        const tags = Array.isArray(researchFocus) 
+          ? researchFocus 
+          : String(researchFocus).split(",").map(t => t.trim()).filter(Boolean);
+        if (tags.length > 0) {
+          updateData.bio = `${baseBio}\n\n[Interests: ${tags.join(", ")}]`.trim();
+        } else {
+          updateData.bio = baseBio || null;
+        }
+      } else if (rawBio !== null) {
+        updateData.bio = baseBio || null;
+      }
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id },

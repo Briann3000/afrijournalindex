@@ -47,6 +47,19 @@ function InstitutionContent() {
   const [profileData, setProfileData] = useState<any>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
 
+  // Faculty Roster Interactive States
+  const [facultySearch, setFacultySearch] = useState<string>("");
+  const [facultySort, setFacultySort] = useState<"citations" | "hIndex" | "articles">("citations");
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [followedFacultyIds, setFollowedFacultyIds] = useState<string[]>([]);
+  const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
   const featuredUniversities = [
     "University of Cape Town",
     "University of Nairobi",
@@ -67,6 +80,22 @@ function InstitutionContent() {
     "Business & Economics",
     "Education & Pedagogy"
   ];
+
+  // Check session authentication on mount
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/auth/me");
+        const json = await res.json();
+        if (json.authenticated) {
+          setCurrentUser(json.user);
+        }
+      } catch (e) {
+        console.error("Auth check failed:", e);
+      }
+    }
+    checkAuth();
+  }, []);
 
   // Fetch Leaderboard
   useEffect(() => {
@@ -152,6 +181,38 @@ function InstitutionContent() {
     setActiveTab("profile");
     router.push(`/institution?name=${encodeURIComponent(univName)}`);
   };
+
+  const handleToggleFollowFaculty = (facultyId: string, facultyName: string) => {
+    if (!currentUser) {
+      setShowLoginModal(true);
+      return;
+    }
+    const isFollowed = followedFacultyIds.includes(facultyId);
+    let nextList: string[];
+    if (isFollowed) {
+      nextList = followedFacultyIds.filter(id => id !== facultyId);
+      localStorage.removeItem(`afri_follow_${facultyId}`);
+      showToast(`Unfollowed ${facultyName}.`);
+    } else {
+      nextList = [...followedFacultyIds, facultyId];
+      localStorage.setItem(`afri_follow_${facultyId}`, "true");
+      showToast(`You are now following ${facultyName}!`);
+    }
+    setFollowedFacultyIds(nextList);
+  };
+
+  // Load followed faculty from localStorage when profileData changes
+  useEffect(() => {
+    if (typeof window !== "undefined" && profileData?.facultyLeaderboard) {
+      const followed: string[] = [];
+      profileData.facultyLeaderboard.forEach((f: any) => {
+        if (localStorage.getItem(`afri_follow_${f.id}`) === "true") {
+          followed.push(f.id);
+        }
+      });
+      setFollowedFacultyIds(followed);
+    }
+  }, [profileData]);
 
   return (
     <div className="page-wrapper" style={{ padding: 0 }}>
@@ -671,13 +732,24 @@ function InstitutionContent() {
                       </div>
                     </div>
 
-                    <button 
-                      onClick={() => setActiveTab("leaderboard")}
-                      className="btn btn-secondary btn-sm"
-                      style={{ fontSize: "0.82rem", display: "inline-flex", alignItems: "center", gap: "0.4rem", whiteSpace: "nowrap" }}
-                    >
-                      <i className="fa-solid fa-arrow-left"></i> {t.institution_page.back_to_leaderboard}
-                    </button>
+                    <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", alignItems: "center" }}>
+                      <a 
+                        href={`/scholars?q=${encodeURIComponent(profileData.name)}`}
+                        className="btn btn-primary btn-sm"
+                        style={{ fontSize: "0.82rem", display: "inline-flex", alignItems: "center", gap: "0.45rem", whiteSpace: "nowrap" }}
+                        title={`Explore all ${profileData.name} researchers in the continental directory`}
+                      >
+                        <i className="fa-solid fa-users"></i> Explore Scholars in Directory
+                      </a>
+
+                      <button 
+                        onClick={() => setActiveTab("leaderboard")}
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: "0.82rem", display: "inline-flex", alignItems: "center", gap: "0.4rem", whiteSpace: "nowrap" }}
+                      >
+                        <i className="fa-solid fa-arrow-left"></i> {t.institution_page.back_to_leaderboard}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -768,6 +840,221 @@ function InstitutionContent() {
                     </div>
                   </div>
                 )}
+
+                {/* 3. Affiliated Academic Faculty Roster Section */}
+                <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "1.5rem" }}>
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                        <i className="fa-solid fa-user-graduate" style={{ color: "var(--color-primary)", fontSize: "1.2rem" }}></i>
+                        <h3 style={{ fontSize: "1.25rem", fontWeight: 700, margin: 0, color: "var(--color-text-main)" }}>
+                          Affiliated Academic Faculty
+                        </h3>
+                        <span style={{ background: "rgba(2, 132, 199, 0.1)", color: "var(--color-primary)", padding: "0.2rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: 700 }}>
+                          {profileData.totalFacultyIndexed ?? (profileData.facultyLeaderboard?.length || 0)} Verified
+                        </span>
+                      </div>
+                      <p style={{ margin: "0.4rem 0 0", fontSize: "0.86rem", color: "var(--color-text-muted)" }}>
+                        Verified professors, principal investigators, and scholars affiliated with {profileData.name}.
+                      </p>
+                    </div>
+
+                    {/* Faculty Search & Sort Controls */}
+                    <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", alignItems: "center" }}>
+                      <div style={{ position: "relative", minWidth: "200px" }}>
+                        <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--color-text-muted)", fontSize: "0.8rem" }}></i>
+                        <input
+                          type="text"
+                          value={facultySearch}
+                          onChange={e => setFacultySearch(e.target.value)}
+                          placeholder="Search faculty..."
+                          className="form-control"
+                          style={{ height: "36px", paddingLeft: "2rem", fontSize: "0.82rem" }}
+                        />
+                      </div>
+
+                      <select
+                        value={facultySort}
+                        onChange={e => setFacultySort(e.target.value as any)}
+                        className="form-control"
+                        style={{ height: "36px", width: "auto", fontSize: "0.82rem", padding: "0 0.8rem" }}
+                      >
+                        <option value="citations">Sort by Citations</option>
+                        <option value="hIndex">Sort by h-index</option>
+                        <option value="articles">Sort by Articles</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Faculty Table / List */}
+                  {(() => {
+                    const rawList = profileData.facultyLeaderboard || [];
+                    const filteredFaculty = rawList
+                      .filter((f: any) => {
+                        if (!facultySearch.trim()) return true;
+                        const q = facultySearch.toLowerCase();
+                        return (
+                          f.name.toLowerCase().includes(q) ||
+                          (f.discipline && f.discipline.toLowerCase().includes(q)) ||
+                          (f.orcid && f.orcid.toLowerCase().includes(q))
+                        );
+                      })
+                      .sort((a: any, b: any) => {
+                        if (facultySort === "citations") return b.totalCitations - a.totalCitations;
+                        if (facultySort === "hIndex") return b.hIndex - a.hIndex;
+                        if (facultySort === "articles") return b.articlesCount - a.articlesCount;
+                        return 0;
+                      });
+
+                    if (filteredFaculty.length === 0) {
+                      return (
+                        <div style={{ padding: "2.5rem", textAlign: "center", background: "var(--color-bg-base)", borderRadius: "8px", border: "1px dashed var(--color-border)" }}>
+                          <p style={{ color: "var(--color-text-muted)", margin: 0, fontSize: "0.9rem" }}>
+                            {facultySearch ? "No faculty members match your search query." : "No faculty members currently indexed for this university."}
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="table-responsive" style={{ overflowX: "auto" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
+                          <thead>
+                            <tr style={{ borderBottom: "2px solid var(--color-border)", color: "var(--color-text-muted)", fontSize: "0.78rem", textTransform: "uppercase" }}>
+                              <th style={{ padding: "0.75rem 0.5rem", width: "45px", textAlign: "center" }}>#</th>
+                              <th style={{ padding: "0.75rem 1rem" }}>Scholar & Field</th>
+                              <th style={{ padding: "0.75rem 1rem", textAlign: "right" }}>Citations</th>
+                              <th style={{ padding: "0.75rem 1rem", textAlign: "center", width: "90px" }}>h-index</th>
+                              <th style={{ padding: "0.75rem 1rem", textAlign: "center", width: "90px" }}>Articles</th>
+                              <th style={{ padding: "0.75rem 1rem", textAlign: "right", minWidth: "140px" }}>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredFaculty.map((f: any, idx: number) => {
+                              const initials = f.name
+                                .split(" ")
+                                .map((n: string) => n[0])
+                                .slice(0, 2)
+                                .join("")
+                                .toUpperCase();
+                              const isFollowed = followedFacultyIds.includes(f.id);
+
+                              return (
+                                <tr key={f.id} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.15s ease" }}>
+                                  <td style={{ padding: "0.85rem 0.5rem", textAlign: "center", fontWeight: 700, color: "var(--color-text-muted)", fontSize: "0.82rem" }}>
+                                    {idx + 1}
+                                  </td>
+
+                                  <td style={{ padding: "0.85rem 1rem" }}>
+                                    <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                                      <div style={{
+                                        width: "36px",
+                                        height: "36px",
+                                        borderRadius: "50%",
+                                        background: "linear-gradient(135deg, var(--color-primary), #0369a1)",
+                                        color: "#ffffff",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontWeight: 800,
+                                        fontSize: "0.82rem",
+                                        flexShrink: 0
+                                      }}>
+                                        {initials}
+                                      </div>
+
+                                      <div>
+                                        <a 
+                                          href={`/researcher?id=${f.id}`}
+                                          style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "0.92rem", display: "inline-block" }}
+                                        >
+                                          {f.name}
+                                        </a>
+
+                                        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", marginTop: "2px", flexWrap: "wrap" }}>
+                                          {f.discipline && f.discipline !== "Unspecified" && (
+                                            <span style={{ fontSize: "0.72rem", background: "rgba(2, 132, 199, 0.08)", color: "var(--color-primary)", padding: "0.1rem 0.45rem", borderRadius: "4px", fontWeight: 600 }}>
+                                              {f.discipline}
+                                            </span>
+                                          )}
+
+                                          {f.verifiedDomain && (
+                                            <span style={{ fontSize: "0.72rem", color: "#16a34a", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                                              <i className="fa-solid fa-circle-check" style={{ fontSize: "0.65rem" }}></i>
+                                              {f.verifiedDomain}
+                                            </span>
+                                          )}
+
+                                          {f.googleScholarUrl && (
+                                            <a 
+                                              href={f.googleScholarUrl} 
+                                              target="_blank" 
+                                              rel="noreferrer"
+                                              style={{ fontSize: "0.72rem", color: "#0284c7", fontWeight: 600, textDecoration: "none" }}
+                                            >
+                                              <i className="fa-brands fa-google-scholar"></i> Scholar
+                                            </a>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+
+                                  <td style={{ padding: "0.85rem 1rem", textAlign: "right", fontWeight: 800, color: "var(--color-primary)" }}>
+                                    {f.totalCitations.toLocaleString()}
+                                  </td>
+
+                                  <td style={{ padding: "0.85rem 1rem", textAlign: "center" }}>
+                                    <span style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      padding: "0.15rem 0.5rem",
+                                      borderRadius: "6px",
+                                      fontSize: "0.78rem",
+                                      fontWeight: 800,
+                                      background: f.hIndex >= 20 ? "rgba(22, 163, 74, 0.1)" : "rgba(2, 132, 199, 0.08)",
+                                      color: f.hIndex >= 20 ? "#16a34a" : "var(--color-primary)"
+                                    }}>
+                                      h-{f.hIndex}
+                                    </span>
+                                  </td>
+
+                                  <td style={{ padding: "0.85rem 1rem", textAlign: "center", fontWeight: 600, color: "var(--color-text-main)" }}>
+                                    {f.articlesCount}
+                                  </td>
+
+                                  <td style={{ padding: "0.85rem 1rem", textAlign: "right" }}>
+                                    <div style={{ display: "flex", gap: "0.4rem", justifyContent: "flex-end", alignItems: "center" }}>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleFollowFaculty(f.id, f.name)}
+                                        className={isFollowed ? "btn btn-secondary btn-sm" : "btn btn-primary btn-sm"}
+                                        style={{ fontSize: "0.75rem", padding: "0.25rem 0.65rem" }}
+                                      >
+                                        <i className={isFollowed ? "fa-solid fa-check" : "fa-solid fa-user-plus"} style={{ marginRight: "3px" }}></i>
+                                        {isFollowed ? "Following" : "Follow"}
+                                      </button>
+
+                                      <a
+                                        href={`/researcher?id=${f.id}`}
+                                        className="btn btn-secondary btn-sm"
+                                        style={{ padding: "0.25rem 0.55rem", fontSize: "0.75rem" }}
+                                        title="View Scholar Profile"
+                                      >
+                                        <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                                      </a>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })()}
+                </div>
 
               </div>
             )}

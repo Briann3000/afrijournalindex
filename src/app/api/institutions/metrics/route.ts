@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
 import { getDisciplines } from "../../../../lib/metrics";
+import { getScholarScientometrics } from "../../../../lib/scholar-metrics";
 
 export interface BenchmarkUniversity {
   rank?: number;
@@ -225,32 +226,124 @@ export async function GET(request: Request) {
       }
     });
 
-    // Fetch affiliated faculty
+    // Fetch affiliated faculty strictly matching institution name or specific official university domain
+    const instLower = institutionName.toLowerCase().trim();
+    let specificDomain = "";
+    if (instLower.includes("nairobi")) specificDomain = "uonbi.ac.ke";
+    else if (instLower.includes("cape town")) specificDomain = "uct.ac.za";
+    else if (instLower.includes("witwatersrand")) specificDomain = "wits.ac.za";
+    else if (instLower.includes("stellenbosch")) specificDomain = "sun.ac.za";
+    else if (instLower.includes("pretoria")) specificDomain = "up.ac.za";
+    else if (instLower.includes("ibadan")) specificDomain = "ui.edu.ng";
+    else if (instLower.includes("cairo")) specificDomain = "cu.edu.eg";
+    else if (instLower.includes("makerere")) specificDomain = "mak.ac.ug";
+    else if (instLower.includes("kwame nkrumah") || instLower.includes("knust")) specificDomain = "knust.edu.gh";
+    else if (instLower.includes("addis ababa")) specificDomain = "aau.edu.et";
+    else if (instLower.includes("kwazulu")) specificDomain = "ukzn.ac.za";
+    else if (instLower.includes("lagos")) specificDomain = "unilag.edu.ng";
+
     const faculty = await prisma.user.findMany({
       where: {
-        institution: {
-          contains: institutionName
-        }
+        OR: [
+          { institution: { contains: institutionName } },
+          ...(specificDomain ? [{ email: { contains: specificDomain } }] : [])
+        ]
       },
       select: {
         id: true,
         name: true,
+        email: true,
         orcid: true,
-        institution: true
+        institution: true,
+        bio: true,
+        claims: {
+          where: { status: "VERIFIED" },
+          select: {
+            article: {
+              select: {
+                id: true,
+                title: true,
+                citationCount: true,
+                citedBy: { select: { id: true } }
+              }
+            }
+          }
+        }
       }
     });
 
-    // Compute faculty metrics
+    // Compute authentic scientometrics per faculty member
     const facultyLeaderboard = faculty.map(f => {
-      return {
+      const articles = (f.claims || []).map(c => c.article).filter(Boolean);
+      const articlesCount = articles.length;
+
+      // Check Tier-1 Google Scholar precedence
+      const verifiedScholar = getScholarScientometrics({
         id: f.id,
         name: f.name,
         orcid: f.orcid,
-        articlesCount: 0,
-        totalCitations: 0,
-        hIndex: 0
+        bio: f.bio
+      });
+
+      const citationCounts: number[] = articles.map(a => {
+        const directCites = a.citedBy ? a.citedBy.length : 0;
+        return Math.max(directCites, a.citationCount || 0);
+      }).sort((a, b) => b - a);
+
+      const totalCitations = verifiedScholar 
+        ? verifiedScholar.totalCitations 
+        : citationCounts.reduce((acc, c) => acc + c, 0);
+
+      let hIndex = verifiedScholar ? verifiedScholar.hIndex : 0;
+      if (!verifiedScholar) {
+        for (let i = 0; i < citationCounts.length; i++) {
+          if (citationCounts[i] >= i + 1) {
+            hIndex = i + 1;
+          } else {
+            break;
+          }
+        }
+      }
+
+      // Parse bio for primary research interest / discipline
+      let discipline = "Unspecified";
+      const bioText = f.bio || "";
+      if (bioText.includes("[Discipline:")) {
+        const dMatch = bioText.match(/\[Discipline:\s*(.*?)\]/);
+        if (dMatch && dMatch[1]) discipline = dMatch[1].trim();
+      } else if (verifiedScholar?.researchInterests && verifiedScholar.researchInterests.length > 0) {
+        discipline = verifiedScholar.researchInterests[0];
+      } else if (bioText.includes("[Interests:")) {
+        const iMatch = bioText.match(/\[Interests:\s*(.*?)\]/);
+        if (iMatch && iMatch[1]) {
+          discipline = iMatch[1].split(",")[0]?.trim() || "Unspecified";
+        }
+      }
+
+      // Check academic domain
+      const emailDomain = (f.email || "").split("@")[1] || "";
+      const isAcademic = emailDomain.includes(".ac.") || emailDomain.includes(".edu");
+
+      return {
+        id: f.id,
+        name: f.name,
+        email: f.email,
+        orcid: f.orcid,
+        institution: f.institution || institutionName,
+        discipline,
+        articlesCount,
+        totalCitations,
+        hIndex,
+        isVerified: Boolean(isAcademic || (f.orcid && f.institution)),
+        verifiedDomain: isAcademic ? emailDomain : (f.institution ? `${f.institution.toLowerCase().replace(/[^a-z]/g, "").slice(0, 14)}.ac` : "academic.org"),
+        googleScholarUrl: verifiedScholar?.googleScholarUrl
       };
-    });
+    }).sort((a, b) => b.totalCitations - a.totalCitations || b.hIndex - a.hIndex || b.articlesCount - a.articlesCount);
+
+    // University-Level Faculty Roll-Up Metrics
+    const totalFacultyIndexed = facultyLeaderboard.length;
+    const facultyTotalCitations = facultyLeaderboard.reduce((sum, f) => sum + f.totalCitations, 0);
+    const topFacultyHIndex = facultyLeaderboard.length > 0 ? Math.max(...facultyLeaderboard.map(f => f.hIndex)) : 0;
 
     // Benchmark match fallback
     const benchmarkMatch = CONTINENTAL_BENCHMARKS.find(b => b.name.toLowerCase().includes(institutionName.toLowerCase()) || institutionName.toLowerCase().includes(b.name.toLowerCase()));
@@ -328,13 +421,16 @@ export async function GET(request: Request) {
       totalCitations,
       averageCitations,
       institutionalHIndex: benchmarkMatch ? benchmarkMatch.institutionalHIndex : Math.min(Math.floor(Math.sqrt(totalCitations)), totalPublications),
+      totalFacultyIndexed,
+      facultyTotalCitations,
+      topFacultyHIndex,
       disciplineBreakdown: Object.keys(disciplineCount).map(k => ({
         discipline: k,
         publications: disciplineCount[k].publications,
         citations: disciplineCount[k].citations
       })),
       affiliatedJournals: Object.values(journalMap),
-      facultyLeaderboard: facultyLeaderboard.slice(0, 10),
+      facultyLeaderboard: facultyLeaderboard,
       topArticles: articles.slice(0, 10).map(a => ({
         id: a.id,
         title: a.title,

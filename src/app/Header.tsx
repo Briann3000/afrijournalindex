@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLang } from "./LangContext";
 
 interface HeaderProps {
-  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about" | "compare" | "referee-finder";
+  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about" | "compare" | "referee-finder" | "scholars";
 }
 
 export default function Header({ activePage }: HeaderProps) {
@@ -100,7 +100,7 @@ export default function Header({ activePage }: HeaderProps) {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/browse?q=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     } else {
       router.push("/browse");
     }
@@ -110,7 +110,7 @@ export default function Header({ activePage }: HeaderProps) {
   const handleMobileSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mobileSearchQuery.trim()) {
-      router.push(`/browse?q=${encodeURIComponent(mobileSearchQuery.trim())}`);
+      router.push(`/search?q=${encodeURIComponent(mobileSearchQuery.trim())}`);
     } else {
       router.push("/browse");
     }
@@ -259,6 +259,11 @@ export default function Header({ activePage }: HeaderProps) {
               </div>
             )}
           </div>
+
+          {/* Direct African Scholars Directory Link */}
+          <a href="/scholars" className={`nav-link ${activePage === "scholars" ? "active" : ""}`}>
+            Scholars
+          </a>
 
           {/* Group 3: Resources & About */}
           <div className="nav-dropdown-wrapper" style={{ position: "relative" }}>
@@ -436,29 +441,114 @@ export default function Header({ activePage }: HeaderProps) {
           {/* Desktop User Action Buttons */}
           <div className="desktop-actions" style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
             {user ? (
-              <>
-                {user.role === "ADMIN" && (
-                  <Link href="/admin" className="btn btn-sm" style={{ background: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", border: "1px solid rgba(245, 158, 11, 0.4)" }}>
-                    <i className="fa-solid fa-shield-halved" style={{ marginRight: "5px" }}></i>
-                    Admin Console
-                  </Link>
-                )}
-                <a href={`/researcher?id=${user.id}`} className="btn btn-secondary btn-sm" style={{ background: "#1c1c24", color: "#ffffff", border: "1px solid rgba(255, 255, 255, 0.12)" }}>
-                  <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`} style={{ marginRight: "5px" }}></i>
-                  {user.role === "PUBLISHER" ? "Editor & Scholar Profile" : t.nav.profile}
-                </a>
-                <button 
-                  onClick={async () => {
-                    await fetch("/api/auth/login", { method: "DELETE" });
-                    window.location.reload();
-                  }}
+              <div className="nav-dropdown-wrapper" style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown("userProfile")}
+                  onMouseEnter={() => setOpenDropdown("userProfile")}
                   className="btn btn-secondary btn-sm"
-                  style={{ border: "1px solid rgba(239,68,68,0.4)", color: "#f87171", background: "#1c1c24" }}
+                  style={{
+                    background: "#1c1c24",
+                    color: "#ffffff",
+                    border: "1px solid rgba(255, 255, 255, 0.16)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "7px",
+                    padding: "0.4rem 0.85rem"
+                  }}
                 >
-                  <i className="fa-solid fa-arrow-right-from-bracket" style={{ marginRight: "5px" }}></i>
-                  {t.nav.logout}
+                  <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`} style={{ color: "var(--color-primary)" }}></i>
+                  <span style={{ fontWeight: 600 }}>{user.name ? user.name.split(" ")[0] : (user.role === "PUBLISHER" ? "Editor" : "Scholar")}</span>
+                  <i className="fa-solid fa-chevron-down" style={{ fontSize: "0.68rem", opacity: 0.8, transition: "transform 0.2s", transform: openDropdown === "userProfile" ? "rotate(180deg)" : "rotate(0deg)" }}></i>
                 </button>
-              </>
+
+                {openDropdown === "userProfile" && (
+                  <div 
+                    className="nav-dropdown-menu"
+                    onMouseLeave={() => setOpenDropdown(null)}
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      marginTop: "6px",
+                      minWidth: "220px",
+                      background: "#181820",
+                      border: "1px solid rgba(255, 255, 255, 0.12)",
+                      borderRadius: "10px",
+                      boxShadow: "0 12px 28px -5px rgba(0, 0, 0, 0.55)",
+                      padding: "0.5rem",
+                      zIndex: 1000,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "2px"
+                    }}
+                  >
+                    <div style={{ padding: "0.5rem 0.75rem", borderBottom: "1px solid rgba(255, 255, 255, 0.08)", marginBottom: "4px" }}>
+                      <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#ffffff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {user.name || "Scholar"}
+                      </div>
+                      <div style={{ fontSize: "0.72rem", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {user.email}
+                      </div>
+                    </div>
+
+                    <a 
+                      href={`/researcher?id=${user.id}`} 
+                      className="nav-dropdown-item"
+                      style={{ padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "10px", color: "#f1f5f9", textDecoration: "none", fontSize: "0.84rem", borderRadius: "6px" }}
+                    >
+                      <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`} style={{ color: "var(--color-primary)", width: "16px" }}></i>
+                      <span>{user.role === "PUBLISHER" ? "Editor & Scholar Profile" : t.nav.profile}</span>
+                    </a>
+
+                    <a 
+                      href="/researcher?tab=library" 
+                      className="nav-dropdown-item"
+                      style={{ padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "10px", color: "#f1f5f9", textDecoration: "none", fontSize: "0.84rem", borderRadius: "6px" }}
+                    >
+                      <i className="fa-solid fa-star" style={{ color: "#fbbf24", width: "16px" }}></i>
+                      <span>Reading Library</span>
+                    </a>
+
+                    {user.role === "ADMIN" && (
+                      <Link 
+                        href="/admin" 
+                        className="nav-dropdown-item"
+                        style={{ padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "10px", color: "#f59e0b", textDecoration: "none", fontSize: "0.84rem", borderRadius: "6px" }}
+                      >
+                        <i className="fa-solid fa-shield-halved" style={{ width: "16px" }}></i>
+                        <span>Admin Console</span>
+                      </Link>
+                    )}
+
+                    <div style={{ borderTop: "1px solid rgba(255, 255, 255, 0.08)", marginTop: "4px", paddingTop: "4px" }}>
+                      <button 
+                        onClick={async () => {
+                          await fetch("/api/auth/login", { method: "DELETE" });
+                          window.location.reload();
+                        }}
+                        style={{
+                          width: "100%",
+                          textAlign: "left",
+                          background: "none",
+                          border: "none",
+                          padding: "0.5rem 0.75rem",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                          color: "#f87171",
+                          fontSize: "0.84rem",
+                          cursor: "pointer",
+                          borderRadius: "6px"
+                        }}
+                      >
+                        <i className="fa-solid fa-arrow-right-from-bracket" style={{ width: "16px" }}></i>
+                        <span>{t.nav.logout}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <>
                 <a href="/login" className="btn btn-secondary btn-sm" style={{ background: "#1c1c24", color: "#ffffff", border: "1px solid rgba(255, 255, 255, 0.12)" }}>
@@ -680,6 +770,19 @@ export default function Header({ activePage }: HeaderProps) {
               )}
             </div>
 
+            {/* Direct Scholars Directory Link */}
+            <div style={{ borderTop: "1px solid #1e293b", paddingTop: "0.85rem" }}>
+              <Link 
+                href="/scholars" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`nav-link ${activePage === "scholars" ? "active" : ""}`}
+                style={{ fontSize: "1.05rem", fontWeight: 600, color: "#ffffff", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+              >
+                <i className="fa-solid fa-graduation-cap" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
+                <span>Scholars</span>
+              </Link>
+            </div>
+
             {/* Mobile Accordion 3: Resources & About */}
             <div style={{ borderTop: "1px solid #1e293b", paddingTop: "0.85rem" }}>
               <button 
@@ -772,6 +875,14 @@ export default function Header({ activePage }: HeaderProps) {
                     style={{ width: "100%", justifyContent: "center", background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}
                   >
                     <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`}></i> {user.role === "PUBLISHER" ? "Editor & Scholar Profile" : t.nav.profile}
+                  </Link>
+                  <Link 
+                    href="/researcher?tab=library" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="btn btn-secondary" 
+                    style={{ width: "100%", justifyContent: "center", background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}
+                  >
+                    <i className="fa-solid fa-star" style={{ color: "#fbbf24" }}></i> Reading Library
                   </Link>
                   <button 
                     onClick={async () => {
