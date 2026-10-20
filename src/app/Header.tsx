@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLang } from "./LangContext";
 
 interface HeaderProps {
-  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about" | "compare" | "referee-finder" | "scholars";
+  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about" | "compare" | "referee-finder" | "scholars" | "forum";
 }
 
 export default function Header({ activePage }: HeaderProps) {
@@ -265,6 +265,11 @@ export default function Header({ activePage }: HeaderProps) {
             Scholars
           </a>
 
+          {/* AfriScholarChat Community Link */}
+          <a href="/forum" className={`nav-link ${activePage === "forum" ? "active" : ""}`}>
+            AfriScholarChat
+          </a>
+
           {/* Group 3: Resources & About */}
           <div className="nav-dropdown-wrapper" style={{ position: "relative" }}>
             <button 
@@ -390,15 +395,15 @@ export default function Header({ activePage }: HeaderProps) {
                 type="button"
                 onClick={() => setIsSearchOpen(true)}
                 className="header-search-trigger"
-                title="Search Journals & Articles"
+                title="Search Journals, Articles & Universities"
                 aria-label="Open Search"
                 style={{
                   background: "#1c1c24",
-                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  border: "1px solid rgba(255, 255, 255, 0.16)",
                   color: "#cbd5e1",
-                  borderRadius: "8px",
-                  width: "36px",
-                  height: "36px",
+                  borderRadius: "50%",
+                  width: "34px",
+                  height: "34px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -407,20 +412,20 @@ export default function Header({ activePage }: HeaderProps) {
                   flexShrink: 0
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#f59e0b";
-                  e.currentTarget.style.color = "#f59e0b";
+                  e.currentTarget.style.borderColor = "var(--color-primary)";
+                  e.currentTarget.style.color = "#ffffff";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.12)";
+                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.16)";
                   e.currentTarget.style.color = "#cbd5e1";
                 }}
               >
-                <i className="fa-solid fa-magnifying-glass" style={{ fontSize: "0.85rem" }}></i>
+                <i className="fa-solid fa-magnifying-glass" style={{ fontSize: "0.82rem", color: "var(--color-primary)" }}></i>
               </button>
             )}
           </div>
 
-          {/* Language Switcher */}
+          {/* Language Switcher - Compact Width */}
           <div className="lang-selector-wrapper" style={{ flexShrink: 0 }}>
             <select 
               id="langSelector" 
@@ -428,13 +433,13 @@ export default function Header({ activePage }: HeaderProps) {
               value={lang}
               aria-label="Select Language"
               onChange={(e) => setLang(e.target.value)}
-              style={{ fontSize: "0.82rem", padding: "0.4rem 22px 0.4rem 0.6rem" }}
+              style={{ fontSize: "0.78rem", padding: "0.35rem 18px 0.35rem 0.5rem", width: "72px" }}
             >
-              <option value="en">English (EN)</option>
-              <option value="fr">Français (FR)</option>
-              <option value="sw">Kiswahili (SW)</option>
-              <option value="pt">Português (PT)</option>
-              <option value="ar">العربية (AR)</option>
+              <option value="en">EN</option>
+              <option value="fr">FR</option>
+              <option value="sw">SW</option>
+              <option value="pt">PT</option>
+              <option value="ar">AR</option>
             </select>
           </div>
 

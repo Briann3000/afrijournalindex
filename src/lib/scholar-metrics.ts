@@ -894,7 +894,7 @@ export function getScholarScientometrics(params: {
       : Math.max(1, Math.round(i10Index * 0.6));
 
     const scholarId = params.googleScholarId || undefined;
-    const scholarUrl = params.googleScholarUrl || (scholarId ? `https://scholar.google.com/citations?user=${scholarId}` : undefined);
+    const scholarUrl = params.googleScholarUrl || (scholarId ? `https://scholar.google.com/citations?user=${scholarId}` : (params.name ? `https://scholar.google.com/scholar?q=${encodeURIComponent(params.name)}` : undefined));
 
     return {
       googleScholarId: scholarId,

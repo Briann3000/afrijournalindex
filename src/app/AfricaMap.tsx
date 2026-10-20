@@ -107,18 +107,18 @@ export default function AfricaMap() {
     router.push(`/browse?country=${encodeURIComponent(countryName)}`);
   };
 
-  // Dynamic Choropleth Fill based on TRUE Database Counts (Warm Amber System)
+  // Dynamic Choropleth Fill based on TRUE Database Counts (Warm Muted Amber Palette - No Neon, No Blue)
   const getFillColor = (name: string, isHovered: boolean) => {
-    if (isHovered) return "#f59e0b"; // Bright interactive warm amber on hover
+    if (isHovered) return "#b45309"; // Warm dark amber highlight on hover
     
     const live = liveCountryStats[name] || liveCountryStats[name.toLowerCase()];
     const count = live?.journals || 0;
 
-    if (count > 25) return "#b45309"; // Deep Rich Amber (Major Hubs: Kenya, South Africa, Nigeria, Egypt)
-    if (count > 10) return "#d97706"; // Strong Amber
-    if (count > 3)  return "#f59e0b"; // Medium Warm Amber
-    if (count > 0)  return "#fbbf24"; // Soft Amber Gold
-    return "#e2e8f0"; // Slate surface for unindexed nations
+    if (count > 25) return "#b45309"; // Rich Dark Amber (Major Hubs: Kenya, South Africa, Nigeria, Egypt)
+    if (count > 10) return "#d97706"; // Medium Muted Amber
+    if (count > 3)  return "#d4a04a"; // Soft Ochre Amber
+    if (count > 0)  return "#eab308"; // Muted Sand Gold
+    return "#e2e8f0"; // Neutral slate surface for unindexed nations
   };
 
   // Calculate real Regional Percentages matching true Database counts
@@ -140,11 +140,11 @@ export default function AfricaMap() {
 
     const total = totalLiveJournals || 1;
     return [
-      { region: "North Africa", count: regionCounts.North, percentage: Math.round((regionCounts.North / total) * 100), color: "#c2410c", icon: "fa-landmark" },
-      { region: "Southern Africa", count: regionCounts.Southern, percentage: Math.round((regionCounts.Southern / total) * 100), color: "#f59e0b", icon: "fa-mountain-sun" },
-      { region: "East Africa", count: regionCounts.East, percentage: Math.round((regionCounts.East / total) * 100), color: "#b45309", icon: "fa-compass" },
-      { region: "West Africa", count: regionCounts.West, percentage: Math.round((regionCounts.West / total) * 100), color: "#d97706", icon: "fa-sun" },
-      { region: "Central Africa", count: regionCounts.Central, percentage: Math.round((regionCounts.Central / total) * 100), color: "#fbbf24", icon: "fa-tree" }
+      { region: "North Africa", count: regionCounts.North, percentage: Math.round((regionCounts.North / total) * 100), color: "#92400e", icon: "fa-landmark" },
+      { region: "Southern Africa", count: regionCounts.Southern, percentage: Math.round((regionCounts.Southern / total) * 100), color: "#b45309", icon: "fa-mountain-sun" },
+      { region: "East Africa", count: regionCounts.East, percentage: Math.round((regionCounts.East / total) * 100), color: "#d97706", icon: "fa-compass" },
+      { region: "West Africa", count: regionCounts.West, percentage: Math.round((regionCounts.West / total) * 100), color: "#d4a04a", icon: "fa-sun" },
+      { region: "Central Africa", count: regionCounts.Central, percentage: Math.round((regionCounts.Central / total) * 100), color: "#eab308", icon: "fa-tree" }
     ];
   }, [liveCountryStats, totalLiveJournals]);
 

@@ -103,6 +103,78 @@ export default function About() {
             </p>
           </div>
 
+          {/* Key Pillars of the Paradigm Shift Section */}
+          <div className="card-surface" style={{ padding: "2.5rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1.25rem" }}>
+              <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "rgba(180, 83, 9, 0.12)", display: "flex", alignItems: "center", justifyContent: "center", color: "#b45309" }}>
+                <i className="fa-solid fa-scale-balanced" style={{ fontSize: "1.15rem" }}></i>
+              </div>
+              <div>
+                <h2 style={{ color: "var(--color-navy)", fontSize: "1.45rem", fontWeight: 800, margin: 0 }}>
+                  Strategic Paradigm Shift in African Scholarly Indexing
+                </h2>
+                <span style={{ fontSize: "0.85rem", color: "var(--color-primary)", fontWeight: 700 }}>
+                  afrijournalindexing.org
+                </span>
+              </div>
+            </div>
+
+            <p style={{ color: "var(--color-text-body)", lineHeight: "1.8", fontSize: "0.98rem", marginBottom: "1.5rem" }}>
+              AfriJournal Indexing (afrijournalindexing.org) represents a strategic shift in how academic research, journal impact, and citation metrics are evaluated within the African scientific ecosystem. Traditional global citation engines have historically relied on Western-centric indexing criteria, high subscription barriers, and citation algorithms that often overlook localized research contexts.
+            </p>
+            <p style={{ color: "var(--color-text-body)", lineHeight: "1.8", fontSize: "0.98rem", marginBottom: "2rem" }}>
+              AfriJournal Indexing addresses these gaps by introducing an open, transparent indexing directory and a regionalized citation metrics engine.
+            </p>
+
+            <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "1.25rem", borderBottom: "1px solid var(--color-border)", paddingBottom: "0.5rem" }}>
+              Key Pillars of the Paradigm Shift
+            </h3>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem" }}>
+              {/* Pillar 1 */}
+              <div style={{ background: "var(--color-bg-alt)", border: "1px solid var(--color-border)", borderRadius: "12px", padding: "1.75rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.85rem" }}>
+                  <span style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#0284c7", color: "#ffffff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "0.85rem" }}>1</span>
+                  <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--color-navy)", margin: 0 }}>
+                    Context-Aware Citation Formulation (AJCI &amp; 3-YCA)
+                  </h4>
+                </div>
+                <p style={{ fontSize: "0.9rem", color: "var(--color-text-body)", lineHeight: "1.7", marginBottom: "1rem" }}>
+                  Traditional metrics like the standard 2-year Journal Impact Factor can inadvertently penalize journals with bi-annual, quarterly, or localized publishing cadences common in developing research infrastructures. AfriJournal utilizes:
+                </p>
+                <ul style={{ margin: 0, paddingLeft: "1.25rem", fontSize: "0.88rem", color: "var(--color-text-body)", lineHeight: "1.75", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  <li>
+                    <strong>AfriJournal Citation Index (AJCI):</strong> Measures the standard 2-year citation window (citations in a given year to articles published in the previous two years).
+                  </li>
+                  <li>
+                    <strong>3-Year Citation Average (3-YCA):</strong> Extends the window to buffer against publication irregularities and capture the true maturation cycle of regional scholarship.
+                  </li>
+                  <li>
+                    <strong>Regional Context Weighting:</strong> Designed to capture the &ldquo;continental citation dividend,&rdquo; aligning metrics with global standards (like SCImago/OpenAlex models) while properly valuing research that addresses localized socioeconomic, health, and agricultural challenges.
+                  </li>
+                </ul>
+              </div>
+
+              {/* Pillar 2 */}
+              <div style={{ background: "var(--color-bg-alt)", border: "1px solid var(--color-border)", borderRadius: "12px", padding: "1.75rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.85rem" }}>
+                  <span style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#16a34a", color: "#ffffff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "0.85rem" }}>2</span>
+                  <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--color-navy)", margin: 0 }}>
+                    Dismantling Predatory and Financial Barriers
+                  </h4>
+                </div>
+                <ul style={{ margin: 0, paddingLeft: "1.25rem", fontSize: "0.88rem", color: "var(--color-text-body)", lineHeight: "1.75", display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+                  <li>
+                    <strong>100% Free Open Indexing:</strong> The platform offers baseline indexing at zero cost to democratize visibility for grassroots or emerging African journals that cannot afford heavy international processing fees.
+                  </li>
+                  <li>
+                    <strong>Cartel Defense &amp; Rigorous Validation:</strong> Utilizing metadata consistency checks (active ISSN/eISSN verification), open peer-review validation, and strict adherence to DOAJ (Directory of Open Access Journals) standards, the system works to weed out predatory publishing practices while protecting legitimate regional journals.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           {/* CTA Box */}
           <div style={{
             background: "linear-gradient(135deg, #042f2e 0%, #134e4a 100%)",

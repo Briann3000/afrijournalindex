@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useLang } from "./LangContext";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -26,8 +27,19 @@ interface ShowcaseJournal {
 
 export default function Home() {
   const { t } = useLang();
+  const router = useRouter();
   const [heroJournal, setHeroJournal] = useState<ShowcaseJournal | null>(null);
   const [showcaseJournals, setShowcaseJournals] = useState<ShowcaseJournal[]>([]);
+  const [heroSearchQuery, setHeroSearchQuery] = useState<string>("");
+
+  const handleHeroSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (heroSearchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(heroSearchQuery.trim())}`);
+    } else {
+      router.push("/browse");
+    }
+  };
 
   useEffect(() => {
     async function loadShowcase() {
@@ -79,14 +91,61 @@ export default function Home() {
               </div>
 
               <h1 className="hero-title">
-                {t.hero.title}
+                Elevating African Academic Excellence Through Unbiased Indexation
               </h1>
 
               <p className="hero-subtitle">
                 {t.hero.subtitle}
               </p>
 
-              {/* Hero Action CTA Group */}
+              {/* Direct Prominent Hero Quick Search */}
+              <form 
+                onSubmit={handleHeroSearch}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  background: "var(--color-bg-card)",
+                  border: "2px solid rgba(212, 160, 74, 0.4)",
+                  borderRadius: "14px",
+                  padding: "5px 6px 5px 14px",
+                  boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.08)",
+                  width: "100%",
+                  maxWidth: "640px",
+                  marginBottom: "1.5rem",
+                  transition: "border-color 0.2s ease"
+                }}
+              >
+                <i className="fa-solid fa-magnifying-glass" style={{ color: "var(--color-primary)", marginRight: "10px", fontSize: "0.95rem" }}></i>
+                <input
+                  type="text"
+                  placeholder="Search 1,600+ indexed African journals, articles, or DOIs..."
+                  value={heroSearchQuery}
+                  onChange={(e) => setHeroSearchQuery(e.target.value)}
+                  style={{
+                    border: "none",
+                    outline: "none",
+                    background: "transparent",
+                    color: "var(--color-text-body)",
+                    width: "100%",
+                    fontSize: "0.92rem"
+                  }}
+                />
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{
+                    padding: "0.45rem 1rem",
+                    borderRadius: "10px",
+                    fontSize: "0.8rem",
+                    fontWeight: 700,
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  Search
+                </button>
+              </form>
+
+              {/* Hero Action CTA Group: 2 High-Priority Action Buttons */}
               <div className="hero-cta-group" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
                 <a href="/browse" className="btn btn-primary btn-lg">
                   <i className="fa-solid fa-compass"></i>
@@ -96,16 +155,24 @@ export default function Home() {
                   <i className="fa-solid fa-cloud-arrow-up"></i>
                   {t.hero.cta_submit}
                 </a>
-                <a href="/institution" className="btn btn-secondary btn-lg">
-                  <i className="fa-solid fa-building-columns"></i>
-                  {t.hero.cta_institution}
-                </a>
               </div>
             </div>
             
-            {/* Hero Visual: Prestige Academic Indexation & Bibliometric Card */}
-            <div className="hero-visual">
-              <div className="glass-card visual-card" style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "20px", padding: "1.75rem", boxShadow: "0 20px 40px -10px rgba(15, 23, 42, 0.12)" }}>
+            {/* Hero Visual: Prestige Academic Indexation & Bibliometric Card with Ambient Backdrop */}
+            <div className="hero-visual" style={{ position: "relative" }}>
+              {/* Subtle ambient scholarly glow backdrop to prevent the 'naked' card look */}
+              <div 
+                style={{
+                  position: "absolute",
+                  inset: "-15px",
+                  background: "radial-gradient(circle at 50% 50%, rgba(212, 160, 74, 0.15), rgba(15, 23, 42, 0.02) 70%)",
+                  borderRadius: "28px",
+                  filter: "blur(18px)",
+                  zIndex: 0,
+                  pointerEvents: "none"
+                }}
+              />
+              <div className="glass-card visual-card" style={{ position: "relative", zIndex: 1, background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "20px", padding: "1.75rem", boxShadow: "0 20px 45px -10px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(212, 160, 74, 0.15)" }}>
                 {/* Visual Header / Live Verification Pill */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "0.85rem" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -392,6 +459,43 @@ export default function Home() {
           </div>
         </section>
       </main>
+
+      {/* Floating WhatsApp Contact Button (Bottom Right) */}
+      <a
+        href="https://wa.me/254725788400?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20AfriJournal%20Indexing%20services."
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Chat with AfriJournal Editorial Team on WhatsApp (0725788400)"
+        aria-label="Contact us on WhatsApp"
+        style={{
+          position: "fixed",
+          bottom: "28px",
+          right: "28px",
+          width: "58px",
+          height: "58px",
+          borderRadius: "50%",
+          backgroundColor: "#25D366",
+          color: "#ffffff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 8px 24px rgba(37, 211, 102, 0.4)",
+          zIndex: 9999,
+          cursor: "pointer",
+          transition: "transform 0.2s ease, box-shadow 0.2s ease",
+          fontSize: "1.9rem"
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.08)";
+          e.currentTarget.style.boxShadow = "0 12px 30px rgba(37, 211, 102, 0.55)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.boxShadow = "0 8px 24px rgba(37, 211, 102, 0.4)";
+        }}
+      >
+        <i className="fa-brands fa-whatsapp"></i>
+      </a>
 
       <Footer />
     </div>

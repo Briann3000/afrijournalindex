@@ -59,6 +59,8 @@ model User {
   comments      Comment[]
   claims        ClaimedPublication[]
   payments      Payment[]
+  forumTopics   ForumTopic[]
+  forumReplies  ForumReply[]
 
   @@index([institutionId])
   @@index([totalCitations])
@@ -268,4 +270,64 @@ model Payment {
   @@index([createdAt])
   @@map("payment")
 }
+
+// -------------------------------------------------------------
+// AfriScholarChat: Scholarly Discourse & Editorial Forum
+// -------------------------------------------------------------
+
+model ForumCategory {
+  id          String       @id @default(uuid())
+  slug        String       @unique @db.VarChar(100)
+  name        String       @db.VarChar(255)
+  description String       @db.Text
+  icon        String       @default("fa-comments") @db.VarChar(50)
+  displayOrder Int         @default(0)
+  topics      ForumTopic[]
+  createdAt   DateTime     @default(now())
+
+  @@map("forum_category")
+}
+
+model ForumTopic {
+  id          String        @id @default(uuid())
+  title       String        @db.VarChar(500)
+  slug        String        @unique @db.VarChar(550)
+  content     String        @db.Text
+  isPinned    Boolean       @default(false)
+  isLocked    Boolean       @default(false)
+  viewsCount  Int           @default(0)
+  
+  categoryId  String
+  category    ForumCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replies     ForumReply[]
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("forum_topic")
+}
+
+model ForumReply {
+  id          String     @id @default(uuid())
+  content     String     @db.Text
+  
+  topicId     String
+  topic       ForumTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([topicId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("forum_reply")
+}
+
 

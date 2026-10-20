@@ -23,3 +23,7 @@
   1. Inspect and ensure `.gitignore` is properly configured (exclude untracked temp files, cache, or private documents).
   2. Stage appropriate project files if needed (`git add`).
   3. Provide a clear, conventional commit message for the user to copy/paste and execute themselves in the terminal.
+
+## 5. Deployment Context (Active Live Production Site)
+* **The Site Is Already Live in Production**: This is not a new or initial setup. When the user mentions "pushing", "uploading", or "zipping for cPanel", it means **incremental updates/propagation** of the modified changes to an already running production site.
+* **No Beginner Setup Tutorials**: Never give basic "how to set up cPanel for the first time" tutorials, database creation walk-throughs, or novice onboarding instructions. Focus strictly on the exact diffs, build output, updated files, or specific migration scripts needed to propagate the latest changes.
