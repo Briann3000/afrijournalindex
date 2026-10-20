@@ -28,6 +28,7 @@ export default function Header({ activePage }: HeaderProps) {
   const [mobileSearchQuery, setMobileSearchQuery] = useState<string>("");
 
   const navRef = useRef<HTMLDivElement>(null);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -51,12 +52,16 @@ export default function Header({ activePage }: HeaderProps) {
     function handleClickOutside(event: MouseEvent) {
       if (isMobileMenuOpen) return;
 
-      if (navRef.current && !navRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedInsideNav = navRef.current ? navRef.current.contains(target) : false;
+      const clickedInsideUser = userDropdownRef.current ? userDropdownRef.current.contains(target) : false;
+
+      if (!clickedInsideNav && !clickedInsideUser) {
         setOpenDropdown(null);
       }
       if (
         searchContainerRef.current &&
-        !searchContainerRef.current.contains(event.target as Node)
+        !searchContainerRef.current.contains(target)
       ) {
         if (!searchQuery.trim()) {
           setIsSearchOpen(false);
@@ -446,7 +451,7 @@ export default function Header({ activePage }: HeaderProps) {
           {/* Desktop User Action Buttons */}
           <div className="desktop-actions" style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
             {user ? (
-              <div className="nav-dropdown-wrapper" style={{ position: "relative" }}>
+              <div ref={userDropdownRef} className="nav-dropdown-wrapper" style={{ position: "relative" }}>
                 <button
                   type="button"
                   onClick={() => toggleDropdown("userProfile")}
@@ -459,7 +464,8 @@ export default function Header({ activePage }: HeaderProps) {
                     display: "inline-flex",
                     alignItems: "center",
                     gap: "7px",
-                    padding: "0.4rem 0.85rem"
+                    padding: "0.4rem 0.85rem",
+                    cursor: "pointer"
                   }}
                 >
                   <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`} style={{ color: "var(--color-primary)" }}></i>
@@ -499,17 +505,19 @@ export default function Header({ activePage }: HeaderProps) {
 
                     <a 
                       href={`/researcher?id=${user.id}`} 
+                      onClick={() => setOpenDropdown(null)}
                       className="nav-dropdown-item"
-                      style={{ padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "10px", color: "#f1f5f9", textDecoration: "none", fontSize: "0.84rem", borderRadius: "6px" }}
+                      style={{ padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "10px", color: "#f1f5f9", textDecoration: "none", fontSize: "0.84rem", borderRadius: "6px", cursor: "pointer" }}
                     >
                       <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`} style={{ color: "var(--color-primary)", width: "16px" }}></i>
                       <span>{user.role === "PUBLISHER" ? "Editor & Scholar Profile" : t.nav.profile}</span>
                     </a>
 
                     <a 
-                      href="/researcher?tab=library" 
+                      href={`/researcher?id=${user.id}&tab=library`} 
+                      onClick={() => setOpenDropdown(null)}
                       className="nav-dropdown-item"
-                      style={{ padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "10px", color: "#f1f5f9", textDecoration: "none", fontSize: "0.84rem", borderRadius: "6px" }}
+                      style={{ padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "10px", color: "#f1f5f9", textDecoration: "none", fontSize: "0.84rem", borderRadius: "6px", cursor: "pointer" }}
                     >
                       <i className="fa-solid fa-star" style={{ color: "#fbbf24", width: "16px" }}></i>
                       <span>Reading Library</span>
@@ -518,8 +526,9 @@ export default function Header({ activePage }: HeaderProps) {
                     {user.role === "ADMIN" && (
                       <Link 
                         href="/admin" 
+                        onClick={() => setOpenDropdown(null)}
                         className="nav-dropdown-item"
-                        style={{ padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "10px", color: "#f59e0b", textDecoration: "none", fontSize: "0.84rem", borderRadius: "6px" }}
+                        style={{ padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "10px", color: "#f59e0b", textDecoration: "none", fontSize: "0.84rem", borderRadius: "6px", cursor: "pointer" }}
                       >
                         <i className="fa-solid fa-shield-halved" style={{ width: "16px" }}></i>
                         <span>Admin Console</span>
@@ -528,9 +537,14 @@ export default function Header({ activePage }: HeaderProps) {
 
                     <div style={{ borderTop: "1px solid rgba(255, 255, 255, 0.08)", marginTop: "4px", paddingTop: "4px" }}>
                       <button 
-                        onClick={async () => {
-                          await fetch("/api/auth/login", { method: "DELETE" });
-                          window.location.reload();
+                        type="button"
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setOpenDropdown(null);
+                          await fetch("/api/auth/login", { method: "DELETE" }).catch(() => {});
+                          await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+                          window.location.href = "/login";
                         }}
                         style={{
                           width: "100%",
@@ -589,26 +603,45 @@ export default function Header({ activePage }: HeaderProps) {
             className="mobile-nav-drawer" 
             onClick={(e) => e.stopPropagation()}
             style={{
-              position: "absolute",
+              position: "fixed",
               top: 0,
               right: lang === "ar" ? "auto" : 0,
               left: lang === "ar" ? 0 : "auto",
               width: "85%",
               maxWidth: "340px",
-              height: "100%",
+              height: "100vh",
+              maxHeight: "100dvh",
               background: "#121217",
               borderLeft: lang === "ar" ? "none" : "1px solid rgba(255, 255, 255, 0.08)",
               borderRight: lang === "ar" ? "1px solid rgba(255, 255, 255, 0.08)" : "none",
-              padding: "1.5rem",
+              padding: "1.25rem 1.5rem 2.5rem",
               overflowY: "auto",
+              WebkitOverflowScrolling: "touch",
               display: "flex",
               flexDirection: "column",
               gap: "1.1rem",
-              boxShadow: "-10px 0 30px rgba(0,0,0,0.6)"
+              boxShadow: "-10px 0 30px rgba(0,0,0,0.6)",
+              zIndex: 10000
             }}
           >
+            {/* Drawer Top Brand Bar & Close Button */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "0.75rem", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.2rem" }}>Afri</span>
+                <span style={{ color: "var(--color-primary)", fontWeight: 800, fontSize: "1.2rem" }}>Journal</span>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setIsMobileMenuOpen(false)}
+                style={{ background: "none", border: "none", color: "#94a3b8", fontSize: "1.3rem", cursor: "pointer", padding: "4px 8px" }}
+                aria-label="Close menu"
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
             {/* Mobile Quick Search Bar */}
-            <form onSubmit={handleMobileSearchSubmit} style={{ width: "100%", marginBottom: "0.5rem" }}>
+            <form onSubmit={handleMobileSearchSubmit} style={{ width: "100%", marginBottom: "0.25rem" }}>
               <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
                 <input
                   type="text"
@@ -882,7 +915,7 @@ export default function Header({ activePage }: HeaderProps) {
                     <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`}></i> {user.role === "PUBLISHER" ? "Editor & Scholar Profile" : t.nav.profile}
                   </Link>
                   <Link 
-                    href="/researcher?tab=library" 
+                    href={`/researcher?id=${user.id}&tab=library`} 
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="btn btn-secondary" 
                     style={{ width: "100%", justifyContent: "center", background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}
@@ -891,8 +924,9 @@ export default function Header({ activePage }: HeaderProps) {
                   </Link>
                   <button 
                     onClick={async () => {
-                      await fetch("/api/auth/login", { method: "DELETE" });
-                      window.location.reload();
+                      await fetch("/api/auth/login", { method: "DELETE" }).catch(() => {});
+                      await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+                      window.location.href = "/login";
                     }}
                     className="btn btn-secondary"
                     style={{ width: "100%", justifyContent: "center", border: "1px solid rgba(239,68,68,0.4)", color: "#f87171", background: "#1e293b" }}

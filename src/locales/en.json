@@ -6,7 +6,7 @@
     "submit": "Submit Journal",
     "pricing": "Pricing",
     "rankings": "Rankings & Quartiles",
-    "institution": "Institutional Console",
+    "institution": "Institutional Rankings",
     "researcher": "Researcher Profile",
     "about": "About Us",
     "contact": "Contact Support",
@@ -33,13 +33,14 @@
     "search_btn": "Search Index",
     "cta_submit": "Index Your Journal (Free)",
     "cta_explore": "Explore Directory",
-    "cta_institution": "Institutional Console",
+    "cta_institution": "Institutional Rankings",
     "card_title": "Featured Metrics: ARJESS",
     "card_if": "AfriJournal Citation Index (AJCI)",
     "card_grade": "Quality Grade",
     "card_score": "Score: 1.482",
     "card_regional": "Regional Representation (RRQ)",
-    "card_regional_sub": "Pan-African citation provenance & institutional diversity"
+    "card_regional_sub": "Pan-African citation provenance & institutional diversity",
+    "view_console": "View Institutional Rankings"
   },
   "stats": {
     "journals": "Indexed African Journals",
@@ -71,11 +72,11 @@
     "citations": "Citations",
     "h_index": "h-Index",
     "view_all": "View Full Leaderboard",
-    "view_console": "Open Institutional Console"
+    "view_console": "View Institutional Rankings"
   },
   "valprop": {
     "title": "Empowering the African Knowledge Economy",
-    "desc": "AfriJournal Index overcomes the visibility barriers that African academic editors and researchers face daily.",
+    "desc": "AfriJournal Indexing overcomes the visibility barriers that African academic editors and researchers face daily.",
     "indexing_title": "Free & Open Indexing",
     "indexing_text": "We index peer-reviewed journals published on the African continent completely free of charge, making African scholarship globally discoverable.",
     "if_title": "Credible Citation Metrics",
@@ -120,7 +121,7 @@
     "contact": "Contact Support",
     "terms": "Terms & Conditions",
     "privacy": "Privacy Policy",
-    "rights": "All rights reserved. AfriJournal Index - Continental Academic Repository.",
+    "rights": "All rights reserved. AfriJournal Indexing - Continental Academic Repository.",
     "tagline": "Empowering African Scholarly Discovery."
   },
   "rankings_page": {
@@ -171,7 +172,7 @@
     "close_modal": "Close"
   },
   "institution_page": {
-    "title": "Institutional Research Console",
+    "title": "Institutional Research & University Rankings",
     "subtitle": "Comprehensive university benchmarking, research output analytics, and faculty citation performance across Africa.",
     "tab_leaderboard": "University Rankings",
     "tab_profile": "Institution Profile",
@@ -190,7 +191,7 @@
     "col_hindex": "h-Index",
     "col_top_discipline": "Lead Field",
     "col_action": "Analytics",
-    "view_details": "View Console",
+    "view_details": "View Rankings",
     "departments_heading": "Departmental Performance Breakdown",
     "affiliated_journals": "Affiliated University Press Journals",
     "no_results": "No institutional records found matching criteria.",
@@ -221,7 +222,7 @@
     "website_placeholder": "https://www.example.org/journal",
     "upload_label": "Upload Sample Issue (PDF, Max 10MB)",
     "upload_sub": "Drag and drop or select a PDF file",
-    "terms_label": "I agree to the Terms & Conditions of AfriJournal Index indexing policy.",
+    "terms_label": "I agree to the Terms & Conditions of AfriJournal Indexing indexing policy.",
     "btn_prev": "Previous",
     "btn_submit": "Submit Application",
     "submitting": "Evaluating Submission...",
@@ -306,7 +307,7 @@
     "must_login": "You must be logged in to participate in peer discussions.",
     "login_btn": "Log In to Participate",
     "not_found_title": "Journal Not Found",
-    "not_found_desc": "The requested journal could not be located in the AfriJournal Index registry.",
+    "not_found_desc": "The requested journal could not be located in the AfriJournal Indexing registry.",
     "badge_widget_title": "Embed Verification Badge",
     "badge_embed_desc": "Embed this live AJCI verification badge on your journal website to display your official indexing status:",
     "copy_code": "Copy Embed Code",
@@ -346,10 +347,10 @@
   "about_page": {
     "subtitle": "Independent continental indexing and bibliometrics for African scientific research.",
     "mission_title": "Our Mission & Continental Scope",
-    "mission_text1": "Scholarly journals published in Africa frequently face structural barriers to discovery in global commercial indexing databases. AfriJournal Index was founded to bridge this gap, providing an independent, high-standard indexing platform specifically designed for peer-reviewed journals across all 54 African countries.",
+    "mission_text1": "Scholarly journals published in Africa frequently face structural barriers to discovery in global commercial indexing databases. AfriJournal Indexing was founded to bridge this gap, providing an independent, high-standard indexing platform specifically designed for peer-reviewed journals across all 54 African countries.",
     "mission_text2": "Our platform evaluates quality guidelines fairly, using high-speed automated crawler screening to verify active ISSN registration, double-blind peer-review policies, editorial governance, publication continuity, and continental research contributions without paywalls.",
     "partner_title": "Editorial Independence & COPE Alignment",
-    "partner_text": "AfriJournal Index operates with complete editorial independence under the guidance of a continental academic advisory board. We adhere strictly to the Committee on Publication Ethics (COPE) Core Practices, the DOAJ Principles of Transparency and Best Practice in Scholarly Publishing, and open-access mandates to eliminate predatory practices and protect African research integrity.",
+    "partner_text": "AfriJournal Indexing operates with complete editorial independence under the guidance of a continental academic advisory board. We adhere strictly to the Committee on Publication Ethics (COPE) Core Practices, the DOAJ Principles of Transparency and Best Practice in Scholarly Publishing, and open-access mandates to eliminate predatory practices and protect African research integrity.",
     "pillars_title": "Our Core Academic Pillars",
     "pillar_open": "Open & Free Infrastructure",
     "pillar_open_text": "Zero submission fees, zero subscription paywalls, and zero barriers for African journals and researchers.",
@@ -392,16 +393,16 @@
       "category": "General & Governance",
       "items": [
         {
-          "q": "What is AfriJournal Index?",
-          "a": "AfriJournal Index (AJCI) is an open-access academic indexing and bibliometric platform built specifically for African research journals. We catalog peer-reviewed journals, compute calculated citation index scores, track citations, and provide researcher profile dashboards — all without paywalls."
+          "q": "What is AfriJournal Indexing?",
+          "a": "AfriJournal Indexing (AJCI) is an open-access academic indexing and bibliometric platform built specifically for African research journals. We catalog peer-reviewed journals, compute calculated citation index scores, track citations, and provide researcher profile dashboards — all without paywalls."
         },
         {
-          "q": "Is AfriJournal Index free to use?",
-          "a": "Yes. Browsing the catalog, searching journals, viewing rankings, submitting a journal for indexing, and registering a researcher profile are 100% free. AfriJournal Index operates as open public infrastructure for African academic scholarship."
+          "q": "Is AfriJournal Indexing free to use?",
+          "a": "Yes. Browsing the catalog, searching journals, viewing rankings, submitting a journal for indexing, and registering a researcher profile are 100% free. AfriJournal Indexing operates as open public infrastructure for African academic scholarship."
         },
         {
-          "q": "Who governs AfriJournal Index?",
-          "a": "AfriJournal Index is governed by an independent continental academic advisory committee consisting of university scholars, research librarians, and open science advocates across East, West, North, Southern, and Central Africa. The platform maintains strict editorial neutrality and independence."
+          "q": "Who governs AfriJournal Indexing?",
+          "a": "AfriJournal Indexing is governed by an independent continental academic advisory committee consisting of university scholars, research librarians, and open science advocates across East, West, North, Southern, and Central Africa. The platform maintains strict editorial neutrality and independence."
         },
         {
           "q": "Which countries are covered?",
@@ -447,7 +448,7 @@
         },
         {
           "q": "Can an indexed journal be de-indexed?",
-          "a": "Yes. AfriJournal Index conducts automated continuous monitoring. If an indexed journal becomes defunct, engages in citation manipulation, removes peer-review transparency, or violates academic integrity standards, it will be flagged for editorial review and subject to de-indexing."
+          "a": "Yes. AfriJournal Indexing conducts automated continuous monitoring. If an indexed journal becomes defunct, engages in citation manipulation, removes peer-review transparency, or violates academic integrity standards, it will be flagged for editorial review and subject to de-indexing."
         }
       ]
     },
@@ -496,14 +497,14 @@
   ],
   "terms_page": {
     "title": "Terms & Conditions",
-    "subtitle": "Please read these terms carefully before using AfriJournal Index. By accessing or using our platform, you agree to be bound by these terms.",
+    "subtitle": "Please read these terms carefully before using AfriJournal Indexing. By accessing or using our platform, you agree to be bound by these terms.",
     "last_updated": "Last updated: October 2026",
     "related_policies": "Related policies",
     "sec1_title": "Acceptance of Terms",
-    "sec1_p1": "By accessing the AfriJournal Index platform, creating an account, or submitting a journal for evaluation, you confirm that you have read, understood, and agree to be bound by these Terms & Conditions and our Privacy Policy.",
+    "sec1_p1": "By accessing the AfriJournal Indexing platform, creating an account, or submitting a journal for evaluation, you confirm that you have read, understood, and agree to be bound by these Terms & Conditions and our Privacy Policy.",
     "sec1_p2": "If you are acting on behalf of an academic institution, journal publisher, or editorial board, you warrant that you hold the legal authority to bind that entity to these Terms.",
     "sec2_title": "Platform Scope & Services",
-    "sec2_p1": "AfriJournal Index provides an open-access academic infrastructure for African scholarship, including:",
+    "sec2_p1": "AfriJournal Indexing provides an open-access academic infrastructure for African scholarship, including:",
     "sec2_li1": "Automated journal submission and crawler-based quality compliance evaluation",
     "sec2_li2": "Bibliometric citation index computation (AJCI standard score and regional multiplier)",
     "sec2_li3": "Discipline rankings and quartile classifications (Q1–Q4)",
@@ -516,7 +517,7 @@
     "sec3_li2": "Notify support immediately if any unauthorized access is suspected.",
     "sec3_li3": "Do not share publisher administrative credentials across multiple unverified parties.",
     "sec3_li4": "Maintain an up-to-date academic email address for official compliance notifications.",
-    "sec3_p2": "AfriJournal Index reserves the right to suspend accounts with fraudulent credentials.",
+    "sec3_p2": "AfriJournal Indexing reserves the right to suspend accounts with fraudulent credentials.",
     "sec4_title": "Publisher Warranty & Academic Integrity",
     "sec4_p1": "Publishers submitting journals warrant that: (a) the journal conducts legitimate, rigorous peer review; (b) all listed editorial board members have explicitly consented to serve; (c) the journal does not engage in predatory publishing practices, paper mill activities, or deceptive marketing; and (d) submitted metadata is accurate and truthful.",
     "sec4_li1": "Submissions must include verified Print ISSN or Online eISSN registrations.",
@@ -532,25 +533,25 @@
     "sec5_li3": "Editorial integrity failures trigger a 180-day cooling-off window for the affected ISSN.",
     "sec5_li4": "Editorial teams receive diagnostic audit logs detailing specific remediation criteria.",
     "sec6_title": "De-Indexing & Revocation Safeguards",
-    "sec6_p1": "AfriJournal Index reserves the right to suspend or revoke indexing status if a journal subsequently fails compliance audits, engages in citation manipulation (citation stacking or excessive coercive self-citation), loses domain security, or ceases active publication.",
+    "sec6_p1": "AfriJournal Indexing reserves the right to suspend or revoke indexing status if a journal subsequently fails compliance audits, engages in citation manipulation (citation stacking or excessive coercive self-citation), loses domain security, or ceases active publication.",
     "sec6_li1": "Periodic re-crawls verify continuous domain security and issue publication regularity.",
     "sec6_li2": "Evidence of paper mill infiltration or unrefereed publication sprees causes instant revocation.",
     "sec6_li3": "Coercive self-citation or citation stacking cartels are detected via bibliometric algorithms.",
     "sec6_li4": "De-indexed journals are notified with an itemized statement of compliance revocation.",
     "sec6_p2": "Publishers may appeal de-indexing decisions after implementing corrective measures.",
     "sec7_title": "Intellectual Property & Open Metadata",
-    "sec7_p1": "Publishers and authors retain all original copyrights to their scientific articles and editorial content. By submitting to AfriJournal Index, publishers grant the platform a non-exclusive license to index, display, compute bibliometrics for, and distribute bibliographic metadata under open academic standards.",
-    "sec7_p2": "All metric algorithms, badges, and software interfaces are the proprietary property of AfriJournal Index.",
+    "sec7_p1": "Publishers and authors retain all original copyrights to their scientific articles and editorial content. By submitting to AfriJournal Indexing, publishers grant the platform a non-exclusive license to index, display, compute bibliometrics for, and distribute bibliographic metadata under open academic standards.",
+    "sec7_p2": "All metric algorithms, badges, and software interfaces are the proprietary property of AfriJournal Indexing.",
     "sec8_title": "Disclaimer of Warranties & Limitation of Liability",
-    "sec8_p1": "The Platform and its calculated metrics are provided on an 'as is' and 'as available' basis. AfriJournal Index makes no guarantees that platform operations will be uninterrupted or error-free.",
-    "sec8_p2": "To the maximum extent permitted by applicable law, AfriJournal Index and its advisory committee shall not be liable for any indirect, incidental, or consequential damages arising from reliance on platform data or indexing decisions."
+    "sec8_p1": "The Platform and its calculated metrics are provided on an 'as is' and 'as available' basis. AfriJournal Indexing makes no guarantees that platform operations will be uninterrupted or error-free.",
+    "sec8_p2": "To the maximum extent permitted by applicable law, AfriJournal Indexing and its advisory committee shall not be liable for any indirect, incidental, or consequential damages arising from reliance on platform data or indexing decisions."
   },
   "privacy_page": {
     "title": "Privacy Policy",
-    "subtitle": "Your privacy and academic data rights are paramount. This policy outlines how AfriJournal Index handles personal information in compliance with continental and international data standards.",
+    "subtitle": "Your privacy and academic data rights are paramount. This policy outlines how AfriJournal Indexing handles personal information in compliance with continental and international data standards.",
     "last_updated": "Last updated: October 2026",
     "sec1_title": "Who We Are & Governance",
-    "sec1_p1": "AfriJournal Index operates as an independent, open-access continental academic indexing infrastructure governed by a pan-African scholarly advisory body. We are committed to transparency, open science, and robust data protection.",
+    "sec1_p1": "AfriJournal Indexing operates as an independent, open-access continental academic indexing infrastructure governed by a pan-African scholarly advisory body. We are committed to transparency, open science, and robust data protection.",
     "sec2_title": "Information We Collect",
     "sec2_p1": "We collect information necessary to provide academic indexing and researcher analytics services:",
     "sec2_h1": "Account Registration Data",
@@ -588,7 +589,7 @@
     "sec5_li3": "Researchers may claim or unclaim publications from their profile at any time.",
     "sec5_p2": "We do not sell, rent, or lease academic or personal data to third parties under any circumstances.",
     "sec6_title": "Zero Commercial Advertising & Behavioral Tracking",
-    "sec6_p1": "AfriJournal Index does not host commercial third-party advertisements, behavioral tracking pixels, or data broker integrations. Your browsing activity on this platform is never monetized or shared with marketing networks.",
+    "sec6_p1": "AfriJournal Indexing does not host commercial third-party advertisements, behavioral tracking pixels, or data broker integrations. Your browsing activity on this platform is never monetized or shared with marketing networks.",
     "sec7_title": "Data Security, Retention & Your Rights",
     "sec7_p1": "We implement robust security safeguards including end-to-end HTTPS encryption, salted bcrypt password hashing, and role-based database access controls. Under applicable data protection regulations, you hold the right to:",
     "sec7_li1": "Access: Request a copy of the personal data held about your account.",
@@ -602,7 +603,7 @@
     "login_title": "Account Login",
     "login_subtitle": "Log in to manage journal submissions, researcher profiles, and indexing metrics.",
     "register_title": "Create Account",
-    "register_subtitle": "Join AfriJournal Index as a researcher or publisher to manage indexing profiles.",
+    "register_subtitle": "Join AfriJournal Indexing as a researcher or publisher to manage indexing profiles.",
     "email_label": "Email Address",
     "email_placeholder": "e.g. jane.doe@uonbi.ac.ke",
     "password_label": "Password",

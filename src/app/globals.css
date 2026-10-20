@@ -115,7 +115,6 @@ a {
     width: 100%;
     z-index: 1000;
     box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
 }
 
 .header-container {
@@ -246,19 +245,16 @@ a {
 
 .mobile-nav-backdrop {
     position: fixed;
-    top: 72px;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(15, 23, 42, 0.8);
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: rgba(10, 15, 29, 0.75);
     backdrop-filter: blur(4px);
-    z-index: 998;
-}
-
-@media (max-width: 768px) {
-    .mobile-nav-backdrop {
-        top: 64px !important;
-    }
+    z-index: 9999;
 }
 
 /* -------------------------------------------------------------

@@ -19,7 +19,7 @@ export default function About() {
             <i className="fa-solid fa-circle-info"></i>
             Continental Scholarly Infrastructure
           </span>
-          <h1 className="page-title">{t.nav.about || "About AfriJournal Index"}</h1>
+          <h1 className="page-title">{t.nav.about || "About AfriJournal Indexing"}</h1>
           <p className="page-subtitle" style={{ maxWidth: "680px", margin: "0.5rem auto 0" }}>
             {t.about_page.subtitle}
           </p>

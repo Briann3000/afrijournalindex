@@ -373,7 +373,7 @@ export function generateInstitutionalDossier(journal: DossierJournalData): void 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(51, 65, 85);
-  const regExpl = "To provide granular visibility into geographic impact without distorting the raw citation ratio, AfriJournal Index reports the Regional Representation Quotient (RRQ). This captures the percentage of citations originating from institutions within the African Union, promoting continental scholarship alongside international reach.";
+  const regExpl = "To provide granular visibility into geographic impact without distorting the raw citation ratio, AfriJournal Indexing reports the Regional Representation Quotient (RRQ). This captures the percentage of citations originating from institutions within the African Union, promoting continental scholarship alongside international reach.";
   doc.text(doc.splitTextToSize(regExpl, contentWidth), margin, 104);
 
   // Ledger Table
@@ -498,7 +498,7 @@ export function generateInstitutionalDossier(journal: DossierJournalData): void 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(51, 65, 85);
-  doc.text("To protect indexed journals against allegations of predatory citation manipulation, AfriJournal Index runs graph-based reciprocal citation audits. These detect citation stacking, circular reciprocal cartels, and coercive editor self-citations.", margin, 40);
+  doc.text("To protect indexed journals against allegations of predatory citation manipulation, AfriJournal Indexing runs graph-based reciprocal citation audits. These detect citation stacking, circular reciprocal cartels, and coercive editor self-citations.", margin, 40);
 
   // Clearance Certificate Box
   doc.setFillColor(240, 253, 244);
