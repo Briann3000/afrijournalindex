@@ -211,7 +211,7 @@ export default function Home() {
                     type="text"
                     placeholder={
                       heroSearchType === "articles" 
-                        ? "Search 33,600+ peer-reviewed articles (e.g. generation diversity management, climate, public health)..."
+                        ? "Search 33,600+ peer-reviewed articles (e.g. environmental sustainability)..."
                         : heroSearchType === "journals"
                         ? "Search 1,740+ African journals by title, publisher, or ISSN..."
                         : heroSearchType === "scholars"

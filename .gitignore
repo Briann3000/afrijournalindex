@@ -49,3 +49,8 @@ db-dump.json
 *.zip
 *.sql
 .vscode/
+
+# User uploads
+/public/uploads/*
+!/public/uploads/.gitkeep
+

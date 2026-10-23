@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLang } from "./LangContext";
 
 interface HeaderProps {
-  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about" | "compare" | "referee-finder" | "scholars" | "forum";
+  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about" | "compare" | "referee-finder" | "scholars" | "forum" | "posts";
 }
 
 export default function Header({ activePage }: HeaderProps) {
@@ -268,6 +268,11 @@ export default function Header({ activePage }: HeaderProps) {
           {/* Direct African Scholars Directory Link */}
           <a href="/scholars" className={`nav-link ${activePage === "scholars" ? "active" : ""}`}>
             Scholars
+          </a>
+
+          {/* Posts & Preprints Link */}
+          <a href="/posts" className={`nav-link ${activePage === "posts" ? "active" : ""}`}>
+            Posts
           </a>
 
           {/* AfriScholarChat Community Link */}
@@ -818,6 +823,19 @@ export default function Header({ activePage }: HeaderProps) {
               >
                 <i className="fa-solid fa-graduation-cap" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
                 <span>Scholars</span>
+              </Link>
+            </div>
+
+            {/* Direct Posts & Preprints Link */}
+            <div style={{ borderTop: "1px solid #1e293b", paddingTop: "0.85rem" }}>
+              <Link 
+                href="/posts" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`nav-link ${activePage === "posts" ? "active" : ""}`}
+                style={{ fontSize: "1.05rem", fontWeight: 600, color: "#ffffff", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+              >
+                <i className="fa-solid fa-scroll" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
+                <span>Posts</span>
               </Link>
             </div>
 

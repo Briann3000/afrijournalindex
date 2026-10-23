@@ -338,8 +338,11 @@ function SearchPageContent() {
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
                         <a 
-                          href={article.journal ? `/journal/${article.journal.id}` : "#"} 
+                          href={`https://scholar.google.com/scholar?q=${encodeURIComponent(article.title)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           style={{ textDecoration: "none", color: "inherit", flex: 1 }}
+                          title="Search on Google Scholar"
                         >
                           <h3 style={{ fontSize: "1.05rem", fontWeight: 700, margin: 0, color: "var(--color-text-main)", lineHeight: 1.4 }}>
                             {article.title}
@@ -410,20 +413,18 @@ function SearchPageContent() {
                         </p>
                       )}
 
-                      {/* Action Links: PDF / DOI / Journal Dossier */}
+                      {/* Action Links: Google Scholar / DOI / Journal Dossier */}
                       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "0.2rem", flexWrap: "wrap", fontSize: "0.8rem" }}>
-                        {article.pdfUrl && (
-                          <a 
-                            href={article.pdfUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="btn btn-secondary btn-sm"
-                            style={{ padding: "0.25rem 0.75rem", fontSize: "0.78rem", display: "inline-flex", alignItems: "center", gap: "4px" }}
-                          >
-                            <i className="fa-solid fa-file-pdf" style={{ color: "#dc2626" }}></i>
-                            Full-Text PDF
-                          </a>
-                        )}
+                        <a 
+                          href={`https://scholar.google.com/scholar?q=${encodeURIComponent(article.title)}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="btn btn-secondary btn-sm"
+                          style={{ padding: "0.25rem 0.75rem", fontSize: "0.78rem", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                        >
+                          <i className="fa-solid fa-graduation-cap" style={{ color: "var(--color-primary)" }}></i>
+                          Google Scholar
+                        </a>
                         {article.doi && (
                           <a 
                             href={`https://doi.org/${article.doi.replace(/^https?:\/\/(dx\.)?doi\.org\//i, "")}`}
