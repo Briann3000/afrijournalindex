@@ -1,0 +1,229 @@
+[
+  {
+    "name": "Mahmood Mamdani",
+    "openAlexId": "https://openalex.org/A5049451614",
+    "country": "Uganda",
+    "institution": "Makerere University / Columbia University",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["Political Theory", "African History", "Postcolonial Studies", "Governance"],
+    "scholarType": "Monograph & Book Author",
+    "googleScholarId": "o_o_qY4AAAAJ"
+  },
+  {
+    "name": "Achille Mbembe",
+    "openAlexId": "https://openalex.org/A5026024717",
+    "country": "South Africa",
+    "institution": "University of the Witwatersrand",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["Postcolonial Theory", "Political Philosophy", "African Thought", "Necropolitics"],
+    "scholarType": "Monograph & Book Author",
+    "googleScholarId": "tqT3xQ4AAAAJ"
+  },
+  {
+    "name": "Ngũgĩ wa Thiong'o",
+    "openAlexId": "https://openalex.org/A5027477067",
+    "country": "Kenya",
+    "institution": "University of California, Irvine / University of Nairobi",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["African Literature", "Postcolonial Literature", "Decolonial Thought", "Language & Culture"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Wole Soyinka",
+    "openAlexId": "https://openalex.org/A5083631890",
+    "country": "Nigeria",
+    "institution": "Obafemi Awolowo University / Nobel Laureate",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["African Literature", "Drama & Theatre Studies", "Cultural Criticism", "Poetry"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Issa G. Shivji",
+    "openAlexId": "https://openalex.org/A5110454203",
+    "country": "Tanzania",
+    "institution": "University of Dar es Salaam",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["Constitutional Law", "Agrarian Studies", "Labour Law", "Pan-African Political Economy"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Samir Amin",
+    "openAlexId": "https://openalex.org/A5000017939",
+    "country": "Egypt",
+    "institution": "Third World Forum / CODESRIA",
+    "broadDiscipline": "Business & Economics",
+    "subDisciplines": ["Development Economics", "Unequal Development", "World-Systems Theory", "Political Economy"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Amina Mama",
+    "openAlexId": "https://openalex.org/A5080515708",
+    "country": "Nigeria",
+    "institution": "University of Cape Town / University of Ghana / UC Davis",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["Gender Studies", "African Feminist Theory", "Militarism & Governance", "Psychology"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Carlos Lopes",
+    "openAlexId": "https://openalex.org/A5100721582",
+    "country": "Guinea-Bissau",
+    "institution": "University of Cape Town (Nelson Mandela School)",
+    "broadDiscipline": "Business & Economics",
+    "subDisciplines": ["Structural Transformation", "Development Policy", "African Industrialization", "Public Administration"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Adebayo Olukoshi",
+    "openAlexId": "https://openalex.org/A5062875419",
+    "country": "Nigeria",
+    "institution": "Wits School of Governance / CODESRIA",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["African Politics", "Structural Adjustment", "Regional Integration", "Democratic Transition"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Yash Pal Ghai",
+    "openAlexId": "https://openalex.org/A5013083049",
+    "country": "Kenya",
+    "institution": "Katiba Institute / University of Hong Kong",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["Constitutional Law", "Human Rights", "Ethnic Conflict & Autonomy", "Sociology of Law"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Sylvia Tamale",
+    "openAlexId": "https://openalex.org/A5087569779",
+    "country": "Uganda",
+    "institution": "Makerere University School of Law",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["Feminist Jurisprudence", "Gender and Law", "Decolonisation & Afrofeminism", "Human Rights"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Paulin J. Hountondji",
+    "openAlexId": "https://openalex.org/A5021278144",
+    "country": "Benin",
+    "institution": "National University of Benin",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["African Philosophy", "Epistemology", "Endogenous Knowledge Systems", "Critical Theory"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Kwasi Wiredu",
+    "openAlexId": "https://openalex.org/A5038165609",
+    "country": "Ghana",
+    "institution": "University of Ghana / University of South Florida",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["African Philosophy", "Akan Epistemology", "Conceptual Decolonization", "Consensus Democracy"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Thandika Mkandawire",
+    "openAlexId": "https://openalex.org/A5074213076",
+    "country": "Malawi",
+    "institution": "London School of Economics / CODESRIA",
+    "broadDiscipline": "Business & Economics",
+    "subDisciplines": ["Development Economics", "Democratic Developmental States", "Social Policy", "Agrarian Transformation"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Ali A. Mazrui",
+    "openAlexId": "https://openalex.org/A5046252069",
+    "country": "Kenya",
+    "institution": "Binghamton University / Makerere University",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["African Politics", "Islamic Studies", "The Triple Heritage", "Postcolonial Studies"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Makau Mutua",
+    "openAlexId": "https://openalex.org/A5060858178",
+    "country": "Kenya",
+    "institution": "University at Buffalo School of Law / Kenya Human Rights Commission",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["International Human Rights Law", "Third World Approaches to International Law (TWAIL)", "Constitutional Law"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Felwine Sarr",
+    "openAlexId": "https://openalex.org/A5082331287",
+    "country": "Senegal",
+    "institution": "Gaston Berger University / Duke University",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["Afrotopia", "Restitution of African Heritage", "Development Economics", "Cultural Philosophy"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Fatou Sow",
+    "openAlexId": "https://openalex.org/A5113095933",
+    "country": "Senegal",
+    "institution": "Cheikh Anta Diop University / CNRS",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["African Sociology", "Gender & Islam in West Africa", "Social Sciences", "CODESRIA Gender Studies"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Archie Mafeje",
+    "openAlexId": "https://openalex.org/A5016766487",
+    "country": "South Africa",
+    "institution": "University of South Africa / American University in Cairo",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["African Anthropology", "Agrarian Question", "Critique of Tribalism", "Epistemology"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Abdulrazak Gurnah",
+    "openAlexId": "https://openalex.org/A5034614144",
+    "country": "Tanzania",
+    "institution": "University of Kent / Nobel Laureate",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["Postcolonial Literature", "Swahili Coast Narratives", "Displacement & Memory", "African Fiction"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "John Dugard",
+    "openAlexId": "https://openalex.org/A5074812683",
+    "country": "South Africa",
+    "institution": "University of the Witwatersrand / Leiden University",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["International Law", "Human Rights Law", "Apartheid Jurisprudence", "UN Special Rapporteur"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Micere Githae Mugo",
+    "openAlexId": "https://openalex.org/A5086054817",
+    "country": "Kenya",
+    "institution": "Syracuse University / University of Nairobi",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["African Orature", "Theatre & Drama", "Black Studies", "African Feminist Literature"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Benno Ndulu",
+    "openAlexId": "https://openalex.org/A5059635955",
+    "country": "Tanzania",
+    "institution": "University of Dar es Salaam / Bank of Tanzania",
+    "broadDiscipline": "Business & Economics",
+    "subDisciplines": ["Macroeconomics", "African Economic Growth", "Central Banking", "Monetary Policy"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Peter Anyang' Nyong'o",
+    "openAlexId": "https://openalex.org/A5071190204",
+    "country": "Kenya",
+    "institution": "African Academy of Sciences / University of Nairobi",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["Political Science", "African State Fragility", "Democratic Governance", "Public Health Policy"],
+    "scholarType": "Monograph & Book Author"
+  },
+  {
+    "name": "Chimamanda Ngozi Adichie",
+    "openAlexId": "https://openalex.org/A5079374028",
+    "country": "Nigeria",
+    "institution": "Author & Cultural Essayist",
+    "broadDiscipline": "Social Sciences & Humanities",
+    "subDisciplines": ["African Fiction", "Feminist Criticism", "Postcolonial Literature", "Creative Writing"],
+    "scholarType": "Monograph & Book Author"
+  }
+]

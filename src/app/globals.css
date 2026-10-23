@@ -1412,10 +1412,33 @@ a {
 }
 
 /* -------------------------------------------------------------
-   Institution Page Mobile Responsiveness
+   Institution & Scholars Mobile Responsiveness
 ------------------------------------------------------------- */
 .institution-page-container {
     padding: 3.5rem 1rem 6rem;
+}
+
+@media (max-width: 820px) {
+    .scholars-main-container {
+        padding: 1rem 0.5rem 3rem !important;
+        width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    .scholars-desktop-table {
+        display: none !important;
+    }
+    .scholars-mobile-cards {
+        display: flex !important;
+    }
+}
+
+@media (min-width: 821px) {
+    .scholars-desktop-table {
+        display: block !important;
+    }
+    .scholars-mobile-cards {
+        display: none !important;
+    }
 }
 
 @media (max-width: 768px) {

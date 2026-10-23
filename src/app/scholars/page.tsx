@@ -198,7 +198,7 @@ function ScholarsDirectoryContent() {
       )}
 
       {/* Main Wide Layout (Optimized for Scholar Table Density) */}
-      <main style={{ flex: 1, padding: "2rem", maxWidth: "1440px", margin: "0 auto", width: "100%" }}>
+      <main className="scholars-main-container" style={{ flex: 1, padding: "2rem", maxWidth: "1440px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
         
         {/* 1. Header Banner */}
         <div style={{ marginBottom: "1.5rem" }}>
@@ -551,294 +551,417 @@ function ScholarsDirectoryContent() {
               </button>
             </div>
           ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
-                <thead>
-                  <tr style={{ background: "var(--color-bg-card-subtle)", borderBottom: "1px solid var(--color-border)" }}>
-                    {/* Continuous Continental Number Column */}
-                    <th style={{ padding: "0.9rem 0.75rem", fontWeight: 700, color: "var(--color-text-muted)", textAlign: "center", width: "55px", minWidth: "55px" }}>
-                      #
-                    </th>
-                    <th 
-                      onClick={() => handleSortChange("name")}
-                      style={{ padding: "0.9rem 1.25rem", fontWeight: 700, color: "var(--color-text-main)", cursor: "pointer", userSelect: "none", minWidth: "280px" }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span>Scholar</span>
-                        {selectedSort === "name" && <i className="fa-solid fa-arrow-down-a-z" style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>}
-                      </div>
-                    </th>
-                    <th style={{ padding: "0.9rem 1rem", fontWeight: 700, color: "var(--color-text-main)", minWidth: "220px" }}>
-                      Affiliation & Country
-                    </th>
-                    <th 
-                      onClick={() => handleSortChange("citations")}
-                      style={{ padding: "0.9rem 1rem", fontWeight: 700, color: "var(--color-text-main)", textAlign: "right", cursor: "pointer", userSelect: "none", minWidth: "120px" }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "6px" }}>
-                        <span>Citations</span>
-                        {selectedSort === "citations" && <i className="fa-solid fa-arrow-down-wide-short" style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>}
-                      </div>
-                    </th>
-                    <th 
-                      onClick={() => handleSortChange("hindex")}
-                      style={{ padding: "0.9rem 1rem", fontWeight: 700, color: "var(--color-text-main)", textAlign: "center", cursor: "pointer", userSelect: "none", minWidth: "100px" }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                        <span>h-index</span>
-                        {selectedSort === "hindex" && <i className="fa-solid fa-arrow-down-wide-short" style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>}
-                      </div>
-                    </th>
-                    <th 
-                      onClick={() => handleSortChange("publications")}
-                      style={{ padding: "0.9rem 1rem", fontWeight: 700, color: "var(--color-text-main)", textAlign: "center", cursor: "pointer", userSelect: "none", minWidth: "100px" }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                        <span>Articles</span>
-                        {selectedSort === "publications" && <i className="fa-solid fa-arrow-down-wide-short" style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>}
-                      </div>
-                    </th>
-                    <th style={{ padding: "0.9rem 1.25rem", fontWeight: 700, color: "var(--color-text-main)", textAlign: "right", minWidth: "140px" }}>
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {scholars.map((scholar: any, idx: number) => {
-                    const rowNumber = (pagination.page - 1) * pagination.limit + idx + 1;
-                    const initials = scholar.name
-                      .split(" ")
-                      .map((n: string) => n[0])
-                      .slice(0, 2)
-                      .join("")
-                      .toUpperCase();
-
-                    const isFollowed = followedIds.includes(scholar.id);
-
-                    return (
-                      <tr 
-                        key={scholar.id}
-                        style={{
-                          borderBottom: "1px solid var(--color-border)",
-                          background: idx % 2 === 0 ? "transparent" : "var(--color-bg-card-subtle)",
-                          transition: "background 0.15s ease"
-                        }}
+            <>
+              {/* Desktop Table View */}
+              <div className="scholars-desktop-table" style={{ overflowX: "auto", width: "100%" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
+                  <thead>
+                    <tr style={{ background: "var(--color-bg-card-subtle)", borderBottom: "1px solid var(--color-border)" }}>
+                      {/* Continuous Continental Number Column */}
+                      <th style={{ padding: "0.9rem 0.75rem", fontWeight: 700, color: "var(--color-text-muted)", textAlign: "center", width: "55px", minWidth: "55px" }}>
+                        #
+                      </th>
+                      <th 
+                        onClick={() => handleSortChange("name")}
+                        style={{ padding: "0.9rem 1.25rem", fontWeight: 700, color: "var(--color-text-main)", cursor: "pointer", userSelect: "none", minWidth: "280px" }}
                       >
-                        {/* Column 0: Numbering (#) */}
-                        <td style={{ padding: "1rem 0.75rem", textAlign: "center", fontWeight: 800, color: "var(--color-text-muted)", fontSize: "0.85rem" }}>
-                          <span style={{ 
-                            display: "inline-flex", 
-                            alignItems: "center", 
-                            justifyContent: "center",
-                            minWidth: "28px",
-                            height: "26px",
-                            padding: "0 6px",
-                            borderRadius: "6px",
-                            background: "var(--color-bg-card-subtle)",
-                            border: "1px solid var(--color-border)",
-                            fontSize: "0.78rem"
-                          }}>
-                            {rowNumber}
-                          </span>
-                        </td>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <span>Scholar</span>
+                          {selectedSort === "name" && <i className="fa-solid fa-arrow-down-a-z" style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>}
+                        </div>
+                      </th>
+                      <th style={{ padding: "0.9rem 1rem", fontWeight: 700, color: "var(--color-text-main)", minWidth: "220px" }}>
+                        Affiliation & Country
+                      </th>
+                      <th 
+                        onClick={() => handleSortChange("citations")}
+                        style={{ padding: "0.9rem 1rem", fontWeight: 700, color: "var(--color-text-main)", textAlign: "right", cursor: "pointer", userSelect: "none", minWidth: "120px" }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "6px" }}>
+                          <span>Citations</span>
+                          {selectedSort === "citations" && <i className="fa-solid fa-arrow-down-wide-short" style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>}
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => handleSortChange("hindex")}
+                        style={{ padding: "0.9rem 1rem", fontWeight: 700, color: "var(--color-text-main)", textAlign: "center", cursor: "pointer", userSelect: "none", minWidth: "100px" }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                          <span>h-index</span>
+                          {selectedSort === "hindex" && <i className="fa-solid fa-arrow-down-wide-short" style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>}
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => handleSortChange("publications")}
+                        style={{ padding: "0.9rem 1rem", fontWeight: 700, color: "var(--color-text-main)", textAlign: "center", cursor: "pointer", userSelect: "none", minWidth: "100px" }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                          <span>Articles</span>
+                          {selectedSort === "publications" && <i className="fa-solid fa-arrow-down-wide-short" style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>}
+                        </div>
+                      </th>
+                      <th style={{ padding: "0.9rem 1.25rem", fontWeight: 700, color: "var(--color-text-main)", textAlign: "right", minWidth: "140px" }}>
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scholars.map((scholar: any, idx: number) => {
+                      const rowNumber = (pagination.page - 1) * pagination.limit + idx + 1;
+                      const initials = scholar.name
+                        .split(" ")
+                        .map((n: string) => n[0])
+                        .slice(0, 2)
+                        .join("")
+                        .toUpperCase();
 
-                        {/* Column 1: Scholar Info */}
-                        <td style={{ padding: "1rem 1.25rem" }}>
-                          <div style={{ display: "flex", gap: "0.85rem", alignItems: "flex-start" }}>
-                            <div 
-                              style={{
-                                width: "42px",
-                                height: "42px",
-                                borderRadius: "50%",
-                                background: "linear-gradient(135deg, var(--color-primary), #0369a1)",
-                                color: "#ffffff",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontWeight: 800,
-                                fontSize: "0.95rem",
-                                flexShrink: 0,
-                                marginTop: "2px"
-                              }}
-                            >
-                              {initials}
-                            </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <a 
-                                href={`/researcher?id=${scholar.id}`}
-                                style={{ 
-                                  color: "var(--color-text-main)", 
-                                  fontWeight: 700, 
-                                  fontSize: "0.98rem", 
-                                  textDecoration: "none",
-                                  display: "inline-block",
-                                  marginBottom: "2px"
+                      const isFollowed = followedIds.includes(scholar.id);
+
+                      return (
+                        <tr 
+                          key={scholar.id}
+                          style={{
+                            borderBottom: "1px solid var(--color-border)",
+                            background: idx % 2 === 0 ? "transparent" : "var(--color-bg-card-subtle)",
+                            transition: "background 0.15s ease"
+                          }}
+                        >
+                          {/* Column 0: Numbering (#) */}
+                          <td style={{ padding: "1rem 0.75rem", textAlign: "center", fontWeight: 800, color: "var(--color-text-muted)", fontSize: "0.85rem" }}>
+                            <span style={{ 
+                              display: "inline-flex", 
+                              alignItems: "center", 
+                              justifyContent: "center",
+                              minWidth: "28px",
+                              height: "26px",
+                              padding: "0 6px",
+                              borderRadius: "6px",
+                              background: "var(--color-bg-card-subtle)",
+                              border: "1px solid var(--color-border)",
+                              fontSize: "0.78rem"
+                            }}>
+                              {rowNumber}
+                            </span>
+                          </td>
+
+                          {/* Column 1: Scholar Info */}
+                          <td style={{ padding: "1rem 1.25rem" }}>
+                            <div style={{ display: "flex", gap: "0.85rem", alignItems: "flex-start" }}>
+                              <div 
+                                style={{
+                                  width: "42px",
+                                  height: "42px",
+                                  borderRadius: "50%",
+                                  background: "linear-gradient(135deg, var(--color-primary), #0369a1)",
+                                  color: "#ffffff",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontWeight: 800,
+                                  fontSize: "0.95rem",
+                                  flexShrink: 0,
+                                  marginTop: "2px"
                                 }}
                               >
-                                {scholar.name}
-                              </a>
+                                {initials}
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <a 
+                                  href={`/researcher?id=${scholar.id}`}
+                                  style={{ 
+                                    color: "var(--color-text-main)", 
+                                    fontWeight: 700, 
+                                    fontSize: "0.98rem", 
+                                    textDecoration: "none",
+                                    display: "inline-block",
+                                    marginBottom: "2px"
+                                  }}
+                                >
+                                  {scholar.name}
+                                </a>
 
-                              {scholar.isVerified && (
-                                <div style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
-                                  <i className="fa-solid fa-shield-halved" style={{ fontSize: "0.7rem" }}></i>
-                                  <span>Verified at {scholar.verifiedDomain}</span>
+                                {scholar.isVerified && (
+                                  <div style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
+                                    <i className="fa-solid fa-shield-halved" style={{ fontSize: "0.7rem" }}></i>
+                                    <span>Verified at {scholar.verifiedDomain}</span>
+                                  </div>
+                                )}
+
+                                <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", marginTop: "4px", alignItems: "center" }}>
+                                  {/* Primary Broad Discipline Badge */}
+                                  <span style={{
+                                    background: "rgba(2, 132, 199, 0.08)",
+                                    border: "1px solid rgba(2, 132, 199, 0.25)",
+                                    borderRadius: "4px",
+                                    padding: "0.15rem 0.5rem",
+                                    fontSize: "0.72rem",
+                                    fontWeight: 700,
+                                    color: "var(--color-primary)"
+                                  }}>
+                                    {scholar.broadDiscipline}
+                                  </span>
+
+                                  {/* Specific Research Interests */}
+                                  {scholar.researchInterests.slice(0, 2).map((tag: string) => {
+                                    if (tag === scholar.broadDiscipline) return null;
+                                    return (
+                                      <button
+                                        key={tag}
+                                        type="button"
+                                        onClick={() => handleSelectInterest(tag)}
+                                        title={`Filter scholars in ${tag}`}
+                                        style={{
+                                          background: "var(--color-bg-card)",
+                                          border: "1px solid var(--color-border)",
+                                          borderRadius: "4px",
+                                          padding: "0.15rem 0.45rem",
+                                          fontSize: "0.7rem",
+                                          fontWeight: 600,
+                                          color: "var(--color-text-muted)",
+                                          cursor: "pointer"
+                                        }}
+                                      >
+                                        {tag}
+                                      </button>
+                                    );
+                                  })}
                                 </div>
-                              )}
-
-                              <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", marginTop: "4px", alignItems: "center" }}>
-                                {/* Primary Broad Discipline Badge */}
-                                <span style={{
-                                  background: "rgba(2, 132, 199, 0.08)",
-                                  border: "1px solid rgba(2, 132, 199, 0.25)",
-                                  borderRadius: "4px",
-                                  padding: "0.15rem 0.5rem",
-                                  fontSize: "0.72rem",
-                                  fontWeight: 700,
-                                  color: "var(--color-primary)"
-                                }}>
-                                  {scholar.broadDiscipline}
-                                </span>
-
-                                {/* Specific Research Interests */}
-                                {scholar.researchInterests.slice(0, 2).map((tag: string) => {
-                                  if (tag === scholar.broadDiscipline) return null;
-                                  return (
-                                    <button
-                                      key={tag}
-                                      type="button"
-                                      onClick={() => handleSelectInterest(tag)}
-                                      title={`Filter scholars in ${tag}`}
-                                      style={{
-                                        background: "var(--color-bg-card)",
-                                        border: "1px solid var(--color-border)",
-                                        borderRadius: "4px",
-                                        padding: "0.15rem 0.45rem",
-                                        fontSize: "0.7rem",
-                                        fontWeight: 600,
-                                        color: "var(--color-text-muted)",
-                                        cursor: "pointer"
-                                      }}
-                                    >
-                                      {tag}
-                                    </button>
-                                  );
-                                })}
                               </div>
                             </div>
-                          </div>
-                        </td>
+                          </td>
 
-                        {/* Column 2: Affiliation & Country */}
-                        <td style={{ padding: "1rem" }}>
-                          <div style={{ fontWeight: 600, color: "var(--color-text-main)", marginBottom: "4px" }}>
-                            <a 
-                              href={`/institution?name=${encodeURIComponent(scholar.institution)}`}
-                              style={{ color: "inherit", textDecoration: "none" }}
-                              title="View Institution Profile"
+                          {/* Column 2: Affiliation & Country */}
+                          <td style={{ padding: "1rem" }}>
+                            <div style={{ fontWeight: 600, color: "var(--color-text-main)", marginBottom: "4px" }}>
+                              <a 
+                                href={`/institution?name=${encodeURIComponent(scholar.institution)}`}
+                                style={{ color: "inherit", textDecoration: "none" }}
+                                title="View Institution Profile"
+                              >
+                                {scholar.institution}
+                              </a>
+                            </div>
+                            {scholar.isDiaspora ? (
+                              <span style={{ background: "rgba(139, 92, 246, 0.12)", border: "1px solid rgba(139, 92, 246, 0.3)", padding: "0.15rem 0.55rem", borderRadius: "999px", fontSize: "0.74rem", fontWeight: 700, color: "#7c3aed", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                                <i className="fa-solid fa-earth-africa"></i>
+                                <span>{scholar.originCountry && scholar.originCountry !== "African Diaspora" ? `${getCountryFlag(scholar.originCountry)} ${scholar.originCountry} (Diaspora)` : "African Diaspora"}</span>
+                              </span>
+                            ) : (
+                              <span style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", padding: "0.15rem 0.5rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 600, color: "var(--color-text-muted)", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                                <span>{getCountryFlag(scholar.institutionCountry)}</span>
+                                <span>{scholar.institutionCountry}</span>
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Column 3: Citations */}
+                          <td style={{ padding: "1rem", textAlign: "right" }}>
+                            <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--color-primary)", display: "block" }}>
+                              {scholar.totalCitations.toLocaleString()}
+                            </span>
+                          </td>
+
+                          {/* Column 4: h-index */}
+                          <td style={{ padding: "1rem", textAlign: "center" }}>
+                            <span 
+                              style={{ 
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: "0.2rem 0.65rem", 
+                                borderRadius: "6px", 
+                                fontWeight: 800, 
+                                fontSize: "0.85rem",
+                                background: scholar.hIndex >= 20 ? "rgba(22, 163, 74, 0.12)" : "rgba(2, 132, 199, 0.1)",
+                                color: scholar.hIndex >= 20 ? "#16a34a" : "var(--color-primary)",
+                                border: `1px solid ${scholar.hIndex >= 20 ? "rgba(22, 163, 74, 0.3)" : "rgba(2, 132, 199, 0.25)"}`
+                              }}
                             >
-                              {scholar.institution}
-                            </a>
-                          </div>
-                          {scholar.isDiaspora ? (
-                            <span style={{ background: "rgba(139, 92, 246, 0.12)", border: "1px solid rgba(139, 92, 246, 0.3)", padding: "0.15rem 0.55rem", borderRadius: "999px", fontSize: "0.74rem", fontWeight: 700, color: "#7c3aed", display: "inline-flex", alignItems: "center", gap: "5px" }}>
-                              <i className="fa-solid fa-earth-africa"></i>
-                              <span>{scholar.originCountry && scholar.originCountry !== "African Diaspora" ? `${getCountryFlag(scholar.originCountry)} ${scholar.originCountry} (Diaspora)` : "African Diaspora"}</span>
+                              h-{scholar.hIndex}
                             </span>
-                          ) : (
-                            <span style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", padding: "0.15rem 0.5rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 600, color: "var(--color-text-muted)", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                              <span>{getCountryFlag(scholar.institutionCountry)}</span>
-                              <span>{scholar.institutionCountry}</span>
-                            </span>
-                          )}
-                        </td>
+                          </td>
 
-                        {/* Column 3: Citations */}
-                        <td style={{ padding: "1rem", textAlign: "right" }}>
-                          <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--color-primary)", display: "block" }}>
-                            {scholar.totalCitations.toLocaleString()}
+                          {/* Column 5: Articles Count */}
+                          <td style={{ padding: "1rem", textAlign: "center" }}>
+                            <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--color-text-main)" }}>
+                              {scholar.articlesCount}
+                            </span>
+                          </td>
+
+                          {/* Column 6: Actions */}
+                          <td style={{ padding: "1rem 1.25rem", textAlign: "right" }}>
+                            <div style={{ display: "flex", gap: "0.45rem", justifyContent: "flex-end", alignItems: "center" }}>
+                              {!scholar.isClaimed && (
+                                <a
+                                  href={`/researcher?id=${scholar.id}&claim=true`}
+                                  style={{
+                                    background: "rgba(234, 88, 12, 0.1)",
+                                    color: "#ea580c",
+                                    border: "1px solid rgba(234, 88, 12, 0.3)",
+                                    padding: "0.32rem 0.65rem",
+                                    fontSize: "0.74rem",
+                                    fontWeight: 700,
+                                    textDecoration: "none",
+                                    borderRadius: "6px",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "4px"
+                                  }}
+                                  title="Are you this scholar? Claim your verified profile"
+                                >
+                                  <i className="fa-solid fa-key" style={{ fontSize: "0.68rem" }}></i>
+                                  <span>Claim</span>
+                                </a>
+                              )}
+
+                              <button
+                                type="button"
+                                onClick={() => handleToggleFollow(scholar.id, scholar.name)}
+                                className={isFollowed ? "btn btn-secondary btn-sm" : "btn btn-primary btn-sm"}
+                                style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem" }}
+                                title={currentUser ? (isFollowed ? "Unfollow scholar" : "Follow scholar") : "Sign in to follow scholar"}
+                              >
+                                <i className={isFollowed ? "fa-solid fa-check" : "fa-solid fa-user-plus"} style={{ marginRight: "4px" }}></i>
+                                {isFollowed ? "Following" : "Follow"}
+                              </button>
+
+                              <a
+                                href={`/researcher?id=${scholar.id}`}
+                                className="btn btn-secondary btn-sm"
+                                style={{ padding: "0.35rem 0.65rem", fontSize: "0.78rem" }}
+                                title="View Scholar Profile"
+                              >
+                                <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                              </a>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card List View (Strict Responsive Zero Overflow) */}
+              <div className="scholars-mobile-cards" style={{ display: "none", flexDirection: "column", gap: "0.75rem", padding: "0.75rem" }}>
+                {scholars.map((scholar: any, idx: number) => {
+                  const rowNumber = (pagination.page - 1) * pagination.limit + idx + 1;
+                  const initials = scholar.name
+                    .split(" ")
+                    .map((n: string) => n[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase();
+                  const isFollowed = followedIds.includes(scholar.id);
+
+                  return (
+                    <div 
+                      key={scholar.id} 
+                      style={{
+                        background: "var(--color-bg-card)",
+                        border: "1px solid var(--color-border)",
+                        borderRadius: "10px",
+                        padding: "0.9rem",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.6rem"
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
+                        <div style={{ display: "flex", gap: "10px", alignItems: "center", minWidth: 0 }}>
+                          <span style={{ 
+                            fontSize: "0.74rem", 
+                            fontWeight: 800, 
+                            color: "var(--color-text-muted)",
+                            background: "var(--color-bg-card-subtle)",
+                            padding: "2px 6px",
+                            borderRadius: "4px",
+                            border: "1px solid var(--color-border)"
+                          }}>
+                            #{rowNumber}
                           </span>
-                        </td>
-
-                        {/* Column 4: h-index */}
-                        <td style={{ padding: "1rem", textAlign: "center" }}>
-                          <span 
-                            style={{ 
-                              display: "inline-flex",
+                          <div 
+                            style={{
+                              width: "36px",
+                              height: "36px",
+                              borderRadius: "50%",
+                              background: "linear-gradient(135deg, var(--color-primary), #0369a1)",
+                              color: "#ffffff",
+                              display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              padding: "0.2rem 0.65rem", 
-                              borderRadius: "6px", 
-                              fontWeight: 800, 
+                              fontWeight: 800,
                               fontSize: "0.85rem",
-                              background: scholar.hIndex >= 20 ? "rgba(22, 163, 74, 0.12)" : "rgba(2, 132, 199, 0.1)",
-                              color: scholar.hIndex >= 20 ? "#16a34a" : "var(--color-primary)",
-                              border: `1px solid ${scholar.hIndex >= 20 ? "rgba(22, 163, 74, 0.3)" : "rgba(2, 132, 199, 0.25)"}`
+                              flexShrink: 0
                             }}
                           >
-                            h-{scholar.hIndex}
-                          </span>
-                        </td>
-
-                        {/* Column 5: Articles Count */}
-                        <td style={{ padding: "1rem", textAlign: "center" }}>
-                          <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--color-text-main)" }}>
-                            {scholar.articlesCount}
-                          </span>
-                        </td>
-
-                        {/* Column 6: Actions */}
-                        <td style={{ padding: "1rem 1.25rem", textAlign: "right" }}>
-                          <div style={{ display: "flex", gap: "0.45rem", justifyContent: "flex-end", alignItems: "center" }}>
-                            {!scholar.isClaimed && (
-                              <a
-                                href={`/researcher?id=${scholar.id}&claim=true`}
-                                style={{
-                                  background: "rgba(234, 88, 12, 0.1)",
-                                  color: "#ea580c",
-                                  border: "1px solid rgba(234, 88, 12, 0.3)",
-                                  padding: "0.32rem 0.65rem",
-                                  fontSize: "0.74rem",
-                                  fontWeight: 700,
-                                  textDecoration: "none",
-                                  borderRadius: "6px",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: "4px"
-                                }}
-                                title="Are you this scholar? Claim your verified profile"
-                              >
-                                <i className="fa-solid fa-key" style={{ fontSize: "0.68rem" }}></i>
-                                <span>Claim</span>
-                              </a>
-                            )}
-
-                            <button
-                              type="button"
-                              onClick={() => handleToggleFollow(scholar.id, scholar.name)}
-                              className={isFollowed ? "btn btn-secondary btn-sm" : "btn btn-primary btn-sm"}
-                              style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem" }}
-                              title={currentUser ? (isFollowed ? "Unfollow scholar" : "Follow scholar") : "Sign in to follow scholar"}
-                            >
-                              <i className={isFollowed ? "fa-solid fa-check" : "fa-solid fa-user-plus"} style={{ marginRight: "4px" }}></i>
-                              {isFollowed ? "Following" : "Follow"}
-                            </button>
-
-                            <a
-                              href={`/researcher?id=${scholar.id}`}
-                              className="btn btn-secondary btn-sm"
-                              style={{ padding: "0.35rem 0.65rem", fontSize: "0.78rem" }}
-                              title="View Scholar Profile"
-                            >
-                              <i className="fa-solid fa-arrow-up-right-from-square"></i>
-                            </a>
+                            {initials}
                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          <div style={{ minWidth: 0 }}>
+                            <a 
+                              href={`/researcher?id=${scholar.id}`}
+                              style={{ 
+                                color: "var(--color-text-main)", 
+                                fontWeight: 700, 
+                                fontSize: "0.92rem", 
+                                textDecoration: "none",
+                                display: "block",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap"
+                              }}
+                            >
+                              {scholar.name}
+                            </a>
+                            <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {scholar.institution}
+                            </div>
+                          </div>
+                        </div>
+
+                        <span 
+                          style={{ 
+                            padding: "0.15rem 0.5rem", 
+                            borderRadius: "5px", 
+                            fontWeight: 800, 
+                            fontSize: "0.78rem",
+                            background: scholar.hIndex >= 20 ? "rgba(22, 163, 74, 0.12)" : "rgba(2, 132, 199, 0.1)",
+                            color: scholar.hIndex >= 20 ? "#16a34a" : "var(--color-primary)",
+                            border: `1px solid ${scholar.hIndex >= 20 ? "rgba(22, 163, 74, 0.3)" : "rgba(2, 132, 199, 0.25)"}`,
+                            flexShrink: 0
+                          }}
+                        >
+                          h-{scholar.hIndex}
+                        </span>
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "0.5rem", borderTop: "1px solid var(--color-border)", fontSize: "0.78rem" }}>
+                        <div>
+                          <strong style={{ color: "var(--color-primary)", fontSize: "0.9rem" }}>{scholar.totalCitations.toLocaleString()}</strong> citations • <strong>{scholar.articlesCount}</strong> articles
+                        </div>
+                        <div style={{ display: "flex", gap: "6px" }}>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleFollow(scholar.id, scholar.name)}
+                            className={isFollowed ? "btn btn-secondary btn-sm" : "btn btn-primary btn-sm"}
+                            style={{ fontSize: "0.72rem", padding: "0.25rem 0.6rem" }}
+                          >
+                            {isFollowed ? "Following" : "Follow"}
+                          </button>
+                          <a
+                            href={`/researcher?id=${scholar.id}`}
+                            className="btn btn-secondary btn-sm"
+                            style={{ fontSize: "0.72rem", padding: "0.25rem 0.55rem" }}
+                          >
+                            View
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
 

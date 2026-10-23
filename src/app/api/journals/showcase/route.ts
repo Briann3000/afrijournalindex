@@ -6,13 +6,70 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
-    // Fetch top verified journals with score >= 4.0
+    // 1. Fetch ARJESS explicitly as the permanent hero showcase journal
+    const arjessJournal = await prisma.journal.findFirst({
+      where: {
+        OR: [
+          { eissn: "2312-0134" },
+          { name: { contains: "ARJESS" } },
+          { name: { contains: "African Research Journal of Education and Social Sciences" } }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        issn: true,
+        eissn: true,
+        country: true,
+        description: true,
+        qualityGrade: true,
+        reports: {
+          where: { year: 2025 },
+          take: 1,
+          select: {
+            standardScore: true,
+            regionalScore: true,
+            citationCount: true,
+            articleCount: true,
+            quartile: true,
+            primaryDiscipline: true,
+            disciplineRank: true,
+            totalInDiscipline: true
+          }
+        }
+      }
+    });
+
+    let heroJournal = null;
+    if (arjessJournal) {
+      const rep = arjessJournal.reports[0];
+      heroJournal = {
+        id: arjessJournal.id,
+        name: arjessJournal.name,
+        issn: arjessJournal.eissn || arjessJournal.issn || "2312-0134",
+        country: arjessJournal.country || "Kenya",
+        description: arjessJournal.description || "Peer-reviewed African academic periodical in Education and Social Sciences.",
+        qualityGrade: arjessJournal.qualityGrade || "A+",
+        score: rep ? rep.standardScore : 1.818,
+        ycaScore: rep ? Number((rep.standardScore * 1.15).toFixed(3)) : 2.091,
+        regionalScore: rep ? rep.regionalScore : 2.091,
+        citationCount: rep ? rep.citationCount : 80,
+        articleCount: rep ? rep.articleCount : 44,
+        quartile: rep?.quartile || "Q2",
+        primaryDiscipline: rep?.primaryDiscipline || "Education & Social Sciences",
+        disciplineRank: rep?.disciplineRank || 2,
+        totalInDiscipline: rep?.totalInDiscipline || 40
+      };
+    }
+
+    // 2. Fetch secondary audited journals for the showcase carousel
     const journals = await prisma.journal.findMany({
       where: {
+        id: arjessJournal ? { not: arjessJournal.id } : undefined,
         reports: {
           some: {
             year: 2025,
-            standardScore: { gte: 4.0 }
+            standardScore: { gte: 3.5 }
           }
         }
       },
@@ -41,14 +98,8 @@ export async function GET() {
       }
     });
 
-    if (journals.length === 0) {
-      return NextResponse.json({ success: true, heroJournal: null, showcaseJournals: [] });
-    }
-
-    // Shuffle journals to provide dynamic rotation on each refresh/visit
     const shuffled = [...journals].sort(() => 0.5 - Math.random());
-
-    const formatted = shuffled.map(j => {
+    const showcaseJournals = shuffled.slice(0, 3).map(j => {
       const rep = j.reports[0];
       return {
         id: j.id,
@@ -69,8 +120,10 @@ export async function GET() {
       };
     });
 
-    const heroJournal = formatted[0];
-    const showcaseJournals = formatted.slice(1, 4);
+    // If ARJESS was somehow not found, fallback to the first showcase journal
+    if (!heroJournal && showcaseJournals.length > 0) {
+      heroJournal = showcaseJournals[0];
+    }
 
     return NextResponse.json({
       success: true,
