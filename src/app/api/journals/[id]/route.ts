@@ -241,6 +241,12 @@ export async function GET(
     // Impact Factor without self-citations
     const impactWithoutSelfCitations = Number((standardScore * (externalCitationRate / 100)).toFixed(3));
 
+    // Dynamic Provenance & Scientific Integrity Checks
+    const articlesWithDoi = formattedArticles.filter((a: any) => a.doi && a.doi.trim().startsWith("10."));
+    const doiArticleCount = articlesWithDoi.length;
+    const hasCrossrefDois = doiArticleCount > 0;
+    const verifiedIssn = journal.eissn || journal.issn || null;
+
     return NextResponse.json({
       success: true,
       journal: {
@@ -248,6 +254,11 @@ export async function GET(
         name: journal.name,
         issn: journal.issn,
         eissn: journal.eissn,
+        hasCrossrefDois,
+        doiArticleCount,
+        hasIssn: Boolean(verifiedIssn),
+        verifiedIssn,
+        isDoajIndexed: false,
         description: journal.description,
         publisherName: journal.publisherName,
         country: journal.country,

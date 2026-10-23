@@ -31,13 +31,17 @@ export default function Home() {
   const [heroJournal, setHeroJournal] = useState<ShowcaseJournal | null>(null);
   const [showcaseJournals, setShowcaseJournals] = useState<ShowcaseJournal[]>([]);
   const [heroSearchQuery, setHeroSearchQuery] = useState<string>("");
+  const [heroSearchType, setHeroSearchType] = useState<"all" | "articles" | "journals" | "scholars">("all");
 
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (heroSearchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(heroSearchQuery.trim())}`);
+      const typePart = heroSearchType !== "all" ? `&type=${heroSearchType}` : "";
+      router.push(`/search?q=${encodeURIComponent(heroSearchQuery.trim())}${typePart}`);
     } else {
-      router.push("/browse");
+      if (heroSearchType === "journals") router.push("/browse");
+      else if (heroSearchType === "scholars") router.push("/scholars");
+      else router.push("/search");
     }
   };
 
@@ -98,52 +102,148 @@ export default function Home() {
                 {t.hero.subtitle}
               </p>
 
-              {/* Direct Prominent Hero Quick Search */}
-              <form 
-                onSubmit={handleHeroSearch}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  background: "var(--color-bg-card)",
-                  border: "2px solid rgba(212, 160, 74, 0.4)",
-                  borderRadius: "14px",
-                  padding: "5px 6px 5px 14px",
-                  boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.08)",
-                  width: "100%",
-                  maxWidth: "640px",
-                  marginBottom: "1.5rem",
-                  transition: "border-color 0.2s ease"
-                }}
-              >
-                <i className="fa-solid fa-magnifying-glass" style={{ color: "var(--color-primary)", marginRight: "10px", fontSize: "0.95rem" }}></i>
-                <input
-                  type="text"
-                  placeholder="Search 1,600+ indexed African journals, articles, or DOIs..."
-                  value={heroSearchQuery}
-                  onChange={(e) => setHeroSearchQuery(e.target.value)}
+              {/* Direct Prominent Hero Quick Search with Entity Filter Tabs */}
+              <div style={{ maxWidth: "640px", width: "100%", marginBottom: "1.5rem" }}>
+                {/* Search Entity Filter Tabs */}
+                <div style={{ display: "flex", gap: "6px", marginBottom: "8px", flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={() => setHeroSearchType("all")}
+                    style={{
+                      background: heroSearchType === "all" ? "var(--color-primary)" : "rgba(15, 23, 42, 0.05)",
+                      color: heroSearchType === "all" ? "#ffffff" : "var(--color-text-main)",
+                      border: heroSearchType === "all" ? "1px solid var(--color-primary)" : "1px solid var(--color-border)",
+                      padding: "0.3rem 0.85rem",
+                      borderRadius: "20px",
+                      fontSize: "0.82rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    <i className="fa-solid fa-magnifying-glass" style={{ fontSize: "0.78rem" }}></i>
+                    All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHeroSearchType("articles")}
+                    style={{
+                      background: heroSearchType === "articles" ? "var(--color-primary)" : "rgba(15, 23, 42, 0.05)",
+                      color: heroSearchType === "articles" ? "#ffffff" : "var(--color-text-main)",
+                      border: heroSearchType === "articles" ? "1px solid var(--color-primary)" : "1px solid var(--color-border)",
+                      padding: "0.3rem 0.85rem",
+                      borderRadius: "20px",
+                      fontSize: "0.82rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    <i className="fa-solid fa-file-lines" style={{ fontSize: "0.78rem" }}></i>
+                    Articles (33,600+)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHeroSearchType("journals")}
+                    style={{
+                      background: heroSearchType === "journals" ? "var(--color-primary)" : "rgba(15, 23, 42, 0.05)",
+                      color: heroSearchType === "journals" ? "#ffffff" : "var(--color-text-main)",
+                      border: heroSearchType === "journals" ? "1px solid var(--color-primary)" : "1px solid var(--color-border)",
+                      padding: "0.3rem 0.85rem",
+                      borderRadius: "20px",
+                      fontSize: "0.82rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    <i className="fa-solid fa-book-journal-whills" style={{ fontSize: "0.78rem" }}></i>
+                    Journals (1,740+)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHeroSearchType("scholars")}
+                    style={{
+                      background: heroSearchType === "scholars" ? "var(--color-primary)" : "rgba(15, 23, 42, 0.05)",
+                      color: heroSearchType === "scholars" ? "#ffffff" : "var(--color-text-main)",
+                      border: heroSearchType === "scholars" ? "1px solid var(--color-primary)" : "1px solid var(--color-border)",
+                      padding: "0.3rem 0.85rem",
+                      borderRadius: "20px",
+                      fontSize: "0.82rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    <i className="fa-solid fa-user-graduate" style={{ fontSize: "0.78rem" }}></i>
+                    Scholars (2,300+)
+                  </button>
+                </div>
+
+                <form 
+                  onSubmit={handleHeroSearch}
                   style={{
-                    border: "none",
-                    outline: "none",
-                    background: "transparent",
-                    color: "var(--color-text-body)",
+                    display: "flex",
+                    alignItems: "center",
+                    background: "var(--color-bg-card)",
+                    border: "2px solid rgba(212, 160, 74, 0.4)",
+                    borderRadius: "14px",
+                    padding: "5px 6px 5px 14px",
+                    boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.08)",
                     width: "100%",
-                    fontSize: "0.92rem"
-                  }}
-                />
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  style={{
-                    padding: "0.45rem 1rem",
-                    borderRadius: "10px",
-                    fontSize: "0.8rem",
-                    fontWeight: 700,
-                    whiteSpace: "nowrap"
+                    transition: "border-color 0.2s ease"
                   }}
                 >
-                  Search
-                </button>
-              </form>
+                  <i className="fa-solid fa-magnifying-glass" style={{ color: "var(--color-primary)", marginRight: "10px", fontSize: "0.95rem" }}></i>
+                  <input
+                    type="text"
+                    placeholder={
+                      heroSearchType === "articles" 
+                        ? "Search 33,600+ peer-reviewed articles (e.g. generation diversity management, climate, public health)..."
+                        : heroSearchType === "journals"
+                        ? "Search 1,740+ African journals by title, publisher, or ISSN..."
+                        : heroSearchType === "scholars"
+                        ? "Search 2,300+ verified African researchers by name, institution, or ORCID..."
+                        : "Search 33,600+ articles, 1,740+ journals, and verified African scholars..."
+                    }
+                    value={heroSearchQuery}
+                    onChange={(e) => setHeroSearchQuery(e.target.value)}
+                    style={{
+                      border: "none",
+                      outline: "none",
+                      background: "transparent",
+                      color: "var(--color-text-body)",
+                      width: "100%",
+                      fontSize: "0.92rem"
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{
+                      padding: "0.45rem 1rem",
+                      borderRadius: "10px",
+                      fontSize: "0.8rem",
+                      fontWeight: 700,
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    Search
+                  </button>
+                </form>
+              </div>
 
               {/* Hero Action CTA Group: 2 High-Priority Action Buttons */}
               <div className="hero-cta-group" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>

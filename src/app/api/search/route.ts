@@ -223,13 +223,86 @@ export async function GET(request: Request) {
       };
     }).sort((a, b) => b.totalCitations - a.totalCitations);
 
+    // 3. Search Articles Across the 33,600+ Repositories
+    const cleanQ = q.replace(/^["']|["']$/g, "").trim();
+    const isDoi = cleanQ.startsWith("10.") || cleanQ.includes("doi.org/");
+    const bareDoi = cleanQ.replace(/^https?:\/\/(dx\.)?doi\.org\//i, "").replace(/^doi:\s*/i, "").trim();
+
+    const articleOrConditions: any[] = [
+      { title: { contains: cleanQ } },
+      { abstract: { contains: cleanQ } }
+    ];
+    if (isDoi || bareDoi.length > 5) {
+      articleOrConditions.push({ doi: { contains: bareDoi } });
+    }
+
+    const [articlesRaw, totalArticles] = await Promise.all([
+      prisma.article.findMany({
+        where: {
+          OR: articleOrConditions
+        },
+        take: 20,
+        orderBy: [
+          { citationCount: "desc" },
+          { publishDate: "desc" }
+        ],
+        select: {
+          id: true,
+          title: true,
+          doi: true,
+          abstract: true,
+          url: true,
+          pdfUrl: true,
+          publishDate: true,
+          citationCount: true,
+          journal: {
+            select: {
+              id: true,
+              name: true,
+              country: true,
+              qualityGrade: true,
+              issn: true,
+              eissn: true
+            }
+          }
+        }
+      }),
+      prisma.article.count({
+        where: {
+          OR: articleOrConditions
+        }
+      })
+    ]);
+
+    const formattedArticles = articlesRaw.map(a => {
+      let snippet = "";
+      if (a.abstract) {
+        const cleanAbs = a.abstract.replace(/<[^>]*>?/gm, "").trim();
+        snippet = cleanAbs.length > 240 ? cleanAbs.slice(0, 240) + "..." : cleanAbs;
+      }
+      return {
+        id: a.id,
+        title: a.title,
+        doi: a.doi,
+        abstract: snippet,
+        url: a.url,
+        pdfUrl: a.pdfUrl,
+        publishDate: a.publishDate ? a.publishDate.toISOString() : null,
+        year: a.publishDate ? new Date(a.publishDate).getFullYear() : null,
+        citationCount: a.citationCount || 0,
+        journal: a.journal
+      };
+    });
+
     return NextResponse.json({
       success: true,
       query: q,
       journals: formattedJournals,
-      scholars: formattedScholars.slice(0, 6),
+      scholars: formattedScholars.slice(0, 12),
+      articles: formattedArticles,
       totalJournals,
-      totalScholars
+      totalScholars,
+      totalArticles
     });
 
   } catch (error: any) {

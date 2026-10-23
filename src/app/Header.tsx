@@ -354,7 +354,7 @@ export default function Header({ activePage }: HeaderProps) {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t.hero?.search_placeholder?.substring(0, 20) || "Search..."}
+                  placeholder="Search articles, journals, scholars..."
                   onKeyDown={(e) => {
                     if (e.key === "Escape") {
                       setIsSearchOpen(false);
@@ -647,7 +647,7 @@ export default function Header({ activePage }: HeaderProps) {
                   type="text"
                   value={mobileSearchQuery}
                   onChange={(e) => setMobileSearchQuery(e.target.value)}
-                  placeholder={t.hero.search_placeholder || "Search journals, DOIs..."}
+                  placeholder="Search articles, journals, scholars..."
                   style={{
                     width: "100%",
                     padding: "0.65rem 0.85rem 0.65rem 2.2rem",
