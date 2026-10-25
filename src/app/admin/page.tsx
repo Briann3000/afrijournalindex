@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import Header from "../Header";
-import Footer from "../Footer";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ALL_COUNTRY_NAMES } from "../data/african-countries";
 
 interface AdminUser {
@@ -11,6 +10,7 @@ interface AdminUser {
   email: string;
   name: string;
   role: string;
+  institution?: string;
 }
 
 interface Stats {
@@ -22,96 +22,148 @@ interface Stats {
   totalClaims: number;
   pendingClaims: number;
   totalUsers: number;
+  totalResearchers: number;
+  totalPublishers: number;
+  totalAdmins: number;
+  totalForumTopics: number;
+  totalForumReplies: number;
+  totalPosts: number;
+  totalJournalComments: number;
 }
 
-export default function AdminDashboardPage() {
+type TabKey = "overview" | "submissions" | "claims" | "journals" | "moderation" | "users" | "harvester" | "payments";
+
+export default function AdminPortalPage() {
+  const router = useRouter();
+
+  // -------------------------------------------------------------
+  // Session & Authentication
+  // -------------------------------------------------------------
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [successToast, setSuccessToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
 
-  // Elevation passkey state (for non-admin users)
-  const [passcode, setPasscode] = useState<string>("");
-  const [elevating, setElevating] = useState<boolean>(false);
-  const [elevateError, setElevateError] = useState<string | null>(null);
+  // Active Navigation Tab
+  const [activeTab, setActiveTab] = useState<TabKey>("overview");
+  const [moderationSubTab, setModerationSubTab] = useState<"forum" | "posts" | "comments">("forum");
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
-  // Core Data
+  // -------------------------------------------------------------
+  // Platform Datasets
+  // -------------------------------------------------------------
   const [stats, setStats] = useState<Stats | null>(null);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [claims, setClaims] = useState<any[]>([]);
   const [journals, setJournals] = useState<any[]>([]);
+  const [forumTopics, setForumTopics] = useState<any[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [comments, setComments] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
 
-  // Navigation Tabs: "submissions" | "claims" | "journals"
-  const [activeTab, setActiveTab] = useState<"submissions" | "claims" | "journals">("submissions");
-
-  // Action in progress
+  // Action in progress indicator
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
+  // Modals & Selected Inspection States
+  const [selectedSubmission, setSelectedSubmission] = useState<any | null>(null);
+  const [subReviewNotes, setSubReviewNotes] = useState<string>("");
+  const [subQualityGrade, setSubQualityGrade] = useState<string>("A");
+
+  // Harvester Form State
+  const [harvestForm, setHarvestForm] = useState({
+    oaiUrl: "https://journals.co.za/oai/request",
+    journalId: "",
+    limit: 50,
+    autoSave: true
+  });
+  const [harvestLoading, setHarvestLoading] = useState(false);
+  const [harvestResult, setHarvestResult] = useState<any | null>(null);
+
+  // Metrics Recalculation State
+  const [metricsLoading, setMetricsLoading] = useState(false);
+
+  // Confirmation Modal
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    description: "",
+    confirmLabel: "Confirm",
+    onConfirm: () => {}
+  });
+
   // -------------------------------------------------------------
-  // TAB 1: SUBMISSIONS CONTROLS (Search, Filter, Sort, Pagination)
+  // Submissions Controls
   // -------------------------------------------------------------
   const [subSearch, setSubSearch] = useState<string>("");
   const [subStatusFilter, setSubStatusFilter] = useState<string>("ALL");
   const [subCountryFilter, setSubCountryFilter] = useState<string>("ALL");
-  const [subSort, setSubSort] = useState<string>("newest");
   const [subPage, setSubPage] = useState<number>(1);
-  const [subPageSize, setSubPageSize] = useState<number>(10);
+  const [subPageSize] = useState<number>(10);
 
   // -------------------------------------------------------------
-  // TAB 2: CLAIMS CONTROLS (Search, Filter, Sort, Pagination)
+  // Claims Controls
   // -------------------------------------------------------------
   const [claimSearch, setClaimSearch] = useState<string>("");
   const [claimStatusFilter, setClaimStatusFilter] = useState<string>("ALL");
-  const [claimSort, setClaimSort] = useState<string>("newest");
   const [claimPage, setClaimPage] = useState<number>(1);
-  const [claimPageSize, setClaimPageSize] = useState<number>(10);
+  const [claimPageSize] = useState<number>(10);
 
   // -------------------------------------------------------------
-  // TAB 3: JOURNALS CONTROLS (Search, Filter, Sort, Pagination)
+  // Journals Controls
   // -------------------------------------------------------------
   const [journalSearch, setJournalSearch] = useState<string>("");
   const [journalIndexedFilter, setJournalIndexedFilter] = useState<string>("ALL");
   const [journalPaidFilter, setJournalPaidFilter] = useState<string>("ALL");
-  const [journalGradeFilter, setJournalGradeFilter] = useState<string>("ALL");
   const [journalCountryFilter, setJournalCountryFilter] = useState<string>("ALL");
-  const [journalSort, setJournalSort] = useState<string>("name-asc");
   const [journalPage, setJournalPage] = useState<number>(1);
-  const [journalPageSize, setJournalPageSize] = useState<number>(15);
+  const [journalPageSize] = useState<number>(15);
 
-  const showToast = (msg: string) => {
-    setSuccessToast(msg);
-    setTimeout(() => setSuccessToast(null), 3500);
+  // -------------------------------------------------------------
+  // Users Controls
+  // -------------------------------------------------------------
+  const [userSearch, setUserSearch] = useState<string>("");
+  const [userRoleFilter, setUserRoleFilter] = useState<string>("ALL");
+  const [userPage, setUserPage] = useState<number>(1);
+  const [userPageSize] = useState<number>(15);
+
+  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
   };
 
-  // 1. Check Authentication Status
-  const checkAuth = async () => {
+  // 1. Initial Authentication Check
+  const checkAuthAndLoad = async () => {
     try {
+      setLoading(true);
       const res = await fetch("/api/admin/auth");
       const data = await res.json();
-      if (data.authenticated) {
+
+      if (data.authenticated && data.isAdmin) {
         setCurrentUser(data.user);
-        setIsAdmin(data.isAdmin);
-        if (data.isAdmin) {
-          fetchAdminData();
-        } else {
-          setLoading(false);
-        }
+        await fetchAdminData();
       } else {
-        setLoading(false);
+        router.replace("/admin/login");
       }
     } catch {
-      setError("Failed to verify credentials.");
+      setError("Network error connecting to administrative service.");
       setLoading(false);
     }
   };
 
-  // 2. Fetch Admin Datasets
-  const fetchAdminData = async (query = "") => {
-    setLoading(true);
+  // 2. Fetch Datasets
+  const fetchAdminData = async (searchQuery = "") => {
+    setRefreshing(true);
     setError(null);
     try {
-      const url = query ? `/api/admin?searchJournal=${encodeURIComponent(query)}` : "/api/admin";
+      const url = searchQuery ? `/api/admin?searchJournal=${encodeURIComponent(searchQuery)}` : "/api/admin";
       const res = await fetch(url);
       const data = await res.json();
       if (data.success) {
@@ -119,49 +171,43 @@ export default function AdminDashboardPage() {
         setSubmissions(data.submissions || []);
         setClaims(data.claims || []);
         setJournals(data.journals || []);
+        setForumTopics(data.forumTopics || []);
+        setPosts(data.posts || []);
+        setComments(data.comments || []);
+        setUsers(data.users || []);
+        setPayments(data.payments || []);
+        if (data.journals && data.journals.length > 0 && !harvestForm.journalId) {
+          setHarvestForm(prev => ({ ...prev, journalId: data.journals[0].id }));
+        }
       } else {
-        setError(data.error || "Failed to load admin overview.");
+        setError(data.error || "Failed to load administrative overview.");
       }
     } catch (err: any) {
-      setError(err?.message || "Network error loading admin data.");
+      setError(err?.message || "Failed to reach server.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    checkAuth();
+    checkAuthAndLoad();
   }, []);
 
-  // 3. Elevate user to Admin
-  const handleElevate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setElevating(true);
-    setElevateError(null);
+  // 3. Admin Logout
+  const handleLogout = async () => {
     try {
-      const res = await fetch("/api/admin/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ passcode })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setIsAdmin(true);
-        setCurrentUser(data.user);
-        showToast("Granted Chief Administrator privileges!");
-        fetchAdminData();
-      } else {
-        setElevateError(data.error || "Invalid setup passcode.");
-      }
+      await fetch("/api/admin/auth", { method: "DELETE" });
+      router.replace("/admin/login");
     } catch {
-      setElevateError("Error connecting to server.");
-    } finally {
-      setElevating(false);
+      window.location.href = "/admin/login";
     }
   };
 
-  // 4. Update Submission Status (Approve, Under Review, Reject)
-  const handleUpdateSubmission = async (submissionId: string, status: string, qualityGrade = "A") => {
+  // -------------------------------------------------------------
+  // ACTIONS: Submissions
+  // -------------------------------------------------------------
+  const handleUpdateSubmission = async (submissionId: string, status: string, qualityGrade = "A", reviewNotes = "") => {
     setActionLoadingId(submissionId);
     try {
       const res = await fetch("/api/admin", {
@@ -171,27 +217,28 @@ export default function AdminDashboardPage() {
           action: "updateSubmission",
           submissionId,
           status,
-          qualityGrade
+          qualityGrade,
+          reviewNotes
         })
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`Submission marked as ${status}!`);
-        setSubmissions(prev => prev.map(s => s.id === submissionId ? { ...s, status } : s));
-        if (status === "ACCEPTED") {
-          setStats(prev => prev ? { ...prev, indexedJournals: prev.indexedJournals + 1, pendingSubmissions: Math.max(0, prev.pendingSubmissions - 1) } : prev);
-        }
+        showToast(`Submission marked as ${status}.`);
+        setSelectedSubmission(null);
+        fetchAdminData();
       } else {
-        alert(data.error || "Failed to update submission.");
+        showToast(data.error || "Failed to update submission.", "error");
       }
     } catch {
-      alert("Error executing submission action.");
+      showToast("Network error executing submission update.", "error");
     } finally {
       setActionLoadingId(null);
     }
   };
 
-  // 5. Update Publication Claim Status (Verify, Reject)
+  // -------------------------------------------------------------
+  // ACTIONS: Publication Claims
+  // -------------------------------------------------------------
   const handleUpdateClaim = async (claimId: string, status: string) => {
     setActionLoadingId(claimId);
     try {
@@ -206,25 +253,23 @@ export default function AdminDashboardPage() {
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`Publication claim updated to ${status}!`);
-        setClaims(prev => prev.map(c => c.id === claimId ? { ...c, status } : c));
-        if (status === "VERIFIED") {
-          setStats(prev => prev ? { ...prev, pendingClaims: Math.max(0, prev.pendingClaims - 1) } : prev);
-        }
+        showToast(`Publication claim set to ${status}.`);
+        fetchAdminData();
       } else {
-        alert(data.error || "Failed to update claim.");
+        showToast(data.error || "Failed to update claim.", "error");
       }
     } catch {
-      alert("Error executing claim action.");
+      showToast("Network error updating claim.", "error");
     } finally {
       setActionLoadingId(null);
     }
   };
 
-  // 6. Toggle Journal Flags (isIndexed, certificatePaid)
-  const handleToggleJournal = async (journalId: string, field: "isIndexed" | "certificatePaid", currentValue: boolean) => {
-    setActionLoadingId(`${journalId}-${field}`);
-    const nextValue = !currentValue;
+  // -------------------------------------------------------------
+  // ACTIONS: Journal Edits
+  // -------------------------------------------------------------
+  const handleUpdateJournal = async (journalId: string, payload: any) => {
+    setActionLoadingId(journalId);
     try {
       const res = await fetch("/api/admin", {
         method: "POST",
@@ -232,1275 +277,1925 @@ export default function AdminDashboardPage() {
         body: JSON.stringify({
           action: "updateJournal",
           journalId,
-          [field]: nextValue
+          ...payload
         })
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`Journal ${field === "isIndexed" ? "Indexing" : "Certificate"} set to ${nextValue ? "LIVE" : "OFF"}`);
-        setJournals(prev => prev.map(j => j.id === journalId ? { ...j, [field]: nextValue } : j));
-        if (field === "isIndexed") {
-          setStats(prev => prev ? { ...prev, indexedJournals: prev.indexedJournals + (nextValue ? 1 : -1) } : prev);
-        }
-        if (field === "certificatePaid") {
-          setStats(prev => prev ? { ...prev, paidCertificates: prev.paidCertificates + (nextValue ? 1 : -1) } : prev);
-        }
+        showToast(data.message || "Journal updated successfully.");
+        fetchAdminData();
       } else {
-        alert(data.error || "Failed to update journal.");
+        showToast(data.error || "Failed to update journal.", "error");
       }
     } catch {
-      alert("Error updating journal.");
+      showToast("Network error updating journal.", "error");
     } finally {
       setActionLoadingId(null);
     }
   };
 
-  // 7. Update Journal Quality Grade
-  const handleUpdateGrade = async (journalId: string, grade: string) => {
-    setActionLoadingId(`${journalId}-grade`);
+  // -------------------------------------------------------------
+  // ACTIONS: Moderation
+  // -------------------------------------------------------------
+  const handleModerateForumTopic = async (topicId: string, subAction: "pin" | "unpin" | "lock" | "unlock" | "delete") => {
+    setActionLoadingId(topicId);
     try {
       const res = await fetch("/api/admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "updateJournal",
-          journalId,
-          qualityGrade: grade
+          action: "moderateForumTopic",
+          topicId,
+          subAction
         })
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`Grade updated to "${grade}"`);
-        setJournals(prev => prev.map(j => j.id === journalId ? { ...j, qualityGrade: grade } : j));
+        showToast(data.message);
+        fetchAdminData();
       } else {
-        alert(data.error || "Failed to update grade.");
+        showToast(data.error || "Action failed.", "error");
       }
     } catch {
-      alert("Error updating grade.");
+      showToast("Network error.", "error");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    setActionLoadingId(postId);
+    try {
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "moderatePost",
+          postId
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Social feed post removed.");
+        fetchAdminData();
+      } else {
+        showToast(data.error || "Failed to remove post.", "error");
+      }
+    } catch {
+      showToast("Network error removing post.", "error");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    setActionLoadingId(commentId);
+    try {
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "deleteJournalComment",
+          commentId
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Journal comment deleted.");
+        fetchAdminData();
+      } else {
+        showToast(data.error || "Failed to delete comment.", "error");
+      }
+    } catch {
+      showToast("Network error.", "error");
     } finally {
       setActionLoadingId(null);
     }
   };
 
   // -------------------------------------------------------------
-  // PROCESSED SUBMISSIONS (Filter, Search, Sort, Pagination)
+  // ACTIONS: User Management
   // -------------------------------------------------------------
-  const processedSubmissions = useMemo(() => {
-    const q = subSearch.toLowerCase().trim();
-    const filtered = submissions.filter(s => {
-      const matchesSearch = !q ||
-        (s.journalName && s.journalName.toLowerCase().includes(q)) ||
-        (s.issn && s.issn.toLowerCase().includes(q)) ||
-        (s.eissn && s.eissn.toLowerCase().includes(q)) ||
-        (s.submitter?.name && s.submitter.name.toLowerCase().includes(q)) ||
-        (s.submitter?.email && s.submitter.email.toLowerCase().includes(q)) ||
-        (s.country && s.country.toLowerCase().includes(q));
+  const handleUpdateUserRole = async (userId: string, newRole: string) => {
+    setActionLoadingId(userId);
+    try {
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "updateUserRole",
+          userId,
+          newRole
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message);
+        fetchAdminData();
+      } else {
+        showToast(data.error || "Failed to change user role.", "error");
+      }
+    } catch {
+      showToast("Network error.", "error");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
 
-      const matchesStatus = subStatusFilter === "ALL" ||
-        (subStatusFilter === "PENDING" && (s.status === "PENDING" || s.status === "UNDER_REVIEW")) ||
-        s.status === subStatusFilter;
-
-      const matchesCountry = subCountryFilter === "ALL" || s.country === subCountryFilter;
-
-      return matchesSearch && matchesStatus && matchesCountry;
+  const handleDeleteUser = async (userId: string, email: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete User Account",
+      description: `Are you certain you want to delete user account "${email}"? This permanently unlinks their submissions and profile.`,
+      confirmLabel: "Delete Account",
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        setActionLoadingId(userId);
+        try {
+          const res = await fetch("/api/admin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "deleteUser",
+              userId
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`User ${email} deleted.`);
+            fetchAdminData();
+          } else {
+            showToast(data.error || "Failed to delete user.", "error");
+          }
+        } catch {
+          showToast("Network error.", "error");
+        } finally {
+          setActionLoadingId(null);
+        }
+      }
     });
+  };
 
-    filtered.sort((a, b) => {
-      if (subSort === "newest") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      if (subSort === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      if (subSort === "name-asc") return (a.journalName || "").localeCompare(b.journalName || "");
-      if (subSort === "name-desc") return (b.journalName || "").localeCompare(a.journalName || "");
-      return 0;
+  // -------------------------------------------------------------
+  // ACTIONS: OAI Harvester & Metrics Engine
+  // -------------------------------------------------------------
+  const handleRunHarvest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!harvestForm.journalId || !harvestForm.oaiUrl) {
+      showToast("Please provide both target journal and OAI URL.", "error");
+      return;
+    }
+
+    setHarvestLoading(true);
+    setHarvestResult(null);
+    try {
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "triggerOaiHarvest",
+          ...harvestForm
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setHarvestResult(data);
+        showToast(data.message || "Harvest executed successfully!");
+        fetchAdminData();
+      } else {
+        showToast(data.error || "Harvest failed.", "error");
+      }
+    } catch {
+      showToast("Network error during harvest execution.", "error");
+    } finally {
+      setHarvestLoading(false);
+    }
+  };
+
+  const handleRecalculateMetrics = async () => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Recalculate AJCI Metrics",
+      description: "This executes the annual bibliometric calculation engine across all indexed journals, updating citations, regional scores, and quartile rankings (Q1-Q4).",
+      confirmLabel: "Execute Recalculation",
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        setMetricsLoading(true);
+        try {
+          const res = await fetch("/api/admin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "triggerMetricsRecalculation" })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(data.message);
+            fetchAdminData();
+          } else {
+            showToast(data.error || "Metrics engine error.", "error");
+          }
+        } catch {
+          showToast("Failed to run metrics engine.", "error");
+        } finally {
+          setMetricsLoading(false);
+        }
+      }
     });
+  };
 
-    return filtered;
-  }, [submissions, subSearch, subStatusFilter, subCountryFilter, subSort]);
+  // -------------------------------------------------------------
+  // Filtered & Paginated Views
+  // -------------------------------------------------------------
+  const filteredSubmissions = useMemo(() => {
+    return submissions.filter(sub => {
+      const q = subSearch.toLowerCase().trim();
+      const matchSearch =
+        !q ||
+        sub.journalName?.toLowerCase().includes(q) ||
+        sub.issn?.toLowerCase().includes(q) ||
+        sub.submitter?.name?.toLowerCase().includes(q) ||
+        sub.submitter?.email?.toLowerCase().includes(q) ||
+        sub.country?.toLowerCase().includes(q);
 
-  const subTotalPages = Math.ceil(processedSubmissions.length / subPageSize) || 1;
-  const paginatedSubmissions = useMemo(() => {
+      const matchStatus = subStatusFilter === "ALL" || sub.status === subStatusFilter;
+      const matchCountry = subCountryFilter === "ALL" || sub.country === subCountryFilter;
+
+      return matchSearch && matchStatus && matchCountry;
+    });
+  }, [submissions, subSearch, subStatusFilter, subCountryFilter]);
+
+  const pagedSubmissions = useMemo(() => {
     const start = (subPage - 1) * subPageSize;
-    return processedSubmissions.slice(start, start + subPageSize);
-  }, [processedSubmissions, subPage, subPageSize]);
+    return filteredSubmissions.slice(start, start + subPageSize);
+  }, [filteredSubmissions, subPage, subPageSize]);
 
-  // -------------------------------------------------------------
-  // PROCESSED CLAIMS (Filter, Search, Sort, Pagination)
-  // -------------------------------------------------------------
-  const processedClaims = useMemo(() => {
-    const q = claimSearch.toLowerCase().trim();
-    const filtered = claims.filter(c => {
-      const matchesSearch = !q ||
-        (c.article?.title && c.article.title.toLowerCase().includes(q)) ||
-        (c.article?.doi && c.article.doi.toLowerCase().includes(q)) ||
-        (c.user?.name && c.user.name.toLowerCase().includes(q)) ||
-        (c.user?.email && c.user.email.toLowerCase().includes(q)) ||
-        (c.user?.orcid && c.user.orcid.toLowerCase().includes(q));
+  const filteredClaims = useMemo(() => {
+    return claims.filter(c => {
+      const q = claimSearch.toLowerCase().trim();
+      const matchSearch =
+        !q ||
+        c.user?.name?.toLowerCase().includes(q) ||
+        c.user?.email?.toLowerCase().includes(q) ||
+        c.article?.title?.toLowerCase().includes(q) ||
+        c.article?.doi?.toLowerCase().includes(q);
 
-      const matchesStatus = claimStatusFilter === "ALL" ||
-        (claimStatusFilter === "NEEDS_AUDIT" && c.status === "PENDING_EDITORIAL_AUDIT") ||
-        c.status === claimStatusFilter;
-
-      return matchesSearch && matchesStatus;
+      const matchStatus = claimStatusFilter === "ALL" || c.status === claimStatusFilter;
+      return matchSearch && matchStatus;
     });
+  }, [claims, claimSearch, claimStatusFilter]);
 
-    filtered.sort((a, b) => {
-      if (claimSort === "newest") return new Date(b.claimedAt).getTime() - new Date(a.claimedAt).getTime();
-      if (claimSort === "oldest") return new Date(a.claimedAt).getTime() - new Date(b.claimedAt).getTime();
-      if (claimSort === "title-asc") return (a.article?.title || "").localeCompare(b.article?.title || "");
-      return 0;
-    });
-
-    return filtered;
-  }, [claims, claimSearch, claimStatusFilter, claimSort]);
-
-  const claimTotalPages = Math.ceil(processedClaims.length / claimPageSize) || 1;
-  const paginatedClaims = useMemo(() => {
+  const pagedClaims = useMemo(() => {
     const start = (claimPage - 1) * claimPageSize;
-    return processedClaims.slice(start, start + claimPageSize);
-  }, [processedClaims, claimPage, claimPageSize]);
+    return filteredClaims.slice(start, start + claimPageSize);
+  }, [filteredClaims, claimPage, claimPageSize]);
 
-  // -------------------------------------------------------------
-  // PROCESSED JOURNALS (Filter, Search, Sort, Pagination)
-  // -------------------------------------------------------------
-  const processedJournals = useMemo(() => {
-    const q = journalSearch.toLowerCase().trim();
-    const filtered = journals.filter(j => {
-      const matchesSearch = !q ||
-        (j.name && j.name.toLowerCase().includes(q)) ||
-        (j.issn && j.issn.toLowerCase().includes(q)) ||
-        (j.eissn && j.eissn.toLowerCase().includes(q)) ||
-        (j.country && j.country.toLowerCase().includes(q)) ||
-        (j.publisherName && j.publisherName.toLowerCase().includes(q));
+  const filteredJournals = useMemo(() => {
+    return journals.filter(j => {
+      const q = journalSearch.toLowerCase().trim();
+      const matchSearch =
+        !q ||
+        j.name?.toLowerCase().includes(q) ||
+        j.issn?.toLowerCase().includes(q) ||
+        j.country?.toLowerCase().includes(q) ||
+        j.publisherName?.toLowerCase().includes(q);
 
-      const matchesIndexed = journalIndexedFilter === "ALL" ||
-        (journalIndexedFilter === "INDEXED" && Boolean(j.isIndexed)) ||
-        (journalIndexedFilter === "DELISTED" && !j.isIndexed);
+      const matchIndexed =
+        journalIndexedFilter === "ALL" ||
+        (journalIndexedFilter === "INDEXED" && j.isIndexed) ||
+        (journalIndexedFilter === "UNINDEXED" && !j.isIndexed);
 
-      const matchesPaid = journalPaidFilter === "ALL" ||
-        (journalPaidFilter === "PAID" && Boolean(j.certificatePaid)) ||
+      const matchPaid =
+        journalPaidFilter === "ALL" ||
+        (journalPaidFilter === "PAID" && j.certificatePaid) ||
         (journalPaidFilter === "UNPAID" && !j.certificatePaid);
 
-      const matchesGrade = journalGradeFilter === "ALL" || j.qualityGrade === journalGradeFilter;
-      const matchesCountry = journalCountryFilter === "ALL" || j.country === journalCountryFilter;
+      const matchCountry = journalCountryFilter === "ALL" || j.country === journalCountryFilter;
 
-      return matchesSearch && matchesIndexed && matchesPaid && matchesGrade && matchesCountry;
+      return matchSearch && matchIndexed && matchPaid && matchCountry;
     });
+  }, [journals, journalSearch, journalIndexedFilter, journalPaidFilter, journalCountryFilter]);
 
-    filtered.sort((a, b) => {
-      if (journalSort === "name-asc") return (a.name || "").localeCompare(b.name || "");
-      if (journalSort === "name-desc") return (b.name || "").localeCompare(a.name || "");
-      if (journalSort === "country-asc") return (a.country || "").localeCompare(b.country || "");
-      if (journalSort === "grade-asc") return (a.qualityGrade || "C").localeCompare(b.qualityGrade || "C");
-      return 0;
-    });
-
-    return filtered;
-  }, [journals, journalSearch, journalIndexedFilter, journalPaidFilter, journalGradeFilter, journalCountryFilter, journalSort]);
-
-  const journalTotalPages = Math.ceil(processedJournals.length / journalPageSize) || 1;
-  const paginatedJournals = useMemo(() => {
+  const pagedJournals = useMemo(() => {
     const start = (journalPage - 1) * journalPageSize;
-    return processedJournals.slice(start, start + journalPageSize);
-  }, [processedJournals, journalPage, journalPageSize]);
+    return filteredJournals.slice(start, start + journalPageSize);
+  }, [filteredJournals, journalPage, journalPageSize]);
 
-  // Reset pagination on filter changes
-  useEffect(() => { setSubPage(1); }, [subSearch, subStatusFilter, subCountryFilter, subSort, subPageSize]);
-  useEffect(() => { setClaimPage(1); }, [claimSearch, claimStatusFilter, claimSort, claimPageSize]);
-  useEffect(() => { setJournalPage(1); }, [journalSearch, journalIndexedFilter, journalPaidFilter, journalGradeFilter, journalCountryFilter, journalSort, journalPageSize]);
+  const filteredUsers = useMemo(() => {
+    return users.filter(u => {
+      const q = userSearch.toLowerCase().trim();
+      const matchSearch =
+        !q ||
+        u.name?.toLowerCase().includes(q) ||
+        u.email?.toLowerCase().includes(q) ||
+        u.institution?.toLowerCase().includes(q);
+
+      const matchRole = userRoleFilter === "ALL" || u.role === userRoleFilter;
+      return matchSearch && matchRole;
+    });
+  }, [users, userSearch, userRoleFilter]);
+
+  const pagedUsers = useMemo(() => {
+    const start = (userPage - 1) * userPageSize;
+    return filteredUsers.slice(start, start + userPageSize);
+  }, [filteredUsers, userPage, userPageSize]);
+
+  // Loading Screen
+  if (loading) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#090d16", color: "#94a3b8" }}>
+        <i className="fa-solid fa-circle-notch fa-spin" style={{ color: "#10b981", fontSize: "2rem", marginBottom: "1rem" }}></i>
+        <p style={{ fontSize: "0.9rem", fontWeight: 600 }}>Loading Editorial Command Center...</p>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--color-bg-base, #f8fafc)", color: "var(--color-text-main, #0f172a)" }}>
-      <Header />
-
-      {/* Floating Success Toast */}
-      {successToast && (
-        <div style={{
-          position: "fixed",
-          bottom: "24px",
-          right: "24px",
-          background: "#10b981",
-          color: "#ffffff",
-          padding: "12px 22px",
-          borderRadius: "10px",
-          boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
-          fontWeight: 700,
-          fontSize: "0.9rem",
-          zIndex: 9999,
-          display: "flex",
-          alignItems: "center",
-          gap: "8px"
+    <div className="admin-shell">
+      {/* Toast Notification */}
+      {toast && (
+        <div className="admin-toast" style={{
+          background: toast.type === "success" ? "#064e3b" : toast.type === "error" ? "#7f1d1d" : "#0f172a",
+          border: `1px solid ${toast.type === "success" ? "#059669" : toast.type === "error" ? "#b91c1c" : "#334155"}`,
+          color: "#ffffff"
         }}>
-          <i className="fa-solid fa-circle-check"></i>
-          <span>{successToast}</span>
+          <i className={toast.type === "success" ? "fa-solid fa-circle-check" : "fa-solid fa-circle-exclamation"} style={{ color: toast.type === "success" ? "#34d399" : "#f87171" }}></i>
+          <span>{toast.message}</span>
         </div>
       )}
 
-      <main style={{ flex: 1, padding: "2.5rem 1rem", maxWidth: "1360px", width: "95%", margin: "0 auto" }}>
-        
-        {/* Loading Spinner */}
-        {loading && (
-          <div style={{ textAlign: "center", padding: "6rem 0" }}>
-            <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "2.5rem", color: "var(--color-primary, #0284c7)" }}></i>
-            <p style={{ marginTop: "1rem", color: "var(--color-text-muted, #64748b)", fontWeight: 600 }}>Loading Editorial Dashboard & Datasets...</p>
-          </div>
-        )}
-
-        {/* Not Logged In View */}
-        {!loading && !currentUser && (
-          <div style={{
-            maxWidth: "480px",
-            margin: "4rem auto",
-            background: "var(--color-bg-card)",
-            border: "1px solid var(--color-border, #e2e8f0)",
-            borderRadius: "16px",
-            padding: "2.5rem",
-            textAlign: "center",
-            boxShadow: "var(--card-shadow, 0 4px 6px -1px rgba(0,0,0,0.05))"
-          }}>
-            <div style={{ width: "64px", height: "64px", background: "rgba(2, 132, 199, 0.1)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem", color: "#0284c7", fontSize: "1.75rem" }}>
-              <i className="fa-solid fa-lock"></i>
+      {/* Confirmation Dialog Modal */}
+      {confirmDialog.isOpen && (
+        <div className="admin-modal-backdrop">
+          <div className="admin-modal-box" style={{ maxWidth: "440px" }}>
+            <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.5rem" }}>{confirmDialog.title}</h3>
+            <p style={{ fontSize: "0.85rem", color: "#cbd5e1", lineHeight: 1.5, margin: "0 0 1.5rem" }}>{confirmDialog.description}</p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
+              <button
+                type="button"
+                onClick={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+                className="admin-btn admin-btn-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDialog.onConfirm}
+                className="admin-btn admin-btn-danger"
+                style={{ background: "#ef4444", color: "#ffffff" }}
+              >
+                {confirmDialog.confirmLabel}
+              </button>
             </div>
-            <h2 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--color-text-main)", marginBottom: "0.5rem" }}>Admin Portal Authentication</h2>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.92rem", lineHeight: "1.6", marginBottom: "1.75rem" }}>
-              This portal is restricted to AfriJournal Editorial Board Directors and Chief Index Administrators.
-            </p>
-            <Link 
-              href="/login?redirect=/admin"
-              className="btn btn-primary"
-              style={{ width: "100%", justifyContent: "center" }}
-            >
-              <i className="fa-solid fa-right-to-bracket"></i> Log In to Continue
-            </Link>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Non-Admin Account: Elevation Key */}
-        {!loading && currentUser && !isAdmin && (
-          <div style={{
-            maxWidth: "520px",
-            margin: "4rem auto",
-            background: "var(--color-bg-card)",
-            border: "1px solid var(--color-border, #e2e8f0)",
-            borderRadius: "16px",
-            padding: "2.5rem",
-            boxShadow: "var(--card-shadow, 0 4px 6px -1px rgba(0,0,0,0.05))"
-          }}>
-            <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-              <div style={{ width: "60px", height: "60px", background: "rgba(245, 158, 11, 0.15)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", color: "#d97706", fontSize: "1.5rem" }}>
-                <i className="fa-solid fa-shield-halved"></i>
+      {/* Submission Review Modal */}
+      {selectedSubmission && (
+        <div className="admin-modal-backdrop">
+          <div className="admin-modal-box">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "1px solid #1e293b", paddingBottom: "1rem" }}>
+              <div>
+                <span className="admin-badge admin-badge-success">{selectedSubmission.status}</span>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0.5rem 0 0.2rem" }}>
+                  {selectedSubmission.journalName}
+                </h3>
+                <p style={{ fontSize: "0.75rem", color: "#94a3b8", margin: 0 }}>
+                  Publisher: {selectedSubmission.publisherName} • {selectedSubmission.country}
+                </p>
               </div>
-              <h2 style={{ fontSize: "1.35rem", fontWeight: 800, color: "var(--color-text-main)", marginBottom: "0.4rem" }}>Elevate Account to Editorial Admin</h2>
-              <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-                Logged in as <strong>{currentUser.email}</strong> (Role: <span style={{ color: "#0284c7", fontWeight: 700 }}>{currentUser.role}</span>). Enter your Editorial Setup Key to gain full administrative access.
-              </p>
+              <button
+                onClick={() => setSelectedSubmission(null)}
+                style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "1.1rem" }}
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
             </div>
 
-            {elevateError && (
-              <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "0.75rem 1rem", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "1.25rem" }}>
-                <i className="fa-solid fa-circle-exclamation" style={{ marginRight: "6px" }}></i> {elevateError}
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem", padding: "1.25rem 0" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                <div style={{ background: "#090e1a", padding: "0.75rem", borderRadius: "10px", border: "1px solid #1e293b" }}>
+                  <div style={{ fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>ISSN / E-ISSN</div>
+                  <div style={{ fontFamily: "monospace", fontSize: "0.85rem", color: "#f1f5f9", marginTop: "2px" }}>
+                    {selectedSubmission.issn || "N/A"} / {selectedSubmission.eissn || "N/A"}
+                  </div>
+                </div>
+                <div style={{ background: "#090e1a", padding: "0.75rem", borderRadius: "10px", border: "1px solid #1e293b" }}>
+                  <div style={{ fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>Frequency</div>
+                  <div style={{ fontSize: "0.85rem", color: "#f1f5f9", marginTop: "2px" }}>
+                    {selectedSubmission.frequency || "Quarterly"}
+                  </div>
+                </div>
               </div>
-            )}
 
-            <form onSubmit={handleElevate}>
-              <div style={{ marginBottom: "1.25rem" }}>
-                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-body)", marginBottom: "0.4rem" }}>
-                  Admin Setup Passcode
+              <div style={{ background: "#090e1a", padding: "0.75rem", borderRadius: "10px", border: "1px solid #1e293b" }}>
+                <div style={{ fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>Submitter Profile</div>
+                <div style={{ fontSize: "0.85rem", color: "#f1f5f9", fontWeight: 600 }}>
+                  {selectedSubmission.submitter?.name} ({selectedSubmission.submitter?.email})
+                </div>
+                <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
+                  {selectedSubmission.submitter?.institution || "No institution specified"}
+                </div>
+              </div>
+
+              {selectedSubmission.websiteUrl && (
+                <div style={{ background: "#090e1a", padding: "0.75rem", borderRadius: "10px", border: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ overflow: "hidden", textOverflow: "ellipsis", marginRight: "1rem" }}>
+                    <div style={{ fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>Official Website</div>
+                    <div style={{ fontSize: "0.8rem", color: "#34d399", fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {selectedSubmission.websiteUrl}
+                    </div>
+                  </div>
+                  <a
+                    href={selectedSubmission.websiteUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="admin-btn admin-btn-secondary admin-btn-sm"
+                  >
+                    <i className="fa-solid fa-arrow-up-right-from-square"></i> Visit
+                  </a>
+                </div>
+              )}
+
+              {selectedSubmission.pdfFileUrl && (
+                <div style={{ background: "#090e1a", padding: "0.75rem", borderRadius: "10px", border: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>Dossier Document</div>
+                    <div style={{ fontSize: "0.8rem", color: "#cbd5e1" }}>Attached verification proof / PDF</div>
+                  </div>
+                  <a
+                    href={selectedSubmission.pdfFileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="admin-btn admin-btn-sm"
+                    style={{ background: "rgba(16, 185, 129, 0.2)", color: "#34d399", border: "1px solid rgba(16, 185, 129, 0.4)" }}
+                  >
+                    <i className="fa-solid fa-file-pdf"></i> Open PDF
+                  </a>
+                </div>
+              )}
+
+              <div>
+                <div style={{ fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>Journal Scope</div>
+                <div style={{ fontSize: "0.8rem", color: "#cbd5e1", lineHeight: 1.5, background: "#090e1a", padding: "0.75rem", borderRadius: "10px", border: "1px solid #1e293b" }}>
+                  {selectedSubmission.description || "No description provided."}
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#cbd5e1", marginBottom: "4px" }}>
+                  Append Editorial Note / Audit Finding
                 </label>
-                <input
-                  type="password"
-                  required
-                  placeholder="Enter admin passcode"
-                  value={passcode}
-                  onChange={(e) => setPasscode(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "0.75rem 1rem",
-                    background: "var(--color-bg-card)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: "10px",
-                    color: "var(--color-text-main)",
-                    fontSize: "0.95rem",
-                    outline: "none"
-                  }}
+                <textarea
+                  rows={3}
+                  value={subReviewNotes}
+                  onChange={(e) => setSubReviewNotes(e.target.value)}
+                  placeholder="Record compliance conditions or audit rationale..."
+                  className="admin-textarea"
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={elevating}
-                className="btn btn-primary"
-                style={{ width: "100%", justifyContent: "center" }}
-              >
-                {elevating ? (
-                  <>
-                    <i className="fa-solid fa-spinner fa-spin"></i> Authorizing...
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-key"></i> Unlock Administrator Console
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* FULL CHIEF EDITORIAL & ADMIN CONSOLE */}
-        {!loading && currentUser && isAdmin && (
-          <div>
-            
-            {/* Header Title & Actions */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "2rem" }}>
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "0.35rem" }}>
-                  <span style={{ background: "#ecfdf5", color: "#059669", border: "1px solid #a7f3d0", padding: "3px 10px", borderRadius: "12px", fontSize: "0.75rem", fontWeight: 800, letterSpacing: "0.5px" }}>
-                    CHIEF EDITORIAL CONSOLE
-                  </span>
-                  <span style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", fontWeight: 500 }}>AfriJournal Index Operations</span>
-                </div>
-                <h1 style={{ fontSize: "1.9rem", fontWeight: 800, color: "var(--color-text-main)", margin: 0 }}>
-                  Administrative Oversight Portal
-                </h1>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <button
-                  onClick={() => fetchAdminData()}
-                  className="btn btn-secondary btn-sm"
-                  style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-body)" }}
-                  title="Reload Live Datasets"
+                <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#cbd5e1", marginBottom: "4px" }}>
+                  Quality Grade
+                </label>
+                <select
+                  value={subQualityGrade}
+                  onChange={(e) => setSubQualityGrade(e.target.value)}
+                  className="admin-select"
                 >
-                  <i className="fa-solid fa-arrows-rotate"></i> Refresh Data
+                  <option value="A+">Grade A+ (Exemplary Standard)</option>
+                  <option value="A">Grade A (High Academic Standard)</option>
+                  <option value="B">Grade B (Developing Academic Standard)</option>
+                  <option value="C">Grade C (Provisional Evaluation)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #1e293b", paddingTop: "1rem" }}>
+              <button
+                type="button"
+                onClick={() => setSelectedSubmission(null)}
+                className="admin-btn admin-btn-secondary"
+              >
+                Close
+              </button>
+
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <button
+                  type="button"
+                  disabled={actionLoadingId === selectedSubmission.id}
+                  onClick={() => handleUpdateSubmission(selectedSubmission.id, "REJECTED", subQualityGrade, subReviewNotes)}
+                  className="admin-btn admin-btn-danger"
+                >
+                  Reject
                 </button>
-                <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", padding: "0.4rem 0.85rem", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-                  Admin: <strong style={{ color: "#0284c7" }}>{currentUser.name || currentUser.email}</strong>
-                </div>
+                <button
+                  type="button"
+                  disabled={actionLoadingId === selectedSubmission.id}
+                  onClick={() => handleUpdateSubmission(selectedSubmission.id, "UNDER_REVIEW", subQualityGrade, subReviewNotes)}
+                  className="admin-btn"
+                  style={{ background: "rgba(245, 158, 11, 0.2)", color: "#fbbf24", border: "1px solid rgba(245, 158, 11, 0.4)" }}
+                >
+                  Under Review
+                </button>
+                <button
+                  type="button"
+                  disabled={actionLoadingId === selectedSubmission.id}
+                  onClick={() => handleUpdateSubmission(selectedSubmission.id, "ACCEPTED", subQualityGrade, subReviewNotes)}
+                  className="admin-btn admin-btn-primary"
+                >
+                  <i className="fa-solid fa-check"></i> Approve & Index
+                </button>
               </div>
             </div>
-
-            {/* Error Notification */}
-            {error && (
-              <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", padding: "1rem 1.25rem", borderRadius: "12px", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
-                <i className="fa-solid fa-triangle-exclamation"></i>
-                <span>{error}</span>
-              </div>
-            )}
-
-            {/* 4 Top Metric KPI Cards (Light Theme) */}
-            {stats && (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.25rem", marginBottom: "2rem" }}>
-                
-                {/* Metric 1: Indexed Journals */}
-                <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", padding: "1.4rem", display: "flex", alignItems: "center", gap: "1.2rem", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
-                  <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "#eff6ff", color: "#0284c7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>
-                    <i className="fa-solid fa-book-journal-whills"></i>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>INDEXED JOURNALS</div>
-                    <div style={{ fontSize: "1.65rem", fontWeight: 800, color: "var(--color-text-main)" }}>
-                      {stats.indexedJournals} <span style={{ fontSize: "0.88rem", color: "#94a3b8", fontWeight: 500 }}>/ {stats.totalJournals}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Metric 2: Pending Submissions */}
-                <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", padding: "1.4rem", display: "flex", alignItems: "center", gap: "1.2rem", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
-                  <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "#fffbeb", color: "#d97706", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>
-                    <i className="fa-solid fa-hourglass-half"></i>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>PENDING SUBMISSIONS</div>
-                    <div style={{ fontSize: "1.65rem", fontWeight: 800, color: stats.pendingSubmissions > 0 ? "#d97706" : "#0f172a" }}>
-                      {stats.pendingSubmissions}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Metric 3: Claims to Audit */}
-                <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", padding: "1.4rem", display: "flex", alignItems: "center", gap: "1.2rem", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
-                  <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "#faf5ff", color: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>
-                    <i className="fa-solid fa-user-check"></i>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>CLAIMS TO AUDIT</div>
-                    <div style={{ fontSize: "1.65rem", fontWeight: 800, color: stats.pendingClaims > 0 ? "#7c3aed" : "#0f172a" }}>
-                      {stats.pendingClaims}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Metric 4: Paid Certificates */}
-                <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", padding: "1.4rem", display: "flex", alignItems: "center", gap: "1.2rem", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
-                  <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "#ecfdf5", color: "#059669", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>
-                    <i className="fa-solid fa-certificate"></i>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>PAID CERTIFICATES ($99)</div>
-                    <div style={{ fontSize: "1.65rem", fontWeight: 800, color: "#059669" }}>
-                      {stats.paidCertificates}
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* Main Navigation Tabs */}
-            <div style={{ display: "flex", gap: "0.5rem", borderBottom: "2px solid var(--color-border)", marginBottom: "1.5rem" }}>
-              
-              <button
-                onClick={() => setActiveTab("submissions")}
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: "0.85rem 1.4rem",
-                  fontSize: "0.98rem",
-                  fontWeight: 700,
-                  color: activeTab === "submissions" ? "#0284c7" : "#64748b",
-                  borderBottom: activeTab === "submissions" ? "3px solid #0284c7" : "3px solid transparent",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "-2px"
-                }}
-              >
-                <i className="fa-solid fa-inbox"></i> Submissions Desk
-                {stats && stats.pendingSubmissions > 0 && (
-                  <span style={{ background: "#fef3c7", color: "#b45309", fontSize: "0.75rem", padding: "2px 8px", borderRadius: "10px", fontWeight: 800 }}>
-                    {stats.pendingSubmissions}
-                  </span>
-                )}
-              </button>
-
-              <button
-                onClick={() => setActiveTab("claims")}
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: "0.85rem 1.4rem",
-                  fontSize: "0.98rem",
-                  fontWeight: 700,
-                  color: activeTab === "claims" ? "#0284c7" : "#64748b",
-                  borderBottom: activeTab === "claims" ? "3px solid #0284c7" : "3px solid transparent",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "-2px"
-                }}
-              >
-                <i className="fa-solid fa-user-check"></i> Authorship Claims
-                {stats && stats.pendingClaims > 0 && (
-                  <span style={{ background: "#f3e8ff", color: "#7e22ce", fontSize: "0.75rem", padding: "2px 8px", borderRadius: "10px", fontWeight: 800 }}>
-                    {stats.pendingClaims}
-                  </span>
-                )}
-              </button>
-
-              <button
-                onClick={() => setActiveTab("journals")}
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: "0.85rem 1.4rem",
-                  fontSize: "0.98rem",
-                  fontWeight: 700,
-                  color: activeTab === "journals" ? "#0284c7" : "#64748b",
-                  borderBottom: activeTab === "journals" ? "3px solid #0284c7" : "3px solid transparent",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "-2px"
-                }}
-              >
-                <i className="fa-solid fa-book"></i> Journal Directory & Certificates
-                <span style={{ background: "var(--color-bg-card-subtle)", color: "var(--color-text-muted)", fontSize: "0.75rem", padding: "2px 8px", borderRadius: "10px", fontWeight: 800 }}>
-                  {stats ? stats.totalJournals : journals.length}
-                </span>
-              </button>
-
-            </div>
-
-            {/* =============================================================
-                TAB 1: SUBMISSIONS DESK
-            ============================================================= */}
-            {activeTab === "submissions" && (
-              <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
-                
-                {/* Search, Filter & Sort Controls */}
-                <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #f1f5f9", background: "var(--color-bg-card-subtle)", display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
-                  
-                  {/* Left: Search & Filter inputs */}
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center", flex: 1 }}>
-                    <div style={{ position: "relative", minWidth: "240px", flex: 1, maxWidth: "340px" }}>
-                      <input
-                        type="text"
-                        placeholder="Search submissions by title, ISSN, submitter..."
-                        value={subSearch}
-                        onChange={(e) => setSubSearch(e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "0.55rem 0.85rem 0.55rem 2.2rem",
-                          background: "var(--color-bg-card)",
-                          border: "1px solid var(--color-border)",
-                          borderRadius: "8px",
-                          fontSize: "0.85rem",
-                          color: "var(--color-text-main)",
-                          outline: "none"
-                        }}
-                      />
-                      <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#94a3b8", fontSize: "0.8rem" }}></i>
-                    </div>
-
-                    {/* Status Filter */}
-                    <select
-                      value={subStatusFilter}
-                      onChange={(e) => setSubStatusFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", fontWeight: 600, outline: "none" }}
-                    >
-                      <option value="ALL">All Statuses</option>
-                      <option value="PENDING">Needs Review (Pending / Under Review)</option>
-                      <option value="ACCEPTED">Accepted (Indexed)</option>
-                      <option value="REJECTED">Rejected (Cooling Period)</option>
-                    </select>
-
-                    {/* Country Filter */}
-                    <select
-                      value={subCountryFilter}
-                      onChange={(e) => setSubCountryFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", outline: "none" }}
-                    >
-                      <option value="ALL">All Countries</option>
-                      {ALL_COUNTRY_NAMES.map(c => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
-
-                    {/* Sort */}
-                    <select
-                      value={subSort}
-                      onChange={(e) => setSubSort(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", outline: "none" }}
-                    >
-                      <option value="newest">Sort: Newest First</option>
-                      <option value="oldest">Sort: Oldest First</option>
-                      <option value="name-asc">Sort: Journal Title (A-Z)</option>
-                      <option value="name-desc">Sort: Journal Title (Z-A)</option>
-                    </select>
-                  </div>
-
-                  {/* Right: Counter */}
-                  <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
-                    {processedSubmissions.length} submissions found
-                  </span>
-                </div>
-
-                {/* Submissions Table */}
-                <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
-                    <thead>
-                      <tr style={{ background: "var(--color-bg-card)", color: "var(--color-text-muted)", borderBottom: "2px solid var(--color-border)", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                        <th style={{ padding: "1rem 1.25rem" }}>Journal Details</th>
-                        <th style={{ padding: "1rem" }}>Submitter & Institution</th>
-                        <th style={{ padding: "1rem" }}>Audit & Date</th>
-                        <th style={{ padding: "1rem" }}>Status</th>
-                        <th style={{ padding: "1rem 1.25rem", textAlign: "right" }}>Editorial Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedSubmissions.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} style={{ padding: "4rem", textAlign: "center", color: "#94a3b8" }}>
-                            <i className="fa-solid fa-inbox" style={{ fontSize: "2.5rem", marginBottom: "0.75rem", display: "block", color: "#cbd5e1" }}></i>
-                            No submissions match the selected filters.
-                          </td>
-                        </tr>
-                      ) : (
-                        paginatedSubmissions.map(sub => (
-                          <tr key={sub.id} style={{ borderBottom: "1px solid #f1f5f9", background: "var(--color-bg-card)" }}>
-                            
-                            <td style={{ padding: "1rem 1.25rem" }}>
-                              <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.95rem", marginBottom: "2px" }}>
-                                {sub.journalName}
-                              </div>
-                              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                <span>ISSN: <strong>{sub.issn || sub.eissn || "N/A"}</strong></span>
-                                <span>•</span>
-                                <span>Country: <strong>{sub.country || "Pan-African"}</strong></span>
-                              </div>
-                              {(sub.websiteUrl || sub.website) && (
-                                <a href={sub.websiteUrl || sub.website} target="_blank" rel="noreferrer" style={{ fontSize: "0.78rem", color: "#0284c7", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px", marginTop: "4px", fontWeight: 600 }}>
-                                  <i className="fa-solid fa-arrow-up-right-from-square"></i> Visit Website
-                                </a>
-                              )}
-                            </td>
-
-                            <td style={{ padding: "1rem" }}>
-                              <div style={{ fontWeight: 600, color: "var(--color-text-body)" }}>
-                                {sub.submitter?.name || "Independent Submitter"}
-                              </div>
-                              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                                {sub.submitter?.email || "No email"}
-                              </div>
-                              <div style={{ fontSize: "0.76rem", color: "#94a3b8" }}>
-                                {sub.submitter?.institution || sub.publisherName || "Pan-African Scholarly Press"}
-                              </div>
-                            </td>
-
-                            <td style={{ padding: "1rem" }}>
-                              <span style={{
-                                background: sub.evaluationLog ? "#ecfdf5" : "#fffbeb",
-                                color: sub.evaluationLog ? "#059669" : "#d97706",
-                                border: `1px solid ${sub.evaluationLog ? "#a7f3d0" : "#fde68a"}`,
-                                padding: "2px 8px",
-                                borderRadius: "6px",
-                                fontWeight: 700,
-                                fontSize: "0.78rem"
-                              }}>
-                                {sub.evaluationLog ? "Verified Audit" : "Initial Review"}
-                              </span>
-                              <div style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "4px" }}>
-                                {new Date(sub.createdAt).toLocaleDateString()}
-                              </div>
-                            </td>
-
-                            <td style={{ padding: "1rem" }}>
-                              <span style={{
-                                padding: "4px 10px",
-                                borderRadius: "8px",
-                                fontSize: "0.78rem",
-                                fontWeight: 700,
-                                background: sub.status === "ACCEPTED" ? "#ecfdf5" : sub.status === "REJECTED" ? "#fef2f2" : "#fffbeb",
-                                color: sub.status === "ACCEPTED" ? "#059669" : sub.status === "REJECTED" ? "#dc2626" : "#d97706",
-                                border: `1px solid ${sub.status === "ACCEPTED" ? "#a7f3d0" : sub.status === "REJECTED" ? "#fecaca" : "#fde68a"}`
-                              }}>
-                                {sub.status}
-                              </span>
-                            </td>
-
-                            <td style={{ padding: "1rem 1.25rem", textAlign: "right" }}>
-                              <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px" }}>
-                                {sub.status !== "ACCEPTED" && (
-                                  <button
-                                    onClick={() => handleUpdateSubmission(sub.id, "ACCEPTED", "A")}
-                                    disabled={actionLoadingId === sub.id}
-                                    className="btn btn-sm"
-                                    style={{ background: "#059669", color: "#ffffff", padding: "5px 12px", fontSize: "0.78rem", fontWeight: 700 }}
-                                    title="Approve and Index into public directory"
-                                  >
-                                    <i className="fa-solid fa-check"></i> Approve & Index
-                                  </button>
-                                )}
-
-                                {sub.status === "PENDING" && (
-                                  <button
-                                    onClick={() => handleUpdateSubmission(sub.id, "UNDER_REVIEW")}
-                                    disabled={actionLoadingId === sub.id}
-                                    className="btn btn-sm"
-                                    style={{ background: "var(--color-bg-card)", border: "1px solid #d97706", color: "#d97706", padding: "5px 10px", fontSize: "0.78rem" }}
-                                    title="Mark Under Review"
-                                  >
-                                    <i className="fa-solid fa-hourglass-half"></i> Under Review
-                                  </button>
-                                )}
-
-                                {sub.status !== "REJECTED" && (
-                                  <button
-                                    onClick={() => handleUpdateSubmission(sub.id, "REJECTED")}
-                                    disabled={actionLoadingId === sub.id}
-                                    className="btn btn-sm"
-                                    style={{ background: "var(--color-bg-card)", border: "1px solid #ef4444", color: "#dc2626", padding: "5px 10px", fontSize: "0.78rem" }}
-                                    title="Reject and enforce 6-month cooldown"
-                                  >
-                                    <i className="fa-solid fa-xmark"></i> Reject
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Submissions Pagination */}
-                {processedSubmissions.length > 0 && (
-                  <div style={{ padding: "0.85rem 1.5rem", borderTop: "1px solid #f1f5f9", background: "var(--color-bg-card-subtle)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
-                      <span>Per page:</span>
-                      <select
-                        value={subPageSize}
-                        onChange={(e) => setSubPageSize(Number(e.target.value))}
-                        style={{ padding: "2px 6px", borderRadius: "6px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)", fontSize: "0.82rem" }}
-                      >
-                        <option value={10}>10</option>
-                        <option value={25}>25</option>
-                        <option value={50}>50</option>
-                      </select>
-                      <span>Showing {((subPage - 1) * subPageSize) + 1} - {Math.min(subPage * subPageSize, processedSubmissions.length)} of {processedSubmissions.length}</span>
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <button
-                        onClick={() => setSubPage(p => Math.max(1, p - 1))}
-                        disabled={subPage === 1}
-                        className="btn btn-sm"
-                        style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: subPage === 1 ? "#94a3b8" : "#334155", padding: "4px 10px" }}
-                      >
-                        Previous
-                      </button>
-                      <span style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", fontWeight: 700, padding: "0 6px" }}>
-                        Page {subPage} of {subTotalPages}
-                      </span>
-                      <button
-                        onClick={() => setSubPage(p => Math.min(subTotalPages, p + 1))}
-                        disabled={subPage >= subTotalPages}
-                        className="btn btn-sm"
-                        style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: subPage >= subTotalPages ? "#94a3b8" : "#334155", padding: "4px 10px" }}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-              </div>
-            )}
-
-            {/* =============================================================
-                TAB 2: AUTHORSHIP CLAIMS DESK
-            ============================================================= */}
-            {activeTab === "claims" && (
-              <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
-                
-                {/* Search & Filter Bar */}
-                <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #f1f5f9", background: "var(--color-bg-card-subtle)", display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center", flex: 1 }}>
-                    <div style={{ position: "relative", minWidth: "240px", flex: 1, maxWidth: "340px" }}>
-                      <input
-                        type="text"
-                        placeholder="Search claims by paper title, DOI, author..."
-                        value={claimSearch}
-                        onChange={(e) => setClaimSearch(e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "0.55rem 0.85rem 0.55rem 2.2rem",
-                          background: "var(--color-bg-card)",
-                          border: "1px solid var(--color-border)",
-                          borderRadius: "8px",
-                          fontSize: "0.85rem",
-                          color: "var(--color-text-main)",
-                          outline: "none"
-                        }}
-                      />
-                      <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#94a3b8", fontSize: "0.8rem" }}></i>
-                    </div>
-
-                    <select
-                      value={claimStatusFilter}
-                      onChange={(e) => setClaimStatusFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", fontWeight: 600, outline: "none" }}
-                    >
-                      <option value="ALL">All Claim Statuses</option>
-                      <option value="NEEDS_AUDIT">Pending Editorial Audit</option>
-                      <option value="VERIFIED">Verified (Credited)</option>
-                      <option value="REJECTED">Rejected Claims</option>
-                    </select>
-
-                    <select
-                      value={claimSort}
-                      onChange={(e) => setClaimSort(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", outline: "none" }}
-                    >
-                      <option value="newest">Sort: Newest Claim</option>
-                      <option value="oldest">Sort: Oldest Claim</option>
-                      <option value="title-asc">Sort: Title (A-Z)</option>
-                    </select>
-                  </div>
-
-                  <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
-                    {processedClaims.length} authorship claims found
-                  </span>
-                </div>
-
-                {/* Claims Table */}
-                <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
-                    <thead>
-                      <tr style={{ background: "var(--color-bg-card)", color: "var(--color-text-muted)", borderBottom: "2px solid var(--color-border)", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                        <th style={{ padding: "1rem 1.25rem" }}>Publication & Journal</th>
-                        <th style={{ padding: "1rem" }}>Claiming Researcher</th>
-                        <th style={{ padding: "1rem" }}>Claimed Role</th>
-                        <th style={{ padding: "1rem" }}>Status</th>
-                        <th style={{ padding: "1rem 1.25rem", textAlign: "right" }}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedClaims.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} style={{ padding: "4rem", textAlign: "center", color: "#94a3b8" }}>
-                            <i className="fa-solid fa-user-check" style={{ fontSize: "2.5rem", marginBottom: "0.75rem", display: "block", color: "#cbd5e1" }}></i>
-                            No publication claims match your filters.
-                          </td>
-                        </tr>
-                      ) : (
-                        paginatedClaims.map(c => (
-                          <tr key={c.id} style={{ borderBottom: "1px solid #f1f5f9", background: "var(--color-bg-card)" }}>
-                            
-                            <td style={{ padding: "1rem 1.25rem" }}>
-                              <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.92rem", marginBottom: "3px" }}>
-                                {c.article?.title || "Unknown Publication"}
-                              </div>
-                              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                                {c.article?.journal?.name || "AfriJournal Repository"}
-                              </div>
-                              {c.article?.doi && (
-                                <a 
-                                  href={`https://doi.org/${c.article.doi}`} 
-                                  target="_blank" 
-                                  rel="noreferrer" 
-                                  style={{ fontSize: "0.78rem", color: "#0284c7", fontFamily: "monospace", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px", marginTop: "3px" }}
-                                >
-                                  DOI: {c.article.doi} <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.68rem" }}></i>
-                                </a>
-                              )}
-                            </td>
-
-                            <td style={{ padding: "1rem" }}>
-                              <div style={{ fontWeight: 600, color: "var(--color-text-body)" }}>
-                                {c.user?.name || "Registered Scholar"}
-                              </div>
-                              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                                {c.user?.email}
-                              </div>
-                              {c.user?.orcid && (
-                                <a href={`https://orcid.org/${c.user.orcid}`} target="_blank" rel="noreferrer" style={{ fontSize: "0.76rem", color: "#059669", textDecoration: "none", fontWeight: 600 }}>
-                                  ORCID: {c.user.orcid}
-                                </a>
-                              )}
-                            </td>
-
-                            <td style={{ padding: "1rem" }}>
-                              <span style={{ background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", padding: "3px 8px", borderRadius: "6px", fontSize: "0.8rem", color: "var(--color-text-body)", fontWeight: 600 }}>
-                                {c.role}
-                              </span>
-                              <div style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "4px" }}>
-                                {new Date(c.claimedAt).toLocaleDateString()}
-                              </div>
-                            </td>
-
-                            <td style={{ padding: "1rem" }}>
-                              <span style={{
-                                padding: "4px 10px",
-                                borderRadius: "8px",
-                                fontSize: "0.78rem",
-                                fontWeight: 700,
-                                background: c.status === "VERIFIED" ? "#ecfdf5" : c.status === "REJECTED" ? "#fef2f2" : "#faf5ff",
-                                color: c.status === "VERIFIED" ? "#059669" : c.status === "REJECTED" ? "#dc2626" : "#7c3aed",
-                                border: `1px solid ${c.status === "VERIFIED" ? "#a7f3d0" : c.status === "REJECTED" ? "#fecaca" : "#e9d5ff"}`
-                              }}>
-                                {c.status === "PENDING_EDITORIAL_AUDIT" ? "Needs Audit" : c.status}
-                              </span>
-                            </td>
-
-                            <td style={{ padding: "1rem 1.25rem", textAlign: "right" }}>
-                              <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px" }}>
-                                {c.status !== "VERIFIED" && (
-                                  <button
-                                    onClick={() => handleUpdateClaim(c.id, "VERIFIED")}
-                                    disabled={actionLoadingId === c.id}
-                                    className="btn btn-sm"
-                                    style={{ background: "#059669", color: "#ffffff", padding: "5px 12px", fontSize: "0.78rem", fontWeight: 700 }}
-                                    title="Verify authorship and credit citations"
-                                  >
-                                    <i className="fa-solid fa-check"></i> Verify
-                                  </button>
-                                )}
-
-                                {c.status !== "REJECTED" && (
-                                  <button
-                                    onClick={() => handleUpdateClaim(c.id, "REJECTED")}
-                                    disabled={actionLoadingId === c.id}
-                                    className="btn btn-sm"
-                                    style={{ background: "var(--color-bg-card)", border: "1px solid #ef4444", color: "#dc2626", padding: "5px 10px", fontSize: "0.78rem" }}
-                                    title="Reject authorship claim"
-                                  >
-                                    <i className="fa-solid fa-xmark"></i> Reject
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Claims Pagination */}
-                {processedClaims.length > 0 && (
-                  <div style={{ padding: "0.85rem 1.5rem", borderTop: "1px solid #f1f5f9", background: "var(--color-bg-card-subtle)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
-                      <span>Per page:</span>
-                      <select
-                        value={claimPageSize}
-                        onChange={(e) => setClaimPageSize(Number(e.target.value))}
-                        style={{ padding: "2px 6px", borderRadius: "6px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)", fontSize: "0.82rem" }}
-                      >
-                        <option value={10}>10</option>
-                        <option value={25}>25</option>
-                        <option value={50}>50</option>
-                      </select>
-                      <span>Showing {((claimPage - 1) * claimPageSize) + 1} - {Math.min(claimPage * claimPageSize, processedClaims.length)} of {processedClaims.length}</span>
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <button
-                        onClick={() => setClaimPage(p => Math.max(1, p - 1))}
-                        disabled={claimPage === 1}
-                        className="btn btn-sm"
-                        style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: claimPage === 1 ? "#94a3b8" : "#334155", padding: "4px 10px" }}
-                      >
-                        Previous
-                      </button>
-                      <span style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", fontWeight: 700, padding: "0 6px" }}>
-                        Page {claimPage} of {claimTotalPages}
-                      </span>
-                      <button
-                        onClick={() => setClaimPage(p => Math.min(claimTotalPages, p + 1))}
-                        disabled={claimPage >= claimTotalPages}
-                        className="btn btn-sm"
-                        style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: claimPage >= claimTotalPages ? "#94a3b8" : "#334155", padding: "4px 10px" }}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-              </div>
-            )}
-
-            {/* =============================================================
-                TAB 3: JOURNAL DIRECTORY & CERTIFICATES (ALL SEEDED JOURNALS)
-            ============================================================= */}
-            {activeTab === "journals" && (
-              <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "16px", overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
-                
-                {/* Search, Filter & Sort Controls */}
-                <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #f1f5f9", background: "var(--color-bg-card-subtle)", display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
-                  
-                  {/* Left: Search input & Filters */}
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center", flex: 1 }}>
-                    <div style={{ position: "relative", minWidth: "260px", flex: 1, maxWidth: "360px" }}>
-                      <input
-                        type="text"
-                        placeholder="Search seeded & live journals (Title, ISSN, Publisher)..."
-                        value={journalSearch}
-                        onChange={(e) => setJournalSearch(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            fetchAdminData(journalSearch);
-                          }
-                        }}
-                        style={{
-                          width: "100%",
-                          padding: "0.55rem 0.85rem 0.55rem 2.2rem",
-                          background: "var(--color-bg-card)",
-                          border: "1px solid var(--color-border)",
-                          borderRadius: "8px",
-                          fontSize: "0.85rem",
-                          color: "var(--color-text-main)",
-                          outline: "none"
-                        }}
-                      />
-                      <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#94a3b8", fontSize: "0.8rem" }}></i>
-                    </div>
-
-                    {/* Filter: Indexing */}
-                    <select
-                      value={journalIndexedFilter}
-                      onChange={(e) => setJournalIndexedFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", fontWeight: 600, outline: "none" }}
-                    >
-                      <option value="ALL">All Indexing States</option>
-                      <option value="INDEXED">Indexed (Live)</option>
-                      <option value="DELISTED">Delisted / Unindexed</option>
-                    </select>
-
-                    {/* Filter: Certificate Paid */}
-                    <select
-                      value={journalPaidFilter}
-                      onChange={(e) => setJournalPaidFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", fontWeight: 600, outline: "none" }}
-                    >
-                      <option value="ALL">All Certificate States</option>
-                      <option value="PAID">Paid ($99 Full Cert)</option>
-                      <option value="UNPAID">Unpaid (Sample Preview)</option>
-                    </select>
-
-                    {/* Filter: Grade */}
-                    <select
-                      value={journalGradeFilter}
-                      onChange={(e) => setJournalGradeFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", outline: "none" }}
-                    >
-                      <option value="ALL">All Grades</option>
-                      <option value="A+">A+ (Pioneer)</option>
-                      <option value="A">A (Standard)</option>
-                      <option value="B">B (Developing)</option>
-                      <option value="C">C (Provisional)</option>
-                    </select>
-
-                    {/* Filter: Country */}
-                    <select
-                      value={journalCountryFilter}
-                      onChange={(e) => setJournalCountryFilter(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", outline: "none" }}
-                    >
-                      <option value="ALL">All African Nations</option>
-                      {ALL_COUNTRY_NAMES.map(c => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
-
-                    {/* Sort */}
-                    <select
-                      value={journalSort}
-                      onChange={(e) => setJournalSort(e.target.value)}
-                      style={{ padding: "0.55rem 0.85rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-text-body)", outline: "none" }}
-                    >
-                      <option value="name-asc">Sort: Title (A-Z)</option>
-                      <option value="name-desc">Sort: Title (Z-A)</option>
-                      <option value="country-asc">Sort: Country (A-Z)</option>
-                      <option value="grade-asc">Sort: Quality Grade</option>
-                    </select>
-                  </div>
-
-                  {/* Right Counter & Search Trigger */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <button
-                      onClick={() => fetchAdminData(journalSearch)}
-                      className="btn btn-sm btn-primary"
-                      style={{ padding: "0.45rem 0.85rem", fontSize: "0.82rem" }}
-                    >
-                      <i className="fa-solid fa-magnifying-glass"></i> Deep Query
-                    </button>
-                    <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
-                      {processedJournals.length} journals
-                    </span>
-                  </div>
-                </div>
-
-                {/* Seeded & Live Journals Table */}
-                <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
-                    <thead>
-                      <tr style={{ background: "var(--color-bg-card)", color: "var(--color-text-muted)", borderBottom: "2px solid var(--color-border)", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                        <th style={{ padding: "1rem 1.25rem" }}>Journal & Publisher</th>
-                        <th style={{ padding: "1rem" }}>Live Directory</th>
-                        <th style={{ padding: "1rem" }}>Accredited Cert ($99)</th>
-                        <th style={{ padding: "1rem" }}>Quality Grade</th>
-                        <th style={{ padding: "1rem 1.25rem", textAlign: "right" }}>Public Links</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedJournals.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} style={{ padding: "4rem", textAlign: "center", color: "#94a3b8" }}>
-                            <i className="fa-solid fa-book" style={{ fontSize: "2.5rem", marginBottom: "0.75rem", display: "block", color: "#cbd5e1" }}></i>
-                            No journals match your query. Try searching with a broader keyword or resetting filters.
-                          </td>
-                        </tr>
-                      ) : (
-                        paginatedJournals.map(j => (
-                          <tr key={j.id} style={{ borderBottom: "1px solid #f1f5f9", background: "var(--color-bg-card)" }}>
-                            
-                            <td style={{ padding: "1rem 1.25rem" }}>
-                              <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.95rem", marginBottom: "2px" }}>
-                                {j.name}
-                              </div>
-                              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                                ISSN: <strong>{j.issn || j.eissn || "N/A"}</strong> • {j.country}
-                              </div>
-                              <div style={{ fontSize: "0.76rem", color: j.publisher ? "#0284c7" : "#94a3b8", marginTop: "2px", fontWeight: j.publisher ? 600 : 400 }}>
-                                {j.publisher ? (
-                                  <>
-                                    <i className="fa-solid fa-user-tie" style={{ marginRight: "4px" }}></i>
-                                    Editor: {j.publisher.name} ({j.publisher.email})
-                                  </>
-                                ) : (
-                                  <>
-                                    <i className="fa-solid fa-seedling" style={{ marginRight: "4px", color: "#10b981" }}></i>
-                                    Seeded Entry • Open to Claim
-                                  </>
-                                )}
-                              </div>
-                            </td>
-
-                            {/* isIndexed Switch */}
-                            <td style={{ padding: "1rem" }}>
-                              <button
-                                onClick={() => handleToggleJournal(j.id, "isIndexed", Boolean(j.isIndexed))}
-                                disabled={actionLoadingId === `${j.id}-isIndexed`}
-                                style={{
-                                  padding: "6px 14px",
-                                  borderRadius: "20px",
-                                  border: "none",
-                                  fontSize: "0.8rem",
-                                  fontWeight: 700,
-                                  cursor: "pointer",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: "6px",
-                                  background: j.isIndexed ? "#ecfdf5" : "#f1f5f9",
-                                  color: j.isIndexed ? "#059669" : "#64748b",
-                                  borderWidth: "1px",
-                                  borderStyle: "solid",
-                                  borderColor: j.isIndexed ? "#a7f3d0" : "#cbd5e1",
-                                  transition: "all 0.15s ease"
-                                }}
-                              >
-                                <i className={`fa-solid ${j.isIndexed ? "fa-circle-check" : "fa-ban"}`}></i>
-                                <span>{j.isIndexed ? "Indexed (Live)" : "Delisted"}</span>
-                              </button>
-                            </td>
-
-                            {/* certificatePaid Switch */}
-                            <td style={{ padding: "1rem" }}>
-                              <button
-                                onClick={() => handleToggleJournal(j.id, "certificatePaid", Boolean(j.certificatePaid))}
-                                disabled={actionLoadingId === `${j.id}-certificatePaid`}
-                                style={{
-                                  padding: "6px 14px",
-                                  borderRadius: "20px",
-                                  border: "none",
-                                  fontSize: "0.8rem",
-                                  fontWeight: 700,
-                                  cursor: "pointer",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: "6px",
-                                  background: j.certificatePaid ? "#fefce8" : "#f1f5f9",
-                                  color: j.certificatePaid ? "#a16207" : "#64748b",
-                                  borderWidth: "1px",
-                                  borderStyle: "solid",
-                                  borderColor: j.certificatePaid ? "#fef08a" : "#cbd5e1",
-                                  transition: "all 0.15s ease"
-                                }}
-                              >
-                                <i className={`fa-solid ${j.certificatePaid ? "fa-certificate" : "fa-lock"}`}></i>
-                                <span>{j.certificatePaid ? "Paid ($99 Full)" : "Unpaid Sample"}</span>
-                              </button>
-                            </td>
-
-                            {/* Quality Grade Inline Selector */}
-                            <td style={{ padding: "1rem" }}>
-                              <select
-                                value={j.qualityGrade || "A"}
-                                onChange={(e) => handleUpdateGrade(j.id, e.target.value)}
-                                style={{
-                                  background: "var(--color-bg-card)",
-                                  color: "var(--color-text-main)",
-                                  border: "1px solid var(--color-border)",
-                                  borderRadius: "6px",
-                                  padding: "4px 8px",
-                                  fontSize: "0.85rem",
-                                  fontWeight: 700,
-                                  outline: "none"
-                                }}
-                              >
-                                <option value="A+">A+ (Pioneer)</option>
-                                <option value="A">A (Standard)</option>
-                                <option value="B">B (Developing)</option>
-                                <option value="C">C (Provisional)</option>
-                              </select>
-                            </td>
-
-                            {/* Public Links */}
-                            <td style={{ padding: "1rem 1.25rem", textAlign: "right" }}>
-                              <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px" }}>
-                                <Link
-                                  href={`/journal/${j.id}`}
-                                  className="btn btn-secondary btn-sm"
-                                  style={{ padding: "4px 10px", fontSize: "0.78rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}
-                                  target="_blank"
-                                >
-                                  <i className="fa-solid fa-arrow-up-right-from-square"></i> View Profile
-                                </Link>
-                                <Link
-                                  href={`/verify/${j.id}`}
-                                  className="btn btn-secondary btn-sm"
-                                  style={{ padding: "4px 10px", fontSize: "0.78rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}
-                                  target="_blank"
-                                >
-                                  <i className="fa-solid fa-certificate"></i> Cert
-                                </Link>
-                              </div>
-                            </td>
-
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Journals Pagination */}
-                {processedJournals.length > 0 && (
-                  <div style={{ padding: "0.85rem 1.5rem", borderTop: "1px solid #f1f5f9", background: "var(--color-bg-card-subtle)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
-                      <span>Per page:</span>
-                      <select
-                        value={journalPageSize}
-                        onChange={(e) => setJournalPageSize(Number(e.target.value))}
-                        style={{ padding: "2px 6px", borderRadius: "6px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)", fontSize: "0.82rem" }}
-                      >
-                        <option value={15}>15</option>
-                        <option value={30}>30</option>
-                        <option value={50}>50</option>
-                        <option value={100}>100</option>
-                      </select>
-                      <span>Showing {((journalPage - 1) * journalPageSize) + 1} - {Math.min(journalPage * journalPageSize, processedJournals.length)} of {processedJournals.length}</span>
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <button
-                        onClick={() => setJournalPage(p => Math.max(1, p - 1))}
-                        disabled={journalPage === 1}
-                        className="btn btn-sm"
-                        style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: journalPage === 1 ? "#94a3b8" : "#334155", padding: "4px 10px" }}
-                      >
-                        Previous
-                      </button>
-                      <span style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", fontWeight: 700, padding: "0 6px" }}>
-                        Page {journalPage} of {journalTotalPages}
-                      </span>
-                      <button
-                        onClick={() => setJournalPage(p => Math.min(journalTotalPages, p + 1))}
-                        disabled={journalPage >= journalTotalPages}
-                        className="btn btn-sm"
-                        style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: journalPage >= journalTotalPages ? "#94a3b8" : "#334155", padding: "4px 10px" }}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-              </div>
-            )}
-
           </div>
-        )}
+        </div>
+      )}
 
-      </main>
+      {/* ------------------------------------------------------------- */}
+      {/* SIDEBAR NAVIGATION                                            */}
+      {/* ------------------------------------------------------------- */}
+      <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
+        <div>
+          {/* Brand Heading */}
+          <div className="admin-sidebar-header">
+            <Link href="/admin" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+              <div style={{ width: "34px", height: "34px", borderRadius: "10px", background: "linear-gradient(135deg, #10b981 0%, #047857 100%)", display: "flex", alignItems: "center", justifyContent: "center", color: "#ffffff", fontSize: "0.95rem" }}>
+                <i className="fa-solid fa-shield-halved"></i>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "#ffffff", display: "block", lineHeight: 1.1 }}>AfriJournal</span>
+                <span style={{ fontSize: "0.65rem", fontWeight: 700, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.05em", display: "block" }}>Admin Console</span>
+              </div>
+            </Link>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "1rem" }}
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+          </div>
 
-      <Footer />
+          {/* Navigation Links */}
+          <nav className="admin-sidebar-nav">
+            <div className="admin-nav-category">Operations</div>
+
+            <button
+              onClick={() => { setActiveTab("overview"); setSidebarOpen(false); }}
+              className={`admin-nav-btn ${activeTab === "overview" ? "active" : ""}`}
+            >
+              <span><i className="fa-solid fa-gauge-high" style={{ width: "20px" }}></i> Dashboard</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab("submissions"); setSidebarOpen(false); }}
+              className={`admin-nav-btn ${activeTab === "submissions" ? "active" : ""}`}
+            >
+              <span><i className="fa-solid fa-file-signature" style={{ width: "20px" }}></i> Submissions</span>
+              {stats?.pendingSubmissions ? (
+                <span className="admin-badge admin-badge-warning">{stats.pendingSubmissions}</span>
+              ) : null}
+            </button>
+
+            <button
+              onClick={() => { setActiveTab("claims"); setSidebarOpen(false); }}
+              className={`admin-nav-btn ${activeTab === "claims" ? "active" : ""}`}
+            >
+              <span><i className="fa-solid fa-user-check" style={{ width: "20px" }}></i> Author Claims</span>
+              {stats?.pendingClaims ? (
+                <span className="admin-badge admin-badge-info">{stats.pendingClaims}</span>
+              ) : null}
+            </button>
+
+            <button
+              onClick={() => { setActiveTab("journals"); setSidebarOpen(false); }}
+              className={`admin-nav-btn ${activeTab === "journals" ? "active" : ""}`}
+            >
+              <span><i className="fa-solid fa-book" style={{ width: "20px" }}></i> Journals Catalog</span>
+              <span style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "monospace" }}>{stats?.totalJournals || 0}</span>
+            </button>
+
+            <div className="admin-nav-category">Community & Safety</div>
+
+            <button
+              onClick={() => { setActiveTab("moderation"); setSidebarOpen(false); }}
+              className={`admin-nav-btn ${activeTab === "moderation" ? "active" : ""}`}
+            >
+              <span><i className="fa-solid fa-gavel" style={{ width: "20px" }}></i> Moderation Desk</span>
+              <span className="admin-badge admin-badge-neutral">
+                {(stats?.totalForumTopics || 0) + (stats?.totalPosts || 0)}
+              </span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab("users"); setSidebarOpen(false); }}
+              className={`admin-nav-btn ${activeTab === "users" ? "active" : ""}`}
+            >
+              <span><i className="fa-solid fa-users" style={{ width: "20px" }}></i> User Directory</span>
+              <span style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "monospace" }}>{stats?.totalUsers || 0}</span>
+            </button>
+
+            <div className="admin-nav-category">Engines & Billing</div>
+
+            <button
+              onClick={() => { setActiveTab("harvester"); setSidebarOpen(false); }}
+              className={`admin-nav-btn ${activeTab === "harvester" ? "active" : ""}`}
+            >
+              <span><i className="fa-solid fa-network-wired" style={{ width: "20px" }}></i> OAI & Metrics</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab("payments"); setSidebarOpen(false); }}
+              className={`admin-nav-btn ${activeTab === "payments" ? "active" : ""}`}
+            >
+              <span><i className="fa-solid fa-credit-card" style={{ width: "20px" }}></i> Payments Ledger</span>
+              <span style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "monospace" }}>{payments.length}</span>
+            </button>
+          </nav>
+        </div>
+
+        {/* Sidebar Footer User Info */}
+        <div className="admin-sidebar-footer">
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden", marginRight: "8px" }}>
+            <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#059669", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: 700, color: "#ffffff", flexShrink: 0 }}>
+              {currentUser?.email?.substring(0, 2).toUpperCase() || "AD"}
+            </div>
+            <div style={{ overflow: "hidden" }}>
+              <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#ffffff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {currentUser?.name || "Chief Admin"}
+              </div>
+              <div style={{ fontSize: "0.7rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {currentUser?.email}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            title="Terminate Admin Session"
+            style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "0.95rem", padding: "4px" }}
+          >
+            <i className="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      </aside>
+
+      {/* ------------------------------------------------------------- */}
+      {/* MAIN CONTENT AREA                                             */}
+      {/* ------------------------------------------------------------- */}
+      <div className="admin-main-wrap">
+        {/* Top Header */}
+        <header className="admin-topbar">
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <button
+              onClick={() => setSidebarOpen(true)}
+              style={{ background: "transparent", border: "none", color: "#ffffff", cursor: "pointer", fontSize: "1.1rem" }}
+            >
+              <i className="fa-solid fa-bars"></i>
+            </button>
+            <div style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
+              <span>Console</span> <span style={{ color: "#475569" }}>/</span> <strong style={{ color: "#ffffff", textTransform: "capitalize" }}>{activeTab}</strong>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <span className="admin-badge admin-badge-success" style={{ padding: "0.3rem 0.65rem" }}>
+              <i className="fa-solid fa-circle" style={{ fontSize: "0.45rem" }}></i> Live Node
+            </span>
+
+            <button
+              onClick={() => fetchAdminData()}
+              disabled={refreshing}
+              className="admin-btn admin-btn-secondary admin-btn-sm"
+            >
+              <i className={`fa-solid fa-arrows-rotate ${refreshing ? "fa-spin" : ""}`}></i>
+              <span>Refresh</span>
+            </button>
+
+            <Link
+              href="/"
+              target="_blank"
+              className="admin-btn admin-btn-secondary admin-btn-sm"
+            >
+              <span>Public Site</span>
+              <i className="fa-solid fa-arrow-up-right-from-square"></i>
+            </Link>
+          </div>
+        </header>
+
+        {/* Tab Content */}
+        <main className="admin-content">
+          {error && (
+            <div style={{ background: "#7f1d1d", border: "1px solid #b91c1c", color: "#fecaca", padding: "0.85rem 1rem", borderRadius: "12px", marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.85rem" }}>
+              <span>{error}</span>
+              <button onClick={() => setError(null)} style={{ background: "transparent", border: "none", color: "#fecaca", cursor: "pointer", fontWeight: 700 }}>Dismiss</button>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* TAB 1: EXECUTIVE OVERVIEW                                 */}
+          {/* ========================================================= */}
+          {activeTab === "overview" && (
+            <div>
+              {/* Metric KPI Cards */}
+              <div className="admin-kpi-grid">
+                <div className="admin-kpi-card">
+                  <div className="admin-kpi-title">
+                    <span>Indexed Journals</span>
+                    <i className="fa-solid fa-book-bookmark" style={{ color: "#10b981" }}></i>
+                  </div>
+                  <div className="admin-kpi-value">
+                    {stats?.indexedJournals || 0}
+                    <span style={{ fontSize: "0.85rem", color: "#64748b", fontWeight: 500, marginLeft: "6px" }}>/ {stats?.totalJournals || 0}</span>
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", display: "flex", justifyContent: "space-between" }}>
+                    <span>Paid Certificates</span>
+                    <strong style={{ color: "#10b981" }}>{stats?.paidCertificates || 0}</strong>
+                  </div>
+                </div>
+
+                <div className="admin-kpi-card">
+                  <div className="admin-kpi-title">
+                    <span>Pending Submissions</span>
+                    <i className="fa-solid fa-clock" style={{ color: "#f59e0b" }}></i>
+                  </div>
+                  <div className="admin-kpi-value" style={{ color: "#fbbf24" }}>
+                    {stats?.pendingSubmissions || 0}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", display: "flex", justifyContent: "space-between" }}>
+                    <span>Total Submissions</span>
+                    <span>{stats?.totalSubmissions || 0}</span>
+                  </div>
+                </div>
+
+                <div className="admin-kpi-card">
+                  <div className="admin-kpi-title">
+                    <span>Pending Author Claims</span>
+                    <i className="fa-solid fa-user-check" style={{ color: "#38bdf8" }}></i>
+                  </div>
+                  <div className="admin-kpi-value" style={{ color: "#38bdf8" }}>
+                    {stats?.pendingClaims || 0}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", display: "flex", justifyContent: "space-between" }}>
+                    <span>Total Claim Records</span>
+                    <span>{stats?.totalClaims || 0}</span>
+                  </div>
+                </div>
+
+                <div className="admin-kpi-card">
+                  <div className="admin-kpi-title">
+                    <span>Scholarly Community</span>
+                    <i className="fa-solid fa-users" style={{ color: "#a855f7" }}></i>
+                  </div>
+                  <div className="admin-kpi-value">
+                    {stats?.totalUsers || 0}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", display: "flex", justifyContent: "space-between" }}>
+                    <span>Forum Topics / Posts</span>
+                    <span style={{ color: "#d8b4fe", fontFamily: "monospace" }}>{(stats?.totalForumTopics || 0)} / {(stats?.totalPosts || 0)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Banner Highlights */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.25rem", marginBottom: "1.75rem" }}>
+                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "16px", padding: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>Submissions Review Queue</h4>
+                    <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: "0 0 1rem", maxWidth: "300px" }}>
+                      {stats?.pendingSubmissions || 0} journals are awaiting editorial evaluation and quality grading.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab("submissions")}
+                      className="admin-btn admin-btn-primary admin-btn-sm"
+                    >
+                      Open Submissions Queue →
+                    </button>
+                  </div>
+                  <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(16, 185, 129, 0.15)", color: "#10b981", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem" }}>
+                    <i className="fa-solid fa-clipboard-check"></i>
+                  </div>
+                </div>
+
+                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "16px", padding: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>Community Moderation Desk</h4>
+                    <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: "0 0 1rem", maxWidth: "300px" }}>
+                      Audit forum discourse topics, scholar social updates, and public reviews across all journals.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab("moderation")}
+                      className="admin-btn admin-btn-secondary admin-btn-sm"
+                    >
+                      Open Moderation Desk →
+                    </button>
+                  </div>
+                  <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(168, 85, 247, 0.15)", color: "#a855f7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem" }}>
+                    <i className="fa-solid fa-shield-halved"></i>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Mini-Tables */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "1.25rem" }}>
+                {/* Recent Submissions */}
+                <div className="admin-table-container" style={{ padding: "1.25rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                    <h4 style={{ fontSize: "0.9rem", fontWeight: 800, color: "#ffffff", margin: 0 }}>Latest Submissions</h4>
+                    <button onClick={() => setActiveTab("submissions")} style={{ background: "transparent", border: "none", color: "#34d399", fontSize: "0.75rem", cursor: "pointer", fontWeight: 600 }}>View All</button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                    {submissions.slice(0, 5).map(sub => (
+                      <div key={sub.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0", borderBottom: "1px solid #141e33", fontSize: "0.8rem" }}>
+                        <div style={{ overflow: "hidden", textOverflow: "ellipsis", marginRight: "0.75rem" }}>
+                          <div style={{ fontWeight: 600, color: "#f1f5f9", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sub.journalName}</div>
+                          <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{sub.country} • {sub.submitter?.name}</div>
+                        </div>
+                        <span className={`admin-badge ${sub.status === "ACCEPTED" ? "admin-badge-success" : sub.status === "REJECTED" ? "admin-badge-danger" : "admin-badge-warning"}`}>
+                          {sub.status}
+                        </span>
+                      </div>
+                    ))}
+                    {submissions.length === 0 && (
+                      <div style={{ textAlign: "center", padding: "1rem", color: "#64748b", fontSize: "0.8rem" }}>No submissions found.</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Recent Author Claims */}
+                <div className="admin-table-container" style={{ padding: "1.25rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                    <h4 style={{ fontSize: "0.9rem", fontWeight: 800, color: "#ffffff", margin: 0 }}>Recent Publication Claims</h4>
+                    <button onClick={() => setActiveTab("claims")} style={{ background: "transparent", border: "none", color: "#38bdf8", fontSize: "0.75rem", cursor: "pointer", fontWeight: 600 }}>View All</button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                    {claims.slice(0, 5).map(c => (
+                      <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0", borderBottom: "1px solid #141e33", fontSize: "0.8rem" }}>
+                        <div style={{ overflow: "hidden", textOverflow: "ellipsis", marginRight: "0.75rem" }}>
+                          <div style={{ fontWeight: 600, color: "#f1f5f9", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.article?.title || "Article Claim"}</div>
+                          <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{c.user?.name} ({c.user?.institution || "Independent"})</div>
+                        </div>
+                        <span className={`admin-badge ${c.status === "VERIFIED" ? "admin-badge-success" : "admin-badge-info"}`}>
+                          {c.status}
+                        </span>
+                      </div>
+                    ))}
+                    {claims.length === 0 && (
+                      <div style={{ textAlign: "center", padding: "1rem", color: "#64748b", fontSize: "0.8rem" }}>No claims found.</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* TAB 2: SUBMISSIONS DESK                                   */}
+          {/* ========================================================= */}
+          {activeTab === "submissions" && (
+            <div>
+              <div style={{ marginBottom: "1rem" }}>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>Editorial Submissions Queue</h3>
+                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Evaluate, audit, and approve African journal indexation applications.</p>
+              </div>
+
+              {/* Filters */}
+              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem" }}>
+                <div style={{ flex: 1, minWidth: "220px" }}>
+                  <input
+                    type="text"
+                    value={subSearch}
+                    onChange={(e) => { setSubSearch(e.target.value); setSubPage(1); }}
+                    placeholder="Search journal name, submitter, ISSN..."
+                    className="admin-input"
+                  />
+                </div>
+
+                <div style={{ width: "160px" }}>
+                  <select
+                    value={subStatusFilter}
+                    onChange={(e) => { setSubStatusFilter(e.target.value); setSubPage(1); }}
+                    className="admin-select"
+                  >
+                    <option value="ALL">All Statuses</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="UNDER_REVIEW">Under Review</option>
+                    <option value="ACCEPTED">Accepted / Indexed</option>
+                    <option value="REJECTED">Rejected</option>
+                  </select>
+                </div>
+
+                <div style={{ width: "180px" }}>
+                  <select
+                    value={subCountryFilter}
+                    onChange={(e) => { setSubCountryFilter(e.target.value); setSubPage(1); }}
+                    className="admin-select"
+                  >
+                    <option value="ALL">All Countries</option>
+                    {ALL_COUNTRY_NAMES.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Submissions Table */}
+              <div className="admin-table-container">
+                <div className="admin-table-scroll">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Journal & Country</th>
+                        <th>ISSN</th>
+                        <th>Submitter</th>
+                        <th>Submitted</th>
+                        <th>Status</th>
+                        <th style={{ textAlign: "right" }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pagedSubmissions.map(sub => (
+                        <tr key={sub.id}>
+                          <td>
+                            <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{sub.journalName}</div>
+                            <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{sub.country} • {sub.publisherName}</div>
+                          </td>
+                          <td style={{ fontFamily: "monospace" }}>
+                            {sub.issn || sub.eissn || "—"}
+                          </td>
+                          <td>
+                            <div style={{ color: "#f1f5f9" }}>{sub.submitter?.name}</div>
+                            <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{sub.submitter?.email}</div>
+                          </td>
+                          <td style={{ color: "#94a3b8" }}>
+                            {new Date(sub.createdAt).toLocaleDateString()}
+                          </td>
+                          <td>
+                            <span className={`admin-badge ${sub.status === "ACCEPTED" ? "admin-badge-success" : sub.status === "REJECTED" ? "admin-badge-danger" : "admin-badge-warning"}`}>
+                              {sub.status}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            <button
+                              onClick={() => {
+                                setSelectedSubmission(sub);
+                                setSubReviewNotes(sub.evaluationLog || "");
+                              }}
+                              className="admin-btn admin-btn-primary admin-btn-sm"
+                            >
+                              <i className="fa-solid fa-magnifying-glass"></i> Review & Audit
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {pagedSubmissions.length === 0 && (
+                        <tr>
+                          <td colSpan={6} style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>
+                            No submissions match the current filter criteria.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {filteredSubmissions.length > subPageSize && (
+                  <div style={{ padding: "0.85rem 1rem", borderTop: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#94a3b8" }}>
+                    <div>
+                      Showing {(subPage - 1) * subPageSize + 1} to {Math.min(subPage * subPageSize, filteredSubmissions.length)} of {filteredSubmissions.length}
+                    </div>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <button
+                        disabled={subPage === 1}
+                        onClick={() => setSubPage(p => p - 1)}
+                        className="admin-btn admin-btn-secondary admin-btn-sm"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        disabled={subPage * subPageSize >= filteredSubmissions.length}
+                        onClick={() => setSubPage(p => p + 1)}
+                        className="admin-btn admin-btn-secondary admin-btn-sm"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* TAB 3: CLAIMS AUDIT DESK                                  */}
+          {/* ========================================================= */}
+          {activeTab === "claims" && (
+            <div>
+              <div style={{ marginBottom: "1rem" }}>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>Researcher Authorship Claims</h3>
+                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Verify scholars claiming author credentials on indexed articles.</p>
+              </div>
+
+              {/* Filters */}
+              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem" }}>
+                <div style={{ flex: 1, minWidth: "220px" }}>
+                  <input
+                    type="text"
+                    value={claimSearch}
+                    onChange={(e) => { setClaimSearch(e.target.value); setClaimPage(1); }}
+                    placeholder="Search researcher name, article title, DOI..."
+                    className="admin-input"
+                  />
+                </div>
+
+                <div style={{ width: "180px" }}>
+                  <select
+                    value={claimStatusFilter}
+                    onChange={(e) => { setClaimStatusFilter(e.target.value); setClaimPage(1); }}
+                    className="admin-select"
+                  >
+                    <option value="ALL">All Statuses</option>
+                    <option value="VERIFIED">Verified</option>
+                    <option value="PENDING_AUDIT">Pending Audit</option>
+                    <option value="REJECTED">Rejected</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Claims Table */}
+              <div className="admin-table-container">
+                <div className="admin-table-scroll">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Researcher</th>
+                        <th>Claimed Article</th>
+                        <th>Journal & DOI</th>
+                        <th>Claim Date</th>
+                        <th>Status</th>
+                        <th style={{ textAlign: "right" }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pagedClaims.map(c => (
+                        <tr key={c.id}>
+                          <td>
+                            <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{c.user?.name}</div>
+                            <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{c.user?.institution || "Independent"}</div>
+                            {c.user?.orcid && <div style={{ fontSize: "0.7rem", fontFamily: "monospace", color: "#10b981" }}>ORCID: {c.user.orcid}</div>}
+                          </td>
+                          <td style={{ maxWidth: "260px" }}>
+                            <div style={{ color: "#f1f5f9", fontWeight: 600 }}>{c.article?.title}</div>
+                          </td>
+                          <td>
+                            <div style={{ color: "#cbd5e1" }}>{c.article?.journal?.name}</div>
+                            {c.article?.doi && (
+                              <div style={{ fontSize: "0.7rem", fontFamily: "monospace", color: "#64748b" }}>DOI: {c.article.doi}</div>
+                            )}
+                          </td>
+                          <td style={{ color: "#94a3b8" }}>
+                            {new Date(c.claimedAt).toLocaleDateString()}
+                          </td>
+                          <td>
+                            <span className={`admin-badge ${c.status === "VERIFIED" ? "admin-badge-success" : c.status === "REJECTED" ? "admin-badge-danger" : "admin-badge-info"}`}>
+                              {c.status}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                            {c.status !== "VERIFIED" && (
+                              <button
+                                disabled={actionLoadingId === c.id}
+                                onClick={() => handleUpdateClaim(c.id, "VERIFIED")}
+                                className="admin-btn admin-btn-primary admin-btn-sm"
+                                style={{ marginRight: "4px" }}
+                              >
+                                Verify
+                              </button>
+                            )}
+                            {c.status !== "REJECTED" && (
+                              <button
+                                disabled={actionLoadingId === c.id}
+                                onClick={() => handleUpdateClaim(c.id, "REJECTED")}
+                                className="admin-btn admin-btn-danger admin-btn-sm"
+                              >
+                                Reject
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                      {pagedClaims.length === 0 && (
+                        <tr>
+                          <td colSpan={6} style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>
+                            No publication claims found.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* TAB 4: JOURNALS DIRECTORY                                 */}
+          {/* ========================================================= */}
+          {activeTab === "journals" && (
+            <div>
+              <div style={{ marginBottom: "1rem" }}>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>Journals Catalog Directory</h3>
+                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Configure indexation status, quality grades, and subscription tiers.</p>
+              </div>
+
+              {/* Filters */}
+              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem" }}>
+                <div style={{ flex: 1, minWidth: "220px" }}>
+                  <input
+                    type="text"
+                    value={journalSearch}
+                    onChange={(e) => { setJournalSearch(e.target.value); setJournalPage(1); }}
+                    placeholder="Search journal name, publisher, ISSN..."
+                    className="admin-input"
+                  />
+                </div>
+
+                <div style={{ width: "150px" }}>
+                  <select
+                    value={journalIndexedFilter}
+                    onChange={(e) => { setJournalIndexedFilter(e.target.value); setJournalPage(1); }}
+                    className="admin-select"
+                  >
+                    <option value="ALL">All Index Status</option>
+                    <option value="INDEXED">Indexed Only</option>
+                    <option value="UNINDEXED">Unindexed Only</option>
+                  </select>
+                </div>
+
+                <div style={{ width: "150px" }}>
+                  <select
+                    value={journalPaidFilter}
+                    onChange={(e) => { setJournalPaidFilter(e.target.value); setJournalPage(1); }}
+                    className="admin-select"
+                  >
+                    <option value="ALL">All Certificate</option>
+                    <option value="PAID">Certificate Paid</option>
+                    <option value="UNPAID">Certificate Unpaid</option>
+                  </select>
+                </div>
+
+                <div style={{ width: "160px" }}>
+                  <select
+                    value={journalCountryFilter}
+                    onChange={(e) => { setJournalCountryFilter(e.target.value); setJournalPage(1); }}
+                    className="admin-select"
+                  >
+                    <option value="ALL">All Countries</option>
+                    {ALL_COUNTRY_NAMES.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Table */}
+              <div className="admin-table-container">
+                <div className="admin-table-scroll">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Journal Name & Country</th>
+                        <th>ISSN</th>
+                        <th>Grade</th>
+                        <th>Tier</th>
+                        <th>Indexed</th>
+                        <th>Certificate</th>
+                        <th style={{ textAlign: "right" }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pagedJournals.map(j => (
+                        <tr key={j.id}>
+                          <td>
+                            <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{j.name}</div>
+                            <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{j.country} • {j.publisherName}</div>
+                          </td>
+                          <td style={{ fontFamily: "monospace" }}>
+                            {j.issn || j.eissn || "—"}
+                          </td>
+                          <td>
+                            <select
+                              value={j.qualityGrade || "A"}
+                              disabled={actionLoadingId === j.id}
+                              onChange={(e) => handleUpdateJournal(j.id, { qualityGrade: e.target.value })}
+                              className="admin-select"
+                              style={{ padding: "0.25rem 0.5rem", fontSize: "0.78rem", width: "auto" }}
+                            >
+                              <option value="A+">A+</option>
+                              <option value="A">A</option>
+                              <option value="B">B</option>
+                              <option value="C">C</option>
+                            </select>
+                          </td>
+                          <td>
+                            <select
+                              value={j.activeTier || "FREE"}
+                              disabled={actionLoadingId === j.id}
+                              onChange={(e) => handleUpdateJournal(j.id, { activeTier: e.target.value })}
+                              className="admin-select"
+                              style={{ padding: "0.25rem 0.5rem", fontSize: "0.78rem", width: "auto" }}
+                            >
+                              <option value="FREE">FREE</option>
+                              <option value="BASIC">BASIC</option>
+                              <option value="PREMIUM">PREMIUM</option>
+                            </select>
+                          </td>
+                          <td>
+                            <button
+                              disabled={actionLoadingId === j.id}
+                              onClick={() => handleUpdateJournal(j.id, { isIndexed: !j.isIndexed })}
+                              className={`admin-badge ${j.isIndexed ? "admin-badge-success" : "admin-badge-neutral"}`}
+                              style={{ cursor: "pointer", border: "none" }}
+                            >
+                              {j.isIndexed ? "Indexed ✓" : "Unindexed"}
+                            </button>
+                          </td>
+                          <td>
+                            <button
+                              disabled={actionLoadingId === j.id}
+                              onClick={() => handleUpdateJournal(j.id, { certificatePaid: !j.certificatePaid })}
+                              className={`admin-badge ${j.certificatePaid ? "admin-badge-success" : "admin-badge-neutral"}`}
+                              style={{ cursor: "pointer", border: "none" }}
+                            >
+                              {j.certificatePaid ? "Paid ✓" : "Unpaid"}
+                            </button>
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            <Link
+                              href={`/journal/${j.id}`}
+                              target="_blank"
+                              className="admin-btn admin-btn-secondary admin-btn-sm"
+                            >
+                              <i className="fa-solid fa-arrow-up-right-from-square"></i> View
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {filteredJournals.length > journalPageSize && (
+                  <div style={{ padding: "0.85rem 1rem", borderTop: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#94a3b8" }}>
+                    <div>
+                      Showing {(journalPage - 1) * journalPageSize + 1} to {Math.min(journalPage * journalPageSize, filteredJournals.length)} of {filteredJournals.length}
+                    </div>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <button
+                        disabled={journalPage === 1}
+                        onClick={() => setJournalPage(p => p - 1)}
+                        className="admin-btn admin-btn-secondary admin-btn-sm"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        disabled={journalPage * journalPageSize >= filteredJournals.length}
+                        onClick={() => setJournalPage(p => p + 1)}
+                        className="admin-btn admin-btn-secondary admin-btn-sm"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* TAB 5: MODERATION DESK                                    */}
+          {/* ========================================================= */}
+          {activeTab === "moderation" && (
+            <div>
+              <div style={{ marginBottom: "1rem" }}>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>Community Moderation Desk</h3>
+                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Review and moderate discourse topics, social feed publications, and user reviews.</p>
+              </div>
+
+              {/* Sub-tab selection */}
+              <div style={{ display: "flex", gap: "1rem", borderBottom: "1px solid #1e293b", marginBottom: "1rem" }}>
+                <button
+                  onClick={() => setModerationSubTab("forum")}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    borderBottom: moderationSubTab === "forum" ? "2px solid #10b981" : "2px solid transparent",
+                    color: moderationSubTab === "forum" ? "#10b981" : "#94a3b8",
+                    padding: "0.6rem 0.5rem",
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    cursor: "pointer"
+                  }}
+                >
+                  Forum Topics ({forumTopics.length})
+                </button>
+                <button
+                  onClick={() => setModerationSubTab("posts")}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    borderBottom: moderationSubTab === "posts" ? "2px solid #10b981" : "2px solid transparent",
+                    color: moderationSubTab === "posts" ? "#10b981" : "#94a3b8",
+                    padding: "0.6rem 0.5rem",
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    cursor: "pointer"
+                  }}
+                >
+                  Scholar Feed Posts ({posts.length})
+                </button>
+                <button
+                  onClick={() => setModerationSubTab("comments")}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    borderBottom: moderationSubTab === "comments" ? "2px solid #10b981" : "2px solid transparent",
+                    color: moderationSubTab === "comments" ? "#10b981" : "#94a3b8",
+                    padding: "0.6rem 0.5rem",
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    cursor: "pointer"
+                  }}
+                >
+                  Journal Comments ({comments.length})
+                </button>
+              </div>
+
+              {/* Moderation: Forum Topics */}
+              {moderationSubTab === "forum" && (
+                <div className="admin-table-container">
+                  <div className="admin-table-scroll">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Topic Title & Category</th>
+                          <th>Author</th>
+                          <th>Replies</th>
+                          <th>Status</th>
+                          <th>Created</th>
+                          <th style={{ textAlign: "right" }}>Moderation Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {forumTopics.map(topic => (
+                          <tr key={topic.id}>
+                            <td style={{ maxWidth: "280px" }}>
+                              <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{topic.title}</div>
+                              <div style={{ fontSize: "0.72rem", color: "#10b981" }}>Category: {topic.category?.name}</div>
+                            </td>
+                            <td>
+                              <div style={{ color: "#f1f5f9" }}>{topic.author?.name}</div>
+                              <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{topic.author?.email}</div>
+                            </td>
+                            <td style={{ fontFamily: "monospace" }}>
+                              {topic._count?.replies || 0}
+                            </td>
+                            <td>
+                              {topic.isPinned && <span className="admin-badge admin-badge-warning" style={{ marginRight: "4px" }}>Pinned</span>}
+                              {topic.isLocked && <span className="admin-badge admin-badge-danger" style={{ marginRight: "4px" }}>Locked</span>}
+                              {!topic.isPinned && !topic.isLocked && <span style={{ color: "#64748b", fontSize: "0.75rem" }}>Active</span>}
+                            </td>
+                            <td style={{ color: "#94a3b8" }}>
+                              {new Date(topic.createdAt).toLocaleDateString()}
+                            </td>
+                            <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                              <button
+                                disabled={actionLoadingId === topic.id}
+                                onClick={() => handleModerateForumTopic(topic.id, topic.isPinned ? "unpin" : "pin")}
+                                className="admin-btn admin-btn-secondary admin-btn-sm"
+                                style={{ marginRight: "4px" }}
+                              >
+                                {topic.isPinned ? "Unpin" : "Pin"}
+                              </button>
+                              <button
+                                disabled={actionLoadingId === topic.id}
+                                onClick={() => handleModerateForumTopic(topic.id, topic.isLocked ? "unlock" : "lock")}
+                                className="admin-btn admin-btn-secondary admin-btn-sm"
+                                style={{ marginRight: "4px" }}
+                              >
+                                {topic.isLocked ? "Unlock" : "Lock"}
+                              </button>
+                              <button
+                                disabled={actionLoadingId === topic.id}
+                                onClick={() => {
+                                  setConfirmDialog({
+                                    isOpen: true,
+                                    title: "Delete Forum Topic",
+                                    description: `Are you sure you want to permanently delete "${topic.title}" and all its replies?`,
+                                    confirmLabel: "Delete Topic",
+                                    onConfirm: () => {
+                                      setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+                                      handleModerateForumTopic(topic.id, "delete");
+                                    }
+                                  });
+                                }}
+                                className="admin-btn admin-btn-danger admin-btn-sm"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                        {forumTopics.length === 0 && (
+                          <tr>
+                            <td colSpan={6} style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>No forum topics found.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Moderation: Scholar Posts */}
+              {moderationSubTab === "posts" && (
+                <div className="admin-table-container">
+                  <div className="admin-table-scroll">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Author</th>
+                          <th>Post Type & Content</th>
+                          <th>Attachment</th>
+                          <th>Stats</th>
+                          <th>Date</th>
+                          <th style={{ textAlign: "right" }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {posts.map(post => (
+                          <tr key={post.id}>
+                            <td>
+                              <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{post.author?.name}</div>
+                              <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{post.author?.email}</div>
+                            </td>
+                            <td style={{ maxWidth: "340px" }}>
+                              <span className="admin-badge admin-badge-info" style={{ marginRight: "6px" }}>{post.postType}</span>
+                              {post.title && <strong style={{ color: "#f1f5f9" }}>{post.title} </strong>}
+                              <p style={{ margin: "4px 0 0", color: "#cbd5e1", fontSize: "0.8rem", lineHeight: 1.4 }}>{post.content}</p>
+                            </td>
+                            <td>
+                              {post.attachmentUrl ? (
+                                <a href={post.attachmentUrl} target="_blank" rel="noreferrer" style={{ color: "#10b981", fontSize: "0.75rem", textDecoration: "none" }}>
+                                  <i className="fa-solid fa-file-pdf"></i> PDF Document
+                                </a>
+                              ) : (
+                                <span style={{ color: "#64748b", fontSize: "0.75rem" }}>None</span>
+                              )}
+                            </td>
+                            <td style={{ fontFamily: "monospace", color: "#94a3b8" }}>
+                              {post._count?.likes || 0} likes • {post._count?.comments || 0} comments
+                            </td>
+                            <td style={{ color: "#94a3b8" }}>
+                              {new Date(post.createdAt).toLocaleDateString()}
+                            </td>
+                            <td style={{ textAlign: "right" }}>
+                              <button
+                                disabled={actionLoadingId === post.id}
+                                onClick={() => {
+                                  setConfirmDialog({
+                                    isOpen: true,
+                                    title: "Delete Scholar Post",
+                                    description: "Permanently delete this social post and all attached user comments?",
+                                    confirmLabel: "Delete Post",
+                                    onConfirm: () => {
+                                      setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+                                      handleDeletePost(post.id);
+                                    }
+                                  });
+                                }}
+                                className="admin-btn admin-btn-danger admin-btn-sm"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                        {posts.length === 0 && (
+                          <tr>
+                            <td colSpan={6} style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>No social posts found.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Moderation: Journal Comments */}
+              {moderationSubTab === "comments" && (
+                <div className="admin-table-container">
+                  <div className="admin-table-scroll">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Author</th>
+                          <th>Journal</th>
+                          <th>Comment</th>
+                          <th>Date</th>
+                          <th style={{ textAlign: "right" }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {comments.map(c => (
+                          <tr key={c.id}>
+                            <td>
+                              <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{c.author?.name}</div>
+                              <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{c.author?.email}</div>
+                            </td>
+                            <td style={{ color: "#10b981", fontWeight: 600 }}>
+                              {c.journal?.name}
+                            </td>
+                            <td style={{ maxWidth: "340px", color: "#cbd5e1" }}>
+                              {c.content}
+                            </td>
+                            <td style={{ color: "#94a3b8" }}>
+                              {new Date(c.createdAt).toLocaleDateString()}
+                            </td>
+                            <td style={{ textAlign: "right" }}>
+                              <button
+                                disabled={actionLoadingId === c.id}
+                                onClick={() => handleDeleteComment(c.id)}
+                                className="admin-btn admin-btn-danger admin-btn-sm"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                        {comments.length === 0 && (
+                          <tr>
+                            <td colSpan={5} style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>No journal comments found.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* TAB 6: USER DIRECTORY                                     */}
+          {/* ========================================================= */}
+          {activeTab === "users" && (
+            <div>
+              <div style={{ marginBottom: "1rem" }}>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>User Directory & Permissions</h3>
+                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Inspect registered researchers and publishers; manage platform roles.</p>
+              </div>
+
+              {/* Filters */}
+              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem" }}>
+                <div style={{ flex: 1, minWidth: "220px" }}>
+                  <input
+                    type="text"
+                    value={userSearch}
+                    onChange={(e) => { setUserSearch(e.target.value); setUserPage(1); }}
+                    placeholder="Search name, email, institution..."
+                    className="admin-input"
+                  />
+                </div>
+
+                <div style={{ width: "160px" }}>
+                  <select
+                    value={userRoleFilter}
+                    onChange={(e) => { setUserRoleFilter(e.target.value); setUserPage(1); }}
+                    className="admin-select"
+                  >
+                    <option value="ALL">All Roles</option>
+                    <option value="RESEARCHER">Researchers</option>
+                    <option value="PUBLISHER">Publishers</option>
+                    <option value="ADMIN">Administrators</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Table */}
+              <div className="admin-table-container">
+                <div className="admin-table-scroll">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>User Details</th>
+                        <th>Institution</th>
+                        <th>Bibliometrics</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th style={{ textAlign: "right" }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pagedUsers.map(u => (
+                        <tr key={u.id}>
+                          <td>
+                            <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{u.name}</div>
+                            <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{u.email}</div>
+                            {u.orcid && <div style={{ fontSize: "0.7rem", fontFamily: "monospace", color: "#10b981" }}>ORCID: {u.orcid}</div>}
+                          </td>
+                          <td style={{ color: "#cbd5e1" }}>
+                            {u.institution || "—"}
+                          </td>
+                          <td style={{ fontFamily: "monospace", color: "#94a3b8" }}>
+                            {u.totalCitations || 0} cites • h: {u.hIndex || 0}
+                          </td>
+                          <td>
+                            <span className={`admin-badge ${u.role === "ADMIN" ? "admin-badge-warning" : u.role === "PUBLISHER" ? "admin-badge-info" : "admin-badge-neutral"}`}>
+                              {u.role}
+                            </span>
+                          </td>
+                          <td style={{ color: "#94a3b8" }}>
+                            {new Date(u.createdAt).toLocaleDateString()}
+                          </td>
+                          <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                            <select
+                              value={u.role}
+                              disabled={actionLoadingId === u.id || u.email === "kenprokenya@gmail.com"}
+                              onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
+                              className="admin-select"
+                              style={{ padding: "0.25rem 0.5rem", fontSize: "0.78rem", width: "auto", marginRight: "6px" }}
+                            >
+                              <option value="RESEARCHER">Researcher</option>
+                              <option value="PUBLISHER">Publisher</option>
+                              <option value="ADMIN">Admin</option>
+                            </select>
+
+                            {u.email !== "kenprokenya@gmail.com" && (
+                              <button
+                                disabled={actionLoadingId === u.id}
+                                onClick={() => handleDeleteUser(u.id, u.email)}
+                                className="admin-btn admin-btn-danger admin-btn-sm"
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {filteredUsers.length > userPageSize && (
+                  <div style={{ padding: "0.85rem 1rem", borderTop: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#94a3b8" }}>
+                    <div>
+                      Showing {(userPage - 1) * userPageSize + 1} to {Math.min(userPage * userPageSize, filteredUsers.length)} of {filteredUsers.length}
+                    </div>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <button
+                        disabled={userPage === 1}
+                        onClick={() => setUserPage(p => p - 1)}
+                        className="admin-btn admin-btn-secondary admin-btn-sm"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        disabled={userPage * userPageSize >= filteredUsers.length}
+                        onClick={() => setUserPage(p => p + 1)}
+                        className="admin-btn admin-btn-secondary admin-btn-sm"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* TAB 7: HARVESTER & PLATFORM TOOLS                         */}
+          {/* ========================================================= */}
+          {activeTab === "harvester" && (
+            <div>
+              <div style={{ marginBottom: "1rem" }}>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>OAI-PMH Harvesting & Impact Factor Calibration</h3>
+                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Automated repository ingester and citation impact recalculation workstation.</p>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "1.5rem" }}>
+                {/* OAI Harvester */}
+                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "16px", padding: "1.5rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem" }}>
+                    <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(16, 185, 129, 0.15)", color: "#10b981", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem" }}>
+                      <i className="fa-solid fa-cloud-arrow-down"></i>
+                    </div>
+                    <div>
+                      <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#ffffff", margin: 0 }}>OAI-PMH Ingestion</h4>
+                      <p style={{ fontSize: "0.75rem", color: "#94a3b8", margin: 0 }}>Harvest metadata from OJS / DSpace endpoints.</p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleRunHarvest} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#cbd5e1", marginBottom: "4px" }}>Target Journal</label>
+                      <select
+                        value={harvestForm.journalId}
+                        onChange={(e) => setHarvestForm(prev => ({ ...prev, journalId: e.target.value }))}
+                        className="admin-select"
+                      >
+                        {journals.map(j => (
+                          <option key={j.id} value={j.id}>{j.name} ({j.country})</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#cbd5e1", marginBottom: "4px" }}>OAI-PMH Base URL</label>
+                      <input
+                        type="url"
+                        required
+                        value={harvestForm.oaiUrl}
+                        onChange={(e) => setHarvestForm(prev => ({ ...prev, oaiUrl: e.target.value }))}
+                        placeholder="https://example.org/oai"
+                        className="admin-input"
+                      />
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                      <div>
+                        <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#cbd5e1", marginBottom: "4px" }}>Limit</label>
+                        <input
+                          type="number"
+                          min="5"
+                          max="500"
+                          value={harvestForm.limit}
+                          onChange={(e) => setHarvestForm(prev => ({ ...prev, limit: parseInt(e.target.value, 10) || 50 }))}
+                          className="admin-input"
+                        />
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", paddingTop: "1.25rem" }}>
+                        <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.75rem", color: "#cbd5e1", cursor: "pointer" }}>
+                          <input
+                            type="checkbox"
+                            checked={harvestForm.autoSave}
+                            onChange={(e) => setHarvestForm(prev => ({ ...prev, autoSave: e.target.checked }))}
+                          />
+                          Auto-save Articles
+                        </label>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={harvestLoading}
+                      className="admin-btn admin-btn-primary"
+                      style={{ marginTop: "0.5rem" }}
+                    >
+                      {harvestLoading ? (
+                        <>
+                          <i className="fa-solid fa-circle-notch fa-spin"></i> Harvesting...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fa-solid fa-play"></i> Run Harvest Operation
+                        </>
+                      )}
+                    </button>
+                  </form>
+
+                  {harvestResult && (
+                    <div style={{ marginTop: "1rem", padding: "0.75rem", background: "#090e1a", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: "10px", fontSize: "0.8rem" }}>
+                      <div style={{ fontWeight: 700, color: "#34d399" }}>Harvest Completed</div>
+                      <div style={{ color: "#cbd5e1" }}>Discovered: {harvestResult.recordsCount} records</div>
+                      <div style={{ color: "#cbd5e1" }}>Saved: {harvestResult.savedCount} new articles</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Impact Factor Workbench */}
+                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "16px", padding: "1.5rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem" }}>
+                    <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(168, 85, 247, 0.15)", color: "#a855f7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem" }}>
+                      <i className="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div>
+                      <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#ffffff", margin: 0 }}>AJCI Impact Factor Engine</h4>
+                      <p style={{ fontSize: "0.75rem", color: "#94a3b8", margin: 0 }}>Calculate citation velocity and quartile ranks.</p>
+                    </div>
+                  </div>
+
+                  <p style={{ fontSize: "0.8rem", color: "#cbd5e1", lineHeight: 1.5, marginBottom: "1rem" }}>
+                    Executing this recalculation queries all verified articles published across indexed African journals, cross-references citation records, computes discipline percentiles, and updates the official ranking quartiles ($Q1$, $Q2$, $Q3$, $Q4$).
+                  </p>
+
+                  <div style={{ background: "#090e1a", border: "1px solid #1e293b", borderRadius: "10px", padding: "0.85rem", fontSize: "0.78rem", display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1.25rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
+                      <span>Formula:</span>
+                      <strong style={{ color: "#f1f5f9" }}>2-Year Citation Ratio</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
+                      <span>Regional Multiplier:</span>
+                      <strong style={{ color: "#10b981" }}>1.15x Pan-African Weight</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
+                      <span>Total Catalog Journals:</span>
+                      <strong style={{ color: "#f1f5f9" }}>{stats?.totalJournals || 0}</strong>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={metricsLoading}
+                    onClick={handleRecalculateMetrics}
+                    className="admin-btn"
+                    style={{ width: "100%", background: "#a855f7", color: "#ffffff" }}
+                  >
+                    {metricsLoading ? (
+                      <>
+                        <i className="fa-solid fa-circle-notch fa-spin"></i> Calculating...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fa-solid fa-calculator"></i> Recalculate Platform Impact Factors
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* TAB 8: PAYMENTS & FINANCIAL LEDGER                        */}
+          {/* ========================================================= */}
+          {activeTab === "payments" && (
+            <div>
+              <div style={{ marginBottom: "1rem" }}>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>IntaSend Billing & Payment Ledger</h3>
+                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Audit indexing certificate receipts and publisher subscription transactions.</p>
+              </div>
+
+              {/* Table */}
+              <div className="admin-table-container">
+                <div className="admin-table-scroll">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Tracking ID</th>
+                        <th>Journal</th>
+                        <th>Customer Email</th>
+                        <th>Tier</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th style={{ textAlign: "right" }}>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payments.map(p => (
+                        <tr key={p.id}>
+                          <td style={{ fontFamily: "monospace", color: "#10b981" }}>
+                            {p.trackingId}
+                          </td>
+                          <td style={{ color: "#f1f5f9", fontWeight: 600 }}>
+                            {p.journal?.name}
+                          </td>
+                          <td style={{ color: "#94a3b8" }}>
+                            {p.customerEmail || p.user?.email || "—"}
+                          </td>
+                          <td>
+                            <span className="admin-badge admin-badge-neutral">{p.tier}</span>
+                          </td>
+                          <td style={{ fontFamily: "monospace", fontWeight: 700, color: "#f1f5f9" }}>
+                            {p.currency} {Number(p.amount).toLocaleString()}
+                          </td>
+                          <td>
+                            <span className="admin-badge admin-badge-success">{p.status}</span>
+                          </td>
+                          <td style={{ textAlign: "right", color: "#94a3b8" }}>
+                            {new Date(p.createdAt).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                      {payments.length === 0 && (
+                        <tr>
+                          <td colSpan={7} style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>
+                            No payment transactions recorded in ledger.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
