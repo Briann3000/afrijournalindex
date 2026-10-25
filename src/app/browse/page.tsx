@@ -21,6 +21,8 @@ interface Journal {
   score?: number;
   qualityGrade?: string;
   isIndexed?: boolean;
+  isScopusIndexed?: boolean;
+  isWosIndexed?: boolean;
   link: string;
 }
 
@@ -98,6 +100,7 @@ function BrowseContent() {
   const [countryFilter, setCountryFilter] = useState<string>(urlCountry);
   const [disciplineFilter, setDisciplineFilter] = useState<string>("");
   const [quartileFilter, setQuartileFilter] = useState<string>("");
+  const [indexBodyFilter, setIndexBodyFilter] = useState<string>("");
   const [sortField, setSortField] = useState<SortField>("score");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [pageSize, setPageSize] = useState<number>(15);
@@ -164,6 +167,8 @@ function BrowseContent() {
               score: rankInfo?.score !== undefined ? rankInfo.score : (j.qualityGrade === "A+" ? 3.10 : j.qualityGrade === "A" ? 2.15 : 1.10),
               qualityGrade: j.qualityGrade || "A",
               isIndexed: j.isIndexed ?? true,
+              isScopusIndexed: Boolean(j.isScopusIndexed),
+              isWosIndexed: Boolean(j.isWosIndexed),
               link: j.websiteUrl || ""
             };
           });
@@ -230,8 +235,12 @@ function BrowseContent() {
       const matchesCountry = countryFilter === "" || j.country.toLowerCase() === countryFilter.toLowerCase();
       const matchesDiscipline = disciplineFilter === "" || j.disciplines.includes(disciplineFilter);
       const matchesQuartile = quartileFilter === "" || j.quartile === quartileFilter;
+      const matchesIndexBody = indexBodyFilter === "" ||
+        (indexBodyFilter === "scopus" && j.isScopusIndexed) ||
+        (indexBodyFilter === "wos" && j.isWosIndexed) ||
+        (indexBodyFilter === "both" && j.isScopusIndexed && j.isWosIndexed);
 
-      return matchesSearch && matchesCountry && matchesDiscipline && matchesQuartile;
+      return matchesSearch && matchesCountry && matchesDiscipline && matchesQuartile && matchesIndexBody;
     });
 
     filtered.sort((a, b) => {
@@ -253,7 +262,7 @@ function BrowseContent() {
     });
 
     return filtered;
-  }, [journals, search, countryFilter, disciplineFilter, quartileFilter, sortField, sortOrder]);
+  }, [journals, search, countryFilter, disciplineFilter, quartileFilter, indexBodyFilter, sortField, sortOrder]);
 
   const totalPages = Math.ceil(processedJournals.length / pageSize) || 1;
   const paginatedJournals = useMemo(() => {
@@ -263,7 +272,7 @@ function BrowseContent() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, countryFilter, disciplineFilter, quartileFilter, pageSize]);
+  }, [search, countryFilter, disciplineFilter, quartileFilter, indexBodyFilter, pageSize]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -274,7 +283,7 @@ function BrowseContent() {
     }
   };
 
-  const hasActiveFilters = search !== "" || countryFilter !== "" || disciplineFilter !== "" || quartileFilter !== "";
+  const hasActiveFilters = search !== "" || countryFilter !== "" || disciplineFilter !== "" || quartileFilter !== "" || indexBodyFilter !== "";
 
   const handleClearFilters = () => {
     setSearch("");
@@ -282,6 +291,7 @@ function BrowseContent() {
     setCountryFilter("");
     setDisciplineFilter("");
     setQuartileFilter("");
+    setIndexBodyFilter("");
     router.replace("/browse");
   };
 
@@ -459,6 +469,21 @@ function BrowseContent() {
                   <option value="Q4">Q4 (Emerging)</option>
                 </select>
               </div>
+
+              {/* Global Indexing Filter */}
+              <div>
+                <select 
+                  value={indexBodyFilter}
+                  onChange={(e) => setIndexBodyFilter(e.target.value)}
+                  className="form-select"
+                  style={{ fontSize: "0.9rem" }}
+                >
+                  <option value="">All Indexes (AJCI + Global)</option>
+                  <option value="scopus">Scopus Indexed Only</option>
+                  <option value="wos">Web of Science (WoS) Only</option>
+                  <option value="both">Scopus &amp; WoS Dual Indexed</option>
+                </select>
+              </div>
             </div>
 
             {/* Active Filter Counter & Quick Controls */}
@@ -563,6 +588,16 @@ function BrowseContent() {
                             <span style={{ background: "var(--color-bg-card-subtle)", padding: "0.1rem 0.4rem", borderRadius: "4px", border: "1px solid var(--color-border)" }}>
                               <strong>ISSN:</strong> {journal.issn}
                             </span>
+                            {journal.isScopusIndexed && (
+                              <span style={{ background: "#fef3c7", color: "#92400e", border: "1px solid #fde68a", padding: "0.1rem 0.45rem", borderRadius: "4px", fontWeight: 700, fontSize: "0.72rem" }}>
+                                <i className="fa-solid fa-earth-americas" style={{ marginRight: "3px" }}></i> Scopus
+                              </span>
+                            )}
+                            {journal.isWosIndexed && (
+                              <span style={{ background: "#ede9fe", color: "#5b21b6", border: "1px solid #ddd6fe", padding: "0.1rem 0.45rem", borderRadius: "4px", fontWeight: 700, fontSize: "0.72rem" }}>
+                                <i className="fa-solid fa-award" style={{ marginRight: "3px" }}></i> WoS
+                              </span>
+                            )}
                             <span>•</span>
                             <span style={{ maxWidth: "260px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                               {journal.publisher}

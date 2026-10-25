@@ -54,7 +54,9 @@ export async function GET(request: Request) {
       totalForumTopics,
       totalForumReplies,
       totalPosts,
-      totalJournalComments
+      totalJournalComments,
+      scopusJournals,
+      wosJournals
     ] = await Promise.all([
       prisma.journal.count().catch(() => 0),
       prisma.journal.count({ where: { isIndexed: true } }).catch(() => 0),
@@ -70,7 +72,9 @@ export async function GET(request: Request) {
       prisma.forumTopic.count().catch(() => 0),
       prisma.forumReply.count().catch(() => 0),
       prisma.post.count().catch(() => 0),
-      prisma.comment.count().catch(() => 0)
+      prisma.comment.count().catch(() => 0),
+      prisma.journal.count({ where: { isScopusIndexed: true } }).catch(() => 0),
+      prisma.journal.count({ where: { isWosIndexed: true } }).catch(() => 0)
     ]);
 
     // 2. Submissions list
@@ -146,6 +150,8 @@ export async function GET(request: Request) {
           publisherName: true,
           isIndexed: true,
           certificatePaid: true,
+          isScopusIndexed: true,
+          isWosIndexed: true,
           qualityGrade: true,
           activeTier: true,
           publisherId: true,
@@ -272,7 +278,9 @@ export async function GET(request: Request) {
         totalForumTopics,
         totalForumReplies,
         totalPosts,
-        totalJournalComments
+        totalJournalComments,
+        scopusJournals,
+        wosJournals
       },
       submissions,
       claims,
@@ -406,7 +414,7 @@ export async function POST(request: Request) {
     // Action 3: Quick Journal Updates
     // -------------------------------------------------------------
     if (action === "updateJournal") {
-      const { journalId, isIndexed, certificatePaid, qualityGrade, activeTier, publisherId, name, country } = body;
+      const { journalId, isIndexed, certificatePaid, isScopusIndexed, isWosIndexed, qualityGrade, activeTier, publisherId, name, country } = body;
       if (!journalId) {
         return NextResponse.json({ success: false, error: "journalId is required." }, { status: 400 });
       }
@@ -418,6 +426,12 @@ export async function POST(request: Request) {
       }
       if (typeof certificatePaid === "boolean") {
         dataToUpdate.certificatePaid = certificatePaid;
+      }
+      if (typeof isScopusIndexed === "boolean") {
+        dataToUpdate.isScopusIndexed = isScopusIndexed;
+      }
+      if (typeof isWosIndexed === "boolean") {
+        dataToUpdate.isWosIndexed = isWosIndexed;
       }
       if (qualityGrade !== undefined) {
         dataToUpdate.qualityGrade = qualityGrade;

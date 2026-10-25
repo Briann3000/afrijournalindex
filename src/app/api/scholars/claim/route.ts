@@ -126,15 +126,24 @@ export async function POST(request: Request) {
 
       // Send verification email
       const targetEmail = exactMatches ? scholar.email : inputEmail;
+      const origin = request.headers.get("origin") || process.env.NEXTAUTH_URL || "https://afrijournalindexing.org";
+      const directClaimUrl = `${origin}/researcher?id=${scholar.id}&claim=true&otp=${otp}`;
+
       const mailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
           <h2 style="color: #0f172a; margin-top: 0;">Claim Your AfriJournal Index Profile</h2>
           <p>Hello <strong>${scholar.name}</strong>,</p>
           <p>You requested to claim and activate your pre-indexed researcher profile for <strong>${scholar.institution || "your institution"}</strong> on the AfriJournal Index platform.</p>
           <div style="background: #f1f5f9; padding: 18px; border-radius: 8px; text-align: center; margin: 24px 0;">
+            <div style="font-size: 13px; color: #64748b; margin-bottom: 6px; text-transform: uppercase; font-weight: bold;">Your One-Time Passcode</div>
             <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #0284c7;">${otp}</span>
           </div>
-          <p style="color: #64748b; font-size: 14px;">This one-time verification code expires in 15 minutes. Enter it on the verification page to choose your permanent password and access your dashboard.</p>
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${directClaimUrl}" style="background: #0284c7; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; display: inline-block;">
+              Activate Profile Now →
+            </a>
+          </div>
+          <p style="color: #64748b; font-size: 14px; line-height: 1.5;">Click the activation button above or enter the code on the profile page. This one-time code expires in 15 minutes.</p>
           <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
           <p style="font-size: 12px; color: #94a3b8;">If you did not initiate this request, no action is required.</p>
         </div>
@@ -144,7 +153,7 @@ export async function POST(request: Request) {
         to: targetEmail,
         subject: `Your AfriJournal Index Profile Claim Code: ${otp}`,
         html: mailHtml,
-        text: `Your verification code to claim your AfriJournal Index profile is: ${otp}. Valid for 15 minutes.`
+        text: `Your verification code to claim your AfriJournal Index profile is: ${otp}. You can activate directly here: ${directClaimUrl}`
       });
 
       return NextResponse.json({

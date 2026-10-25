@@ -5,7 +5,7 @@ import { JournalDetail } from "../../../lib/journal-detail";
 import Header from "../../Header";
 import Footer from "../../Footer";
 import { useLang } from "../../LangContext";
-import { generateInstitutionalDossier } from "../../../lib/dossier-pdf";
+// Dynamic lazy-load of dossier PDF generator to prevent heavy initial module parse
 
 export default function JournalClientView({
   initialJournal,
@@ -96,7 +96,7 @@ export default function JournalClientView({
     }>;
   } | null>(null);
 
-  const handleDownloadDossier = () => {
+  const handleDownloadDossier = async () => {
     if (!journal) return;
 
     // 1. If not logged in, trigger Academic Access Disclaimer Modal
@@ -115,6 +115,7 @@ export default function JournalClientView({
 
     setDownloadingDossier(true);
     try {
+      const { generateInstitutionalDossier } = await import("../../../lib/dossier-pdf");
       generateInstitutionalDossier({
         ...journal,
         quartile: computedQuartile,
@@ -700,6 +701,18 @@ export default function JournalClientView({
                       {computedQuartile} Category Quartile
                     </span>
 
+                    {journal.isScopusIndexed && (
+                      <span className="journal-tag" style={{ backgroundColor: "#fef3c7", color: "#92400e", border: "1px solid #fde68a", fontWeight: 700 }}>
+                        <i className="fa-solid fa-earth-americas" style={{ marginRight: "0.3rem" }}></i> Scopus Indexed
+                      </span>
+                    )}
+
+                    {journal.isWosIndexed && (
+                      <span className="journal-tag" style={{ backgroundColor: "#ede9fe", color: "#5b21b6", border: "1px solid #ddd6fe", fontWeight: 700 }}>
+                        <i className="fa-solid fa-award" style={{ marginRight: "0.3rem" }}></i> Web of Science (WoS)
+                      </span>
+                    )}
+
                     {journal.primaryDiscipline && (
                       <span className="journal-tag" style={{ backgroundColor: "var(--color-bg-alt)", color: "var(--color-text-body)", border: "1px solid var(--color-border)" }}>
                         {journal.primaryDiscipline}
@@ -718,7 +731,7 @@ export default function JournalClientView({
                   {journal.isIndexed && (
                     <div style={{
                       marginTop: "0.85rem",
-                      marginBottom: "1.25rem",
+                      marginBottom: "1rem",
                       padding: "0.85rem 1.15rem",
                       borderRadius: "8px",
                       backgroundColor: "rgba(16, 185, 129, 0.08)",
@@ -729,6 +742,29 @@ export default function JournalClientView({
                     }}>
                       <i className="fa-solid fa-circle-check" style={{ marginRight: "0.5rem", color: "#10b981" }}></i>
                       <strong>AfriJournal Indexing Status:</strong> {journal.name} is an officially indexed African scholarly journal in the AfriJournal Index (AJCI) directory with verified citation and bibliometric metrics (Quality Grade: {journal.qualityGrade || "Verified"}).
+                    </div>
+                  )}
+
+                  {!journal.isScopusIndexed && !journal.isWosIndexed && (
+                    <div style={{
+                      marginBottom: "1.25rem",
+                      padding: "0.85rem 1.15rem",
+                      borderRadius: "8px",
+                      backgroundColor: "rgba(59, 130, 246, 0.06)",
+                      border: "1px solid rgba(59, 130, 246, 0.2)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "1rem",
+                      flexWrap: "wrap"
+                    }}>
+                      <div style={{ fontSize: "0.85rem", color: "var(--color-text-main)", lineHeight: 1.5, flex: 1, minWidth: "240px" }}>
+                        <i className="fa-solid fa-circle-info" style={{ color: "#3b82f6", marginRight: "0.5rem" }}></i>
+                        <strong>Global Indexation Pathway:</strong> Looking to index this journal with Scopus or Web of Science? KENPRO provides editorial compliance, peer-review audits, and application readiness support.
+                      </div>
+                      <a href="/services" className="btn btn-secondary btn-sm" style={{ whiteSpace: "nowrap", fontSize: "0.8rem", padding: "0.35rem 0.75rem" }}>
+                        Explore Services <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.7rem", marginLeft: "4px" }}></i>
+                      </a>
                     </div>
                   )}
 

@@ -12,6 +12,9 @@ export async function GET(request: Request) {
     const tag = searchParams.get("tag")?.trim();
     const authorId = searchParams.get("authorId");
     const likedBy = searchParams.get("likedBy");
+    const filter = searchParams.get("filter"); // "drafts" | "feed"
+    const draftId = searchParams.get("draftId");
+    const shareToken = searchParams.get("token");
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(50, Math.max(5, parseInt(searchParams.get("limit") || "15", 10)));
     const skip = (page - 1) * limit;
@@ -29,11 +32,63 @@ export async function GET(request: Request) {
     }
 
     const where: any = {};
+
+    // 1. Single draft view with private reviewer token or author check
+    if (draftId) {
+      where.id = draftId;
+      const targetDraft = await (prisma as any).post.findUnique({
+        where: { id: draftId },
+        include: {
+          author: {
+            select: { id: true, name: true, role: true, institution: true, totalCitations: true, hIndex: true }
+          }
+        }
+      });
+
+      if (!targetDraft) {
+        return NextResponse.json({ success: false, error: "Draft manuscript not found." }, { status: 404 });
+      }
+
+      const isPrivateDraft = targetDraft.postType === "MANUSCRIPT_DRAFT" || targetDraft.postType === "PRIVATE";
+      if (isPrivateDraft) {
+        const isAuthor = currentUserId && targetDraft.authorId === currentUserId;
+        const isValidToken = shareToken && targetDraft.attachmentUrl && targetDraft.attachmentUrl.includes(shareToken);
+        if (!isAuthor && !isValidToken) {
+          return NextResponse.json({
+            success: false,
+            error: "This manuscript draft is private. Only the author or designated reviewers with a valid review link can view it."
+          }, { status: 403 });
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        post: targetDraft,
+        isReviewerMode: Boolean(currentUserId !== targetDraft.authorId)
+      });
+    }
+
+    // 2. Author's private drafts list
+    if (filter === "drafts") {
+      if (!currentUserId) {
+        return NextResponse.json({ success: true, posts: [], total: 0, trendingTags: [] });
+      }
+      where.authorId = currentUserId;
+      where.postType = { in: ["MANUSCRIPT_DRAFT", "PRIVATE"] };
+    } else {
+      // 3. Public community feed - strictly exclude private manuscript drafts to protect IP
+      if (authorId) {
+        where.authorId = authorId;
+        if (authorId !== currentUserId) {
+          where.postType = { notIn: ["MANUSCRIPT_DRAFT", "PRIVATE"] };
+        }
+      } else {
+        where.postType = { notIn: ["MANUSCRIPT_DRAFT", "PRIVATE"] };
+      }
+    }
+
     if (tag) {
       where.tags = { contains: tag };
-    }
-    if (authorId) {
-      where.authorId = authorId;
     }
     if (likedBy) {
       where.likes = { some: { userId: likedBy } };
@@ -171,7 +226,32 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { title, content, attachmentUrl, attachmentName, attachmentType, tags, audience } = body;
+    const { action, draftId, title, content, attachmentUrl, attachmentName, attachmentType, tags, audience, isDraft } = body;
+
+    // Action: Publish existing draft manuscript to public feed
+    if (action === "publishDraft" && draftId) {
+      const existing = await (prisma as any).post.findUnique({
+        where: { id: draftId }
+      });
+
+      if (!existing || existing.authorId !== userId) {
+        return NextResponse.json({ success: false, error: "Draft not found or unauthorized." }, { status: 403 });
+      }
+
+      const published = await (prisma as any).post.update({
+        where: { id: draftId },
+        data: {
+          postType: "SCHOLARLY_POST",
+          updatedAt: new Date()
+        }
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: "Manuscript successfully published to the public AfriJournal feed!",
+        post: published
+      });
+    }
 
     if (!content || !content.trim()) {
       return NextResponse.json(
@@ -183,7 +263,14 @@ export async function POST(request: Request) {
     const cleanTitle = title ? title.trim() : null;
     const cleanContent = content.trim();
     const cleanTags = Array.isArray(tags) ? tags.join(", ") : (tags ? tags.trim() : null);
-    const postType = audience === "FOLLOWERS" ? "FOLLOWERS" : audience === "PRIVATE" ? "PRIVATE" : "SCHOLARLY_POST";
+
+    // Identify if this is a private manuscript draft
+    const isManuscriptDraft = Boolean(isDraft || audience === "PRIVATE" || body.postType === "MANUSCRIPT_DRAFT");
+    const postType = isManuscriptDraft
+      ? "MANUSCRIPT_DRAFT"
+      : audience === "FOLLOWERS"
+      ? "FOLLOWERS"
+      : "SCHOLARLY_POST";
 
     // Normalize attachmentType
     let normAttachmentType = null;

@@ -212,6 +212,32 @@ function SearchPageContent() {
               <i className="fa-solid fa-user-graduate" style={{ fontSize: "0.8rem" }}></i>
               African Scholars ({results.totalScholars})
             </button>
+
+            <a
+              href={`https://scholar.google.com/scholar?q=${encodeURIComponent(query)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                marginLeft: "auto",
+                background: "rgba(59, 130, 246, 0.08)",
+                border: "1px solid rgba(59, 130, 246, 0.25)",
+                borderRadius: "8px",
+                padding: "0.4rem 0.85rem",
+                fontWeight: 700,
+                fontSize: "0.82rem",
+                color: "#2563eb",
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                whiteSpace: "nowrap"
+              }}
+              title="Search across all global uncurated web literature on Google Scholar"
+            >
+              <i className="fa-solid fa-graduation-cap"></i>
+              <span>Google Scholar</span>
+              <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.7rem" }}></i>
+            </a>
           </div>
         )}
 
@@ -348,7 +374,7 @@ function SearchPageContent() {
                             {article.title}
                           </h3>
                         </a>
-                        {article.citationCount > 0 && (
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", justifyContent: "flex-end" }}>
                           <span style={{
                             background: "rgba(2, 132, 199, 0.08)",
                             color: "#0284c7",
@@ -358,11 +384,32 @@ function SearchPageContent() {
                             fontSize: "0.75rem",
                             fontWeight: 700,
                             whiteSpace: "nowrap"
-                          }}>
+                          }} title="Verified peer-reviewed citations cataloged in AfriJournal Index">
                             <i className="fa-solid fa-quote-right" style={{ marginRight: "4px" }}></i>
-                            {article.citationCount} citation{article.citationCount !== 1 ? "s" : ""}
+                            {article.citationCount || 0} African cites
                           </span>
-                        )}
+                          <a
+                            href={`https://scholar.google.com/scholar?q=${encodeURIComponent(article.title)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontSize: "0.74rem",
+                              color: "var(--color-text-muted)",
+                              textDecoration: "none",
+                              padding: "0.2rem 0.45rem",
+                              borderRadius: "4px",
+                              border: "1px solid var(--color-border)",
+                              background: "var(--color-bg-card-subtle)",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px"
+                            }}
+                            title="Inspect global web citations on Google Scholar"
+                          >
+                            <span>Google Scholar</span>
+                            <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.65rem" }}></i>
+                          </a>
+                        </div>
                       </div>
 
                       {/* Journal & Metadata attribution */}
@@ -583,6 +630,40 @@ function SearchPageContent() {
               </div>
             )}
 
+            {/* Google Scholar Global Search Bridge */}
+            {query && (
+              <div style={{
+                marginTop: "2.5rem",
+                background: "rgba(59, 130, 246, 0.05)",
+                border: "1px solid rgba(59, 130, 246, 0.2)",
+                borderRadius: "14px",
+                padding: "1.25rem 1.75rem",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "1rem"
+              }}>
+                <div>
+                  <div style={{ fontWeight: 800, color: "var(--color-text-main)", fontSize: "0.95rem" }}>
+                    <i className="fa-solid fa-graduation-cap" style={{ color: "#3b82f6", marginRight: "8px" }}></i>
+                    Looking for literature beyond indexed African journals?
+                  </div>
+                  <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", marginTop: "3px" }}>
+                    Search &quot;{query}&quot; across open-web papers, global preprints, and non-indexed repositories on Google Scholar.
+                  </div>
+                </div>
+                <a
+                  href={`https://scholar.google.com/scholar?q=${encodeURIComponent(query)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary btn-sm"
+                  style={{ fontSize: "0.82rem", padding: "0.45rem 1rem", fontWeight: 700, color: "#2563eb", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                >
+                  Search on Google Scholar <i className="fa-solid fa-arrow-up-right-from-square" style={{ marginLeft: "4px", fontSize: "0.7rem" }}></i>
+                </a>
+              </div>
+            )}
           </div>
         )}
       </main>

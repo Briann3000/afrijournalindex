@@ -29,6 +29,8 @@ interface Stats {
   totalForumReplies: number;
   totalPosts: number;
   totalJournalComments: number;
+  scopusJournals?: number;
+  wosJournals?: number;
 }
 
 type TabKey = "overview" | "submissions" | "claims" | "journals" | "moderation" | "users" | "harvester" | "payments";
@@ -122,6 +124,7 @@ export default function AdminPortalPage() {
   const [journalSearch, setJournalSearch] = useState<string>("");
   const [journalIndexedFilter, setJournalIndexedFilter] = useState<string>("ALL");
   const [journalPaidFilter, setJournalPaidFilter] = useState<string>("ALL");
+  const [journalIndexingBodyFilter, setJournalIndexingBodyFilter] = useState<string>("ALL");
   const [journalCountryFilter, setJournalCountryFilter] = useState<string>("ALL");
   const [journalPage, setJournalPage] = useState<number>(1);
   const [journalPageSize] = useState<number>(15);
@@ -569,11 +572,18 @@ export default function AdminPortalPage() {
         (journalPaidFilter === "PAID" && j.certificatePaid) ||
         (journalPaidFilter === "UNPAID" && !j.certificatePaid);
 
+      const matchIndexingBody =
+        journalIndexingBodyFilter === "ALL" ||
+        (journalIndexingBodyFilter === "SCOPUS" && j.isScopusIndexed) ||
+        (journalIndexingBodyFilter === "WOS" && j.isWosIndexed) ||
+        (journalIndexingBodyFilter === "BOTH" && j.isScopusIndexed && j.isWosIndexed) ||
+        (journalIndexingBodyFilter === "NEITHER" && !j.isScopusIndexed && !j.isWosIndexed);
+
       const matchCountry = journalCountryFilter === "ALL" || j.country === journalCountryFilter;
 
-      return matchSearch && matchIndexed && matchPaid && matchCountry;
+      return matchSearch && matchIndexed && matchPaid && matchIndexingBody && matchCountry;
     });
-  }, [journals, journalSearch, journalIndexedFilter, journalPaidFilter, journalCountryFilter]);
+  }, [journals, journalSearch, journalIndexedFilter, journalPaidFilter, journalIndexingBodyFilter, journalCountryFilter]);
 
   const pagedJournals = useMemo(() => {
     const start = (journalPage - 1) * journalPageSize;
@@ -1012,6 +1022,10 @@ export default function AdminPortalPage() {
                     <span>Paid Certificates</span>
                     <strong style={{ color: "#10b981" }}>{stats?.paidCertificates || 0}</strong>
                   </div>
+                  <div style={{ fontSize: "0.72rem", color: "#64748b", display: "flex", justifyContent: "space-between", marginTop: "3px" }}>
+                    <span>Scopus / WoS Indexed</span>
+                    <span style={{ color: "#fbbf24", fontWeight: 700 }}>{stats?.scopusJournals || 0} / {stats?.wosJournals || 0}</span>
+                  </div>
                 </div>
 
                 <div className="admin-kpi-card">
@@ -1447,6 +1461,20 @@ export default function AdminPortalPage() {
 
                 <div style={{ width: "160px" }}>
                   <select
+                    value={journalIndexingBodyFilter}
+                    onChange={(e) => { setJournalIndexingBodyFilter(e.target.value); setJournalPage(1); }}
+                    className="admin-select"
+                  >
+                    <option value="ALL">All Global Indexes</option>
+                    <option value="SCOPUS">Scopus Indexed ({stats?.scopusJournals || 0})</option>
+                    <option value="WOS">Web of Science</option>
+                    <option value="BOTH">Scopus &amp; WoS</option>
+                    <option value="NEITHER">Neither</option>
+                  </select>
+                </div>
+
+                <div style={{ width: "160px" }}>
+                  <select
                     value={journalCountryFilter}
                     onChange={(e) => { setJournalCountryFilter(e.target.value); setJournalPage(1); }}
                     className="admin-select"
@@ -1470,6 +1498,8 @@ export default function AdminPortalPage() {
                         <th>Grade</th>
                         <th>Tier</th>
                         <th>Indexed</th>
+                        <th>Scopus</th>
+                        <th>WoS</th>
                         <th>Certificate</th>
                         <th style={{ textAlign: "right" }}>Actions</th>
                       </tr>
@@ -1519,6 +1549,28 @@ export default function AdminPortalPage() {
                               style={{ cursor: "pointer", border: "none" }}
                             >
                               {j.isIndexed ? "Indexed ✓" : "Unindexed"}
+                            </button>
+                          </td>
+                          <td>
+                            <button
+                              disabled={actionLoadingId === j.id}
+                              onClick={() => handleUpdateJournal(j.id, { isScopusIndexed: !j.isScopusIndexed })}
+                              className={`admin-badge ${j.isScopusIndexed ? "admin-badge-warning" : "admin-badge-neutral"}`}
+                              style={{ cursor: "pointer", border: "none" }}
+                              title="Toggle Scopus Indexing Status"
+                            >
+                              {j.isScopusIndexed ? "Scopus ✓" : "No"}
+                            </button>
+                          </td>
+                          <td>
+                            <button
+                              disabled={actionLoadingId === j.id}
+                              onClick={() => handleUpdateJournal(j.id, { isWosIndexed: !j.isWosIndexed })}
+                              className={`admin-badge ${j.isWosIndexed ? "admin-badge-info" : "admin-badge-neutral"}`}
+                              style={{ cursor: "pointer", border: "none" }}
+                              title="Toggle Web of Science Indexing Status"
+                            >
+                              {j.isWosIndexed ? "WoS ✓" : "No"}
                             </button>
                           </td>
                           <td>

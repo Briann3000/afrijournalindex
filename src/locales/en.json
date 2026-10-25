@@ -107,7 +107,7 @@
   },
   "cta": {
     "title": "Ready to Index Your Academic Journal?",
-    "desc": "Submit your publication to our automated review system. Establish verification, increase citations, and receive calculated impact reports today.",
+    "desc": "Submit your journal to our automated review system. Establish verification, increase citations, and receive calculated impact reports today.",
     "btn": "Get Indexed Now",
     "btn_status": "Check Submission Status"
   },
@@ -201,7 +201,7 @@
   },
   "submit_page": {
     "title": "Journal Submission Portal",
-    "desc": "Submit your academic publication to be evaluated for free indexing in the AfriJournal database.",
+    "desc": "Submit your academic journal to be evaluated for free indexing in the AfriJournal database.",
     "step1_title": "1. Journal Identification",
     "name_label": "Journal Full Name",
     "name_placeholder": "e.g. Journal of African Public Health & Development",

@@ -314,6 +314,10 @@ export default function Header({ activePage }: HeaderProps) {
                   <i className="fa-solid fa-circle-info" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.about}</span>
                 </a>
+                <a href="/services" className="nav-dropdown-item">
+                  <i className="fa-solid fa-hand-holding-hand" style={{ color: "#10b981", width: "20px" }}></i>
+                  <span>Services</span>
+                </a>
                 <a href="/methodology" className="nav-dropdown-item">
                   <i className="fa-solid fa-scale-balanced" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.footer.methodology}</span>
@@ -881,6 +885,14 @@ export default function Header({ activePage }: HeaderProps) {
                   >
                     <i className="fa-solid fa-circle-info" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{t.nav.about}</span>
+                  </Link>
+                  <Link 
+                    href="/services" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-hand-holding-hand" style={{ color: "#10b981", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Services</span>
                   </Link>
                   <Link 
                     href="/methodology" 

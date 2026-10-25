@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { LangProvider } from "./LangContext";
+import CookieConsent from "../components/CookieConsent";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -136,6 +137,7 @@ export default function RootLayout({
       <body>
         <LangProvider>
           {children}
+          <CookieConsent />
         </LangProvider>
         {/* Non-blocking FontAwesome loader (zero render-blocking delay) */}
         <Script

@@ -42,6 +42,8 @@ export async function GET(request: Request) {
             websiteUrl: true,
             qualityGrade: true,
             isIndexed: true,
+            isScopusIndexed: true,
+            isWosIndexed: true,
             description: true
           },
           orderBy: { name: "asc" }
@@ -72,6 +74,8 @@ export async function GET(request: Request) {
         websiteUrl: true,
         qualityGrade: true,
         isIndexed: true,
+        isScopusIndexed: true,
+        isWosIndexed: true,
         description: true
       },
       orderBy: { name: "asc" }

@@ -105,22 +105,27 @@ function ResearcherProfileContent() {
 
   // Profile Claiming States
   const claimParam = searchParams.get("claim") === "true";
-  const [showClaimProfileModal, setShowClaimProfileModal] = useState<boolean>(claimParam);
+  const otpParam = searchParams.get("otp") || "";
+  const [showClaimProfileModal, setShowClaimProfileModal] = useState<boolean>(claimParam || Boolean(otpParam));
   const [claimTab, setClaimTab] = useState<"email" | "orcid">("email");
   const [claimEmailInput, setClaimEmailInput] = useState<string>("");
-  const [claimOtpInput, setClaimOtpInput] = useState<string>("");
+  const [claimOtpInput, setClaimOtpInput] = useState<string>(otpParam);
   const [claimPasswordInput, setClaimPasswordInput] = useState<string>("");
   const [claimOrcidInput, setClaimOrcidInput] = useState<string>("");
-  const [claimStep, setClaimStep] = useState<"request" | "verify">("request");
+  const [claimStep, setClaimStep] = useState<"request" | "verify">(otpParam ? "verify" : "request");
   const [claimLoading, setClaimLoading] = useState<boolean>(false);
   const [claimSuccessMessage, setClaimSuccessMessage] = useState<string | null>(null);
   const [claimErrorMessage, setClaimErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (claimParam) {
+    if (claimParam || otpParam) {
       setShowClaimProfileModal(true);
+      if (otpParam) {
+        setClaimOtpInput(otpParam);
+        setClaimStep("verify");
+      }
     }
-  }, [claimParam]);
+  }, [claimParam, otpParam]);
 
   const handleRequestClaimOtp = async () => {
     if (!targetId) return;

@@ -7,7 +7,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { email, password } = body;
 
-    const cleanEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+    let cleanEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+    if (cleanEmail === "anthony.wanjohi@kenpro.org") {
+      cleanEmail = "wanjohi@kenpro.org";
+    }
 
     if (!cleanEmail || !password) {
       return NextResponse.json({ success: false, error: "Email and password are required." }, { status: 400 });

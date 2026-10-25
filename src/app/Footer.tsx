@@ -53,6 +53,7 @@ export default function Footer() {
         <div className="footer-links">
           <h4 className="footer-heading">{t.footer.resources_head}</h4>
           <a href="/about">{t.nav.about}</a>
+          <a href="/services">Services</a>
           <a href="/methodology">{t.footer.methodology}</a>
           <a href="/faq">{t.nav.faq}</a>
           <a href="/contact">{t.footer.contact}</a>

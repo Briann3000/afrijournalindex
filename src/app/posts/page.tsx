@@ -62,6 +62,10 @@ function PostsPageContent() {
   };
 
   // Unified Post Composer State
+  const [feedTab, setFeedTab] = useState<"public" | "drafts">("public");
+  const [composerMode, setComposerMode] = useState<"POST" | "DRAFT">("POST");
+  const [drafts, setDrafts] = useState<PostItem[]>([]);
+  const [loadingDrafts, setLoadingDrafts] = useState<boolean>(false);
   const [showComposerModal, setShowComposerModal] = useState<boolean>(false);
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
@@ -119,6 +123,7 @@ function PostsPageContent() {
         const data = await res.json();
         if (data.authenticated && data.user) {
           setUser(data.user);
+          loadDrafts();
         }
       } catch {
         // Guest mode
@@ -126,6 +131,58 @@ function PostsPageContent() {
     }
     checkAuth();
   }, []);
+
+  const loadDrafts = async () => {
+    setLoadingDrafts(true);
+    try {
+      const res = await fetch("/api/posts?filter=drafts");
+      const data = await res.json();
+      if (data.success) {
+        setDrafts(data.posts || []);
+      }
+    } catch (err) {
+      console.error("Failed to load drafts:", err);
+    } finally {
+      setLoadingDrafts(false);
+    }
+  };
+
+  const openComposer = (mode: "POST" | "DRAFT") => {
+    setComposerMode(mode);
+    if (mode === "DRAFT") {
+      setAudience("PRIVATE");
+    } else {
+      setAudience("PUBLIC");
+    }
+    setShowComposerModal(true);
+  };
+
+  const handlePublishDraft = async (draftId: string) => {
+    try {
+      const res = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "publishDraft", draftId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Manuscript successfully published to the public feed!");
+        loadDrafts();
+        loadPosts();
+        setFeedTab("public");
+      } else {
+        showToast(data.error || "Failed to publish draft.");
+      }
+    } catch {
+      showToast("Network error publishing draft.");
+    }
+  };
+
+  const handleShareDraft = (draftId: string) => {
+    const url = `${window.location.origin}/posts?draftId=${draftId}`;
+    navigator.clipboard.writeText(url);
+    showToast("Private reviewer link copied to clipboard!");
+  };
 
   // 2. Fetch posts feed & dynamic database trending tags
   const loadPosts = async () => {
@@ -240,7 +297,8 @@ function PostsPageContent() {
           attachmentUrl: attachmentUrl || null,
           attachmentName: attachmentName || null,
           attachmentType: attachmentType || null,
-          audience
+          audience: composerMode === "DRAFT" ? "PRIVATE" : audience,
+          isDraft: composerMode === "DRAFT"
         })
       });
 
@@ -250,8 +308,14 @@ function PostsPageContent() {
         return;
       }
 
-      // Prepend to feed
-      setPosts(prev => [data.post, ...prev]);
+      if (composerMode === "DRAFT") {
+        setDrafts(prev => [data.post, ...prev]);
+        setFeedTab("drafts");
+        showToast("Manuscript draft saved privately. Your work is protected.");
+      } else {
+        setPosts(prev => [data.post, ...prev]);
+        showToast("Post shared successfully to AfriJournal!");
+      }
 
       // Reset Composer
       setTitle("");
@@ -261,8 +325,8 @@ function PostsPageContent() {
       setAttachmentName("");
       setAttachmentType(null);
       setAudience("PUBLIC");
+      setComposerMode("POST");
       setShowComposerModal(false);
-      showToast("Post shared successfully to AfriJournal!");
     } catch (err) {
       setComposerError("Network error publishing post.");
     } finally {
@@ -513,22 +577,13 @@ function PostsPageContent() {
         onChange={e => handleFileChange(e, "AUDIO")}
       />
 
-      <main style={{ flex: 1, padding: "1.5rem 1rem", maxWidth: "1240px", margin: "0 auto", width: "100%" }}>
+      <main className="posts-container-main" style={{ flex: 1, padding: "1.5rem 1rem", maxWidth: "1240px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
         
         {/* 3-Column Feed Layout with Sticky Sidebars */}
-        <div style={{ display: "grid", gridTemplateColumns: "clamp(220px, 24%, 260px) 1fr clamp(260px, 28%, 320px)", gap: "1.5rem", alignItems: "flex-start" }}>
+        <div className="posts-feed-grid">
           
           {/* LEFT COLUMN: Sticky Scholar Mini-Profile & Fast Links */}
-          <div style={{
-            position: "sticky",
-            top: "5.5rem",
-            alignSelf: "flex-start",
-            display: "flex",
-            flexDirection: "column",
-            gap: "1rem",
-            maxHeight: "calc(100vh - 6.5rem)",
-            overflowY: "auto"
-          }}>
+          <div className="posts-sidebar-left">
             
             {/* Scholar Mini-Profile Card */}
             <div className="card-surface" style={{ borderRadius: "12px", border: "1px solid var(--color-border)", overflow: "hidden", textAlign: "center" }}>
@@ -639,13 +694,45 @@ function PostsPageContent() {
                   <i className="fa-solid fa-book-journal-whills" style={{ color: "#0284c7", width: "18px" }}></i>
                   Browse Indexed Journals
                 </Link>
+                <Link
+                  href="/services"
+                  style={{
+                    color: "var(--color-text-body)",
+                    padding: "0.5rem 0.75rem",
+                    borderRadius: "8px",
+                    textDecoration: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    fontWeight: 600
+                  }}
+                  className="hover-card-bg"
+                >
+                  <i className="fa-solid fa-hand-holding-hand" style={{ color: "#10b981", width: "18px" }}></i>
+                  Article Writing &amp; Review
+                </Link>
               </div>
+            </div>
+
+            {/* KENPRO Advisory Mini Card */}
+            <div className="card-surface" style={{ borderRadius: "12px", border: "1px solid rgba(16, 185, 129, 0.25)", padding: "1rem", background: "rgba(16, 185, 129, 0.04)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.4rem" }}>
+                <i className="fa-solid fa-circle-check" style={{ color: "#10b981", fontSize: "0.85rem" }}></i>
+                <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-main)" }}>Publishing Assistance</span>
+              </div>
+              <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", margin: "0 0 0.6rem", lineHeight: 1.45 }}>
+                Need help polishing your manuscript or choosing an indexed target journal? KENPRO experts provide peer review and writing support.
+              </p>
+              <Link href="/services" style={{ fontSize: "0.76rem", fontWeight: 700, color: "#10b981", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                <span>Explore services</span>
+                <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.65rem" }}></i>
+              </Link>
             </div>
 
           </div>
 
           {/* MIDDLE COLUMN: Post Composer & Main Feed */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div className="posts-main-feed" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             
             {/* Unified Top Composer Widget */}
             <div className="card-surface" style={{ borderRadius: "14px", border: "1px solid var(--color-border)", padding: "1.2rem 1.4rem" }}>
@@ -670,30 +757,65 @@ function PostsPageContent() {
                   {user ? user.name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase() : <i className="fa-solid fa-user"></i>}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!user) {
-                      showToast("Please sign in to share a research post.");
-                      return;
-                    }
-                    setShowComposerModal(true);
-                  }}
-                  style={{
-                    flex: 1,
-                    textAlign: "left",
-                    background: "var(--color-bg-card-subtle)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: "28px",
-                    padding: "0.75rem 1.2rem",
-                    color: "var(--color-text-muted)",
-                    fontSize: "0.9rem",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease"
-                  }}
-                >
-                  {user ? `What research are you working on, ${user.name.split(" ")[0]}?` : "Sign in to share research drafts, data, or fieldwork observations..."}
-                </button>
+                <div style={{ flex: 1, display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!user) {
+                        showToast("Please sign in to share a research post.");
+                        return;
+                      }
+                      openComposer("POST");
+                    }}
+                    style={{
+                      flex: 1,
+                      minWidth: "160px",
+                      textAlign: "left",
+                      background: "var(--color-bg-card-subtle)",
+                      border: "1px solid var(--color-border)",
+                      borderRadius: "28px",
+                      padding: "0.7rem 1.1rem",
+                      color: "var(--color-text-muted)",
+                      fontSize: "0.86rem",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px"
+                    }}
+                  >
+                    <i className="fa-solid fa-scroll" style={{ color: "var(--color-primary)" }}></i>
+                    <span>Submit Scholarly Post...</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!user) {
+                        showToast("Please sign in to draft an unpublished manuscript.");
+                        return;
+                      }
+                      openComposer("DRAFT");
+                    }}
+                    style={{
+                      background: "rgba(16, 185, 129, 0.08)",
+                      border: "1px solid rgba(16, 185, 129, 0.3)",
+                      borderRadius: "28px",
+                      padding: "0.7rem 1.1rem",
+                      color: "#10b981",
+                      fontSize: "0.84rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "7px",
+                      whiteSpace: "nowrap"
+                    }}
+                    title="Draft manuscript privately to safeguard your unpublished research"
+                  >
+                    <i className="fa-solid fa-lock"></i>
+                    <span>Draft Manuscript (Private)</span>
+                  </button>
+                </div>
               </div>
 
               {/* 3 Dedicated Media Trigger Buttons */}
@@ -780,8 +902,194 @@ function PostsPageContent() {
               </div>
             )}
 
+            {/* Feed Tabs: Public Feed vs My Manuscript Drafts */}
+            <div style={{ display: "flex", gap: "0.5rem", borderBottom: "1px solid var(--color-border)", paddingBottom: "0.5rem" }}>
+              <button
+                type="button"
+                onClick={() => setFeedTab("public")}
+                style={{
+                  background: feedTab === "public" ? "var(--color-primary)" : "none",
+                  color: feedTab === "public" ? "#ffffff" : "var(--color-text-muted)",
+                  border: "none",
+                  borderRadius: "20px",
+                  padding: "0.4rem 1rem",
+                  fontSize: "0.85rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px"
+                }}
+              >
+                <i className="fa-solid fa-earth-africa"></i>
+                <span>Public Feed ({posts.length})</span>
+              </button>
+
+              {user && (
+                <button
+                  type="button"
+                  onClick={() => { setFeedTab("drafts"); loadDrafts(); }}
+                  style={{
+                    background: feedTab === "drafts" ? "#10b981" : "none",
+                    color: feedTab === "drafts" ? "#ffffff" : "var(--color-text-muted)",
+                    border: "none",
+                    borderRadius: "20px",
+                    padding: "0.4rem 1rem",
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px"
+                  }}
+                >
+                  <i className="fa-solid fa-lock"></i>
+                  <span>My Manuscript Drafts ({drafts.length})</span>
+                </button>
+              )}
+            </div>
+
+            {/* DRAFTS STREAM VIEW */}
+            {feedTab === "drafts" ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                {/* Intellectual Property Protection Info Box */}
+                <div style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: "12px", padding: "1rem 1.25rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#065f46", fontWeight: 800, fontSize: "0.88rem", marginBottom: "4px" }}>
+                    <i className="fa-solid fa-shield-halved" style={{ color: "#10b981" }}></i>
+                    Intellectual Property Protection Notice
+                  </div>
+                  <p style={{ color: "#047857", fontSize: "0.8rem", margin: 0, lineHeight: 1.5 }}>
+                    Draft manuscripts are strictly <strong>private</strong> and never visible on the public feed, ensuring your unpublished research ideas cannot be plagiarized. You may share with designated reviewers via private link, get KENPRO writing services, or publish as an official preprint once ready.
+                  </p>
+                </div>
+
+                {loadingDrafts ? (
+                  <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-muted)" }}>
+                    <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "1.8rem", color: "#10b981", marginBottom: "0.8rem" }}></i>
+                    <p>Loading your private manuscript drafts...</p>
+                  </div>
+                ) : drafts.length === 0 ? (
+                  <div className="card-surface" style={{ borderRadius: "12px", border: "1px solid var(--color-border)", padding: "3rem 1.5rem", textAlign: "center" }}>
+                    <i className="fa-solid fa-file-shield" style={{ fontSize: "2.5rem", color: "var(--color-text-muted)", marginBottom: "1rem" }}></i>
+                    <h3 style={{ color: "var(--color-text-main)", margin: "0 0 0.5rem" }}>No Manuscript Drafts Saved</h3>
+                    <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem", maxWidth: "420px", margin: "0 auto 1.5rem" }}>
+                      Draft your working paper privately. It stays confidential until you choose which journal to publish with or publish as a preprint.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => openComposer("DRAFT")}
+                      className="btn btn-primary btn-sm"
+                      style={{ background: "#10b981", borderColor: "#059669" }}
+                    >
+                      <i className="fa-solid fa-pen" style={{ marginRight: "6px" }}></i> Create Private Draft
+                    </button>
+                  </div>
+                ) : (
+                  drafts.map(draft => (
+                    <div
+                      key={draft.id}
+                      className="card-surface"
+                      style={{
+                        borderRadius: "14px",
+                        border: "1px solid rgba(16, 185, 129, 0.3)",
+                        padding: "1.5rem",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.85rem",
+                        background: "linear-gradient(180deg, var(--color-bg-card) 0%, rgba(16, 185, 129, 0.02) 100%)"
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px" }}>
+                        <div>
+                          <span style={{ fontSize: "0.72rem", fontWeight: 800, padding: "0.2rem 0.55rem", borderRadius: "12px", background: "rgba(16, 185, 129, 0.15)", color: "#10b981", border: "1px solid rgba(16, 185, 129, 0.3)" }}>
+                            <i className="fa-solid fa-lock" style={{ marginRight: "4px" }}></i> Private Manuscript Draft
+                          </span>
+                          <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginLeft: "8px" }}>
+                            Saved {new Date(draft.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePost(draft.id)}
+                          style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.85rem" }}
+                          title="Delete draft"
+                        >
+                          <i className="fa-solid fa-trash-can"></i>
+                        </button>
+                      </div>
+
+                      {draft.title && (
+                        <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0, color: "var(--color-text-main)" }}>
+                          {draft.title}
+                        </h3>
+                      )}
+
+                      <p style={{ fontSize: "0.9rem", color: "var(--color-text-body)", margin: 0, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                        {draft.content}
+                      </p>
+
+                      {draft.attachmentUrl && (
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0.6rem 0.9rem", background: "var(--color-bg-card-subtle)", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.82rem" }}>
+                          <i className="fa-solid fa-file-pdf" style={{ color: "#dc2626" }}></i>
+                          <span style={{ fontWeight: 600, color: "var(--color-text-main)" }}>{draft.attachmentName || "Attached Manuscript Document"}</span>
+                          <a
+                            href={draft.attachmentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ marginLeft: "auto", color: "var(--color-primary)", fontWeight: 700, textDecoration: "none" }}
+                          >
+                            Download <i className="fa-solid fa-arrow-down" style={{ fontSize: "0.75rem" }}></i>
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Draft Action Toolbar */}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", borderTop: "1px solid var(--color-border)", paddingTop: "0.85rem", alignItems: "center" }}>
+                        <button
+                          type="button"
+                          onClick={() => handleShareDraft(draft.id)}
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem" }}
+                          title="Generate a private review link to share with an advisor or peer reviewer"
+                        >
+                          <i className="fa-solid fa-link" style={{ marginRight: "4px" }}></i> Share with Reviewer
+                        </button>
+
+                        <Link
+                          href="/browse"
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem" }}
+                        >
+                          <i className="fa-solid fa-compass" style={{ marginRight: "4px" }}></i> Explore Journals
+                        </Link>
+
+                        <Link
+                          href="/services"
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem", color: "#10b981", borderColor: "rgba(16, 185, 129, 0.3)" }}
+                        >
+                          <i className="fa-solid fa-hand-holding-hand" style={{ marginRight: "4px" }}></i> Get Writing Help
+                        </Link>
+
+                        <button
+                          type="button"
+                          onClick={() => handlePublishDraft(draft.id)}
+                          className="btn btn-primary btn-sm"
+                          style={{ fontSize: "0.78rem", padding: "0.35rem 0.85rem", marginLeft: "auto" }}
+                        >
+                          <i className="fa-solid fa-globe" style={{ marginRight: "4px" }}></i> Publish as Preprint
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : null}
+
             {/* FEED STREAM */}
-            {loading ? (
+            {feedTab === "public" && (
+            loading ? (
               <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-muted)" }}>
                 <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "1.8rem", color: "var(--color-primary)", marginBottom: "0.8rem" }}></i>
                 <p>Loading research feed...</p>
@@ -1464,21 +1772,12 @@ function PostsPageContent() {
                   );
                 })}
               </div>
-            )}
+            ))}
 
           </div>
 
           {/* RIGHT COLUMN: Sticky Database Trending Tags & Publication Card */}
-          <div style={{
-            position: "sticky",
-            top: "5.5rem",
-            alignSelf: "flex-start",
-            display: "flex",
-            flexDirection: "column",
-            gap: "1.25rem",
-            maxHeight: "calc(100vh - 6.5rem)",
-            overflowY: "auto"
-          }}>
+          <div className="posts-sidebar-right">
             
             {/* Dynamic Trending Research Hashtags Card */}
             <div className="card-surface" style={{ borderRadius: "12px", border: "1px solid var(--color-border)", padding: "1.25rem" }}>
@@ -2285,12 +2584,24 @@ function PostsPageContent() {
               </div>
             )}
 
+            {composerMode === "DRAFT" && (
+              <div style={{ padding: "0.85rem 1rem", borderRadius: "10px", background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.3)", marginBottom: "1rem" }}>
+                <div style={{ color: "#065f46", fontWeight: 800, fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
+                  <i className="fa-solid fa-lock" style={{ color: "#10b981" }}></i>
+                  <span>Private Manuscript Draft Mode</span>
+                </div>
+                <div style={{ color: "#047857", fontSize: "0.78rem", lineHeight: 1.5 }}>
+                  This draft is completely private and hidden from the public feed to safeguard your intellectual property. You can review it, share with designated reviewers, or explore which indexed journal to publish with.
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handlePublishPost}>
               {/* Optional Title input */}
               <div style={{ marginBottom: "0.8rem" }}>
                 <input
                   type="text"
-                  placeholder="Title or Topic (optional)..."
+                  placeholder={composerMode === "DRAFT" ? "Manuscript Title / Working Header..." : "Title or Topic (optional)..."}
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   className="form-control"
@@ -2302,7 +2613,7 @@ function PostsPageContent() {
               <div style={{ marginBottom: "0.85rem" }}>
                 <textarea
                   rows={4}
-                  placeholder="Share your research draft, findings, fieldwork observation, or methodology questions..."
+                  placeholder={composerMode === "DRAFT" ? "Paste or draft your working paper text, abstract, methodology notes, or outline..." : "Share your research findings, preprint, fieldwork observation, or methodology questions..."}
                   value={content}
                   onChange={e => setContent(e.target.value)}
                   className="form-control"
@@ -2392,9 +2703,15 @@ function PostsPageContent() {
                     type="submit"
                     disabled={submitting || uploadingFile}
                     className="btn btn-primary btn-sm"
-                    style={{ padding: "0.45rem 1.4rem", fontSize: "0.85rem", fontWeight: 700 }}
+                    style={{
+                      padding: "0.45rem 1.4rem",
+                      fontSize: "0.85rem",
+                      fontWeight: 700,
+                      background: composerMode === "DRAFT" ? "#10b981" : undefined,
+                      borderColor: composerMode === "DRAFT" ? "#059669" : undefined
+                    }}
                   >
-                    {submitting ? "Publishing..." : "Post"}
+                    {submitting ? "Saving..." : composerMode === "DRAFT" ? "Save as Private Draft" : "Post"}
                   </button>
                 </div>
               </div>

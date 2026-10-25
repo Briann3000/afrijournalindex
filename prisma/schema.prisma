@@ -113,6 +113,8 @@ model Journal {
   qualityGrade  String?           @db.VarChar(10) // e.g. "A+", "A", "B", "C"
   isIndexed     Boolean           @default(false)
   certificatePaid Boolean         @default(false)
+  isScopusIndexed Boolean         @default(false)
+  isWosIndexed    Boolean         @default(false)
   activeTier    String            @default("FREE") @db.VarChar(50) // FREE, BASIC, PREMIUM
   subscriptionExpiresAt DateTime?
   createdAt     DateTime          @default(now())
@@ -131,6 +133,8 @@ model Journal {
   @@index([name])
   @@index([isIndexed])
   @@index([certificatePaid])
+  @@index([isScopusIndexed])
+  @@index([isWosIndexed])
   @@map("journal")
 }
 

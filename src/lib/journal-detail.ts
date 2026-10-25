@@ -13,6 +13,8 @@ export interface JournalDetail {
   frequency: string;
   websiteUrl: string;
   isIndexed: boolean;
+  isScopusIndexed?: boolean;
+  isWosIndexed?: boolean;
   hasCrossrefDois?: boolean;
   doiArticleCount?: number;
   hasIssn?: boolean;
@@ -340,6 +342,8 @@ export async function getJournalDetail(id: string): Promise<JournalDetail | null
       frequency: journal.frequency,
       websiteUrl: journal.websiteUrl || "",
       isIndexed: journal.isIndexed,
+      isScopusIndexed: Boolean((journal as any).isScopusIndexed),
+      isWosIndexed: Boolean((journal as any).isWosIndexed),
       certificatePaid: journal.certificatePaid ?? false,
       activeTier: journal.activeTier || (journal.certificatePaid ? "BASIC" : "FREE"),
       subscriptionExpiresAt: journal.subscriptionExpiresAt ? journal.subscriptionExpiresAt.toISOString() : null,
