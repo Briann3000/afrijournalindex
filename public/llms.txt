@@ -1,0 +1,24 @@
+# AfriJournal Indexing
+
+> AfriJournal Indexing (AJCI) is the open continental indexing repository and bibliometric evaluation registry for African scholarly and peer-reviewed scientific journals.
+
+AfriJournal Indexing calculates verified 2-year African Journal Citation Index (AJCI) impact metrics, Regional Representation Quotients (RRQ), predatory publishing compliance audits, and pan-African researcher profiles across all 54 African nations.
+
+## Core Directory
+
+- [Browse Academic Journals](https://afrijournalindexing.org/browse): Search and filter peer-reviewed African scientific journals by country, discipline, and ISSN.
+- [Continental Journal Rankings](https://afrijournalindexing.org/rankings): Explore annual journal impact rankings, citation metrics, and quartile classifications (Q1 to Q4).
+- [Pan-African Scholars Registry](https://afrijournalindexing.org/scholars): Directory of verified African scholars, academic affiliations, h-index rankings, and publication records.
+- [Institutional Analytics](https://afrijournalindexing.org/institution): Academic institution publication output and citation performance across African universities.
+- [Evaluation Methodology](https://afrijournalindexing.org/methodology): Mathematical formulas, citation verification standards, and ethical compliance rules for African journal indexing.
+- [Journal Indexing Submission](https://afrijournalindexing.org/submit): Application portal for African academic journal editors to submit publications for indexation evaluation.
+
+## Key Indexed Journals
+
+- [African Research Journal of Education and Social Sciences (ARJESS)](https://afrijournalindexing.org/journal/264679fc-eb2d-4d55-b26e-3204dd06b46a): Official indexing record for ARJESS (eISSN: 2312-0134), published in Kenya by KENPRO. Quality Grade: A+, 2-Year AJCI Citation Score: 1.818, Category Quartile: Q2.
+
+## Optional Resources
+
+- [Sitemap](https://afrijournalindexing.org/sitemap.xml): Full XML sitemap listing all indexed journal endpoints and directory routes.
+- [Platform Posts & Working Drafts](https://afrijournalindexing.org/posts): Scholarly discussion forum and preprint working papers.
+- [Editorial Referee Finder](https://afrijournalindexing.org/referee-finder): Tool for journal editors to locate verified African peer reviewers.

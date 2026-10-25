@@ -21,7 +21,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${baseUrl}/rankings`,
       lastModified: new Date(),
-      changeFrequency: "weekly",
+      changeFrequency: "daily",
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/scholars`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
       priority: 0.9,
     },
     {
@@ -34,6 +40,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/methodology`,
       lastModified: new Date(),
       changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/referee-finder`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/posts`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
       priority: 0.8,
     },
     {
@@ -83,6 +101,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     // Fetch all indexed journals from the database
     const journals = await prisma.journal.findMany({
+      where: {
+        isIndexed: true,
+      },
       select: {
         id: true,
         updatedAt: true,
@@ -92,8 +113,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const journalRoutes: MetadataRoute.Sitemap = journals.map((j) => ({
       url: `${baseUrl}/journal/${j.id}`,
       lastModified: j.updatedAt || new Date(),
-      changeFrequency: "weekly",
-      priority: 0.8,
+      changeFrequency: "daily",
+      priority: 0.9,
     }));
 
     return [...staticRoutes, ...journalRoutes];

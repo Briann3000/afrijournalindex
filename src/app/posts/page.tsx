@@ -1530,19 +1530,19 @@ function PostsPageContent() {
                 <i className="fa-solid fa-book-journal-whills"></i>
               </div>
               <h4 style={{ fontSize: "0.95rem", fontWeight: 800, margin: "0 0 0.3rem", color: "var(--color-text-main)" }}>
-                Publish Formally with DOI
+                Publish Formally
               </h4>
               <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", margin: "0 0 0.85rem", lineHeight: 1.4 }}>
-                Ready to submit your manuscript for double-blind peer review and continental indexation?
+                Ready to submit your manuscript for peer review and continental indexation?
               </p>
               <Link href="/submit" className="btn btn-primary btn-sm" style={{ width: "100%", padding: "0.45rem", fontSize: "0.82rem", fontWeight: 700 }}>
-                Submit to an Indexed Journal
+                Submit
               </Link>
             </div>
 
             {/* Platform notice */}
             <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", lineHeight: 1.5, padding: "0 0.5rem" }}>
-              AfriJournal connects verified African researchers across 54 nations. Working drafts and discussions are governed by open scholarly ethics.
+              AfriJournal connects verified African researchers across 54 nations.
             </div>
 
           </div>

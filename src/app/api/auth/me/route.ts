@@ -9,12 +9,12 @@ export async function GET() {
     const sessionCookie = cookieStore.get("afriJournalSession");
 
     if (!sessionCookie || !sessionCookie.value) {
-      return NextResponse.json({ success: false, authenticated: false, error: "Not authenticated." }, { status: 401 });
+      return NextResponse.json({ success: true, authenticated: false, user: null });
     }
 
     const userId = verifySessionToken(sessionCookie.value);
     if (!userId) {
-      return NextResponse.json({ success: false, authenticated: false, error: "Invalid or expired session token." }, { status: 401 });
+      return NextResponse.json({ success: true, authenticated: false, user: null });
     }
 
     const user = await prisma.user.findUnique({

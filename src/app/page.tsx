@@ -298,9 +298,9 @@ export default function Home() {
                           <i className="fa-solid fa-circle-check" style={{ marginRight: "4px" }}></i> Open Access
                         </span>
                       </div>
-                      <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--color-navy)", margin: "0.3rem 0", lineHeight: "1.4" }}>
+                      <h2 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--color-navy)", margin: "0.3rem 0", lineHeight: "1.4" }}>
                         {heroJournal.name}
-                      </h3>
+                      </h2>
                       <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", margin: "0.2rem 0 0" }}>
                         ISSN: {heroJournal.issn} • {heroJournal.country} • Verified Open Access
                       </p>
@@ -325,21 +325,7 @@ export default function Home() {
                     </div>
 
                     {/* Bibliometric Verification List */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.82rem", color: "var(--color-text-body)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ color: "var(--color-text-muted)" }}>Lifetime Impact (Indexed):</span>
-                        <strong style={{ color: "var(--color-navy)" }}><i className="fa-solid fa-chart-line" style={{ color: "#2563eb", marginRight: "4px" }}></i> {heroJournal.citationCount.toLocaleString()} Citations</strong>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ color: "var(--color-text-muted)" }}>Evaluated Citable Articles:</span>
-                        <strong style={{ color: "var(--color-navy)" }}>{heroJournal.articleCount} Catalog Papers</strong>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ color: "var(--color-text-muted)" }}>Data Provenance:</span>
-                        <strong style={{ color: "#16a34a" }}><i className="fa-solid fa-circle-check" style={{ marginRight: "4px" }}></i> Crossref & DOAJ Verified</strong>
-                      </div>
-                    </div>
-
+                    
                     {/* Card Action Link */}
                     <div style={{ marginTop: "1.2rem", paddingTop: "0.85rem", borderTop: "1px solid #f1f5f9" }}>
                       <a 
@@ -347,7 +333,7 @@ export default function Home() {
                         className="hover-primary" 
                         style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "space-between" }}
                       >
-                        <span>View Complete Bibliometric Report & Certificate</span>
+                        <span>View Complete Report </span>
                         <i className="fa-solid fa-arrow-right"></i>
                       </a>
                     </div>
@@ -394,9 +380,9 @@ export default function Home() {
                     <i className={`fa-solid ${disc.icon}`}></i>
                   </div>
                   <div>
-                    <h5 style={{ fontSize: "0.88rem", fontWeight: 800, color: "var(--color-navy)", margin: 0 }}>
+                    <div style={{ fontSize: "0.88rem", fontWeight: 800, color: "var(--color-navy)", margin: 0 }}>
                       {disc.name}
-                    </h5>
+                    </div>
                     <span style={{ fontSize: "0.75rem", color: "var(--color-primary)", fontWeight: 700 }}>
                       {disc.count}
                     </span>

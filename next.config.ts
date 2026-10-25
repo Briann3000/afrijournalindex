@@ -31,6 +31,14 @@ const securityHeaders = [
   }
 ];
 
+const staticCacheHeaders = [
+  ...securityHeaders,
+  {
+    key: "Cache-Control",
+    value: "public, max-age=31536000, immutable"
+  }
+];
+
 const nextConfig: NextConfig = {
   output: process.env.NEXT_STANDALONE === "true" ? "standalone" : undefined,
   compress: true,
@@ -41,6 +49,10 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        source: "/:all*(svg|jpg|jpeg|png|webp|avif|ico|woff|woff2)",
+        headers: staticCacheHeaders
+      },
       {
         source: "/:path*",
         headers: securityHeaders

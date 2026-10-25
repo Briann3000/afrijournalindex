@@ -34,8 +34,8 @@
     --color-text-body: #1e293b;      /* Slate 800 Solid Body Text */
     --color-text-muted: #64748b;     /* Slate 500 Clearly Legible Muted Text */
     --color-text-light: #64748b;     /* Slate 500 Alias */
-    --color-text-lighter: #94a3b8;   /* Slate 400 Subtle Text */
-    --color-text-subtle: #94a3b8;    /* Slate 400 Subtle Text */
+    --color-text-lighter: #64748b;   /* Slate 500 High-Contrast Accessible Text */
+    --color-text-subtle: #64748b;    /* Slate 500 High-Contrast Accessible Text */
     --color-navy: #0f172a;
 
     /* Form Controls */
@@ -45,8 +45,8 @@
     --badge-bg: #fef3c7;
 
     /* Layout Tokens */
-    --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-ui: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --border-radius: 14px;
     --border-radius-sm: 8px;
     --transition: all 0.2s ease;
@@ -542,12 +542,18 @@ a {
     content: "";
     position: absolute;
     inset: 0;
-    background: url('/images/hero-network.jpg') center right / cover no-repeat;
+    background: url('/images/hero-network.webp') center right / cover no-repeat;
     opacity: 0.28;
     filter: contrast(1.3) brightness(0.95);
     mix-blend-mode: multiply;
     pointer-events: none;
     z-index: 1;
+}
+
+@media (max-width: 768px) {
+    .hero-section::before {
+        display: none !important;
+    }
 }
 
 .hero-section::after {
