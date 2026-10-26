@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { LangProvider } from "./LangContext";
 import CookieConsent from "../components/CookieConsent";
+import WhatsAppSupport from "../components/WhatsAppSupport";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,7 +36,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "AfriJournal Indexing Advisory Council", url: "https://afrijournalindexing.org" }],
   creator: "AfriJournal Indexing",
-  publisher: "KENPRO Academic Publishing & AfriJournal Registry",
+  publisher: "AfriJournal Indexing Registry",
   robots: {
     index: true,
     follow: true,
@@ -138,6 +139,7 @@ export default function RootLayout({
         <LangProvider>
           {children}
           <CookieConsent />
+          <WhatsAppSupport />
         </LangProvider>
         {/* Non-blocking FontAwesome loader (zero render-blocking delay) */}
         <Script

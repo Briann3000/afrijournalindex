@@ -10,10 +10,10 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const theme = searchParams.get("theme") || "dark";
 
-    let label = "AFRIJOURNAL";
+    const label = "AFRIJOURNAL INDEXING";
     let scoreText = "INDEXED";
-    let rightBg = "#d4a04a";
-    let rightText = "#000000";
+    let rightBg = "#d97706";
+    let rightText = "#0a0a0f";
 
     if (id) {
       const cleanId = id.replace(".svg", "").trim();
@@ -44,38 +44,49 @@ export async function GET(
         scoreText = `AJCI ${score.toFixed(2)} • ${myQuartile}`;
 
         if (myQuartile === "Q1") {
-          rightBg = "#d4a04a"; // Gold
+          rightBg = "#f59e0b"; // Warm Amber Gold
           rightText = "#0a0a0f";
         } else if (myQuartile === "Q2") {
-          rightBg = "#2563eb"; // Sapphire Blue
+          rightBg = "#2563eb"; // Royal Blue
           rightText = "#ffffff";
         } else if (myQuartile === "Q3") {
-          rightBg = "#059669"; // Emerald Green
+          rightBg = "#0284c7"; // Sky Blue
           rightText = "#ffffff";
         } else {
-          rightBg = "#4b5563"; // Slate
+          rightBg = "#475569"; // Slate
           rightText = "#ffffff";
         }
       }
     }
 
-    const leftBg = theme === "light" ? "#2d3748" : "#111827";
-    const leftWidth = 100;
-    const rightWidth = scoreText.length * 8.5 + 20;
+    const leftBg = theme === "light" ? "#1e293b" : "#0f172a";
+    const leftWidth = 176;
+    const rightWidth = Math.max(76, Math.round(scoreText.length * 7.5 + 24));
     const totalWidth = leftWidth + rightWidth;
 
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="24" viewBox="0 0 ${totalWidth} 24" role="img" aria-label="${label}: ${scoreText}">
-  <clipPath id="r">
-    <rect width="${totalWidth}" height="24" rx="4" fill="#fff"/>
-  </clipPath>
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="26" viewBox="0 0 ${totalWidth} 26" role="img" aria-label="${label}: ${scoreText}">
+  <defs>
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <clipPath id="r">
+      <rect width="${totalWidth}" height="26" rx="5" fill="#fff"/>
+    </clipPath>
+  </defs>
   <g clip-path="url(#r)">
-    <rect width="${leftWidth}" height="24" fill="${leftBg}"/>
-    <rect x="${leftWidth}" width="${rightWidth}" height="24" fill="${rightBg}"/>
+    <rect width="${leftWidth}" height="26" fill="${leftBg}"/>
+    <rect x="${leftWidth}" width="${rightWidth}" height="26" fill="${rightBg}"/>
   </g>
-  <g fill="#fff" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif" text-rendering="geometricPrecision" font-size="11" font-weight="700">
-    <text x="${leftWidth / 2 + 5}" y="16" fill="#f8f9fa" letter-spacing="0.5">${label}</text>
-    <path d="M 12 6 L 16 8 L 16 13 C 16 15.5 14 17.5 12 18.5 C 10 17.5 8 15.5 8 13 L 8 8 Z" fill="#d4a04a"/>
-    <text x="${leftWidth + rightWidth / 2}" y="16" fill="${rightText}">${scoreText}</text>
+  <!-- Official Circular AJI Logo Mark -->
+  <g transform="translate(6, 4)">
+    <circle cx="9" cy="9" r="9" fill="url(#amberGrad)" />
+    <text x="9" y="12.5" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="7.5" font-weight="900" letter-spacing="-0.3" text-anchor="middle" fill="#121217">AJI</text>
+  </g>
+  <!-- Badge Labels -->
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-rendering="geometricPrecision" font-size="10" font-weight="700">
+    <text x="30" y="16.5" fill="#f8fafc" letter-spacing="0.6">${label}</text>
+    <text x="${leftWidth + rightWidth / 2}" y="16.5" fill="${rightText}" text-anchor="middle">${scoreText}</text>
   </g>
 </svg>`;
 
@@ -87,9 +98,9 @@ export async function GET(
     });
   } catch (error) {
     console.error("Badge generation error:", error);
-    const fallbackSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="24" viewBox="0 0 160 24">
-      <rect width="160" height="24" rx="4" fill="#1e293b"/>
-      <text x="80" y="16" fill="#f8f9fa" font-size="11" font-family="sans-serif" text-anchor="middle">AFRIJOURNAL INDEX</text>
+    const fallbackSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="180" height="26" viewBox="0 0 180 26">
+      <rect width="180" height="26" rx="5" fill="#0f172a"/>
+      <text x="90" y="16.5" fill="#f8fafc" font-size="10" font-weight="700" font-family="sans-serif" text-anchor="middle">AFRIJOURNAL INDEXING</text>
     </svg>`;
     return new Response(fallbackSvg, {
       headers: { "Content-Type": "image/svg+xml; charset=utf-8" }

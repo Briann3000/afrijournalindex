@@ -38,8 +38,12 @@ copyRecursive(path.join(baseDir, 'public'), path.join(deployDir, 'public'));
 console.log('Copying prisma schema & migrations...');
 copyRecursive(path.join(baseDir, 'prisma'), path.join(deployDir, 'prisma'));
 
+console.log('Copying source files & scripts...');
+copyRecursive(path.join(baseDir, 'src'), path.join(deployDir, 'src'));
+copyRecursive(path.join(baseDir, 'scripts'), path.join(deployDir, 'scripts'), ['build-zip.js', 'verify-zip.js', 'inspect-build.js']);
+
 console.log('Copying manifests & config files...');
-const filesToCopy = ['package.json', 'package-lock.json', 'next.config.ts', 'tsconfig.json'];
+const filesToCopy = ['package.json', 'package-lock.json', 'next.config.ts', 'tsconfig.json', 'server.js', 'app.js'];
 for (const f of filesToCopy) {
   const p = path.join(baseDir, f);
   if (fs.existsSync(p)) fs.copyFileSync(p, path.join(deployDir, f));

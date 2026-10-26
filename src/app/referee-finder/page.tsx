@@ -154,7 +154,7 @@ Source: AfriJournal Index Referee Discovery`;
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--color-bg)" }}>
       <Header activePage="referee-finder" />
 
-      <main style={{ flex: 1, padding: "2rem 1.5rem", maxWidth: "1400px", margin: "0 auto", width: "100%" }}>
+      <main className="referee-main-container" style={{ flex: 1, padding: "2rem 1.5rem", maxWidth: "1400px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
         
         {/* Compact Header */}
         <div style={{ marginBottom: "2rem", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem" }}>
@@ -206,7 +206,7 @@ Source: AfriJournal Index Referee Discovery`;
           }}
         >
           {/* ================= LEFT COLUMN: STICKY FORM ================= */}
-          <div style={{ position: "sticky", top: "1.5rem" }}>
+          <div className="referee-sidebar-card" style={{ position: "sticky", top: "1.5rem" }}>
             <div style={{ 
               background: "var(--color-bg-card)", 
               border: "1px solid var(--color-border)", 

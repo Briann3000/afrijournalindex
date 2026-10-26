@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLang } from "./LangContext";
 import Header from "./Header";
@@ -62,13 +63,13 @@ export default function Home() {
   }, []);
 
   const disciplinesMarquee = [
-    { name: t.disciplines.health, icon: "fa-stethoscope", count: "380+ " + t.disciplines.journals_count },
-    { name: t.disciplines.social, icon: "fa-book-open-reader", count: "420+ " + t.disciplines.journals_count },
-    { name: t.disciplines.stem, icon: "fa-microchip", count: "290+ " + t.disciplines.journals_count },
-    { name: t.disciplines.agri, icon: "fa-leaf", count: "240+ " + t.disciplines.journals_count },
-    { name: t.disciplines.business, icon: "fa-chart-pie", count: "195+ " + t.disciplines.journals_count },
-    { name: t.disciplines.education, icon: "fa-graduation-cap", count: "210+ " + t.disciplines.journals_count },
-    { name: t.disciplines.law, icon: "fa-scale-balanced", count: "125+ " + t.disciplines.journals_count }
+    { name: t.disciplines.health, filter: "Health Sciences", icon: "fa-stethoscope", count: "380+ " + t.disciplines.journals_count },
+    { name: t.disciplines.social, filter: "Social Sciences", icon: "fa-book-open-reader", count: "420+ " + t.disciplines.journals_count },
+    { name: t.disciplines.stem, filter: "Science", icon: "fa-microchip", count: "290+ " + t.disciplines.journals_count },
+    { name: t.disciplines.agri, filter: "Environment", icon: "fa-leaf", count: "240+ " + t.disciplines.journals_count },
+    { name: t.disciplines.business, filter: "Business", icon: "fa-chart-pie", count: "195+ " + t.disciplines.journals_count },
+    { name: t.disciplines.education, filter: "Education", icon: "fa-graduation-cap", count: "210+ " + t.disciplines.journals_count },
+    { name: t.disciplines.law, filter: "Social Sciences", icon: "fa-scale-balanced", count: "125+ " + t.disciplines.journals_count }
   ];
 
   const top5Universities = [
@@ -95,7 +96,7 @@ export default function Home() {
               </div>
 
               <h1 className="hero-title">
-                Elevating African Academic Excellence Through Unbiased Indexation
+                Elevating African Academic Excellence Through Unbiased Indexing
               </h1>
 
               <p className="hero-subtitle">
@@ -375,7 +376,13 @@ export default function Home() {
           <div className="feature-marquee-container">
             <div className="feature-marquee-track">
               {[...disciplinesMarquee, ...disciplinesMarquee].map((disc, idx) => (
-                <div key={idx} className="feature-marquee-card">
+                <Link
+                  key={idx}
+                  href={`/browse?discipline=${encodeURIComponent(disc.filter || disc.name)}`}
+                  className="feature-marquee-card"
+                  style={{ textDecoration: "none", cursor: "pointer" }}
+                  title={`Browse ${disc.name} journals`}
+                >
                   <div className="feature-marquee-icon">
                     <i className={`fa-solid ${disc.icon}`}></i>
                   </div>
@@ -387,7 +394,7 @@ export default function Home() {
                       {disc.count}
                     </span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -545,43 +552,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-
-      {/* Floating WhatsApp Contact Button (Bottom Right) */}
-      <a
-        href="https://wa.me/254725788400?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20AfriJournal%20Indexing%20services."
-        target="_blank"
-        rel="noopener noreferrer"
-        title="Chat with AfriJournal Editorial Team on WhatsApp (0725788400)"
-        aria-label="Contact us on WhatsApp"
-        style={{
-          position: "fixed",
-          bottom: "28px",
-          right: "28px",
-          width: "58px",
-          height: "58px",
-          borderRadius: "50%",
-          backgroundColor: "#25D366",
-          color: "#ffffff",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 8px 24px rgba(37, 211, 102, 0.4)",
-          zIndex: 9999,
-          cursor: "pointer",
-          transition: "transform 0.2s ease, box-shadow 0.2s ease",
-          fontSize: "1.9rem"
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "scale(1.08)";
-          e.currentTarget.style.boxShadow = "0 12px 30px rgba(37, 211, 102, 0.55)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.boxShadow = "0 8px 24px rgba(37, 211, 102, 0.4)";
-        }}
-      >
-        <i className="fa-brands fa-whatsapp"></i>
-      </a>
 
       <Footer />
     </div>

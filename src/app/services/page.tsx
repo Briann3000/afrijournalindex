@@ -28,7 +28,7 @@ export default function ServicesPage() {
       title: "Manuscript Writing & Language Polishing",
       icon: "fa-solid fa-pen-nib",
       badge: "Author Support",
-      color: "#10b981",
+      color: "#f59e0b",
       description: "Comprehensive assistance for scholars preparing draft manuscripts for peer-reviewed journal submission.",
       features: [
         "IMRAD Structuring: Organizing Introduction, Methodology, Results, and Discussion into standard academic conventions.",
@@ -87,9 +87,9 @@ export default function ServicesPage() {
 
   return (
     <div className="page-wrapper" style={{ padding: 0 }}>
-      <Header />
+      <Header activePage="services" />
 
-      <main className="container" style={{ padding: "3rem 0 6rem", maxWidth: "1100px" }}>
+      <main className="container services-main-container" style={{ padding: "3rem 1rem 6rem", maxWidth: "1100px", boxSizing: "border-box" }}>
         {/* Breadcrumb */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.5rem" }}>
           <Link href="/" style={{ color: "var(--color-primary)", textDecoration: "none" }}>Home</Link>
@@ -103,14 +103,14 @@ export default function ServicesPage() {
         <div className="card-surface" style={{ padding: "3rem", borderRadius: "18px", border: "1px solid var(--color-border)", marginBottom: "2.5rem", background: "linear-gradient(180deg, var(--color-bg-card) 0%, var(--color-bg-card-subtle) 100%)" }}>
           <div style={{ maxWidth: "780px" }}>
             <span className="badge-featured" style={{ display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "1rem" }}>
-              <i className="fa-solid fa-hand-holding-hand" style={{ color: "#10b981" }}></i>
-              KENPRO Scholarly &amp; Editorial Services
+              <i className="fa-solid fa-hand-holding-hand" style={{ color: "var(--color-primary)" }}></i>
+              AfriJournal Scholarly &amp; Editorial Advisory
             </span>
             <h1 style={{ fontSize: "2.4rem", fontWeight: 800, margin: "0 0 1rem", color: "var(--color-navy)", lineHeight: 1.25, letterSpacing: "-0.02em" }}>
               Academic Publishing, Writing &amp; Indexation Advisory
             </h1>
             <p style={{ fontSize: "1.05rem", color: "var(--color-text-muted)", lineHeight: 1.6, margin: "0 0 1.75rem" }}>
-              AfriJournal Index (AJI) and the Kenya Projects Organization (KENPRO) provide expert editorial support to African scholars, researchers, and scientific journal editors. From polishing draft manuscripts and selecting the right indexed journal, to preparing publications for Scopus and Web of Science accreditation.
+              AfriJournal Index (AJI) provides expert editorial support to African scholars, researchers, and scientific journal editors. From polishing draft manuscripts and selecting the right indexed journal, to preparing publications for Scopus and Web of Science accreditation.
             </p>
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
@@ -135,7 +135,7 @@ export default function ServicesPage() {
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(480px, 1fr))", gap: "1.5rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 460px), 1fr))", gap: "1.5rem" }}>
             {services.map(svc => (
               <div 
                 key={svc.id} 
@@ -202,18 +202,18 @@ export default function ServicesPage() {
         </div>
 
         {/* Advisory / Institutional Callout */}
-        <div style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: "16px", padding: "2rem", marginBottom: "3rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1.5rem", flexWrap: "wrap" }}>
+        <div style={{ background: "rgba(245, 158, 11, 0.06)", border: "1px solid rgba(245, 158, 11, 0.25)", borderRadius: "16px", padding: "2rem", marginBottom: "3rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1.5rem", flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: "300px" }}>
-            <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#065f46", margin: "0 0 0.4rem" }}>
-              <i className="fa-solid fa-graduation-cap" style={{ marginRight: "8px" }}></i>
+            <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.4rem" }}>
+              <i className="fa-solid fa-graduation-cap" style={{ marginRight: "8px", color: "var(--color-primary)" }}></i>
               Are You an African Journal Editor or University Press?
             </h3>
-            <p style={{ fontSize: "0.9rem", color: "#047857", margin: 0, lineHeight: 1.5 }}>
-              AJI and KENPRO partner with universities and scientific societies to upgrade editorial standards, establish digital DOIs via Crossref, and prepare applications for Scopus and Web of Science indexation.
+            <p style={{ fontSize: "0.9rem", color: "var(--color-text-muted)", margin: 0, lineHeight: 1.5 }}>
+              AfriJournal Index partners with universities, faculty, and scientific societies to upgrade editorial standards, establish digital DOIs via Crossref, and prepare applications for Scopus and Web of Science indexation.
             </p>
           </div>
           <a 
-            href="mailto:wanjohi@kenpro.org?subject=Journal%20Editorial%20%26%20Indexation%20Consultation"
+            href="mailto:afrijournalindex@gmail.com?subject=Journal%20Editorial%20%26%20Indexation%20Consultation"
             className="btn btn-primary"
             style={{ whiteSpace: "nowrap", padding: "0.65rem 1.4rem", fontWeight: 700 }}
           >
@@ -237,14 +237,14 @@ export default function ServicesPage() {
 
           {submitted ? (
             <div style={{ textAlign: "center", padding: "2.5rem 1rem" }}>
-              <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "rgba(16, 185, 129, 0.15)", color: "#10b981", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.8rem", margin: "0 auto 1.25rem" }}>
+              <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "rgba(245, 158, 11, 0.15)", color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.8rem", margin: "0 auto 1.25rem" }}>
                 <i className="fa-solid fa-check"></i>
               </div>
               <h3 style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--color-text-main)", marginBottom: "0.5rem" }}>
                 Consultation Request Received
               </h3>
               <p style={{ fontSize: "0.9rem", color: "var(--color-text-muted)", maxWidth: "480px", margin: "0 auto 1.5rem", lineHeight: 1.6 }}>
-                Thank you, <strong>{formData.name}</strong>. A KENPRO editorial advisor has received your request regarding <strong>{formData.serviceType}</strong> and will reach out to <strong>{formData.email}</strong> shortly.
+                Thank you, <strong>{formData.name}</strong>. An AfriJournal editorial advisor has received your request regarding <strong>{formData.serviceType}</strong> and will reach out to <strong>{formData.email}</strong> shortly.
               </p>
               <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
                 <button
@@ -261,7 +261,7 @@ export default function ServicesPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "1rem" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "4px" }}>
                     Your Full Name *
@@ -293,7 +293,7 @@ export default function ServicesPage() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "1rem" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "4px" }}>
                     Academic Institution / Organization
@@ -358,8 +358,8 @@ export default function ServicesPage() {
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginTop: "0.5rem" }}>
                 <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
-                  <i className="fa-solid fa-lock" style={{ marginRight: "4px" }}></i>
-                  All manuscript drafts are protected under strict KENPRO non-disclosure confidentiality.
+                  <i className="fa-solid fa-lock" style={{ marginRight: "4px", color: "var(--color-primary)" }}></i>
+                  All manuscript drafts are protected under strict AfriJournal Index confidentiality &amp; academic privacy.
                 </div>
 
                 <button
@@ -377,11 +377,11 @@ export default function ServicesPage() {
           <div style={{ marginTop: "2rem", paddingTop: "1.5rem", borderTop: "1px solid var(--color-border)", display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: "1rem", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
             <div>
               <i className="fa-regular fa-envelope" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i>
-              <strong>Email:</strong> <a href="mailto:wanjohi@kenpro.org" style={{ color: "var(--color-primary)", textDecoration: "none" }}>wanjohi@kenpro.org</a> / <a href="mailto:kenprokenya@gmail.com" style={{ color: "var(--color-primary)", textDecoration: "none" }}>kenprokenya@gmail.com</a>
+              <strong>Email:</strong> <a href="mailto:afrijournalindex@gmail.com" style={{ color: "var(--color-primary)", textDecoration: "none" }}>afrijournalindex@gmail.com</a>
             </div>
             <div>
-              <i className="fa-solid fa-building-columns" style={{ color: "#10b981", marginRight: "6px" }}></i>
-              <strong>Organization:</strong> Kenya Projects Organization (KENPRO)
+              <i className="fa-solid fa-shield-halved" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i>
+              <strong>Service:</strong> AfriJournal Index Editorial &amp; Academic Advisory Desk
             </div>
           </div>
         </div>

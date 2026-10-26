@@ -53,6 +53,7 @@ function PostsPageContent() {
   const [loading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<any | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [mobilePanel, setMobilePanel] = useState<"none" | "profile" | "trending" | "services">("none");
 
   // Toast Notification State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -579,6 +580,141 @@ function PostsPageContent() {
 
       <main className="posts-container-main" style={{ flex: 1, padding: "1.5rem 1rem", maxWidth: "1240px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
         
+        {/* Mobile Twitter/X-Style Top Quick Bar - Visible only on mobile */}
+        <div className="posts-mobile-nav-bar" style={{ display: "none", gap: "0.5rem", marginBottom: "0.85rem", overflowX: "auto", paddingBottom: "2px" }}>
+          <button
+            type="button"
+            onClick={() => setMobilePanel(mobilePanel === "profile" ? "none" : "profile")}
+            className="btn btn-secondary btn-sm"
+            style={{
+              fontSize: "0.78rem",
+              padding: "0.4rem 0.8rem",
+              borderRadius: "20px",
+              background: mobilePanel === "profile" ? "var(--color-primary)" : "var(--color-bg-card)",
+              color: mobilePanel === "profile" ? "#000" : "var(--color-text-main)",
+              borderColor: mobilePanel === "profile" ? "var(--color-primary)" : "var(--color-border)",
+              fontWeight: 700,
+              whiteSpace: "nowrap"
+            }}
+          >
+            <i className="fa-solid fa-circle-user" style={{ marginRight: "5px" }}></i>
+            {user ? user.name.split(" ")[0] : "My Profile"}
+          </button>
+
+          {trendingTags.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setMobilePanel(mobilePanel === "trending" ? "none" : "trending")}
+              className="btn btn-secondary btn-sm"
+              style={{
+                fontSize: "0.78rem",
+                padding: "0.4rem 0.8rem",
+                borderRadius: "20px",
+                background: mobilePanel === "trending" ? "var(--color-primary)" : "var(--color-bg-card)",
+                color: mobilePanel === "trending" ? "#000" : "var(--color-text-main)",
+                borderColor: mobilePanel === "trending" ? "var(--color-primary)" : "var(--color-border)",
+                fontWeight: 700,
+                whiteSpace: "nowrap"
+              }}
+            >
+              <i className="fa-solid fa-arrow-trend-up" style={{ marginRight: "5px" }}></i>
+              Trending ({trendingTags.length})
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setMobilePanel(mobilePanel === "services" ? "none" : "services")}
+            className="btn btn-secondary btn-sm"
+            style={{
+              fontSize: "0.78rem",
+              padding: "0.4rem 0.8rem",
+              borderRadius: "20px",
+              background: mobilePanel === "services" ? "var(--color-primary)" : "var(--color-bg-card)",
+              color: mobilePanel === "services" ? "#000" : "var(--color-text-main)",
+              borderColor: mobilePanel === "services" ? "var(--color-primary)" : "var(--color-border)",
+              fontWeight: 700,
+              whiteSpace: "nowrap"
+            }}
+          >
+            <i className="fa-solid fa-compass" style={{ marginRight: "5px" }}></i>
+            Explore &amp; Services
+          </button>
+        </div>
+
+        {/* Mobile Accordion Panel */}
+        {mobilePanel !== "none" && (
+          <div className="posts-mobile-drawer-content" style={{ display: "none", marginBottom: "1rem" }}>
+            {mobilePanel === "profile" && (
+              <div className="card-surface" style={{ borderRadius: "12px", border: "1px solid var(--color-border)", padding: "1rem" }}>
+                {user ? (
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                      <strong>{user.name}</strong>
+                      <span style={{ fontSize: "0.75rem", color: "var(--color-primary)", fontWeight: 700 }}>{user.institution || "African Scholar"}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: "1rem", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
+                      <span><strong style={{ color: "var(--color-primary)" }}>{user.totalCitations || 0}</strong> Citations</span>
+                      <span><strong style={{ color: "var(--color-primary)" }}>h-{user.hIndex || 0}</strong> h-Index</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setMobilePanel("none"); openScholarProfile(user); }}
+                      className="btn btn-secondary btn-sm"
+                      style={{ width: "100%", fontSize: "0.8rem", fontWeight: 700 }}
+                    >
+                      Open Full Scholar Dossier
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: "center" }}>
+                    <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", margin: "0 0 0.5rem" }}>Sign in to post, draft manuscripts, and engage with continental peers.</p>
+                    <Link href="/login" className="btn btn-primary btn-sm" style={{ width: "100%" }}>Sign In / Register</Link>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {mobilePanel === "trending" && trendingTags.length > 0 && (
+              <div className="card-surface" style={{ borderRadius: "12px", border: "1px solid var(--color-border)", padding: "1rem" }}>
+                <div style={{ fontSize: "0.85rem", fontWeight: 800, marginBottom: "0.5rem", color: "var(--color-text-main)" }}>Trending Research Topics</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                  {trendingTags.map(({ tag, count }) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => { setSelectedTag(selectedTag === tag ? null : tag); setMobilePanel("none"); }}
+                      className="btn btn-secondary btn-sm"
+                      style={{ fontSize: "0.78rem", padding: "0.25rem 0.6rem", borderRadius: "14px", background: selectedTag === tag ? "var(--color-primary)" : "var(--color-bg-alt)", color: selectedTag === tag ? "#000" : "inherit" }}
+                    >
+                      #{tag} ({count})
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {mobilePanel === "services" && (
+              <div className="card-surface" style={{ borderRadius: "12px", border: "1px solid var(--color-border)", padding: "1rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.85rem" }}>
+                  <Link href="/scholars" onClick={() => setMobilePanel("none")} style={{ color: "var(--color-text-main)", textDecoration: "none", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
+                    <i className="fa-solid fa-user-graduate" style={{ color: "var(--color-primary)" }}></i> Find African Scholars
+                  </Link>
+                  <Link href="/browse" onClick={() => setMobilePanel("none")} style={{ color: "var(--color-text-main)", textDecoration: "none", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
+                    <i className="fa-solid fa-book-journal-whills" style={{ color: "#0284c7" }}></i> Browse Indexed Journals
+                  </Link>
+                  <Link href="/services" onClick={() => setMobilePanel("none")} style={{ color: "var(--color-text-main)", textDecoration: "none", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
+                    <i className="fa-solid fa-pen-nib" style={{ color: "var(--color-primary)" }}></i> Article Writing &amp; Review Services
+                  </Link>
+                  <Link href="/submit" onClick={() => setMobilePanel("none")} style={{ color: "var(--color-text-main)", textDecoration: "none", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
+                    <i className="fa-solid fa-arrow-up-from-bracket" style={{ color: "var(--color-primary)" }}></i> Submit Journal for Indexing
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* 3-Column Feed Layout with Sticky Sidebars */}
         <div className="posts-feed-grid">
           
@@ -714,16 +850,16 @@ function PostsPageContent() {
               </div>
             </div>
 
-            {/* KENPRO Advisory Mini Card */}
-            <div className="card-surface" style={{ borderRadius: "12px", border: "1px solid rgba(16, 185, 129, 0.25)", padding: "1rem", background: "rgba(16, 185, 129, 0.04)" }}>
+            {/* AJI Advisory Mini Card */}
+            <div className="card-surface" style={{ borderRadius: "12px", border: "1px solid var(--color-border)", padding: "1rem", background: "var(--color-bg-card-subtle)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.4rem" }}>
-                <i className="fa-solid fa-circle-check" style={{ color: "#10b981", fontSize: "0.85rem" }}></i>
+                <i className="fa-solid fa-feather-pointed" style={{ color: "var(--color-primary)", fontSize: "0.85rem" }}></i>
                 <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-main)" }}>Publishing Assistance</span>
               </div>
               <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", margin: "0 0 0.6rem", lineHeight: 1.45 }}>
-                Need help polishing your manuscript or choosing an indexed target journal? KENPRO experts provide peer review and writing support.
+                Need help polishing your manuscript or choosing an indexed target journal? AJI editorial specialists provide peer review and writing support.
               </p>
-              <Link href="/services" style={{ fontSize: "0.76rem", fontWeight: 700, color: "#10b981", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+              <Link href="/services" style={{ fontSize: "0.76rem", fontWeight: 700, color: "var(--color-primary)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px" }}>
                 <span>Explore services</span>
                 <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.65rem" }}></i>
               </Link>
@@ -797,11 +933,11 @@ function PostsPageContent() {
                       openComposer("DRAFT");
                     }}
                     style={{
-                      background: "rgba(16, 185, 129, 0.08)",
-                      border: "1px solid rgba(16, 185, 129, 0.3)",
+                      background: "rgba(245, 158, 11, 0.08)",
+                      border: "1px solid rgba(245, 158, 11, 0.35)",
                       borderRadius: "28px",
                       padding: "0.7rem 1.1rem",
-                      color: "#10b981",
+                      color: "var(--color-primary)",
                       fontSize: "0.84rem",
                       fontWeight: 700,
                       cursor: "pointer",
@@ -953,19 +1089,19 @@ function PostsPageContent() {
             {feedTab === "drafts" ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                 {/* Intellectual Property Protection Info Box */}
-                <div style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: "12px", padding: "1rem 1.25rem" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#065f46", fontWeight: 800, fontSize: "0.88rem", marginBottom: "4px" }}>
-                    <i className="fa-solid fa-shield-halved" style={{ color: "#10b981" }}></i>
+                <div style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.25)", borderRadius: "12px", padding: "1rem 1.25rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-primary)", fontWeight: 800, fontSize: "0.88rem", marginBottom: "4px" }}>
+                    <i className="fa-solid fa-shield-halved" style={{ color: "var(--color-primary)" }}></i>
                     Intellectual Property Protection Notice
                   </div>
-                  <p style={{ color: "#047857", fontSize: "0.8rem", margin: 0, lineHeight: 1.5 }}>
-                    Draft manuscripts are strictly <strong>private</strong> and never visible on the public feed, ensuring your unpublished research ideas cannot be plagiarized. You may share with designated reviewers via private link, get KENPRO writing services, or publish as an official preprint once ready.
+                  <p style={{ color: "var(--color-text-body)", fontSize: "0.8rem", margin: 0, lineHeight: 1.5 }}>
+                    Draft manuscripts are strictly <strong>private</strong> and never visible on the public feed, ensuring your unpublished research ideas cannot be plagiarized. You may share with designated reviewers via private link, request AJI expert editorial support, or submit directly to an indexed target journal once finalized.
                   </p>
                 </div>
 
                 {loadingDrafts ? (
                   <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-muted)" }}>
-                    <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "1.8rem", color: "#10b981", marginBottom: "0.8rem" }}></i>
+                    <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "1.8rem", color: "var(--color-primary)", marginBottom: "0.8rem" }}></i>
                     <p>Loading your private manuscript drafts...</p>
                   </div>
                 ) : drafts.length === 0 ? (
@@ -1779,18 +1915,18 @@ function PostsPageContent() {
           {/* RIGHT COLUMN: Sticky Database Trending Tags & Publication Card */}
           <div className="posts-sidebar-right">
             
-            {/* Dynamic Trending Research Hashtags Card */}
-            <div className="card-surface" style={{ borderRadius: "12px", border: "1px solid var(--color-border)", padding: "1.25rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.85rem" }}>
-                <i className="fa-solid fa-arrow-trend-up" style={{ color: "var(--color-primary)" }}></i>
-                <h4 style={{ fontSize: "0.92rem", fontWeight: 800, margin: 0, color: "var(--color-text-main)" }}>
-                  Trending African Research
-                </h4>
-              </div>
+            {/* Dynamic Trending Research Hashtags Card - Only shown when trending tags exist */}
+            {trendingTags.length > 0 && (
+              <div className="card-surface" style={{ borderRadius: "12px", border: "1px solid var(--color-border)", padding: "1.25rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.85rem" }}>
+                  <i className="fa-solid fa-arrow-trend-up" style={{ color: "var(--color-primary)" }}></i>
+                  <h4 style={{ fontSize: "0.92rem", fontWeight: 800, margin: 0, color: "var(--color-text-main)" }}>
+                    Trending African Research
+                  </h4>
+                </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                {trendingTags.length > 0 ? (
-                  trendingTags.map(({ tag, count }) => (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                  {trendingTags.map(({ tag, count }) => (
                     <button
                       key={tag}
                       type="button"
@@ -1814,18 +1950,14 @@ function PostsPageContent() {
                         {count} post{count !== 1 ? "s" : ""}
                       </span>
                     </button>
-                  ))
-                ) : (
-                  <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
-                    No trending tags yet.
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Formal Publication Promotion Card */}
             <div className="card-surface" style={{ borderRadius: "12px", border: "1px solid var(--color-border)", padding: "1.25rem", textAlign: "center" }}>
-              <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "#ecfdf5", color: "#047857", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem", marginBottom: "0.6rem" }}>
+              <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "rgba(245, 158, 11, 0.12)", color: "var(--color-primary)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem", marginBottom: "0.6rem" }}>
                 <i className="fa-solid fa-book-journal-whills"></i>
               </div>
               <h4 style={{ fontSize: "0.95rem", fontWeight: 800, margin: "0 0 0.3rem", color: "var(--color-text-main)" }}>
@@ -2585,12 +2717,12 @@ function PostsPageContent() {
             )}
 
             {composerMode === "DRAFT" && (
-              <div style={{ padding: "0.85rem 1rem", borderRadius: "10px", background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.3)", marginBottom: "1rem" }}>
-                <div style={{ color: "#065f46", fontWeight: 800, fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
-                  <i className="fa-solid fa-lock" style={{ color: "#10b981" }}></i>
+              <div style={{ padding: "0.85rem 1rem", borderRadius: "10px", background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.3)", marginBottom: "1rem" }}>
+                <div style={{ color: "var(--color-primary)", fontWeight: 800, fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
+                  <i className="fa-solid fa-lock" style={{ color: "var(--color-primary)" }}></i>
                   <span>Private Manuscript Draft Mode</span>
                 </div>
-                <div style={{ color: "#047857", fontSize: "0.78rem", lineHeight: 1.5 }}>
+                <div style={{ color: "var(--color-text-body)", fontSize: "0.78rem", lineHeight: 1.5 }}>
                   This draft is completely private and hidden from the public feed to safeguard your intellectual property. You can review it, share with designated reviewers, or explore which indexed journal to publish with.
                 </div>
               </div>
@@ -2706,9 +2838,7 @@ function PostsPageContent() {
                     style={{
                       padding: "0.45rem 1.4rem",
                       fontSize: "0.85rem",
-                      fontWeight: 700,
-                      background: composerMode === "DRAFT" ? "#10b981" : undefined,
-                      borderColor: composerMode === "DRAFT" ? "#059669" : undefined
+                      fontWeight: 700
                     }}
                   >
                     {submitting ? "Saving..." : composerMode === "DRAFT" ? "Save as Private Draft" : "Post"}

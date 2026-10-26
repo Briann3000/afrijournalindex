@@ -116,6 +116,35 @@ function ResearcherProfileContent() {
   const [claimLoading, setClaimLoading] = useState<boolean>(false);
   const [claimSuccessMessage, setClaimSuccessMessage] = useState<string | null>(null);
   const [claimErrorMessage, setClaimErrorMessage] = useState<string | null>(null);
+  const [showScholarCertModal, setShowScholarCertModal] = useState<boolean>(false);
+
+  const handlePayScholarVerification = () => {
+    const IntaSendClass = typeof window !== "undefined" ? (window as any).IntaSend : null;
+    if (IntaSendClass) {
+      const publicKey = process.env.NEXT_PUBLIC_INTASEND_PUBLIC_KEY || "ISPubKey_sandbox_d137df7d-95cf-4df5-91db-7ff72a15f02f";
+      const isLive = process.env.NEXT_PUBLIC_INTASEND_IS_LIVE === "true";
+      const intasend = new IntaSendClass({
+        publicAPIKey: publicKey,
+        live: isLive
+      });
+      intasend.on("COMPLETE", async () => {
+        alert("Payment received! Your Verified AfriScholar ID attestation has been confirmed.");
+        setShowScholarCertModal(false);
+      });
+      intasend.on("FAILED", () => {
+        alert("Transaction could not be completed. Please check your payment details.");
+      });
+      intasend.run({
+        amount: 2500,
+        currency: "KES",
+        title: "Verified AfriScholar ID Certification",
+        description: `Official ASID Certification & Attestation for ${profile?.name || "African Scholar"}`,
+        api_ref: `ASID_${targetId}`
+      });
+    } else {
+      alert("Payment gateway is initializing. Please try again in a few seconds.");
+    }
+  };
 
   useEffect(() => {
     if (claimParam || otpParam) {
@@ -971,7 +1000,8 @@ function ResearcherProfileContent() {
             {t.researcher_page.subtitle}
           </p>
         </main>
-        <Footer />
+        
+      <Footer />
       </div>
     );
   }
@@ -3924,6 +3954,154 @@ function ResearcherProfileContent() {
         )}
 
       </main>
+
+      {/* Verified AfriScholar ID & Certificate Modal */}
+        {showScholarCertModal && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background: "rgba(10, 15, 29, 0.82)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 10000,
+              padding: "1rem",
+              backdropFilter: "blur(6px)"
+            }}
+            onClick={() => setShowScholarCertModal(false)}
+          >
+            <div
+              style={{
+                background: "var(--color-bg-card)",
+                borderRadius: "16px",
+                border: "1px solid var(--color-border)",
+                maxWidth: "680px",
+                width: "100%",
+                padding: "2rem",
+                boxShadow: "0 25px 60px rgba(0,0,0,0.4)",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                position: "relative"
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem" }}>
+                <div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.78rem", fontWeight: 800, color: "var(--color-primary)", background: "rgba(245, 158, 11, 0.12)", padding: "0.2rem 0.6rem", borderRadius: "12px", marginBottom: "0.4rem" }}>
+                    <i className="fa-solid fa-shield-halved"></i>
+                    <span>Official Academic Credential</span>
+                  </div>
+                  <h2 style={{ fontSize: "1.4rem", fontWeight: 800, margin: 0, color: "var(--color-text-main)" }}>
+                    Verified AfriScholar Certification
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowScholarCertModal(false)}
+                  style={{ background: "none", border: "none", fontSize: "1.3rem", color: "var(--color-text-muted)", cursor: "pointer", padding: "0.2rem" }}
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              {/* Certificate Canvas Preview Card */}
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+                  border: "2px solid #d97706",
+                  borderRadius: "12px",
+                  padding: "2rem 1.5rem",
+                  color: "#f8fafc",
+                  textAlign: "center",
+                  position: "relative",
+                  marginBottom: "1.5rem",
+                  boxShadow: "0 12px 30px rgba(0,0,0,0.3)"
+                }}
+              >
+                <div style={{ fontSize: "0.75rem", letterSpacing: "2px", textTransform: "uppercase", color: "#fbbf24", fontWeight: 800, marginBottom: "0.5rem" }}>
+                  AfriJournal Index • Registry of African Scholars
+                </div>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 900, color: "#ffffff", margin: "0 0 1rem", letterSpacing: "-0.01em" }}>
+                  Certificate of Scholarly Authentication
+                </h3>
+                <div style={{ fontSize: "0.85rem", color: "#94a3b8", marginBottom: "0.4rem" }}>
+                  This hereby certifies that
+                </div>
+                <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#fbbf24", margin: "0.2rem 0 0.5rem" }}>
+                  {profile.name}
+                </div>
+                <div style={{ fontSize: "0.9rem", color: "#cbd5e1", marginBottom: "1rem" }}>
+                  {profile.institution || "African Academic & Research Institution"} {profile.country ? `• ${profile.country}` : ""}
+                </div>
+
+                <div style={{ display: "inline-block", background: "rgba(245, 158, 11, 0.15)", border: "1px solid rgba(245, 158, 11, 0.4)", borderRadius: "6px", padding: "0.4rem 1rem", marginBottom: "1.25rem" }}>
+                  <span style={{ fontSize: "0.75rem", color: "#94a3b8", display: "block" }}>Permanent African Scholar Identifier</span>
+                  <strong style={{ fontSize: "1rem", color: "#fbbf24", letterSpacing: "1px" }}>
+                    {(profile as any)?.asid || `ASID-2026-${((profile as any)?.countryCode || (profile.country === "Kenya" ? "KE" : profile.country === "Nigeria" ? "NG" : profile.country === "South Africa" ? "ZA" : "AF")).slice(0, 2).toUpperCase()}-${(profile.id || targetId || "0000").replace(/[^a-zA-Z0-9]/g, "").slice(0, 6).toUpperCase()}`}
+                  </strong>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "center", gap: "2rem", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "1rem", fontSize: "0.82rem", color: "#94a3b8" }}>
+                  <div>
+                    <strong style={{ color: "#ffffff", fontSize: "1.05rem", display: "block" }}>{profile.totalCitations || 0}</strong>
+                    <span>Verified Citations</span>
+                  </div>
+                  <div>
+                    <strong style={{ color: "#ffffff", fontSize: "1.05rem", display: "block" }}>h-{profile.hIndex || 0}</strong>
+                    <span>Hirsch Index</span>
+                  </div>
+                  <div>
+                    <strong style={{ color: "#ffffff", fontSize: "1.05rem", display: "block" }}>2026</strong>
+                    <span>Attestation Year</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Information & Action Section */}
+              <div style={{ fontSize: "0.86rem", color: "var(--color-text-muted)", lineHeight: 1.6, marginBottom: "1.5rem" }}>
+                The <strong>Verified AfriScholar ID (ASID)</strong> is the continental standard for African research identity. It provides permanent cryptographic attribution for academic promotion reviews, institutional grant applications, and peer review credentialing.
+              </div>
+
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="btn btn-secondary"
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", fontSize: "0.88rem", padding: "0.6rem 1.2rem" }}
+                >
+                  <i className="fa-solid fa-print"></i>
+                  <span>Print Certificate</span>
+                </button>
+
+                {profile.isClaimed ? (
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="btn btn-primary"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", fontSize: "0.88rem", fontWeight: 700, padding: "0.6rem 1.4rem" }}
+                  >
+                    <i className="fa-solid fa-file-pdf"></i>
+                    <span>Download / Print Official Certificate</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setShowScholarCertModal(false); setShowClaimProfileModal(true); }}
+                    className="btn btn-primary"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", fontSize: "0.88rem", fontWeight: 700, padding: "0.6rem 1.4rem" }}
+                  >
+                    <i className="fa-solid fa-id-badge"></i>
+                    <span>Claim &amp; Verify Profile (Free)</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
       <Footer />
     </div>

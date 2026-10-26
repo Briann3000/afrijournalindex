@@ -572,16 +572,22 @@ export default function JournalClientView({
     : totalCalculatedCites;
 
   // Single Source of Truth: Use official database report standardScore (matches Rankings 1:1)
-  const computedAJCI = journal?.latestReport?.standardScore ?? (
-    reportCites > 0 && totalCitableCount > 0 ? reportCites / totalCitableCount : 0
-  );
+  const computedAJCI = (journal?.latestReport?.standardScore !== undefined && journal?.latestReport?.standardScore !== null)
+    ? journal.latestReport.standardScore
+    : ((journal as any)?.standardScore !== undefined && (journal as any)?.standardScore !== null
+      ? (journal as any).standardScore
+      : 0);
 
   const computedAJCIStr = computedAJCI > 0 
     ? computedAJCI.toFixed(3) 
-    : (totalCitableCount > 0 ? "0.000" : "—");
+    : "—";
 
   // Harmonized Quartile from journal or computed score
   const computedQuartile: "Q1" | "Q2" | "Q3" | "Q4" | "Unrated" = useMemo(() => {
+    const reportQuartile = (journal?.latestReport as any)?.quartile;
+    if (reportQuartile && ["Q1", "Q2", "Q3", "Q4"].includes(reportQuartile)) {
+      return reportQuartile as "Q1" | "Q2" | "Q3" | "Q4";
+    }
     if (journal?.quartile && ["Q1", "Q2", "Q3", "Q4"].includes(journal.quartile as any)) {
       return journal.quartile as "Q1" | "Q2" | "Q3" | "Q4";
     }
@@ -590,7 +596,7 @@ export default function JournalClientView({
     if (computedAJCI >= 0.250) return "Q2";
     if (computedAJCI >= 0.080) return "Q3";
     return "Q4";
-  }, [totalCitableCount, computedAJCI, journal?.quartile]);
+  }, [totalCitableCount, computedAJCI, journal?.quartile, (journal?.latestReport as any)?.quartile]);
 
 
 
@@ -727,23 +733,6 @@ export default function JournalClientView({
                   <h1 style={{ fontSize: "2.1rem", fontWeight: 800, lineHeight: "1.3", margin: "0 0 1rem", color: "var(--color-text-main)", letterSpacing: "-0.02em" }}>
                     {journal.name}
                   </h1>
-
-                  {journal.isIndexed && (
-                    <div style={{
-                      marginTop: "0.85rem",
-                      marginBottom: "1rem",
-                      padding: "0.85rem 1.15rem",
-                      borderRadius: "8px",
-                      backgroundColor: "rgba(16, 185, 129, 0.08)",
-                      border: "1px solid rgba(16, 185, 129, 0.25)",
-                      color: "#065f46",
-                      fontSize: "0.92rem",
-                      lineHeight: "1.5"
-                    }}>
-                      <i className="fa-solid fa-circle-check" style={{ marginRight: "0.5rem", color: "#10b981" }}></i>
-                      <strong>AfriJournal Indexing Status:</strong> {journal.name} is an officially indexed African scholarly journal in the AfriJournal Index (AJCI) directory with verified citation and bibliometric metrics (Quality Grade: {journal.qualityGrade || "Verified"}).
-                    </div>
-                  )}
 
                   {!journal.isScopusIndexed && !journal.isWosIndexed && (
                     <div style={{

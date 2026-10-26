@@ -83,22 +83,37 @@ const quartileColors: Record<string, { bg: string; text: string; border: string 
   Unrated: { bg: "#f8fafc", text: "#64748b", border: "#e2e8f0" }
 };
 
+function normalizeDiscipline(raw: string): string {
+  if (!raw) return "";
+  const r = raw.toLowerCase();
+  if (r.includes("health") || r.includes("medic")) return "Health Sciences";
+  if (r.includes("social") && r.includes("educat")) return "Education & Social Sciences";
+  if (r.includes("social") || r.includes("humanit") || r.includes("law")) return "Social Sciences";
+  if (r.includes("educat") || r.includes("pedagog")) return "Education";
+  if (r.includes("agri") || r.includes("environ") || r.includes("ecolog")) return "Environment";
+  if (r.includes("business") || r.includes("econom") || r.includes("financ")) return "Business";
+  if (r.includes("manage") || r.includes("admin")) return "Management";
+  return raw;
+}
+
 function BrowseContent() {
   const { t } = useLang();
   const searchParams = useSearchParams();
   const router = useRouter();
   const urlCountry = searchParams?.get("country") || "";
   const urlQuery = searchParams?.get("q") || "";
+  const urlDiscipline = normalizeDiscipline(searchParams?.get("discipline") || "");
+  const urlTab = searchParams?.get("tab") || "";
   
   // Tabs: 'journals' or 'articles'
-  const [activeTab, setActiveTab] = useState<"journals" | "articles">("journals");
+  const [activeTab, setActiveTab] = useState<"journals" | "articles">(urlTab === "articles" ? "articles" : "journals");
 
   // Journal State
   const [journals, setJournals] = useState<Journal[]>([]);
   const [loadingJournals, setLoadingJournals] = useState<boolean>(true);
   const [search, setSearch] = useState<string>(urlQuery);
   const [countryFilter, setCountryFilter] = useState<string>(urlCountry);
-  const [disciplineFilter, setDisciplineFilter] = useState<string>("");
+  const [disciplineFilter, setDisciplineFilter] = useState<string>(urlDiscipline);
   const [quartileFilter, setQuartileFilter] = useState<string>("");
   const [indexBodyFilter, setIndexBodyFilter] = useState<string>("");
   const [sortField, setSortField] = useState<SortField>("score");
@@ -121,11 +136,13 @@ function BrowseContent() {
   // Sync from URL
   useEffect(() => {
     if (urlCountry) setCountryFilter(urlCountry);
+    if (urlDiscipline) setDisciplineFilter(urlDiscipline);
+    if (urlTab === "articles") setActiveTab("articles");
     if (urlQuery) {
       setSearch(urlQuery);
       setArticleSearch(urlQuery);
     }
-  }, [urlCountry, urlQuery]);
+  }, [urlCountry, urlDiscipline, urlTab, urlQuery]);
 
   // Load Journals
   useEffect(() => {
@@ -230,10 +247,21 @@ function BrowseContent() {
         j.name.toLowerCase().includes(query) || 
         j.issn.toLowerCase().includes(query) || 
         (j.eissn && j.eissn.toLowerCase().includes(query)) ||
-        j.publisher.toLowerCase().includes(query);
+        j.publisher.toLowerCase().includes(query) ||
+        (j.disciplines && j.disciplines.some(d => d.toLowerCase().includes(query) || query.includes(d.toLowerCase()))) ||
+        (j.primaryDiscipline && (j.primaryDiscipline.toLowerCase().includes(query) || query.includes(j.primaryDiscipline.toLowerCase())));
       
       const matchesCountry = countryFilter === "" || j.country.toLowerCase() === countryFilter.toLowerCase();
-      const matchesDiscipline = disciplineFilter === "" || j.disciplines.includes(disciplineFilter);
+      const matchesDiscipline = disciplineFilter === "" || 
+        j.disciplines.some(d => {
+          const dL = d.toLowerCase();
+          const fL = disciplineFilter.toLowerCase();
+          return dL === fL || dL.includes(fL) || fL.includes(dL);
+        }) || 
+        (j.primaryDiscipline && (
+          j.primaryDiscipline.toLowerCase().includes(disciplineFilter.toLowerCase()) ||
+          disciplineFilter.toLowerCase().includes(j.primaryDiscipline.toLowerCase())
+        ));
       const matchesQuartile = quartileFilter === "" || j.quartile === quartileFilter;
       const matchesIndexBody = indexBodyFilter === "" ||
         (indexBodyFilter === "scopus" && j.isScopusIndexed) ||
@@ -443,6 +471,12 @@ function BrowseContent() {
                   style={{ fontSize: "0.9rem" }}
                 >
                   <option value="">All Subject Fields</option>
+                  {disciplineFilter && ![
+                    "Education & Social Sciences", "Education", "Social Sciences",
+                    "Management", "Business", "Environment", "Health Sciences", "Multidisciplinary"
+                  ].includes(disciplineFilter) && (
+                    <option value={disciplineFilter}>{disciplineFilter}</option>
+                  )}
                   <option value="Education & Social Sciences">Education &amp; Social Sciences</option>
                   <option value="Education">Education</option>
                   <option value="Social Sciences">Social Sciences</option>
@@ -587,6 +621,24 @@ function BrowseContent() {
                           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem", fontSize: "0.79rem", color: "var(--color-text-muted)" }}>
                             <span style={{ background: "var(--color-bg-card-subtle)", padding: "0.1rem 0.4rem", borderRadius: "4px", border: "1px solid var(--color-border)" }}>
                               <strong>ISSN:</strong> {journal.issn}
+                            </span>
+                            <span 
+                              title="Open Access Journal — Free to read and cite"
+                              style={{ 
+                                background: "rgba(245, 158, 11, 0.1)", 
+                                color: "#d97706", 
+                                border: "1px solid rgba(245, 158, 11, 0.3)", 
+                                padding: "0.1rem 0.45rem", 
+                                borderRadius: "4px", 
+                                fontWeight: 700, 
+                                fontSize: "0.72rem",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "3px"
+                              }}
+                            >
+                              <i className="fa-solid fa-lock-open" style={{ fontSize: "0.68rem" }}></i>
+                              <span>Open Access</span>
                             </span>
                             {journal.isScopusIndexed && (
                               <span style={{ background: "#fef3c7", color: "#92400e", border: "1px solid #fde68a", padding: "0.1rem 0.45rem", borderRadius: "4px", fontWeight: 700, fontSize: "0.72rem" }}>
@@ -784,7 +836,7 @@ function BrowseContent() {
                   Found <strong style={{ color: "var(--color-primary)" }}>{articleTotal.toLocaleString()}</strong> peer-reviewed African research articles
                 </span>
 
-                {/* Open Access PDF Toggle Pill */}
+                {/* Open Access Toggle Pill */}
                 <label style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", cursor: "pointer", background: articleHasPdf ? "var(--color-primary-light)" : "#f8fafc", padding: "0.3rem 0.75rem", borderRadius: "20px", border: articleHasPdf ? "1px solid var(--color-primary)" : "1px solid var(--color-border)", fontSize: "0.82rem", fontWeight: 600, color: articleHasPdf ? "var(--color-primary)" : "var(--color-text-main)", userSelect: "none" }}>
                   <input
                     type="checkbox"
@@ -795,8 +847,8 @@ function BrowseContent() {
                     }}
                     style={{ accentColor: "var(--color-primary)", cursor: "pointer" }}
                   />
-                  <i className="fa-solid fa-file-pdf" style={{ color: articleHasPdf ? "var(--color-primary)" : "#dc2626" }}></i>
-                  Open Access PDF Full-Text Only
+                  <i className="fa-solid fa-lock-open" style={{ color: articleHasPdf ? "var(--color-primary)" : "var(--color-text-muted)" }}></i>
+                  Open Access / Full Text Only
                 </label>
 
                 {(articleSearch || countryFilter || articleYear || articleHasPdf) && (
@@ -882,31 +934,42 @@ function BrowseContent() {
                       </h3>
                     </div>
 
-                    <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                      {art.doi && art.doi.startsWith("10.") && !art.doi.includes("zenodo.arjess") && !art.doi.includes("10.5130") && !art.doi.includes("10.59235") && (
+                    <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
+                      {art.doi && art.doi.startsWith("10.") && !art.doi.includes("zenodo.arjess") && !art.doi.includes("10.5130") && !art.doi.includes("10.59235") ? (
                         <a
                           href={`https://doi.org/${art.doi.trim()}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn btn-secondary btn-sm"
-                          style={{ fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
-                        >
-                          <span>DOI</span>
-                          <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.7rem" }}></i>
-                        </a>
-                      )}
-                      {art.pdfUrl && (
-                        <a
-                          href={art.pdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="btn btn-primary btn-sm"
                           style={{ fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
                         >
-                          <i className="fa-solid fa-file-pdf"></i>
-                          <span>Open PDF</span>
+                          <span>Access via DOI</span>
+                          <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.7rem" }}></i>
                         </a>
-                      )}
+                      ) : (art.pdfUrl || (art as any).url) ? (
+                        <a
+                          href={art.pdfUrl || (art as any).url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
+                        >
+                          <span>Publisher Site</span>
+                          <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.7rem" }}></i>
+                        </a>
+                      ) : null}
+
+                      <a
+                        href={`https://scholar.google.com/scholar?q=${encodeURIComponent(art.title)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: "0.78rem", display: "inline-flex", alignItems: "center", gap: "0.35rem", color: "var(--color-text-muted)" }}
+                        title="Search citations on Google Scholar"
+                      >
+                        <i className="fa-brands fa-google" style={{ fontSize: "0.75rem" }}></i>
+                        <span>Scholar</span>
+                      </a>
                     </div>
                   </div>
 

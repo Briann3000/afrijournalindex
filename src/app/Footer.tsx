@@ -67,10 +67,23 @@ export default function Footer() {
       </div>
       
       <div className="footer-bottom">
-        <div className="container footer-bottom-flex" style={{ flexWrap: "wrap", gap: "1rem" }}>
-          <p className="copyright" style={{ color: "#e2e8f0", fontSize: "0.88rem", fontWeight: 500, margin: 0 }}>
-            &copy; 2026 AfriJournal Indexing. {t.footer.rights}
-          </p>
+        <div className="container footer-bottom-flex" style={{ flexWrap: "wrap", gap: "1rem", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <p className="copyright" style={{ color: "#e2e8f0", fontSize: "0.88rem", fontWeight: 500, margin: "0 0 0.25rem" }}>
+              &copy; 2026 AfriJournal Indexing. {t.footer.rights}
+            </p>
+            <p style={{ color: "#94a3b8", fontSize: "0.78rem", margin: 0, lineHeight: 1.5 }}>
+              Bibliometric indices &amp; catalog metadata licensed under{" "}
+              <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer" style={{ color: "#cbd5e1", textDecoration: "underline" }}>
+                CC BY 4.0
+              </a>
+              . Powered by{" "}
+              <a href="https://kdanalytiks.com" target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-primary)", fontWeight: 700, textDecoration: "none" }}>
+                KDAnalytiks
+              </a>
+              .
+            </p>
+          </div>
           <p style={{ fontSize: "0.88rem", color: "#f59e0b", fontWeight: 500, margin: 0 }}>
             {t.footer.tagline}
           </p>

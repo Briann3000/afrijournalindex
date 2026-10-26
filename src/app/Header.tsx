@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLang } from "./LangContext";
 
 interface HeaderProps {
-  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about" | "compare" | "referee-finder" | "scholars" | "forum" | "posts";
+  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about" | "compare" | "referee-finder" | "scholars" | "forum" | "posts" | "services" | "community";
 }
 
 export default function Header({ activePage }: HeaderProps) {
@@ -270,17 +270,54 @@ export default function Header({ activePage }: HeaderProps) {
             Scholars
           </a>
 
-          {/* Posts & Preprints Link */}
-          <a href="/posts" className={`nav-link ${activePage === "posts" ? "active" : ""}`}>
-            Posts
+          {/* Group 3: Community (Posts & Forum) */}
+          <div className="nav-dropdown-wrapper" style={{ position: "relative" }}>
+            <button 
+              type="button"
+              className={`nav-link nav-dropdown-btn ${activePage === "posts" || activePage === "forum" ? "active" : ""}`}
+              onClick={() => toggleDropdown("community")}
+              onMouseEnter={() => setOpenDropdown("community")}
+              style={{ background: "none", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}
+            >
+              <span>Community</span>
+              <i className="fa-solid fa-chevron-down" style={{ fontSize: "0.68rem", opacity: 0.8, transition: "transform 0.2s", transform: openDropdown === "community" ? "rotate(180deg)" : "rotate(0deg)" }}></i>
+            </button>
+
+            {openDropdown === "community" && (
+              <div 
+                className="nav-dropdown-menu"
+                onMouseLeave={() => setOpenDropdown(null)}
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: "0",
+                  minWidth: "220px",
+                  background: "#181820",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderRadius: "10px",
+                  padding: "0.6rem 0",
+                  boxShadow: "0 14px 30px rgba(0,0,0,0.6)",
+                  zIndex: 110
+                }}
+              >
+                <a href="/posts" className="nav-dropdown-item">
+                  <i className="fa-solid fa-scroll" style={{ color: "#f59e0b", width: "20px" }}></i>
+                  <span>Scholarly Feed &amp; Drafts</span>
+                </a>
+                <a href="/forum" className="nav-dropdown-item">
+                  <i className="fa-solid fa-comments" style={{ color: "#f59e0b", width: "20px" }}></i>
+                  <span>AfriScholarChat</span>
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* Standalone Top-Level Services Link */}
+          <a href="/services" className={`nav-link ${activePage === "services" ? "active" : ""}`}>
+            Services
           </a>
 
-          {/* AfriScholarChat Community Link */}
-          <a href="/forum" className={`nav-link ${activePage === "forum" ? "active" : ""}`}>
-            AfriScholarChat
-          </a>
-
-          {/* Group 3: Resources & About */}
+          {/* Group 4: About & Standards */}
           <div className="nav-dropdown-wrapper" style={{ position: "relative" }}>
             <button 
               type="button"
@@ -314,10 +351,6 @@ export default function Header({ activePage }: HeaderProps) {
                   <i className="fa-solid fa-circle-info" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.about}</span>
                 </a>
-                <a href="/services" className="nav-dropdown-item">
-                  <i className="fa-solid fa-hand-holding-hand" style={{ color: "#10b981", width: "20px" }}></i>
-                  <span>Services</span>
-                </a>
                 <a href="/methodology" className="nav-dropdown-item">
                   <i className="fa-solid fa-scale-balanced" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.footer.methodology}</span>
@@ -336,34 +369,61 @@ export default function Header({ activePage }: HeaderProps) {
         </nav>
         
         {/* Right Header Actions */}
-        <div className="header-actions" style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0, minWidth: 0 }}>
+        <div className="header-actions" style={{ display: "flex", alignItems: "center", gap: "0.35rem", flexShrink: 0, minWidth: 0 }}>
           
-          {/* Expandable Desktop Quick Search */}
-          <div ref={searchContainerRef} className="header-search-container" style={{ position: "relative", display: "flex", alignItems: "center", minWidth: 0 }}>
-            {isSearchOpen ? (
+          {/* Expandable Desktop Quick Search - Dropdown overlay so it never pushes adjacent elements */}
+          <div ref={searchContainerRef} className="header-search-container" style={{ position: "relative", display: "flex", alignItems: "center", flexShrink: 0 }}>
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              className="header-search-trigger"
+              title="Search Journals, Articles & Universities"
+              aria-label="Open Search"
+              style={{
+                background: isSearchOpen ? "#262633" : "#1c1c24",
+                border: isSearchOpen ? "1px solid #f59e0b" : "1px solid rgba(255, 255, 255, 0.16)",
+                color: isSearchOpen ? "#f59e0b" : "#cbd5e1",
+                borderRadius: "50%",
+                width: "30px",
+                height: "30px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+                flexShrink: 0
+              }}
+            >
+              <i className="fa-solid fa-magnifying-glass" style={{ fontSize: "0.75rem", color: isSearchOpen ? "#f59e0b" : "var(--color-primary)" }}></i>
+            </button>
+
+            {isSearchOpen && (
               <form 
                 onSubmit={handleSearchSubmit} 
                 style={{ 
+                  position: "absolute",
+                  top: "calc(100% + 10px)",
+                  right: 0,
                   display: "flex", 
                   alignItems: "center", 
-                  background: "#1c1c24", 
+                  background: "#181820", 
                   border: "1px solid #f59e0b", 
-                  borderRadius: "20px", 
-                  padding: "2px 6px 2px 8px",
-                  boxShadow: "0 0 0 3px rgba(245, 158, 11, 0.25)",
-                  transition: "all 0.25s ease",
-                  width: "clamp(120px, 18vw, 200px)",
-                  maxWidth: "100%",
-                  flexShrink: 1
+                  borderRadius: "10px", 
+                  padding: "4px 8px 4px 10px",
+                  boxShadow: "0 12px 30px rgba(0, 0, 0, 0.75)",
+                  width: "280px",
+                  maxWidth: "calc(100vw - 32px)",
+                  zIndex: 1050
                 }}
               >
-                <i className="fa-solid fa-magnifying-glass" style={{ color: "#f59e0b", fontSize: "0.78rem", marginRight: "4px" }}></i>
+                <i className="fa-solid fa-magnifying-glass" style={{ color: "#f59e0b", fontSize: "0.78rem", marginRight: "6px" }}></i>
                 <input
                   ref={searchInputRef}
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search articles, journals, scholars..."
+                  autoFocus
                   onKeyDown={(e) => {
                     if (e.key === "Escape") {
                       setIsSearchOpen(false);
@@ -376,26 +436,19 @@ export default function Header({ activePage }: HeaderProps) {
                     color: "#ffffff",
                     fontSize: "0.82rem",
                     width: "100%",
-                    minWidth: "60px",
                     padding: "3px 0"
                   }}
                 />
                 <button
                   type="button"
-                  onClick={() => {
-                    if (searchQuery) {
-                      setSearchQuery("");
-                    } else {
-                      setIsSearchOpen(false);
-                    }
-                  }}
+                  onClick={() => setIsSearchOpen(false)}
                   title="Close Search"
                   style={{
                     background: "none",
                     border: "none",
                     color: "#94a3b8",
                     cursor: "pointer",
-                    padding: "3px 4px",
+                    padding: "2px 4px",
                     fontSize: "0.8rem",
                     display: "flex",
                     alignItems: "center"
@@ -404,42 +457,10 @@ export default function Header({ activePage }: HeaderProps) {
                   <i className="fa-solid fa-xmark"></i>
                 </button>
               </form>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setIsSearchOpen(true)}
-                className="header-search-trigger"
-                title="Search Journals, Articles & Universities"
-                aria-label="Open Search"
-                style={{
-                  background: "#1c1c24",
-                  border: "1px solid rgba(255, 255, 255, 0.16)",
-                  color: "#cbd5e1",
-                  borderRadius: "50%",
-                  width: "34px",
-                  height: "34px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                  flexShrink: 0
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "var(--color-primary)";
-                  e.currentTarget.style.color = "#ffffff";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.16)";
-                  e.currentTarget.style.color = "#cbd5e1";
-                }}
-              >
-                <i className="fa-solid fa-magnifying-glass" style={{ fontSize: "0.82rem", color: "var(--color-primary)" }}></i>
-              </button>
             )}
           </div>
 
-          {/* Language Switcher - Compact Width */}
+          {/* Language Switcher - Ultra Compact Width */}
           <div className="lang-selector-wrapper" style={{ flexShrink: 0 }}>
             <select 
               id="langSelector" 
@@ -447,7 +468,7 @@ export default function Header({ activePage }: HeaderProps) {
               value={lang}
               aria-label="Select Language"
               onChange={(e) => setLang(e.target.value)}
-              style={{ fontSize: "0.78rem", padding: "0.35rem 18px 0.35rem 0.5rem", width: "72px" }}
+              style={{ fontSize: "0.74rem", padding: "0.28rem 16px 0.28rem 0.45rem", width: "58px" }}
             >
               <option value="en">EN</option>
               <option value="fr">FR</option>
@@ -458,7 +479,7 @@ export default function Header({ activePage }: HeaderProps) {
           </div>
 
           {/* Desktop User Action Buttons */}
-          <div className="desktop-actions" style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <div className="desktop-actions" style={{ display: "flex", gap: "0.35rem", alignItems: "center", flexShrink: 0 }}>
             {user ? (
               <div ref={userDropdownRef} className="nav-dropdown-wrapper" style={{ position: "relative" }}>
                 <button
@@ -472,14 +493,15 @@ export default function Header({ activePage }: HeaderProps) {
                     border: "1px solid rgba(255, 255, 255, 0.16)",
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: "7px",
-                    padding: "0.4rem 0.85rem",
+                    gap: "5px",
+                    padding: "0.32rem 0.65rem",
+                    fontSize: "0.80rem",
                     cursor: "pointer"
                   }}
                 >
-                  <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`} style={{ color: "var(--color-primary)" }}></i>
+                  <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`} style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>
                   <span style={{ fontWeight: 600 }}>{user.name ? user.name.split(" ")[0] : (user.role === "PUBLISHER" ? "Editor" : "Scholar")}</span>
-                  <i className="fa-solid fa-chevron-down" style={{ fontSize: "0.68rem", opacity: 0.8, transition: "transform 0.2s", transform: openDropdown === "userProfile" ? "rotate(180deg)" : "rotate(0deg)" }}></i>
+                  <i className="fa-solid fa-chevron-down" style={{ fontSize: "0.62rem", opacity: 0.8, transition: "transform 0.2s", transform: openDropdown === "userProfile" ? "rotate(180deg)" : "rotate(0deg)" }}></i>
                 </button>
 
                 {openDropdown === "userProfile" && (
@@ -579,10 +601,30 @@ export default function Header({ activePage }: HeaderProps) {
               </div>
             ) : (
               <>
-                <a href="/login" className="btn btn-secondary btn-sm" style={{ background: "#1c1c24", color: "#ffffff", border: "1px solid rgba(255, 255, 255, 0.12)" }}>
+                <a 
+                  href="/login" 
+                  className="btn btn-secondary btn-sm" 
+                  style={{ 
+                    background: "#1c1c24", 
+                    color: "#ffffff", 
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    padding: "0.32rem 0.65rem",
+                    fontSize: "0.80rem",
+                    whiteSpace: "nowrap"
+                  }}
+                >
                   {t.nav.login}
                 </a>
-                <a href="/submit" className="btn btn-primary btn-sm">
+                <a 
+                  href="/submit" 
+                  className="btn btn-primary btn-sm"
+                  style={{
+                    padding: "0.32rem 0.75rem",
+                    fontSize: "0.80rem",
+                    whiteSpace: "nowrap",
+                    fontWeight: 700
+                  }}
+                >
                   {t.nav.get_started}
                 </a>
               </>
@@ -830,16 +872,71 @@ export default function Header({ activePage }: HeaderProps) {
               </Link>
             </div>
 
-            {/* Direct Posts & Preprints Link */}
+            {/* Mobile Accordion: Community (Posts & Forum) */}
+            <div style={{ borderTop: "1px solid #1e293b", paddingTop: "0.85rem" }}>
+              <button 
+                type="button"
+                onClick={() => toggleMobileSection("community")}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  background: "none",
+                  border: "none",
+                  color: "#ffffff",
+                  fontSize: "1.05rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  padding: "0.4rem 0"
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <i className="fa-solid fa-users" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
+                  <span>Community</span>
+                </div>
+                <i 
+                  className="fa-solid fa-chevron-down" 
+                  style={{ 
+                    fontSize: "0.8rem", 
+                    color: "#94a3b8",
+                    transition: "transform 0.2s ease",
+                    transform: mobileExpanded.community ? "rotate(180deg)" : "rotate(0deg)"
+                  }}
+                ></i>
+              </button>
+              {mobileExpanded.community && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", padding: "0.6rem 0 0.4rem 1.75rem" }}>
+                  <Link 
+                    href="/posts" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-scroll" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Scholarly Feed &amp; Drafts</span>
+                  </Link>
+                  <Link 
+                    href="/forum" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-comments" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>AfriScholarChat</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Standalone Services Link */}
             <div style={{ borderTop: "1px solid #1e293b", paddingTop: "0.85rem" }}>
               <Link 
-                href="/posts" 
+                href="/services" 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`nav-link ${activePage === "posts" ? "active" : ""}`}
+                className={`nav-link ${activePage === "services" ? "active" : ""}`}
                 style={{ fontSize: "1.05rem", fontWeight: 600, color: "#ffffff", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
               >
-                <i className="fa-solid fa-scroll" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
-                <span>Posts</span>
+                <i className="fa-solid fa-pen-ruler" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
+                <span>Services</span>
               </Link>
             </div>
 
@@ -885,14 +982,6 @@ export default function Header({ activePage }: HeaderProps) {
                   >
                     <i className="fa-solid fa-circle-info" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{t.nav.about}</span>
-                  </Link>
-                  <Link 
-                    href="/services" 
-                    onClick={() => setIsMobileMenuOpen(false)} 
-                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
-                  >
-                    <i className="fa-solid fa-hand-holding-hand" style={{ color: "#10b981", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
-                    <span>Services</span>
                   </Link>
                   <Link 
                     href="/methodology" 
