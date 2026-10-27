@@ -46,6 +46,8 @@ model User {
   claimTokenExpiry DateTime?
   metricsSource String?     @default("OPENALEX") @db.VarChar(50)
   lastMetricsSyncAt DateTime?
+  cvPdfUrl      String?     @db.Text
+  dossierData   String?     @db.LongText
   resetToken    String?     @db.VarChar(255)
   resetTokenExpiry DateTime?
   createdAt     DateTime    @default(now())

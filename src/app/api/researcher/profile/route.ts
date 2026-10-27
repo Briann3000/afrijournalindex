@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "../../../../lib/db";
+import { verifySessionToken, verifyPassword, hashPassword } from "../../../../lib/auth";
 import { normalizeOrcid, verifyOrcidWithRegistry } from "../../../../lib/orcid";
 import { ALL_AFRICAN_COUNTRIES } from "../../../data/african-countries";
 import { getScholarScientometrics, getAuthenticPublicationVenue } from "../../../../lib/scholar-metrics";
@@ -188,7 +190,9 @@ export async function GET(request: Request) {
         openAlexId: true,
         isClaimed: true,
         metricsSource: true,
-        lastMetricsSyncAt: true
+        lastMetricsSyncAt: true,
+        cvPdfUrl: true,
+        dossierData: true
       }
     });
 
@@ -547,6 +551,52 @@ export async function GET(request: Request) {
 
     const instResolved = resolveInstitution(user.institution || "", user.email || "", bioText, user.name);
 
+    // Parse structured scholar dossier (books, consultancies, innovations, media, links)
+    let dossier: {
+      externalLinks: Record<string, string>;
+      books: any[];
+      consultancies: any[];
+      innovations: any[];
+      media: any[];
+      memberships: any[];
+    } = {
+      externalLinks: {},
+      books: [],
+      consultancies: [],
+      innovations: [],
+      media: [],
+      memberships: []
+    };
+
+    if (user.dossierData) {
+      try {
+        const parsed = typeof user.dossierData === "string" ? JSON.parse(user.dossierData) : user.dossierData;
+        if (parsed && typeof parsed === "object") {
+          dossier = {
+            externalLinks: parsed.externalLinks || {},
+            books: Array.isArray(parsed.books) ? parsed.books : [],
+            consultancies: Array.isArray(parsed.consultancies) ? parsed.consultancies : [],
+            innovations: Array.isArray(parsed.innovations) ? parsed.innovations : [],
+            media: Array.isArray(parsed.media) ? parsed.media : [],
+            memberships: Array.isArray(parsed.memberships) ? parsed.memberships : []
+          };
+        }
+      } catch (e) {
+        console.error("Error parsing user dossierData:", e);
+      }
+    }
+
+    const consolidatedLinks = {
+      googleScholar: user.googleScholarUrl || dossier.externalLinks?.googleScholar || null,
+      orcid: user.orcid ? `https://orcid.org/${user.orcid.replace(/https?:\/\/orcid\.org\//i, "")}` : (dossier.externalLinks?.orcid || null),
+      amazonAuthor: dossier.externalLinks?.amazonAuthor || null,
+      academia: dossier.externalLinks?.academia || null,
+      researchGate: dossier.externalLinks?.researchGate || null,
+      linkedIn: dossier.externalLinks?.linkedIn || null,
+      semanticScholar: dossier.externalLinks?.semanticScholar || null,
+      website: dossier.externalLinks?.website || null
+    };
+
     return NextResponse.json({
       success: true,
       data: {
@@ -569,7 +619,10 @@ export async function GET(request: Request) {
           isEditor: user.role === "PUBLISHER" || journals.length > 0 || submissions.length > 0,
           isInstitutionalVerified,
           verifiedDomain,
-          researchFocus
+          researchFocus,
+          cvPdfUrl: user.cvPdfUrl || null,
+          dossier,
+          externalLinks: consolidatedLinks
         },
         metrics: {
           publicationsCount: articles.length,
@@ -609,12 +662,21 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { id, orcid, institution, researchFocus } = body;
+    let targetUserId = body.id;
 
-    if (!id) {
+    if (!targetUserId) {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get("afriJournalSession");
+      if (sessionCookie?.value) {
+        targetUserId = verifySessionToken(sessionCookie.value);
+      }
+    }
+
+    if (!targetUserId) {
       return NextResponse.json({ success: false, error: "User ID is required." }, { status: 400 });
     }
 
+    const { orcid, institution, researchFocus } = body;
     const updateData: any = {};
     if (body.name !== undefined && body.name.trim()) updateData.name = body.name.trim();
 
@@ -650,7 +712,7 @@ export async function PATCH(request: Request) {
       // If updating bio or researchFocus, fetch current user bio if needed
       let baseBio = rawBio !== null ? rawBio : "";
       if (rawBio === null) {
-        const existing = await prisma.user.findUnique({ where: { id }, select: { bio: true } });
+        const existing = await prisma.user.findUnique({ where: { id: targetUserId }, select: { bio: true } });
         baseBio = (existing?.bio || "").replace(/\[Interests:\s*.*?\]/, "").trim();
       } else {
         baseBio = baseBio.replace(/\[Interests:\s*.*?\]/, "").trim();
@@ -670,8 +732,61 @@ export async function PATCH(request: Request) {
       }
     }
 
+    if (body.department !== undefined) {
+      updateData.department = body.department ? body.department.trim() : null;
+    }
+    if (body.googleScholarUrl !== undefined) {
+      updateData.googleScholarUrl = body.googleScholarUrl ? body.googleScholarUrl.trim() : null;
+    }
+    if (body.cvPdfUrl !== undefined) {
+      updateData.cvPdfUrl = body.cvPdfUrl ? body.cvPdfUrl.trim() : null;
+    }
+    if (body.dossierData !== undefined) {
+      if (typeof body.dossierData === "object" && body.dossierData !== null) {
+        updateData.dossierData = JSON.stringify(body.dossierData);
+      } else if (typeof body.dossierData === "string") {
+        updateData.dossierData = body.dossierData.trim() || null;
+      }
+    }
+
+    // Handle Password Update securely
+    if (body.newPassword !== undefined && body.newPassword !== null && String(body.newPassword).trim() !== "") {
+      const newPassword = String(body.newPassword).trim();
+      if (newPassword.length < 8) {
+        return NextResponse.json({
+          success: false,
+          error: "New password must be at least 8 characters long."
+        }, { status: 400 });
+      }
+
+      // Check current password if user already has one and is updating their own account
+      const currentUser = await prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { passwordHash: true }
+      });
+
+      if (currentUser?.passwordHash) {
+        const currentPassword = String(body.currentPassword || "").trim();
+        if (!currentPassword) {
+          return NextResponse.json({
+            success: false,
+            error: "Current password is required to set a new password."
+          }, { status: 400 });
+        }
+        const isMatch = verifyPassword(currentPassword, currentUser.passwordHash);
+        if (!isMatch) {
+          return NextResponse.json({
+            success: false,
+            error: "Incorrect current password."
+          }, { status: 400 });
+        }
+      }
+
+      updateData.passwordHash = hashPassword(newPassword);
+    }
+
     const updatedUser = await prisma.user.update({
-      where: { id },
+      where: { id: targetUserId },
       data: updateData,
       select: {
         id: true,
@@ -679,8 +794,12 @@ export async function PATCH(request: Request) {
         name: true,
         orcid: true,
         institution: true,
+        department: true,
         bio: true,
-        role: true
+        role: true,
+        googleScholarUrl: true,
+        cvPdfUrl: true,
+        dossierData: true
       }
     });
 

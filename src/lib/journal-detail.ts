@@ -110,14 +110,20 @@ export interface JournalDetail {
 export async function getJournalDetail(id: string): Promise<JournalDetail | null> {
   if (!id) return null;
 
+  const rawQuery = decodeURIComponent(id).trim();
+  // Strip hyphens for flexible ISSN comparisons e.g. "23120134" or "2312-0134"
+  const cleanDigits = rawQuery.replace(/[^0-9xX]/g, "");
+  const hyphenatedIssn = cleanDigits.length === 8 ? `${cleanDigits.slice(0, 4)}-${cleanDigits.slice(4)}` : null;
+
   try {
     const journal = await prisma.journal.findFirst({
       where: {
         OR: [
-          { id: id },
-          { issn: id },
-          { eissn: id },
-          { name: { contains: id } }
+          { id: rawQuery },
+          { issn: rawQuery },
+          { eissn: rawQuery },
+          ...(hyphenatedIssn ? [{ issn: hyphenatedIssn }, { eissn: hyphenatedIssn }] : []),
+          { name: { contains: rawQuery } }
         ]
       },
       include: {

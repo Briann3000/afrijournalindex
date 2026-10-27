@@ -100,14 +100,20 @@ async function mergeScholarAccounts(primaryTarget, secondarySource) {
   const mergedOrcid = primary.orcid || secondary.orcid || null;
   const mergedInstitution = primary.institution || secondary.institution || null;
   const mergedOpenAlexId = primary.openAlexId || secondary.openAlexId || null;
+  const mergedPasswordHash = primary.passwordHash || secondary.passwordHash || null;
+  const mergedBio = primary.bio || secondary.bio || null;
+  const mergedDepartment = primary.department || secondary.department || null;
 
   await prisma.user.update({
     where: { id: primary.id },
     data: {
+      passwordHash: mergedPasswordHash,
       totalCitations: mergedCitations,
       hIndex: mergedHIndex,
       orcid: mergedOrcid,
       institution: mergedInstitution,
+      department: mergedDepartment,
+      bio: mergedBio,
       openAlexId: mergedOpenAlexId,
       isClaimed: true
     }

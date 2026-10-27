@@ -6,6 +6,7 @@ import { jsPDF } from "jspdf";
 import { useLang } from "../LangContext";
 import Header from "../Header";
 import Footer from "../Footer";
+import { parseBibTeX } from "../../lib/bibtex-parser";
 
 function ResearcherProfileContent() {
   const { t } = useLang();
@@ -19,11 +20,19 @@ function ResearcherProfileContent() {
 
   // Modals & UI States
   const tabParam = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState<"publications" | "editorial" | "library">(
-    tabParam === "editorial" ? "editorial" : tabParam === "library" ? "library" : "publications"
+  const [activeTab, setActiveTab] = useState<"publications" | "books" | "consultancy" | "innovations" | "media" | "editorial" | "library">(
+    tabParam === "editorial" ? "editorial" : tabParam === "library" ? "library" : tabParam === "books" ? "books" : tabParam === "consultancy" ? "consultancy" : tabParam === "innovations" ? "innovations" : tabParam === "media" ? "media" : "publications"
   );
   const [showClaimModal, setShowClaimModal] = useState<boolean>(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState<boolean>(false);
+  const [editModalTab, setEditModalTab] = useState<"general" | "links_cv" | "books" | "consultancy" | "innovations" | "media" | "bibtex" | "security">("general");
+  const [securityForm, setSecurityForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  });
+  const [securitySubmitting, setSecuritySubmitting] = useState(false);
+  const [securityMessage, setSecurityMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [showLoginPromptModal, setShowLoginPromptModal] = useState<boolean>(false);
   const [activeCiteArticle, setActiveCiteArticle] = useState<any | null>(null);
   const [citeFormat, setCiteFormat] = useState<"APA" | "Harvard" | "Chicago" | "Vancouver" | "BibTeX" | "RIS">("APA");
@@ -39,6 +48,14 @@ function ResearcherProfileContent() {
       setActiveTab("editorial");
     } else if (tabParam === "library") {
       setActiveTab("library");
+    } else if (tabParam === "books") {
+      setActiveTab("books");
+    } else if (tabParam === "consultancy") {
+      setActiveTab("consultancy");
+    } else if (tabParam === "innovations") {
+      setActiveTab("innovations");
+    } else if (tabParam === "media") {
+      setActiveTab("media");
     }
   }, [tabParam]);
 
@@ -55,8 +72,43 @@ function ResearcherProfileContent() {
     country: "",
     orcid: "",
     bio: "",
-    researchFocus: ""
+    researchFocus: "",
+    googleScholarUrl: "",
+    cvPdfUrl: "",
+    amazonAuthor: "",
+    researchGate: "",
+    academia: "",
+    linkedIn: "",
+    semanticScholar: ""
   });
+  const [dossierState, setDossierState] = useState<{
+    books: any[];
+    consultancies: any[];
+    innovations: any[];
+    media: any[];
+    memberships: any[];
+  }>({
+    books: [],
+    consultancies: [],
+    innovations: [],
+    media: [],
+    memberships: []
+  });
+
+  // Entry sub-states inside modal
+  const [newBook, setNewBook] = useState({ title: "", type: "Book", year: "", publisher: "", url: "", description: "" });
+  const [newConsultancy, setNewConsultancy] = useState({ assignment: "", client: "", period: "", url: "" });
+  const [newInnovation, setNewInnovation] = useState({ title: "", type: "Patent / Technical Design", description: "", url: "" });
+  const [newMedia, setNewMedia] = useState({ outlet: "", programme: "", date: "", url: "" });
+  const [bibtexInput, setBibtexInput] = useState<string>("");
+  const [bibtexParsedCount, setBibtexParsedCount] = useState<number | null>(null);
+
+  // Word Document (.docx) Importer & CV Direct Upload States
+  const [showDocxImportModal, setShowDocxImportModal] = useState<boolean>(false);
+  const [isParsingDocx, setIsParsingDocx] = useState<boolean>(false);
+  const [docxImportPreview, setDocxImportPreview] = useState<any | null>(null);
+  const [isUploadingCv, setIsUploadingCv] = useState<boolean>(false);
+
   const [savingProfile, setSavingProfile] = useState<boolean>(false);
   const [orcidCheckStatus, setOrcidCheckStatus] = useState<{
     loading: boolean;
@@ -364,6 +416,8 @@ function ResearcherProfileContent() {
       if (result.success) {
         setData(result.data);
         const p = result.data.profile;
+        const d = p.dossier || {};
+        const ext = p.externalLinks || {};
         setEditForm({
           name: p.name || "",
           academicRank: p.academicRank || "",
@@ -372,7 +426,21 @@ function ResearcherProfileContent() {
           country: p.country || "",
           orcid: p.orcid || "",
           bio: p.bio || "",
-          researchFocus: (p.researchFocus || []).join(", ")
+          researchFocus: (p.researchFocus || []).join(", "),
+          googleScholarUrl: p.googleScholarUrl || ext.googleScholar || "",
+          cvPdfUrl: p.cvPdfUrl || "",
+          amazonAuthor: ext.amazonAuthor || "",
+          researchGate: ext.researchGate || "",
+          academia: ext.academia || "",
+          linkedIn: ext.linkedIn || "",
+          semanticScholar: ext.semanticScholar || ""
+        });
+        setDossierState({
+          books: Array.isArray(d.books) ? d.books : [],
+          consultancies: Array.isArray(d.consultancies) ? d.consultancies : [],
+          innovations: Array.isArray(d.innovations) ? d.innovations : [],
+          media: Array.isArray(d.media) ? d.media : [],
+          memberships: Array.isArray(d.memberships) ? d.memberships : []
         });
       } else {
         setError(result.error || t.researcher_page.not_found_desc);
@@ -617,9 +685,27 @@ function ResearcherProfileContent() {
           id: targetId,
           name: editForm.name,
           institution: editForm.institution,
+          department: editForm.department,
           orcid: editForm.orcid.trim(),
           bio: editForm.bio.trim(),
-          researchFocus: editForm.researchFocus
+          researchFocus: editForm.researchFocus,
+          googleScholarUrl: editForm.googleScholarUrl.trim(),
+          cvPdfUrl: editForm.cvPdfUrl.trim(),
+          dossierData: {
+            externalLinks: {
+              googleScholar: editForm.googleScholarUrl.trim(),
+              amazonAuthor: editForm.amazonAuthor.trim(),
+              researchGate: editForm.researchGate.trim(),
+              academia: editForm.academia.trim(),
+              linkedIn: editForm.linkedIn.trim(),
+              semanticScholar: editForm.semanticScholar.trim()
+            },
+            books: dossierState.books,
+            consultancies: dossierState.consultancies,
+            innovations: dossierState.innovations,
+            media: dossierState.media,
+            memberships: dossierState.memberships
+          }
         })
       });
       const resData = await res.json();
@@ -643,6 +729,369 @@ function ResearcherProfileContent() {
     } catch (err) {
       console.error(err);
       alert("Error saving profile details.");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  // Dossier & Portfolio management handlers
+  const handleAddBook = () => {
+    if (!newBook.title.trim()) return;
+    setDossierState(prev => ({
+      ...prev,
+      books: [
+        ...prev.books,
+        {
+          id: `book-${Date.now()}`,
+          title: newBook.title.trim(),
+          type: newBook.type || "Book",
+          year: newBook.year.trim(),
+          publisher: newBook.publisher.trim(),
+          url: newBook.url.trim(),
+          description: newBook.description.trim()
+        }
+      ]
+    }));
+    setNewBook({ title: "", type: "Book", year: "", publisher: "", url: "", description: "" });
+  };
+
+  const handleRemoveBook = (index: number) => {
+    setDossierState(prev => ({
+      ...prev,
+      books: prev.books.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddConsultancy = () => {
+    if (!newConsultancy.assignment.trim()) return;
+    setDossierState(prev => ({
+      ...prev,
+      consultancies: [
+        ...prev.consultancies,
+        {
+          id: `cons-${Date.now()}`,
+          assignment: newConsultancy.assignment.trim(),
+          client: newConsultancy.client.trim(),
+          period: newConsultancy.period.trim(),
+          url: newConsultancy.url.trim()
+        }
+      ]
+    }));
+    setNewConsultancy({ assignment: "", client: "", period: "", url: "" });
+  };
+
+  const handleRemoveConsultancy = (index: number) => {
+    setDossierState(prev => ({
+      ...prev,
+      consultancies: prev.consultancies.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddInnovation = () => {
+    if (!newInnovation.title.trim()) return;
+    setDossierState(prev => ({
+      ...prev,
+      innovations: [
+        ...prev.innovations,
+        {
+          id: `inn-${Date.now()}`,
+          title: newInnovation.title.trim(),
+          type: newInnovation.type || "Patent / Technical Design",
+          description: newInnovation.description.trim(),
+          url: newInnovation.url.trim()
+        }
+      ]
+    }));
+    setNewInnovation({ title: "", type: "Patent / Technical Design", description: "", url: "" });
+  };
+
+  const handleRemoveInnovation = (index: number) => {
+    setDossierState(prev => ({
+      ...prev,
+      innovations: prev.innovations.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddMedia = () => {
+    if (!newMedia.outlet.trim() || !newMedia.programme.trim()) return;
+    setDossierState(prev => ({
+      ...prev,
+      media: [
+        ...prev.media,
+        {
+          id: `med-${Date.now()}`,
+          outlet: newMedia.outlet.trim(),
+          programme: newMedia.programme.trim(),
+          date: newMedia.date.trim(),
+          url: newMedia.url.trim()
+        }
+      ]
+    }));
+    setNewMedia({ outlet: "", programme: "", date: "", url: "" });
+  };
+
+  const handleRemoveMedia = (index: number) => {
+    setDossierState(prev => ({
+      ...prev,
+      media: prev.media.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleParseAndImportBibTeX = () => {
+    if (!bibtexInput.trim()) return;
+    const parsed = parseBibTeX(bibtexInput);
+    if (parsed.length === 0) {
+      alert("No valid BibTeX entries found. Please ensure the text starts with @article, @book, or @incollection.");
+      return;
+    }
+    const converted = parsed.map(p => ({
+      id: p.id,
+      title: p.title,
+      type: p.type,
+      year: p.year || "",
+      publisher: p.publisher || p.journal || "",
+      url: p.url || "",
+      description: p.authors ? `Authors: ${p.authors}` : ""
+    }));
+    setDossierState(prev => ({
+      ...prev,
+      books: [...prev.books, ...converted]
+    }));
+    setBibtexParsedCount(parsed.length);
+    setBibtexInput("");
+  };
+
+  // URL Sanitizer & Normalizer: ensures links open with proper protocol or stay local
+  const formatUrl = (url?: string | null): string => {
+    if (!url) return "";
+    const trimmed = url.trim();
+    if (!trimmed) return "";
+    // If it is a local upload path starting with "/", keep as relative origin path
+    if (trimmed.startsWith("/")) return trimmed;
+    return trimmed.startsWith("http://") || trimmed.startsWith("https://") ? trimmed : `https://${trimmed}`;
+  };
+
+  // Direct CV File Upload Handler (uploads via /api/upload)
+  const handleCvFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      alert("Please upload a PDF document (.pdf).");
+      return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      alert("File size exceeds 25MB limit.");
+      return;
+    }
+
+    try {
+      setIsUploadingCv(true);
+      const fd = new FormData();
+      fd.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: fd
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setEditForm(prev => ({ ...prev, cvPdfUrl: data.url }));
+        showToast("CV uploaded successfully! Save changes to persist.");
+      } else {
+        alert(data.error || "Failed to upload CV file.");
+      }
+    } catch (err) {
+      console.error("CV upload error:", err);
+      alert("Error uploading CV. Please check your network and try again.");
+    } finally {
+      setIsUploadingCv(false);
+      e.target.value = "";
+    }
+  };
+
+  // Word Document (.docx) Profile File Selection
+  const handleDocxFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".docx")) {
+      alert("Please select a Microsoft Word (.docx) document.");
+      return;
+    }
+
+    try {
+      setIsParsingDocx(true);
+      setDocxImportPreview(null);
+      const fd = new FormData();
+      fd.append("file", file);
+
+      const res = await fetch("/api/researcher/parse-docx", {
+        method: "POST",
+        body: fd
+      });
+      const resData = await res.json();
+      if (resData.success && resData.data) {
+        setDocxImportPreview(resData.data);
+      } else {
+        alert(resData.error || "Unable to extract information from document.");
+      }
+    } catch (err) {
+      console.error("Docx parse error:", err);
+      alert("Error parsing Word document. Please ensure it is a valid .docx file.");
+    } finally {
+      setIsParsingDocx(false);
+      e.target.value = "";
+    }
+  };
+
+  // Apply parsed Word Document to Profile and save automatically
+  const handleApplyDocxImport = async () => {
+    if (!docxImportPreview || !data?.profile) return;
+
+    try {
+      setSavingProfile(true);
+
+      // Merge books without duplicates
+      const existingBookTitles = new Set(dossierState.books.map(b => (b.title || "").toLowerCase().trim()));
+      const newBooks = [...dossierState.books];
+      (docxImportPreview.dossier?.books || []).forEach((b: any) => {
+        if (!existingBookTitles.has((b.title || "").toLowerCase().trim())) {
+          newBooks.push({
+            id: `book-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            title: b.title,
+            type: b.type || "Book",
+            year: b.year || "",
+            publisher: b.publisher || "",
+            url: b.url || "",
+            description: b.description || ""
+          });
+          existingBookTitles.add((b.title || "").toLowerCase().trim());
+        }
+      });
+
+      // Merge consultancies without duplicates
+      const existingConsTitles = new Set(dossierState.consultancies.map(c => (c.assignment || c.title || "").toLowerCase().trim()));
+      const newConsultancies = [...dossierState.consultancies];
+      (docxImportPreview.dossier?.consultancies || []).forEach((c: any) => {
+        const title = c.assignment || c.title || "";
+        if (!existingConsTitles.has(title.toLowerCase().trim())) {
+          newConsultancies.push({
+            id: `cons-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            assignment: title,
+            client: c.client || "",
+            period: c.period || "",
+            url: c.url || ""
+          });
+          existingConsTitles.add(title.toLowerCase().trim());
+        }
+      });
+
+      // Merge innovations without duplicates
+      const existingInnTitles = new Set(dossierState.innovations.map(inn => (inn.title || "").toLowerCase().trim()));
+      const newInnovations = [...dossierState.innovations];
+      (docxImportPreview.dossier?.innovations || []).forEach((inn: any) => {
+        if (!existingInnTitles.has((inn.title || "").toLowerCase().trim())) {
+          newInnovations.push({
+            id: `inn-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            title: inn.title,
+            type: inn.type || "Innovation",
+            description: inn.description || "",
+            url: inn.url || ""
+          });
+          existingInnTitles.add((inn.title || "").toLowerCase().trim());
+        }
+      });
+
+      // Merge media without duplicates
+      const existingMediaTitles = new Set(dossierState.media.map(m => (m.programme || m.title || "").toLowerCase().trim()));
+      const newMediaList = [...dossierState.media];
+      (docxImportPreview.dossier?.media || []).forEach((m: any) => {
+        const title = m.programme || m.title || "";
+        if (!existingMediaTitles.has(title.toLowerCase().trim())) {
+          newMediaList.push({
+            id: `med-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            outlet: m.outlet || "",
+            programme: title,
+            date: m.date || "",
+            url: m.url || ""
+          });
+          existingMediaTitles.add(title.toLowerCase().trim());
+        }
+      });
+
+      // Merge memberships
+      const newMemberships = [
+        ...dossierState.memberships,
+        ...(docxImportPreview.dossier?.memberships || [])
+      ];
+
+      const updatedExternalLinks = {
+        amazonAuthor: docxImportPreview.externalLinks?.amazonAuthor || editForm.amazonAuthor,
+        researchGate: docxImportPreview.externalLinks?.researchGate || editForm.researchGate,
+        academia: docxImportPreview.externalLinks?.academia || editForm.academia,
+        linkedIn: docxImportPreview.externalLinks?.linkedIn || editForm.linkedIn,
+        semanticScholar: docxImportPreview.externalLinks?.semanticScholar || editForm.semanticScholar
+      };
+
+      const updatedDossier = {
+        ...dossierState,
+        books: newBooks,
+        consultancies: newConsultancies,
+        innovations: newInnovations,
+        media: newMediaList,
+        memberships: newMemberships,
+        externalLinks: updatedExternalLinks
+      };
+
+      const updatedForm = {
+        ...editForm,
+        orcid: docxImportPreview.profile?.orcid || editForm.orcid,
+        googleScholarUrl: docxImportPreview.externalLinks?.googleScholar || editForm.googleScholarUrl,
+        amazonAuthor: updatedExternalLinks.amazonAuthor,
+        researchGate: updatedExternalLinks.researchGate,
+        academia: updatedExternalLinks.academia,
+        linkedIn: updatedExternalLinks.linkedIn,
+        semanticScholar: updatedExternalLinks.semanticScholar
+      };
+
+      setDossierState(updatedDossier);
+      setEditForm(updatedForm);
+
+      const patchPayload = {
+        id: targetId || data.profile.id,
+        name: updatedForm.name,
+        academicRank: updatedForm.academicRank,
+        institution: updatedForm.institution,
+        department: updatedForm.department,
+        country: updatedForm.country,
+        orcid: updatedForm.orcid,
+        bio: updatedForm.bio,
+        researchFocus: updatedForm.researchFocus,
+        googleScholarUrl: updatedForm.googleScholarUrl,
+        cvPdfUrl: updatedForm.cvPdfUrl,
+        dossierData: updatedDossier
+      };
+
+      const patchRes = await fetch("/api/researcher/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patchPayload)
+      });
+      const patchData = await patchRes.json();
+
+      if (patchData.success) {
+        setShowDocxImportModal(false);
+        setDocxImportPreview(null);
+        showToast("Profile & Academic Dossier successfully imported and saved from Word document!");
+        await loadProfile();
+      } else {
+        alert(patchData.error || "Failed to save imported profile.");
+      }
+    } catch (err) {
+      console.error("Apply docx error:", err);
+      alert("Error saving imported dossier.");
     } finally {
       setSavingProfile(false);
     }
@@ -1117,7 +1566,7 @@ function ResearcherProfileContent() {
         </div>
       )}
 
-      <main className="container" style={{ padding: "2.5rem 1rem 6rem", maxWidth: "1080px" }}>
+      <main className="container" style={{ padding: "clamp(1.2rem, 3vw, 2.5rem) clamp(0.75rem, 2vw, 1.25rem) 5rem", maxWidth: "1080px", width: "100%", margin: "0 auto" }}>
         
         {/* Unclaimed Profile Notice Banner */}
         {!profile.isClaimed && (
@@ -1181,7 +1630,7 @@ function ResearcherProfileContent() {
         <div 
           className="card-surface" 
           style={{ 
-            padding: "2.2rem", 
+            padding: "clamp(1.2rem, 3vw, 2.2rem)", 
             marginBottom: "2rem", 
             borderRadius: "16px", 
             border: "1px solid var(--color-border)", 
@@ -1189,10 +1638,10 @@ function ResearcherProfileContent() {
             boxShadow: "var(--card-shadow)"
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "2rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1.5rem" }}>
             
             {/* Left: Uploadable Avatar + Scholar Details */}
-            <div style={{ display: "flex", gap: "1.5rem", alignItems: "flex-start", flexWrap: "wrap", flex: 1, minWidth: "300px" }}>
+            <div style={{ display: "flex", gap: "1.5rem", alignItems: "flex-start", flexWrap: "wrap", flex: 1, minWidth: "260px" }}>
               
               {/* Photo Avatar with Upload Overlay */}
               <div style={{ position: "relative" }}>
@@ -1373,11 +1822,59 @@ function ResearcherProfileContent() {
                     </a>
                   ))}
                 </div>
+
+                {/* Scholarly Identifiers & External Network Links Bar */}
+                {(profile.googleScholarUrl || profile.externalLinks?.amazonAuthor || profile.externalLinks?.researchGate || profile.externalLinks?.academia || profile.externalLinks?.linkedIn || profile.externalLinks?.semanticScholar) && (
+                  <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap", marginTop: "0.75rem", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginRight: "2px" }}>
+                      {t.researcher_page?.scholarly_networks || "Scholarly Networks:"}
+                    </span>
+                    {profile.googleScholarUrl && (
+                      <a href={formatUrl(profile.googleScholarUrl)} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "0.22rem 0.6rem", borderRadius: "6px", fontSize: "0.76rem", fontWeight: 600, textDecoration: "none", background: "var(--color-bg-card-subtle)", color: "#2563eb", border: "1px solid rgba(37, 99, 235, 0.25)" }}>
+                        <i className="fa-brands fa-google"></i> Google Scholar
+                      </a>
+                    )}
+                    {profile.externalLinks?.amazonAuthor && (
+                      <a href={formatUrl(profile.externalLinks.amazonAuthor)} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "0.22rem 0.6rem", borderRadius: "6px", fontSize: "0.76rem", fontWeight: 600, textDecoration: "none", background: "var(--color-bg-card-subtle)", color: "#d97706", border: "1px solid rgba(217, 119, 6, 0.25)" }}>
+                        <i className="fa-brands fa-amazon"></i> Amazon Author Store
+                      </a>
+                    )}
+                    {profile.externalLinks?.researchGate && (
+                      <a href={formatUrl(profile.externalLinks.researchGate)} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "0.22rem 0.6rem", borderRadius: "6px", fontSize: "0.76rem", fontWeight: 600, textDecoration: "none", background: "var(--color-bg-card-subtle)", color: "#059669", border: "1px solid rgba(5, 150, 105, 0.25)" }}>
+                        <i className="fa-brands fa-researchgate"></i> ResearchGate
+                      </a>
+                    )}
+                    {profile.externalLinks?.academia && (
+                      <a href={formatUrl(profile.externalLinks.academia)} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "0.22rem 0.6rem", borderRadius: "6px", fontSize: "0.76rem", fontWeight: 600, textDecoration: "none", background: "var(--color-bg-card-subtle)", color: "#475569", border: "1px solid var(--color-border)" }}>
+                        <i className="fa-solid fa-graduation-cap"></i> Academia.edu
+                      </a>
+                    )}
+                    {profile.externalLinks?.linkedIn && (
+                      <a href={formatUrl(profile.externalLinks.linkedIn)} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "0.22rem 0.6rem", borderRadius: "6px", fontSize: "0.76rem", fontWeight: 600, textDecoration: "none", background: "var(--color-bg-card-subtle)", color: "#0284c7", border: "1px solid rgba(2, 132, 199, 0.25)" }}>
+                        <i className="fa-brands fa-linkedin"></i> LinkedIn
+                      </a>
+                    )}
+                    {profile.externalLinks?.semanticScholar && (
+                      <a href={formatUrl(profile.externalLinks.semanticScholar)} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "0.22rem 0.6rem", borderRadius: "6px", fontSize: "0.76rem", fontWeight: 600, textDecoration: "none", background: "var(--color-bg-card-subtle)", color: "#7c3aed", border: "1px solid rgba(124, 58, 237, 0.25)" }}>
+                        <i className="fa-solid fa-book-open"></i> Semantic Scholar
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Right: Clean Action Toolbar */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem", minWidth: "190px" }}>
+            <div 
+              style={{ 
+                display: "flex", 
+                flexDirection: "column", 
+                gap: "0.5rem", 
+                width: "100%", 
+                maxWidth: "220px",
+                flexShrink: 0
+              }}
+            >
               {!profile.isClaimed && (
                 <button
                   onClick={() => setShowClaimProfileModal(true)}
@@ -1386,14 +1883,15 @@ function ResearcherProfileContent() {
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "0.5rem",
-                    fontSize: "0.85rem",
+                    gap: "0.45rem",
+                    fontSize: "0.82rem",
                     fontWeight: 700,
-                    padding: "0.55rem 1rem",
+                    padding: "0.45rem 0.85rem",
                     borderRadius: "8px",
                     background: "#ea580c",
                     borderColor: "#ea580c",
-                    color: "#ffffff"
+                    color: "#ffffff",
+                    width: "100%"
                   }}
                 >
                   <i className="fa-solid fa-key"></i>
@@ -1402,23 +1900,46 @@ function ResearcherProfileContent() {
               )}
 
               {isOwner ? (
-                <button
-                  onClick={() => setShowEditProfileModal(true)}
-                  className="btn btn-primary"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "0.5rem",
-                    fontSize: "0.85rem",
-                    fontWeight: 700,
-                    padding: "0.55rem 1rem",
-                    borderRadius: "8px"
-                  }}
-                >
-                  <i className="fa-solid fa-user-pen"></i>
-                  <span>Edit Profile</span>
-                </button>
+                <>
+                  <button
+                    onClick={() => setShowEditProfileModal(true)}
+                    className="btn btn-primary"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "0.45rem",
+                      fontSize: "0.82rem",
+                      fontWeight: 700,
+                      padding: "0.45rem 0.85rem",
+                      borderRadius: "8px",
+                      width: "100%"
+                    }}
+                  >
+                    <i className="fa-solid fa-user-pen"></i>
+                    <span>{t.researcher_page?.edit_profile_btn || "Edit Profile"}</span>
+                  </button>
+                  <button
+                    onClick={() => setShowDocxImportModal(true)}
+                    className="btn btn-secondary"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "0.45rem",
+                      fontSize: "0.82rem",
+                      fontWeight: 700,
+                      padding: "0.45rem 0.85rem",
+                      borderRadius: "8px",
+                      background: "var(--color-bg-card-subtle)",
+                      borderColor: "var(--color-border)",
+                      width: "100%"
+                    }}
+                  >
+                    <i className="fa-solid fa-file-word" style={{ color: "#2563eb" }}></i>
+                    <span>{t.researcher_page?.import_docx_btn || "Import Profile (.docx)"}</span>
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={handleToggleFollow}
@@ -1427,16 +1948,43 @@ function ResearcherProfileContent() {
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "0.5rem",
-                    fontSize: "0.85rem",
+                    gap: "0.45rem",
+                    fontSize: "0.82rem",
                     fontWeight: 700,
-                    padding: "0.55rem 1rem",
-                    borderRadius: "8px"
+                    padding: "0.45rem 0.85rem",
+                    borderRadius: "8px",
+                    width: "100%"
                   }}
                 >
                   <i className={isFollowing ? "fa-solid fa-bell-slash" : "fa-solid fa-bell"}></i>
-                  <span>{isFollowing ? "Following Scholar" : "Follow Scholar"}</span>
+                  <span>{isFollowing ? (t.researcher_page?.following_scholar || "Following Scholar") : (t.researcher_page?.follow_scholar || "Follow Scholar")}</span>
                 </button>
+              )}
+
+              {profile.cvPdfUrl && (
+                <a
+                  href={formatUrl(profile.cvPdfUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.45rem",
+                    fontSize: "0.82rem",
+                    fontWeight: 600,
+                    padding: "0.45rem 0.85rem",
+                    borderRadius: "8px",
+                    color: "var(--color-primary)",
+                    borderColor: "var(--color-primary)",
+                    width: "100%",
+                    textDecoration: "none"
+                  }}
+                >
+                  <i className="fa-solid fa-file-pdf"></i>
+                  <span>{t.researcher_page?.download_cv_btn || "Academic CV (PDF)"}</span>
+                </a>
               )}
 
               <button
@@ -1446,14 +1994,15 @@ function ResearcherProfileContent() {
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "0.5rem",
-                  fontSize: "0.85rem",
-                  padding: "0.55rem 1rem",
-                  borderRadius: "8px"
+                  gap: "0.45rem",
+                  fontSize: "0.82rem",
+                  padding: "0.45rem 0.85rem",
+                  borderRadius: "8px",
+                  width: "100%"
                 }}
               >
                 <i className="fa-solid fa-share-nodes"></i>
-                <span>Share Profile</span>
+                <span>{t.researcher_page?.share_profile || "Share Profile"}</span>
               </button>
 
               <a
@@ -1465,12 +2014,14 @@ function ResearcherProfileContent() {
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "0.5rem",
-                  fontSize: "0.85rem",
-                  padding: "0.55rem 1rem",
+                  gap: "0.45rem",
+                  fontSize: "0.82rem",
+                  padding: "0.45rem 0.85rem",
                   borderRadius: "8px",
                   color: "#4285F4",
-                  fontWeight: 600
+                  fontWeight: 600,
+                  width: "100%",
+                  textDecoration: "none"
                 }}
                 title="Search and verify citations on Google Scholar"
               >
@@ -1485,14 +2036,15 @@ function ResearcherProfileContent() {
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "0.5rem",
-                  fontSize: "0.85rem",
-                  padding: "0.55rem 1rem",
-                  borderRadius: "8px"
+                  gap: "0.45rem",
+                  fontSize: "0.82rem",
+                  padding: "0.45rem 0.85rem",
+                  borderRadius: "8px",
+                  width: "100%"
                 }}
               >
                 <i className="fa-solid fa-file-pdf" style={{ color: "#dc2626" }}></i>
-                <span>Export PDF Portfolio</span>
+                <span>{t.researcher_page?.export_pdf || "Export PDF Portfolio"}</span>
               </button>
 
               <button
@@ -1502,14 +2054,15 @@ function ResearcherProfileContent() {
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "0.5rem",
-                  fontSize: "0.85rem",
-                  padding: "0.55rem 1rem",
-                  borderRadius: "8px"
+                  gap: "0.45rem",
+                  fontSize: "0.82rem",
+                  padding: "0.45rem 0.85rem",
+                  borderRadius: "8px",
+                  width: "100%"
                 }}
               >
                 <i className="fa-solid fa-file-code" style={{ color: "#0284c7" }}></i>
-                <span>Export BibTeX (.bib)</span>
+                <span>{t.researcher_page?.export_bibtex || "Export BibTeX (.bib)"}</span>
               </button>
             </div>
           </div>
@@ -1519,7 +2072,7 @@ function ResearcherProfileContent() {
         <div 
           className="card-surface" 
           style={{ 
-            padding: "1.75rem 2rem", 
+            padding: "clamp(1.2rem, 3vw, 2rem)", 
             marginBottom: "2rem", 
             borderRadius: "16px", 
             border: "1px solid var(--color-border)", 
@@ -1527,81 +2080,83 @@ function ResearcherProfileContent() {
             boxShadow: "var(--card-shadow)"
           }}
         >
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "2.5rem", alignItems: "center" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "2rem", alignItems: "center" }}>
             
             {/* Left: Google Scholar Dual-Window Matrix (All vs Since 5 Years) */}
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap", gap: "0.5rem" }}>
                 <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
                   <i className="fa-solid fa-square-poll-vertical" style={{ color: "var(--color-primary)" }}></i>
-                  Citation Indices
+                  {t.researcher_page?.citation_indices || "Citation Indices"}
                 </h3>
                 <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
                   Standard Scientometrics
                 </span>
               </div>
 
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.92rem" }}>
-                <thead>
-                  <tr style={{ borderBottom: "2px solid var(--color-border)", textAlign: "left" }}>
-                    <th style={{ padding: "0.6rem 0.5rem", color: "var(--color-text-muted)", fontWeight: 600 }}></th>
-                    <th style={{ padding: "0.6rem 0.5rem", color: "var(--color-text-main)", fontWeight: 700, textAlign: "right" }}>All</th>
-                    <th style={{ padding: "0.6rem 0.5rem", color: "var(--color-primary)", fontWeight: 700, textAlign: "right" }}>
-                      Since {metrics.indicesMatrix?.startYear || (new Date().getFullYear() - 5)}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
-                    <td style={{ padding: "0.75rem 0.5rem", color: "var(--color-text-main)", fontWeight: 600 }}>Citations</td>
-                    <td style={{ padding: "0.75rem 0.5rem", textAlign: "right", fontWeight: 800, color: "var(--color-text-main)" }}>
-                      {metrics.indicesMatrix?.citations?.all ?? metrics.totalCitations}
-                    </td>
-                    <td style={{ padding: "0.75rem 0.5rem", textAlign: "right", fontWeight: 800, color: "var(--color-primary)" }}>
-                      {metrics.indicesMatrix?.citations?.since5Yr ?? 0}
-                    </td>
-                  </tr>
-                  <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
-                    <td style={{ padding: "0.75rem 0.5rem", color: "var(--color-text-main)", fontWeight: 600 }}>h-index</td>
-                    <td style={{ padding: "0.75rem 0.5rem", textAlign: "right", fontWeight: 800, color: "var(--color-text-main)" }}>
-                      {metrics.indicesMatrix?.hIndex?.all ?? metrics.hIndex}
-                    </td>
-                    <td style={{ padding: "0.75rem 0.5rem", textAlign: "right", fontWeight: 800, color: "var(--color-primary)" }}>
-                      {metrics.indicesMatrix?.hIndex?.since5Yr ?? 0}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{ padding: "0.75rem 0.5rem", color: "var(--color-text-main)", fontWeight: 600 }}>i10-index</td>
-                    <td style={{ padding: "0.75rem 0.5rem", textAlign: "right", fontWeight: 800, color: "var(--color-text-main)" }}>
-                      {metrics.indicesMatrix?.i10Index?.all ?? metrics.i10Index}
-                    </td>
-                    <td style={{ padding: "0.75rem 0.5rem", textAlign: "right", fontWeight: 800, color: "var(--color-primary)" }}>
-                      {metrics.indicesMatrix?.i10Index?.since5Yr ?? 0}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.92rem", minWidth: "240px" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "2px solid var(--color-border)", textAlign: "left" }}>
+                      <th style={{ padding: "0.6rem 0.5rem", color: "var(--color-text-muted)", fontWeight: 600 }}></th>
+                      <th style={{ padding: "0.6rem 0.5rem", color: "var(--color-text-main)", fontWeight: 700, textAlign: "right" }}>All</th>
+                      <th style={{ padding: "0.6rem 0.5rem", color: "var(--color-primary)", fontWeight: 700, textAlign: "right" }}>
+                        Since {metrics.indicesMatrix?.startYear || (new Date().getFullYear() - 5)}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+                      <td style={{ padding: "0.75rem 0.5rem", color: "var(--color-text-main)", fontWeight: 600 }}>Citations</td>
+                      <td style={{ padding: "0.75rem 0.5rem", textAlign: "right", fontWeight: 800, color: "var(--color-text-main)" }}>
+                        {metrics.indicesMatrix?.citations?.all ?? metrics.totalCitations}
+                      </td>
+                      <td style={{ padding: "0.75rem 0.5rem", textAlign: "right", fontWeight: 800, color: "var(--color-primary)" }}>
+                        {metrics.indicesMatrix?.citations?.since5Yr ?? 0}
+                      </td>
+                    </tr>
+                    <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+                      <td style={{ padding: "0.75rem 0.5rem", color: "var(--color-text-main)", fontWeight: 600 }}>h-index</td>
+                      <td style={{ padding: "0.75rem 0.5rem", textAlign: "right", fontWeight: 800, color: "var(--color-text-main)" }}>
+                        {metrics.indicesMatrix?.hIndex?.all ?? metrics.hIndex}
+                      </td>
+                      <td style={{ padding: "0.75rem 0.5rem", textAlign: "right", fontWeight: 800, color: "var(--color-primary)" }}>
+                        {metrics.indicesMatrix?.hIndex?.since5Yr ?? 0}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: "0.75rem 0.5rem", color: "var(--color-text-main)", fontWeight: 600 }}>i10-index</td>
+                      <td style={{ padding: "0.75rem 0.5rem", textAlign: "right", fontWeight: 800, color: "var(--color-text-main)" }}>
+                        {metrics.indicesMatrix?.i10Index?.all ?? metrics.i10Index}
+                      </td>
+                      <td style={{ padding: "0.75rem 0.5rem", textAlign: "right", fontWeight: 800, color: "var(--color-primary)" }}>
+                        {metrics.indicesMatrix?.i10Index?.since5Yr ?? 0}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Right: Authentic Annual Citation Growth Velocity Chart */}
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap", gap: "0.5rem" }}>
                 <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
                   <i className="fa-solid fa-chart-column" style={{ color: "var(--color-primary)" }}></i>
-                  Annual Citation Growth
+                  {t.researcher_page?.annual_growth || "Annual Citation Growth"}
                 </h3>
                 <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
                   Verified Citations / Year
                 </span>
               </div>
 
-              <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end", height: "130px", padding: "0.75rem 0.5rem 0", borderBottom: "1px solid var(--color-border)" }}>
+              <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end", height: "130px", padding: "0.75rem 0.5rem 0", borderBottom: "1px solid var(--color-border)", overflowX: "auto" }}>
                 {(metrics.yearlyCitations || []).map((item: any, idx: number) => {
                   const maxYearCites = Math.max(...(metrics.yearlyCitations || [{ citations: 1 }]).map((x: any) => x.citations), 1);
                   const barHeight = Math.max((item.citations / maxYearCites) * 100, item.citations > 0 ? 15 : 6);
 
                   return (
-                    <div key={idx} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "flex-end" }}>
+                    <div key={idx} style={{ flex: 1, minWidth: "32px", display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "flex-end" }}>
                       <span style={{ fontSize: "0.78rem", fontWeight: 700, color: item.citations > 0 ? "var(--color-text-main)" : "var(--color-text-muted)", marginBottom: "4px" }}>
                         {item.citations}
                       </span>
@@ -1641,7 +2196,7 @@ function ResearcherProfileContent() {
               fontSize: "0.85rem"
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
               <i className="fa-solid fa-earth-africa" style={{ color: "var(--color-primary)" }}></i>
               <span style={{ fontWeight: 600, color: "var(--color-text-main)" }}>
                 Continental Provenance:
@@ -1651,7 +2206,7 @@ function ResearcherProfileContent() {
               </span>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
               <span style={{ background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", padding: "0.25rem 0.65rem", borderRadius: "6px", fontSize: "0.78rem", fontWeight: 700, color: "var(--color-text-body)" }}>
                 {metrics.publicationsCount} Indexed Works
               </span>
@@ -1666,7 +2221,7 @@ function ResearcherProfileContent() {
         <div 
           className="card-surface" 
           style={{ 
-            padding: "0.9rem 1.4rem", 
+            padding: "0.9rem clamp(0.9rem, 2.5vw, 1.4rem)", 
             marginBottom: "1.25rem", 
             borderRadius: "12px", 
             border: "1px solid var(--color-border)", 
@@ -1678,7 +2233,7 @@ function ResearcherProfileContent() {
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <i className="fa-solid fa-users" style={{ color: "var(--color-primary)", fontSize: "0.95rem" }}></i>
               <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, color: "var(--color-text-main)" }}>
-                Co-Authors & Academic Collaborators
+                {t.researcher_page?.collaborators || "Co-Authors & Academic Collaborators"}
               </h3>
               {data.coAuthors && data.coAuthors.length > 0 && (
                 <span style={{ background: "rgba(2, 132, 199, 0.1)", color: "var(--color-primary)", padding: "0.1rem 0.5rem", borderRadius: "999px", fontSize: "0.72rem", fontWeight: 700 }}>
@@ -1687,7 +2242,7 @@ function ResearcherProfileContent() {
               )}
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
               {data.coAuthors && data.coAuthors.length > 4 && (
                 <button
                   type="button"
@@ -1738,7 +2293,7 @@ function ResearcherProfileContent() {
           {!coAuthorsCardMinimized && (
             <div style={{ marginTop: "0.85rem", paddingTop: "0.75rem", borderTop: "1px solid var(--color-border)" }}>
               {data.coAuthors && data.coAuthors.length > 0 ? (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "0.65rem" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "0.65rem" }}>
                   {(coAuthorsExpanded ? data.coAuthors : data.coAuthors.slice(0, 4)).map((co: any) => {
                     const initials = co.name
                       .split(" ")
@@ -1819,76 +2374,199 @@ function ResearcherProfileContent() {
           )}
         </div>
 
-        {/* Academic Role Navigation Tabs (Hybrid Scholar & Editor Profile) */}
-        <div style={{ display: "flex", gap: "0.5rem", borderBottom: "2px solid var(--color-border)", marginBottom: "1.75rem", overflowX: "auto" }}>
+        {/* Academic Role Navigation Tabs (Hybrid Scholar, Author & Editor Profile) */}
+        <div style={{
+          display: "flex",
+          gap: "0.4rem",
+          borderBottom: "2px solid var(--color-border)",
+          marginBottom: "1.75rem",
+          overflowX: "auto",
+          WebkitOverflowScrolling: "touch",
+          paddingBottom: "2px",
+          scrollbarWidth: "none"
+        }}>
           <button
             type="button"
             onClick={() => setActiveTab("publications")}
             style={{
-              padding: "0.75rem 1.4rem",
+              padding: "0.75rem clamp(0.85rem, 2vw, 1.4rem)",
               background: "none",
               border: "none",
               borderBottom: activeTab === "publications" ? "2px solid var(--color-primary)" : "2px solid transparent",
               marginBottom: "-2px",
               fontWeight: 700,
-              fontSize: "0.95rem",
+              fontSize: "clamp(0.82rem, 1.8vw, 0.95rem)",
               color: activeTab === "publications" ? "var(--color-primary)" : "var(--color-text-muted)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               gap: "8px",
-              whiteSpace: "nowrap"
+              whiteSpace: "nowrap",
+              flexShrink: 0
             }}
           >
             <i className="fa-solid fa-book-open"></i>
-            <span>Publications & Citations ({data.articles?.length || 0})</span>
+            <span>{t.researcher_page?.tab_publications || "Publications"} ({data.articles?.length || 0})</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("editorial")}
-            style={{
-              padding: "0.75rem 1.4rem",
-              background: "none",
-              border: "none",
-              borderBottom: activeTab === "editorial" ? "2px solid var(--color-primary)" : "2px solid transparent",
-              marginBottom: "-2px",
-              fontWeight: 700,
-              fontSize: "0.95rem",
-              color: activeTab === "editorial" ? "var(--color-primary)" : "var(--color-text-muted)",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              whiteSpace: "nowrap"
-            }}
-          >
-            <i className="fa-solid fa-feather-pointed"></i>
-            <span>Editorial & Managed Journals ({(data.journals?.length || 0) + (data.submissions?.length || 0)})</span>
-          </button>
+          {/* Books & Monographs Tab (hidden if 0 and !isOwner) */}
+          {(dossierState.books.length > 0 || isOwner) && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("books")}
+              style={{
+                padding: "0.75rem clamp(0.85rem, 2vw, 1.4rem)",
+                background: "none",
+                border: "none",
+                borderBottom: activeTab === "books" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                marginBottom: "-2px",
+                fontWeight: 700,
+                fontSize: "clamp(0.82rem, 1.8vw, 0.95rem)",
+                color: activeTab === "books" ? "var(--color-primary)" : "var(--color-text-muted)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                whiteSpace: "nowrap",
+                flexShrink: 0
+              }}
+            >
+              <i className="fa-solid fa-book"></i>
+              <span>{t.researcher_page?.tab_books || "Books & Monographs"} ({dossierState.books.length})</span>
+            </button>
+          )}
+
+          {/* Projects & Consultancy Tab (hidden if 0 and !isOwner) */}
+          {(dossierState.consultancies.length > 0 || isOwner) && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("consultancy")}
+              style={{
+                padding: "0.75rem clamp(0.85rem, 2vw, 1.4rem)",
+                background: "none",
+                border: "none",
+                borderBottom: activeTab === "consultancy" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                marginBottom: "-2px",
+                fontWeight: 700,
+                fontSize: "clamp(0.82rem, 1.8vw, 0.95rem)",
+                color: activeTab === "consultancy" ? "var(--color-primary)" : "var(--color-text-muted)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                whiteSpace: "nowrap",
+                flexShrink: 0
+              }}
+            >
+              <i className="fa-solid fa-briefcase"></i>
+              <span>{t.researcher_page?.tab_consultancy || "Consultancy & Projects"} ({dossierState.consultancies.length})</span>
+            </button>
+          )}
+
+          {/* Innovations & Patents Tab (hidden if 0 and !isOwner) */}
+          {(dossierState.innovations.length > 0 || isOwner) && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("innovations")}
+              style={{
+                padding: "0.75rem clamp(0.85rem, 2vw, 1.4rem)",
+                background: "none",
+                border: "none",
+                borderBottom: activeTab === "innovations" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                marginBottom: "-2px",
+                fontWeight: 700,
+                fontSize: "clamp(0.82rem, 1.8vw, 0.95rem)",
+                color: activeTab === "innovations" ? "var(--color-primary)" : "var(--color-text-muted)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                whiteSpace: "nowrap",
+                flexShrink: 0
+              }}
+            >
+              <i className="fa-solid fa-lightbulb"></i>
+              <span>{t.researcher_page?.tab_innovations || "Innovations & Patents"} ({dossierState.innovations.length})</span>
+            </button>
+          )}
+
+          {/* Media & Impact Tab (hidden if 0 and !isOwner) */}
+          {(dossierState.media.length > 0 || isOwner) && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("media")}
+              style={{
+                padding: "0.75rem clamp(0.85rem, 2vw, 1.4rem)",
+                background: "none",
+                border: "none",
+                borderBottom: activeTab === "media" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                marginBottom: "-2px",
+                fontWeight: 700,
+                fontSize: "clamp(0.82rem, 1.8vw, 0.95rem)",
+                color: activeTab === "media" ? "var(--color-primary)" : "var(--color-text-muted)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                whiteSpace: "nowrap",
+                flexShrink: 0
+              }}
+            >
+              <i className="fa-solid fa-tv"></i>
+              <span>{t.researcher_page?.tab_media || "Media & Impact"} ({dossierState.media.length})</span>
+            </button>
+          )}
+
+          {/* Editorial & Managed Journals Tab (hidden if 0 and !isOwner) */}
+          {((data.journals?.length || 0) + (data.submissions?.length || 0) > 0 || isOwner) && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("editorial")}
+              style={{
+                padding: "0.75rem clamp(0.85rem, 2vw, 1.4rem)",
+                background: "none",
+                border: "none",
+                borderBottom: activeTab === "editorial" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                marginBottom: "-2px",
+                fontWeight: 700,
+                fontSize: "clamp(0.82rem, 1.8vw, 0.95rem)",
+                color: activeTab === "editorial" ? "var(--color-primary)" : "var(--color-text-muted)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                whiteSpace: "nowrap",
+                flexShrink: 0
+              }}
+            >
+              <i className="fa-solid fa-feather-pointed"></i>
+              <span>{t.researcher_page?.tab_editorial || "Editorial & Journals"} ({(data.journals?.length || 0) + (data.submissions?.length || 0)})</span>
+            </button>
+          )}
 
           {currentUser && isOwner && (
             <button
               type="button"
               onClick={() => setActiveTab("library")}
               style={{
-                padding: "0.75rem 1.4rem",
+                padding: "0.75rem clamp(0.85rem, 2vw, 1.4rem)",
                 background: "none",
                 border: "none",
                 borderBottom: activeTab === "library" ? "2px solid #eab308" : "2px solid transparent",
                 marginBottom: "-2px",
                 fontWeight: 700,
-                fontSize: "0.95rem",
+                fontSize: "clamp(0.82rem, 1.8vw, 0.95rem)",
                 color: activeTab === "library" ? "#eab308" : "var(--color-text-muted)",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
-                whiteSpace: "nowrap"
+                whiteSpace: "nowrap",
+                flexShrink: 0
               }}
             >
-              <i className="fa-solid fa-star" style={{ color: "#eab308" }}></i>
-              <span>Reading Library ({savedLibraryArticles.length || savedLibraryIds.length})</span>
+              <i className="fa-solid fa-bookmark"></i>
+              <span>{t.researcher_page?.tab_library || "Library Bookmarks"} ({savedLibraryArticles.length})</span>
             </button>
           )}
         </div>
@@ -2297,6 +2975,381 @@ function ResearcherProfileContent() {
           )}
         </div>
         </>
+      ) : activeTab === "books" ? (
+        /* BOOKS & MONOGRAPHS VIEW */
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          {isOwner && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--color-bg-card-subtle)", padding: "1rem clamp(1rem, 2.5vw, 1.4rem)", borderRadius: "10px", border: "1px solid var(--color-border)", flexWrap: "wrap", gap: "0.8rem" }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--color-text-main)" }}>
+                  {t.researcher_page?.books_heading || "Books, Monographs & Research Reports"}
+                </div>
+                <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
+                  {t.researcher_page?.books_subheading || "Add your published books, Amazon author titles, monographs, and technical manuals."}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditModalTab("books");
+                  setShowEditProfileModal(true);
+                }}
+                className="btn btn-primary btn-sm"
+                style={{ fontSize: "0.82rem", padding: "0.45rem 0.9rem" }}
+              >
+                <i className="fa-solid fa-plus" style={{ marginRight: "6px" }}></i>
+                {t.researcher_page?.add_book_btn || "Add Book / Monograph"}
+              </button>
+            </div>
+          )}
+
+          {dossierState.books.length === 0 ? (
+            <div className="card-surface" style={{ textAlign: "center", padding: "clamp(2rem, 5vw, 3rem) 1.5rem", borderRadius: "12px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+              <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "rgba(245, 158, 11, 0.12)", color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.6rem", margin: "0 auto 1rem" }}>
+                <i className="fa-solid fa-book"></i>
+              </div>
+              <h4 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--color-text-main)", margin: "0 0 0.35rem" }}>
+                {t.researcher_page?.no_books || "No Books or Monographs Listed Yet"}
+              </h4>
+              <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", maxWidth: "420px", margin: "0 auto" }}>
+                {t.researcher_page?.no_books_desc || "Published books, chapters, and technical training manuals will appear here."}
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              {dossierState.books.map((b: any, idx: number) => (
+                <div
+                  key={b.id || idx}
+                  className="card-surface"
+                  style={{
+                    padding: "1.25rem clamp(1rem, 2.5vw, 1.5rem)",
+                    borderRadius: "10px",
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-card)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    gap: "1.2rem",
+                    flexWrap: "wrap"
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: "240px" }}>
+                    <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.4rem", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "0.72rem", fontWeight: 700, padding: "0.15rem 0.55rem", borderRadius: "4px", background: "rgba(245, 158, 11, 0.12)", color: "#d97706", border: "1px solid rgba(245, 158, 11, 0.3)" }}>
+                        {b.type || "Book"}
+                      </span>
+                      {b.year && (
+                        <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "var(--color-text-muted)" }}>
+                          • {b.year}
+                        </span>
+                      )}
+                      {b.publisher && (
+                        <span style={{ fontSize: "0.74rem", color: "var(--color-text-muted)" }}>
+                          • {b.publisher}
+                        </span>
+                      )}
+                    </div>
+                    <h4 style={{ margin: "0 0 0.4rem", fontSize: "1.05rem", fontWeight: 700, color: "var(--color-text-main)", lineHeight: 1.35 }}>
+                      {b.title}
+                    </h4>
+                    {b.description && (
+                      <p style={{ margin: 0, fontSize: "0.84rem", color: "var(--color-text-body)", lineHeight: 1.45 }}>
+                        {b.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                    {b.url && (
+                      <a
+                        href={formatUrl(b.url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem", display: "inline-flex", alignItems: "center", gap: "5px" }}
+                      >
+                        <span>{b.url.includes("amazon") ? "Amazon Store" : b.url.includes("springer") ? "Springer Nature" : "Open Source"}</span>
+                        <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.7rem" }}></i>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : activeTab === "consultancy" ? (
+        /* CONSULTANCY & PROJECTS VIEW */
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          {isOwner && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--color-bg-card-subtle)", padding: "1rem clamp(1rem, 2.5vw, 1.4rem)", borderRadius: "10px", border: "1px solid var(--color-border)", flexWrap: "wrap", gap: "0.8rem" }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--color-text-main)" }}>
+                  {t.researcher_page?.consultancy_heading || "Applied Research & Consultancy Portfolio"}
+                </div>
+                <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
+                  {t.researcher_page?.consultancy_subheading || "Showcase evaluations, feasibility studies, community initiatives, and client engagements."}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditModalTab("consultancy");
+                  setShowEditProfileModal(true);
+                }}
+                className="btn btn-primary btn-sm"
+                style={{ fontSize: "0.82rem", padding: "0.45rem 0.9rem" }}
+              >
+                <i className="fa-solid fa-plus" style={{ marginRight: "6px" }}></i>
+                {t.researcher_page?.add_consultancy_btn || "Add Project"}
+              </button>
+            </div>
+          )}
+
+          {dossierState.consultancies.length === 0 ? (
+            <div className="card-surface" style={{ textAlign: "center", padding: "clamp(2rem, 5vw, 3rem) 1.5rem", borderRadius: "12px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+              <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "rgba(2, 132, 199, 0.12)", color: "#0284c7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.6rem", margin: "0 auto 1rem" }}>
+                <i className="fa-solid fa-briefcase"></i>
+              </div>
+              <h4 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--color-text-main)", margin: "0 0 0.35rem" }}>
+                {t.researcher_page?.no_consultancy || "No Consultancy Projects Recorded Yet"}
+              </h4>
+              <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", maxWidth: "420px", margin: "0 auto" }}>
+                {t.researcher_page?.no_consultancy_desc || "Commissioned research, project evaluations, and development assignments will appear here."}
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
+              {dossierState.consultancies.map((c: any, idx: number) => (
+                <div
+                  key={c.id || idx}
+                  className="card-surface"
+                  style={{
+                    padding: "1.2rem clamp(1rem, 2.5vw, 1.4rem)",
+                    borderRadius: "10px",
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-card)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "1.2rem",
+                    flexWrap: "wrap"
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: "240px" }}>
+                    <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", marginBottom: "0.35rem", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "0.74rem", fontWeight: 700, padding: "0.15rem 0.55rem", borderRadius: "4px", background: "rgba(2, 132, 199, 0.12)", color: "#0284c7", border: "1px solid rgba(2, 132, 199, 0.25)" }}>
+                        {c.client || "Client Organisation"}
+                      </span>
+                      {c.period && (
+                        <span style={{ fontSize: "0.74rem", fontWeight: 600, color: "var(--color-text-muted)" }}>
+                          <i className="fa-regular fa-calendar" style={{ marginRight: "4px" }}></i>
+                          {c.period}
+                        </span>
+                      )}
+                    </div>
+                    <h4 style={{ margin: 0, fontSize: "0.98rem", fontWeight: 700, color: "var(--color-text-main)", lineHeight: 1.35 }}>
+                      {c.assignment}
+                    </h4>
+                  </div>
+                  {c.url && (
+                    <a
+                      href={formatUrl(c.url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary btn-sm"
+                      style={{ fontSize: "0.76rem", padding: "0.3rem 0.7rem", display: "inline-flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap" }}
+                    >
+                      <span>Project Site</span>
+                      <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.68rem" }}></i>
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : activeTab === "innovations" ? (
+        /* INNOVATIONS & PATENTS VIEW */
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          {isOwner && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--color-bg-card-subtle)", padding: "1rem clamp(1rem, 2.5vw, 1.4rem)", borderRadius: "10px", border: "1px solid var(--color-border)", flexWrap: "wrap", gap: "0.8rem" }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--color-text-main)" }}>
+                  {t.researcher_page?.innovations_heading || "Innovations, Technical Designs & Patents"}
+                </div>
+                <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
+                  {t.researcher_page?.innovations_subheading || "Showcase intellectual property, technological innovations, and engineering prototypes."}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditModalTab("innovations");
+                  setShowEditProfileModal(true);
+                }}
+                className="btn btn-primary btn-sm"
+                style={{ fontSize: "0.82rem", padding: "0.45rem 0.9rem" }}
+              >
+                <i className="fa-solid fa-plus" style={{ marginRight: "6px" }}></i>
+                {t.researcher_page?.add_innovation_btn || "Add Innovation"}
+              </button>
+            </div>
+          )}
+
+          {dossierState.innovations.length === 0 ? (
+            <div className="card-surface" style={{ textAlign: "center", padding: "clamp(2rem, 5vw, 3rem) 1.5rem", borderRadius: "12px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+              <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "rgba(22, 163, 74, 0.12)", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.6rem", margin: "0 auto 1rem" }}>
+                <i className="fa-solid fa-lightbulb"></i>
+              </div>
+              <h4 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--color-text-main)", margin: "0 0 0.35rem" }}>
+                {t.researcher_page?.no_innovations || "No Innovations or Patents Recorded Yet"}
+              </h4>
+              <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", maxWidth: "420px", margin: "0 auto" }}>
+                {t.researcher_page?.no_innovations_desc || "Registered patents, portable designs, and software innovations will appear here."}
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              {dossierState.innovations.map((inn: any, idx: number) => (
+                <div
+                  key={inn.id || idx}
+                  className="card-surface"
+                  style={{
+                    padding: "1.25rem clamp(1rem, 2.5vw, 1.5rem)",
+                    borderRadius: "10px",
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-card)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    gap: "1.2rem",
+                    flexWrap: "wrap"
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: "240px" }}>
+                    <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.4rem" }}>
+                      <span style={{ fontSize: "0.72rem", fontWeight: 700, padding: "0.15rem 0.55rem", borderRadius: "4px", background: "rgba(22, 163, 74, 0.12)", color: "#16a34a", border: "1px solid rgba(22, 163, 74, 0.25)" }}>
+                        {inn.type || "Innovation / Patent"}
+                      </span>
+                    </div>
+                    <h4 style={{ margin: "0 0 0.4rem", fontSize: "1.05rem", fontWeight: 700, color: "var(--color-text-main)" }}>
+                      {inn.title}
+                    </h4>
+                    {inn.description && (
+                      <p style={{ margin: 0, fontSize: "0.84rem", color: "var(--color-text-body)", lineHeight: 1.45 }}>
+                        {inn.description}
+                      </p>
+                    )}
+                  </div>
+                  {inn.url && (
+                    <a
+                      href={formatUrl(inn.url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary btn-sm"
+                      style={{ fontSize: "0.76rem", padding: "0.35rem 0.75rem", display: "inline-flex", alignItems: "center", gap: "5px" }}
+                    >
+                      <span>Technical Specs</span>
+                      <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.68rem" }}></i>
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : activeTab === "media" ? (
+        /* MEDIA & IMPACT VIEW */
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          {isOwner && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--color-bg-card-subtle)", padding: "1rem clamp(1rem, 2.5vw, 1.4rem)", borderRadius: "10px", border: "1px solid var(--color-border)", flexWrap: "wrap", gap: "0.8rem" }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--color-text-main)" }}>
+                  {t.researcher_page?.media_heading || "Media Appearances & Public Dissemination"}
+                </div>
+                <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
+                  {t.researcher_page?.media_subheading || "Broadcast interviews, news features, documentary programs, and educational podcasts."}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditModalTab("media");
+                  setShowEditProfileModal(true);
+                }}
+                className="btn btn-primary btn-sm"
+                style={{ fontSize: "0.82rem", padding: "0.45rem 0.9rem" }}
+              >
+                <i className="fa-solid fa-plus" style={{ marginRight: "6px" }}></i>
+                {t.researcher_page?.add_media_btn || "Add Media Feature"}
+              </button>
+            </div>
+          )}
+
+          {dossierState.media.length === 0 ? (
+            <div className="card-surface" style={{ textAlign: "center", padding: "clamp(2rem, 5vw, 3rem) 1.5rem", borderRadius: "12px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+              <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "rgba(225, 29, 72, 0.12)", color: "#e11d48", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.6rem", margin: "0 auto 1rem" }}>
+                <i className="fa-solid fa-tv"></i>
+              </div>
+              <h4 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--color-text-main)", margin: "0 0 0.35rem" }}>
+                {t.researcher_page?.no_media || "No Media Appearances Recorded Yet"}
+              </h4>
+              <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", maxWidth: "420px", margin: "0 auto" }}>
+                {t.researcher_page?.no_media_desc || "Television programs, radio broadcasts, and press interviews will appear here."}
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
+              {dossierState.media.map((m: any, idx: number) => (
+                <div
+                  key={m.id || idx}
+                  className="card-surface"
+                  style={{
+                    padding: "1.2rem clamp(1rem, 2.5vw, 1.4rem)",
+                    borderRadius: "10px",
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-card)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "1.2rem",
+                    flexWrap: "wrap"
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: "240px" }}>
+                    <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", marginBottom: "0.35rem", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "0.74rem", fontWeight: 700, padding: "0.15rem 0.55rem", borderRadius: "4px", background: "rgba(225, 29, 72, 0.12)", color: "#e11d48", border: "1px solid rgba(225, 29, 72, 0.25)" }}>
+                        <i className="fa-solid fa-circle" style={{ fontSize: "0.5rem", marginRight: "5px", color: "#e11d48" }}></i>
+                        {m.outlet || "Media Outlet"}
+                      </span>
+                      {m.date && (
+                        <span style={{ fontSize: "0.74rem", fontWeight: 600, color: "var(--color-text-muted)" }}>
+                          {m.date}
+                        </span>
+                      )}
+                    </div>
+                    <h4 style={{ margin: 0, fontSize: "0.98rem", fontWeight: 700, color: "var(--color-text-main)", lineHeight: 1.35 }}>
+                      {m.programme}
+                    </h4>
+                  </div>
+                  {m.url && (
+                    <a
+                      href={formatUrl(m.url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary btn-sm"
+                      style={{ fontSize: "0.76rem", padding: "0.3rem 0.75rem", display: "inline-flex", alignItems: "center", gap: "5px", whiteSpace: "nowrap" }}
+                    >
+                      <i className="fa-solid fa-play" style={{ color: "var(--color-primary)", fontSize: "0.7rem" }}></i>
+                      <span>Watch / View</span>
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       ) : activeTab === "library" ? (
         !currentUser ? (
           <div className="card-surface" style={{ textAlign: "center", padding: "4rem 2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
@@ -2824,18 +3877,18 @@ function ResearcherProfileContent() {
               className="card-surface" 
               style={{
                 width: "100%",
-                maxWidth: "600px",
+                maxWidth: "760px",
                 maxHeight: "90vh",
                 overflowY: "auto",
-                padding: "2rem",
+                padding: "clamp(1.2rem, 3vw, 2rem)",
                 borderRadius: "16px",
                 background: "var(--color-bg-card)"
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                <h3 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text-main)", margin: 0 }}>
-                  <i className="fa-solid fa-user-pen" style={{ color: "var(--color-primary)", marginRight: "8px" }}></i>
-                  Edit Scholar Profile
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem" }}>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text-main)", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                  <i className="fa-solid fa-user-pen" style={{ color: "var(--color-primary)" }}></i>
+                  Edit Scholar Profile & Academic Dossier
                 </h3>
                 <button 
                   onClick={() => setShowEditProfileModal(false)}
@@ -2845,180 +3898,1070 @@ function ResearcherProfileContent() {
                 </button>
               </div>
 
-              {/* Photo Upload Section */}
-              <div style={{ display: "flex", alignItems: "center", gap: "1.2rem", padding: "1rem", background: "var(--color-bg-card-subtle)", borderRadius: "8px", border: "1px solid var(--color-border)", marginBottom: "1.2rem" }}>
-                <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#1e293b", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", fontWeight: 700, overflow: "hidden", border: "2px solid #cbd5e1" }}>
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
-                    initials
-                  )}
-                </div>
-                <div>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <label className="btn btn-secondary btn-sm" style={{ cursor: "pointer", fontSize: "0.8rem", padding: "0.35rem 0.75rem" }}>
-                      <i className="fa-solid fa-upload" style={{ marginRight: "4px" }}></i> Upload Photo
-                      <input type="file" accept="image/*" onChange={handleAvatarFileChange} style={{ display: "none" }} />
-                    </label>
-                    {avatarUrl && (
-                      <button type="button" onClick={handleRemoveAvatar} className="btn btn-secondary btn-sm" style={{ fontSize: "0.8rem", color: "#b91c1c" }}>
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                  <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "4px", display: "block" }}>
-                    Recommended: Square JPG or PNG, max 2MB.
-                  </span>
-                </div>
+              {/* Modal Navigation Sub-Tabs */}
+              <div style={{ display: "flex", gap: "0.4rem", borderBottom: "1px solid var(--color-border)", marginBottom: "1.5rem", overflowX: "auto", WebkitOverflowScrolling: "touch", paddingBottom: "2px", scrollbarWidth: "none" }}>
+                <button
+                  type="button"
+                  onClick={() => setEditModalTab("general")}
+                  style={{
+                    padding: "0.5rem 0.9rem",
+                    background: editModalTab === "general" ? "var(--color-bg-card-subtle)" : "none",
+                    border: "none",
+                    borderBottom: editModalTab === "general" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                    fontWeight: 700,
+                    fontSize: "0.82rem",
+                    color: editModalTab === "general" ? "var(--color-primary)" : "var(--color-text-muted)",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0
+                  }}
+                >
+                  General Info
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEditModalTab("links_cv")}
+                  style={{
+                    padding: "0.5rem 0.9rem",
+                    background: editModalTab === "links_cv" ? "var(--color-bg-card-subtle)" : "none",
+                    border: "none",
+                    borderBottom: editModalTab === "links_cv" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                    fontWeight: 700,
+                    fontSize: "0.82rem",
+                    color: editModalTab === "links_cv" ? "var(--color-primary)" : "var(--color-text-muted)",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0
+                  }}
+                >
+                  Profiles & CV
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEditModalTab("books")}
+                  style={{
+                    padding: "0.5rem 0.9rem",
+                    background: editModalTab === "books" ? "var(--color-bg-card-subtle)" : "none",
+                    border: "none",
+                    borderBottom: editModalTab === "books" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                    fontWeight: 700,
+                    fontSize: "0.82rem",
+                    color: editModalTab === "books" ? "var(--color-primary)" : "var(--color-text-muted)",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0
+                  }}
+                >
+                  Books & Monographs ({dossierState.books.length})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEditModalTab("consultancy")}
+                  style={{
+                    padding: "0.5rem 0.9rem",
+                    background: editModalTab === "consultancy" ? "var(--color-bg-card-subtle)" : "none",
+                    border: "none",
+                    borderBottom: editModalTab === "consultancy" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                    fontWeight: 700,
+                    fontSize: "0.82rem",
+                    color: editModalTab === "consultancy" ? "var(--color-primary)" : "var(--color-text-muted)",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0
+                  }}
+                >
+                  Consultancy ({dossierState.consultancies.length})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEditModalTab("innovations")}
+                  style={{
+                    padding: "0.5rem 0.9rem",
+                    background: editModalTab === "innovations" ? "var(--color-bg-card-subtle)" : "none",
+                    border: "none",
+                    borderBottom: editModalTab === "innovations" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                    fontWeight: 700,
+                    fontSize: "0.82rem",
+                    color: editModalTab === "innovations" ? "var(--color-primary)" : "var(--color-text-muted)",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0
+                  }}
+                >
+                  Innovations ({dossierState.innovations.length})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEditModalTab("media")}
+                  style={{
+                    padding: "0.5rem 0.9rem",
+                    background: editModalTab === "media" ? "var(--color-bg-card-subtle)" : "none",
+                    border: "none",
+                    borderBottom: editModalTab === "media" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                    fontWeight: 700,
+                    fontSize: "0.82rem",
+                    color: editModalTab === "media" ? "var(--color-primary)" : "var(--color-text-muted)",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0
+                  }}
+                >
+                  Media ({dossierState.media.length})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEditModalTab("bibtex")}
+                  style={{
+                    padding: "0.5rem 0.9rem",
+                    background: editModalTab === "bibtex" ? "var(--color-bg-card-subtle)" : "none",
+                    border: "none",
+                    borderBottom: editModalTab === "bibtex" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                    fontWeight: 700,
+                    fontSize: "0.82rem",
+                    color: editModalTab === "bibtex" ? "var(--color-primary)" : "var(--color-text-muted)",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0
+                  }}
+                >
+                  <i className="fa-solid fa-file-import" style={{ marginRight: "4px" }}></i>
+                  BibTeX Import
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEditModalTab("security")}
+                  style={{
+                    padding: "0.5rem 0.9rem",
+                    background: editModalTab === "security" ? "var(--color-bg-card-subtle)" : "none",
+                    border: "none",
+                    borderBottom: editModalTab === "security" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                    fontWeight: 700,
+                    fontSize: "0.82rem",
+                    color: editModalTab === "security" ? "var(--color-primary)" : "var(--color-text-muted)",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0
+                  }}
+                >
+                  <i className="fa-solid fa-lock" style={{ marginRight: "4px" }}></i>
+                  Security & Password
+                </button>
               </div>
 
               <form onSubmit={handleSaveProfile}>
-                <div className="form-group" style={{ marginBottom: "1rem" }}>
-                  <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Full Name</label>
-                  <input
-                    type="text"
-                    value={editForm.name}
-                    onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                    className="form-control"
-                    required
-                  />
-                </div>
+                {/* SUB-TAB 1: GENERAL INFO */}
+                {editModalTab === "general" && (
+                  <div>
+                    {/* Photo Upload Section */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "1.2rem", padding: "1rem", background: "var(--color-bg-card-subtle)", borderRadius: "8px", border: "1px solid var(--color-border)", marginBottom: "1.2rem", flexWrap: "wrap" }}>
+                      <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#1e293b", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", fontWeight: 700, overflow: "hidden", border: "2px solid #cbd5e1", flexShrink: 0 }}>
+                        {avatarUrl ? (
+                          <img src={avatarUrl} alt="Avatar Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          initials
+                        )}
+                      </div>
+                      <div>
+                        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                          <label className="btn btn-secondary btn-sm" style={{ cursor: "pointer", fontSize: "0.8rem", padding: "0.35rem 0.75rem" }}>
+                            <i className="fa-solid fa-upload" style={{ marginRight: "4px" }}></i> Upload Photo
+                            <input type="file" accept="image/*" onChange={handleAvatarFileChange} style={{ display: "none" }} />
+                          </label>
+                          {avatarUrl && (
+                            <button type="button" onClick={handleRemoveAvatar} className="btn btn-secondary btn-sm" style={{ fontSize: "0.8rem", color: "#b91c1c" }}>
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                        <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "4px", display: "block" }}>
+                          Recommended: Square JPG or PNG, max 2MB.
+                        </span>
+                      </div>
+                    </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Academic Rank / Title</label>
-                    <input
-                      type="text"
-                      value={editForm.academicRank}
-                      onChange={e => setEditForm({ ...editForm, academicRank: e.target.value })}
-                      placeholder="e.g. Senior Lecturer"
-                      className="form-control"
-                    />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Institution</label>
-                    <input
-                      type="text"
-                      value={editForm.institution}
-                      onChange={e => setEditForm({ ...editForm, institution: e.target.value })}
-                      placeholder="e.g. University of Nairobi"
-                      className="form-control"
-                    />
-                  </div>
-                </div>
+                    <div className="form-group" style={{ marginBottom: "1rem" }}>
+                      <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Full Name</label>
+                      <input
+                        type="text"
+                        value={editForm.name}
+                        onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                        className="form-control"
+                        required
+                      />
+                    </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Department</label>
-                    <input
-                      type="text"
-                      value={editForm.department}
-                      onChange={e => setEditForm({ ...editForm, department: e.target.value })}
-                      placeholder="e.g. Dept. of Education"
-                      className="form-control"
-                    />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Country</label>
-                    <input
-                      type="text"
-                      value={editForm.country}
-                      onChange={e => setEditForm({ ...editForm, country: e.target.value })}
-                      placeholder="e.g. Kenya"
-                      className="form-control"
-                    />
-                  </div>
-                </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem", marginBottom: "1rem" }}>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Academic Rank / Title</label>
+                        <input
+                          type="text"
+                          value={editForm.academicRank}
+                          onChange={e => setEditForm({ ...editForm, academicRank: e.target.value })}
+                          placeholder="e.g. Professor, Senior Lecturer"
+                          className="form-control"
+                        />
+                      </div>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Institution / Organization</label>
+                        <input
+                          type="text"
+                          value={editForm.institution}
+                          onChange={e => setEditForm({ ...editForm, institution: e.target.value })}
+                          placeholder="e.g.  University of Nairobi"
+                          className="form-control"
+                        />
+                      </div>
+                    </div>
 
-                <div className="form-group" style={{ marginBottom: "1rem" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
-                    <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700, margin: 0 }}>
-                      ORCID iD (16 digits)
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleVerifyOrcid}
-                      disabled={orcidCheckStatus.loading || !editForm.orcid.trim()}
-                      className="btn btn-secondary btn-sm"
-                      style={{ fontSize: "0.75rem", padding: "0.2rem 0.55rem" }}
-                    >
-                      {orcidCheckStatus.loading ? (
-                        <>
-                          <i className="fa-solid fa-circle-notch fa-spin" style={{ marginRight: "4px" }}></i> Checking...
-                        </>
-                      ) : (
-                        <>
-                          <i className="fa-brands fa-orcid" style={{ color: "#a6ce39", marginRight: "4px" }}></i> Verify with Registry
-                        </>
-                      )}
-                    </button>
-                  </div>
-                  <input
-                    type="text"
-                    value={editForm.orcid}
-                    onChange={e => {
-                      setEditForm({ ...editForm, orcid: e.target.value });
-                      setOrcidCheckStatus({ loading: false, verified: null });
-                    }}
-                    placeholder="e.g. 0000-0002-1825-0097"
-                    className="form-control"
-                    style={{ fontSize: "0.88rem" }}
-                  />
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem", marginBottom: "1rem" }}>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Department / Center</label>
+                        <input
+                          type="text"
+                          value={editForm.department}
+                          onChange={e => setEditForm({ ...editForm, department: e.target.value })}
+                          placeholder="e.g. Department of Educational Studies"
+                          className="form-control"
+                        />
+                      </div>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Country</label>
+                        <input
+                          type="text"
+                          value={editForm.country}
+                          onChange={e => setEditForm({ ...editForm, country: e.target.value })}
+                          placeholder="e.g. Kenya"
+                          className="form-control"
+                        />
+                      </div>
+                    </div>
 
-                  {/* ORCID Registry Verification Feedback */}
-                  {orcidCheckStatus.verified && (
-                    <div style={{ marginTop: "0.4rem", padding: "0.4rem 0.65rem", background: "#f0fdf4", border: "1px solid #86efac", borderRadius: "6px", fontSize: "0.78rem", color: "#166534", display: "flex", alignItems: "center", gap: "6px" }}>
-                      <i className="fa-solid fa-circle-check" style={{ color: "#16a34a" }}></i>
-                      <span>
-                        <strong>Verified in ORCID Registry:</strong> {orcidCheckStatus.name}
+                    <div className="form-group" style={{ marginBottom: "1rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
+                        <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700, margin: 0 }}>
+                          ORCID iD (16 digits)
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleVerifyOrcid}
+                          disabled={orcidCheckStatus.loading || !editForm.orcid.trim()}
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontSize: "0.75rem", padding: "0.2rem 0.55rem" }}
+                        >
+                          {orcidCheckStatus.loading ? (
+                            <>
+                              <i className="fa-solid fa-circle-notch fa-spin" style={{ marginRight: "4px" }}></i> Checking...
+                            </>
+                          ) : (
+                            <>
+                              <i className="fa-brands fa-orcid" style={{ color: "#a6ce39", marginRight: "4px" }}></i> Verify with Registry
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={editForm.orcid}
+                        onChange={e => {
+                          setEditForm({ ...editForm, orcid: e.target.value });
+                          setOrcidCheckStatus({ loading: false, verified: null });
+                        }}
+                        placeholder="e.g. 0000-0002-1825-0097"
+                        className="form-control"
+                        style={{ fontSize: "0.88rem" }}
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: "1rem" }}>
+                      <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Academic Bio / Research Statement</label>
+                      <textarea
+                        value={editForm.bio}
+                        onChange={e => setEditForm({ ...editForm, bio: e.target.value })}
+                        placeholder="Brief summary of scholarly background, research leadership and areas of practice..."
+                        rows={3}
+                        className="form-control"
+                        style={{ fontSize: "0.85rem", resize: "none" }}
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: "1.5rem" }}>
+                      <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Research Focus Areas (comma-separated)</label>
+                      <input
+                        type="text"
+                        value={editForm.researchFocus}
+                        onChange={e => setEditForm({ ...editForm, researchFocus: e.target.value })}
+                        placeholder="Higher Education, Sustainable Development, Environmental Policy, Quantitative Research"
+                        className="form-control"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* SUB-TAB 2: PROFILES & CV */}
+                {editModalTab === "links_cv" && (
+                  <div>
+                    <div style={{ marginBottom: "1rem", padding: "0.8rem 1rem", background: "var(--color-bg-card-subtle)", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.84rem", color: "var(--color-text-muted)" }}>
+                      Link your external academic identities to build verified author cross-references across indexing platforms.
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: "1rem" }}>
+                      <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                        <i className="fa-brands fa-google" style={{ color: "#2563eb", marginRight: "6px" }}></i>
+                        Google Scholar Profile URL
+                      </label>
+                      <input
+                        type="url"
+                        value={editForm.googleScholarUrl}
+                        onChange={e => setEditForm({ ...editForm, googleScholarUrl: e.target.value })}
+                        placeholder="https://scholar.google.com/citations?user=..."
+                        className="form-control"
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: "1rem" }}>
+                      <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                        <i className="fa-brands fa-amazon" style={{ color: "#d97706", marginRight: "6px" }}></i>
+                        Amazon Author Store URL (Books & Monographs)
+                      </label>
+                      <input
+                        type="url"
+                        value={editForm.amazonAuthor}
+                        onChange={e => setEditForm({ ...editForm, amazonAuthor: e.target.value })}
+                        placeholder="https://www.amazon.com/stores/author/..."
+                        className="form-control"
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: "1rem" }}>
+                      <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                        <i className="fa-brands fa-researchgate" style={{ color: "#059669", marginRight: "6px" }}></i>
+                        ResearchGate Profile URL
+                      </label>
+                      <input
+                        type="url"
+                        value={editForm.researchGate}
+                        onChange={e => setEditForm({ ...editForm, researchGate: e.target.value })}
+                        placeholder="https://www.researchgate.net/profile/..."
+                        className="form-control"
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: "1rem" }}>
+                      <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                        <i className="fa-solid fa-graduation-cap" style={{ color: "#475569", marginRight: "6px" }}></i>
+                        Academia.edu Publications URL
+                      </label>
+                      <input
+                        type="url"
+                        value={editForm.academia}
+                        onChange={e => setEditForm({ ...editForm, academia: e.target.value })}
+                        placeholder="https://independent.academia.edu/..."
+                        className="form-control"
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: "1rem" }}>
+                      <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                        <i className="fa-brands fa-linkedin" style={{ color: "#0284c7", marginRight: "6px" }}></i>
+                        LinkedIn Professional Profile URL
+                      </label>
+                      <input
+                        type="url"
+                        value={editForm.linkedIn}
+                        onChange={e => setEditForm({ ...editForm, linkedIn: e.target.value })}
+                        placeholder="https://www.linkedin.com/in/username"
+                        className="form-control"
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: "1rem" }}>
+                      <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                        <i className="fa-solid fa-book-open" style={{ color: "#7c3aed", marginRight: "6px" }}></i>
+                        Semantic Scholar Profile URL
+                      </label>
+                      <input
+                        type="url"
+                        value={editForm.semanticScholar}
+                        onChange={e => setEditForm({ ...editForm, semanticScholar: e.target.value })}
+                        placeholder="https://www.semanticscholar.org/author/..."
+                        className="form-control"
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: "1.5rem" }}>
+                      <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span>
+                          <i className="fa-solid fa-file-pdf" style={{ color: "var(--color-primary)", marginRight: "6px" }}></i>
+                          Official Academic CV / Dossier (PDF)
+                        </span>
+                      </label>
+
+                      {/* Direct PDF File Upload Button & Status */}
+                      <div style={{ display: "flex", gap: "0.8rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.75rem" }}>
+                        <label className="btn btn-primary btn-sm" style={{ cursor: isUploadingCv ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.82rem", padding: "0.45rem 1rem" }}>
+                          {isUploadingCv ? (
+                            <>
+                              <i className="fa-solid fa-circle-notch fa-spin"></i>
+                              <span>{t.researcher_page?.uploading_cv || "Uploading CV..."}</span>
+                            </>
+                          ) : (
+                            <>
+                              <i className="fa-solid fa-file-arrow-up"></i>
+                              <span>{t.researcher_page?.upload_cv_btn || "Upload CV (PDF)"}</span>
+                            </>
+                          )}
+                          <input type="file" accept=".pdf" onChange={handleCvFileUpload} disabled={isUploadingCv} style={{ display: "none" }} />
+                        </label>
+
+                        {editForm.cvPdfUrl && (
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(22, 163, 74, 0.1)", border: "1px solid rgba(22, 163, 74, 0.25)", padding: "0.35rem 0.75rem", borderRadius: "6px", fontSize: "0.8rem", color: "#16a34a" }}>
+                            <i className="fa-solid fa-check-circle"></i>
+                            <a href={formatUrl(editForm.cvPdfUrl)} target="_blank" rel="noopener noreferrer" style={{ color: "#16a34a", fontWeight: 600, textDecoration: "underline" }}>
+                              {t.researcher_page?.view_cv || "View Attached CV"}
+                            </a>
+                            <button type="button" onClick={() => setEditForm({ ...editForm, cvPdfUrl: "" })} style={{ background: "none", border: "none", color: "#dc2626", cursor: "pointer", padding: "0 2px" }} title="Remove CV">
+                              <i className="fa-solid fa-xmark"></i>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ fontSize: "0.76rem", color: "var(--color-text-muted)", marginBottom: "0.35rem" }}>
+                        Or enter external PDF link directly:
+                      </div>
+                      <input
+                        type="text"
+                        value={editForm.cvPdfUrl}
+                        onChange={e => setEditForm({ ...editForm, cvPdfUrl: e.target.value })}
+                        placeholder="https://example.edu/repository/cv.pdf or /uploads/..."
+                        className="form-control"
+                        style={{ fontSize: "0.85rem" }}
+                      />
+                      <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "4px", display: "block" }}>
+                        Enables visitors and editorial boards to download your verified full CV directly from your scholar page.
                       </span>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {orcidCheckStatus.error && (
-                    <div style={{ marginTop: "0.4rem", padding: "0.4rem 0.65rem", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "6px", fontSize: "0.78rem", color: "#991b1b", display: "flex", alignItems: "center", gap: "6px" }}>
-                      <i className="fa-solid fa-triangle-exclamation" style={{ color: "#dc2626" }}></i>
-                      <span>{orcidCheckStatus.error}</span>
+                {/* SUB-TAB 3: BOOKS & MONOGRAPHS */}
+                {editModalTab === "books" && (
+                  <div>
+                    {/* Add Book Box */}
+                    <div style={{ background: "var(--color-bg-card-subtle)", padding: "1.2rem", borderRadius: "10px", border: "1px solid var(--color-border)", marginBottom: "1.5rem" }}>
+                      <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--color-text-main)", marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <i className="fa-solid fa-plus-circle" style={{ color: "var(--color-primary)" }}></i>
+                        Add Book, Book Chapter, or Research Report
+                      </div>
+
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.8rem", marginBottom: "0.8rem" }}>
+                        <div>
+                          <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Publication Title *</label>
+                          <input
+                            type="text"
+                            value={newBook.title}
+                            onChange={e => setNewBook({ ...newBook, title: e.target.value })}
+                            placeholder="e.g. Advanced Methodologies in Applied Social Research"
+                            className="form-control"
+                            style={{ fontSize: "0.85rem" }}
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Type</label>
+                          <select
+                            value={newBook.type}
+                            onChange={e => setNewBook({ ...newBook, type: e.target.value })}
+                            className="form-control"
+                            style={{ fontSize: "0.85rem" }}
+                          >
+                            <option value="Book">Book / Monograph</option>
+                            <option value="Book Chapter">Book Chapter</option>
+                            <option value="Research Report">Research Report</option>
+                            <option value="Educational Book">Educational Book Series</option>
+                            <option value="Technical Paper">Technical Paper</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.8rem", marginBottom: "0.8rem" }}>
+                        <div>
+                          <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Year</label>
+                          <input
+                            type="text"
+                            value={newBook.year}
+                            onChange={e => setNewBook({ ...newBook, year: e.target.value })}
+                            placeholder="e.g. 2023"
+                            className="form-control"
+                            style={{ fontSize: "0.85rem" }}
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Publisher / Venue</label>
+                          <input
+                            type="text"
+                            value={newBook.publisher}
+                            onChange={e => setNewBook({ ...newBook, publisher: e.target.value })}
+                            placeholder="e.g. Academic Press / Springer"
+                            className="form-control"
+                            style={{ fontSize: "0.85rem" }}
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>External URL (Amazon / Publisher)</label>
+                          <input
+                            type="url"
+                            value={newBook.url}
+                            onChange={e => setNewBook({ ...newBook, url: e.target.value })}
+                            placeholder="https://books.google.com/..."
+                            className="form-control"
+                            style={{ fontSize: "0.85rem" }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: "0.8rem" }}>
+                        <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Short Description / Abstract</label>
+                        <input
+                          type="text"
+                          value={newBook.description}
+                          onChange={e => setNewBook({ ...newBook, description: e.target.value })}
+                          placeholder="Brief description or ISBN..."
+                          className="form-control"
+                          style={{ fontSize: "0.85rem" }}
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAddBook}
+                        disabled={!newBook.title.trim()}
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: "0.8rem", padding: "0.35rem 0.85rem" }}
+                      >
+                        <i className="fa-solid fa-plus" style={{ marginRight: "4px" }}></i> Add to List
+                      </button>
                     </div>
-                  )}
 
-                  {!orcidCheckStatus.verified && !orcidCheckStatus.error && (
-                    <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "3px", display: "block" }}>
-                      Must exist in the official Open Researcher and Contributor ID registry (orcid.org).
-                    </span>
-                  )}
-                </div>
+                    {/* Current Books List */}
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.6rem" }}>
+                        Current Books & Monographs ({dossierState.books.length})
+                      </div>
+                      {dossierState.books.length === 0 ? (
+                        <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", padding: "1rem", textAlign: "center", background: "var(--color-bg-card-subtle)", borderRadius: "8px" }}>
+                          No books added yet. Fill the form above or use the BibTeX Importer.
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", maxHeight: "250px", overflowY: "auto" }}>
+                          {dossierState.books.map((b, idx) => (
+                            <div key={idx} style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card-subtle)", borderRadius: "6px", border: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "var(--color-text-main)" }}>{b.title}</div>
+                                <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+                                  {b.type || "Book"}{b.year ? ` • ${b.year}` : ""}{b.publisher ? ` • ${b.publisher}` : ""}
+                                </div>
+                              </div>
+                              <button type="button" onClick={() => handleRemoveBook(idx)} className="btn btn-secondary btn-sm" style={{ color: "#dc2626", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>
+                                <i className="fa-solid fa-trash"></i>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
-                <div className="form-group" style={{ marginBottom: "1rem" }}>
-                  <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Academic Bio / Research Statement</label>
-                  <textarea
-                    value={editForm.bio}
-                    onChange={e => setEditForm({ ...editForm, bio: e.target.value })}
-                    placeholder="Brief description of your research focus, scholarly interests, and academic background..."
-                    rows={3}
-                    className="form-control"
-                    style={{ fontSize: "0.85rem", resize: "none" }}
-                  />
-                </div>
+                {/* SUB-TAB 4: CONSULTANCY & PROJECTS */}
+                {editModalTab === "consultancy" && (
+                  <div>
+                    <div style={{ background: "var(--color-bg-card-subtle)", padding: "1.2rem", borderRadius: "10px", border: "1px solid var(--color-border)", marginBottom: "1.5rem" }}>
+                      <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--color-text-main)", marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <i className="fa-solid fa-plus-circle" style={{ color: "var(--color-primary)" }}></i>
+                        Add Consultancy or Research Project Assignment
+                      </div>
 
-                <div className="form-group" style={{ marginBottom: "1.5rem" }}>
-                  <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>Research Focus Areas (comma-separated)</label>
-                  <input
-                    type="text"
-                    value={editForm.researchFocus}
-                    onChange={e => setEditForm({ ...editForm, researchFocus: e.target.value })}
-                    placeholder="Higher Education, Curriculum Policy, Pedagogy"
-                    className="form-control"
-                  />
-                </div>
+                      <div style={{ marginBottom: "0.8rem" }}>
+                        <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Assignment / Project Title *</label>
+                        <input
+                          type="text"
+                          value={newConsultancy.assignment}
+                          onChange={e => setNewConsultancy({ ...newConsultancy, assignment: e.target.value })}
+                          placeholder="e.g. Educational Curriculum Review & Impact Assessment"
+                          className="form-control"
+                          style={{ fontSize: "0.85rem" }}
+                        />
+                      </div>
 
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
-                  <button type="button" onClick={() => setShowEditProfileModal(false)} className="btn btn-secondary btn-sm">
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-primary btn-sm" disabled={savingProfile}>
-                    {savingProfile ? "Saving..." : "Save Profile Details"}
-                  </button>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.8rem", marginBottom: "0.8rem" }}>
+                        <div>
+                          <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Client / Organisation *</label>
+                          <input
+                            type="text"
+                            value={newConsultancy.client}
+                            onChange={e => setNewConsultancy({ ...newConsultancy, client: e.target.value })}
+                            placeholder="e.g. Ministry of Education / Development Agency"
+                            className="form-control"
+                            style={{ fontSize: "0.85rem" }}
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Period / Dates</label>
+                          <input
+                            type="text"
+                            value={newConsultancy.period}
+                            onChange={e => setNewConsultancy({ ...newConsultancy, period: e.target.value })}
+                            placeholder="e.g. 2022 - 2024"
+                            className="form-control"
+                            style={{ fontSize: "0.85rem" }}
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Project / Client URL</label>
+                          <input
+                            type="url"
+                            value={newConsultancy.url}
+                            onChange={e => setNewConsultancy({ ...newConsultancy, url: e.target.value })}
+                            placeholder="https://..."
+                            className="form-control"
+                            style={{ fontSize: "0.85rem" }}
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAddConsultancy}
+                        disabled={!newConsultancy.assignment.trim() || !newConsultancy.client.trim()}
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: "0.8rem", padding: "0.35rem 0.85rem" }}
+                      >
+                        <i className="fa-solid fa-plus" style={{ marginRight: "4px" }}></i> Add Assignment
+                      </button>
+                    </div>
+
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.6rem" }}>
+                        Current Projects & Assignments ({dossierState.consultancies.length})
+                      </div>
+                      {dossierState.consultancies.length === 0 ? (
+                        <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", padding: "1rem", textAlign: "center", background: "var(--color-bg-card-subtle)", borderRadius: "8px" }}>
+                          No consultancy assignments added yet.
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", maxHeight: "250px", overflowY: "auto" }}>
+                          {dossierState.consultancies.map((c, idx) => (
+                            <div key={idx} style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card-subtle)", borderRadius: "6px", border: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "var(--color-text-main)" }}>{c.assignment}</div>
+                                <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+                                  {c.client}{c.period ? ` • ${c.period}` : ""}
+                                </div>
+                              </div>
+                              <button type="button" onClick={() => handleRemoveConsultancy(idx)} className="btn btn-secondary btn-sm" style={{ color: "#dc2626", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>
+                                <i className="fa-solid fa-trash"></i>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* SUB-TAB 5: INNOVATIONS & PATENTS */}
+                {editModalTab === "innovations" && (
+                  <div>
+                    <div style={{ background: "var(--color-bg-card-subtle)", padding: "1.2rem", borderRadius: "10px", border: "1px solid var(--color-border)", marginBottom: "1.5rem" }}>
+                      <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--color-text-main)", marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <i className="fa-solid fa-plus-circle" style={{ color: "var(--color-primary)" }}></i>
+                        Add Technical Innovation, Prototype, or Patent
+                      </div>
+
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.8rem", marginBottom: "0.8rem" }}>
+                        <div>
+                          <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Innovation / Patent Title *</label>
+                          <input
+                            type="text"
+                            value={newInnovation.title}
+                            onChange={e => setNewInnovation({ ...newInnovation, title: e.target.value })}
+                            placeholder="e.g. Solar-Powered Agricultural Cold Storage System"
+                            className="form-control"
+                            style={{ fontSize: "0.85rem" }}
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Type</label>
+                          <input
+                            type="text"
+                            value={newInnovation.type}
+                            onChange={e => setNewInnovation({ ...newInnovation, type: e.target.value })}
+                            placeholder="e.g. Design Innovation, Patent"
+                            className="form-control"
+                            style={{ fontSize: "0.85rem" }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: "0.8rem" }}>
+                        <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Description</label>
+                        <input
+                          type="text"
+                          value={newInnovation.description}
+                          onChange={e => setNewInnovation({ ...newInnovation, description: e.target.value })}
+                          placeholder="Brief technical description or problem solved..."
+                          className="form-control"
+                          style={{ fontSize: "0.85rem" }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: "0.8rem" }}>
+                        <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Documentation / Patent URL</label>
+                        <input
+                          type="url"
+                          value={newInnovation.url}
+                          onChange={e => setNewInnovation({ ...newInnovation, url: e.target.value })}
+                          placeholder="https://..."
+                          className="form-control"
+                          style={{ fontSize: "0.85rem" }}
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAddInnovation}
+                        disabled={!newInnovation.title.trim()}
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: "0.8rem", padding: "0.35rem 0.85rem" }}
+                      >
+                        <i className="fa-solid fa-plus" style={{ marginRight: "4px" }}></i> Add Innovation
+                      </button>
+                    </div>
+
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.6rem" }}>
+                        Current Innovations & Patents ({dossierState.innovations.length})
+                      </div>
+                      {dossierState.innovations.length === 0 ? (
+                        <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", padding: "1rem", textAlign: "center", background: "var(--color-bg-card-subtle)", borderRadius: "8px" }}>
+                          No innovations or patents recorded yet.
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", maxHeight: "250px", overflowY: "auto" }}>
+                          {dossierState.innovations.map((inn, idx) => (
+                            <div key={idx} style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card-subtle)", borderRadius: "6px", border: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "var(--color-text-main)" }}>{inn.title}</div>
+                                <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>{inn.type || "Innovation"}</div>
+                              </div>
+                              <button type="button" onClick={() => handleRemoveInnovation(idx)} className="btn btn-secondary btn-sm" style={{ color: "#dc2626", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>
+                                <i className="fa-solid fa-trash"></i>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* SUB-TAB 6: MEDIA APPEARANCES */}
+                {editModalTab === "media" && (
+                  <div>
+                    <div style={{ background: "var(--color-bg-card-subtle)", padding: "1.2rem", borderRadius: "10px", border: "1px solid var(--color-border)", marginBottom: "1.5rem" }}>
+                      <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--color-text-main)", marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <i className="fa-solid fa-plus-circle" style={{ color: "var(--color-primary)" }}></i>
+                        Add Media Appearance or Broadcast Feature
+                      </div>
+
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.8rem", marginBottom: "0.8rem" }}>
+                        <div>
+                          <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Media Outlet *</label>
+                          <input
+                            type="text"
+                            value={newMedia.outlet}
+                            onChange={e => setNewMedia({ ...newMedia, outlet: e.target.value })}
+                            placeholder="e.g. National Television / Broadcast Network"
+                            className="form-control"
+                            style={{ fontSize: "0.85rem" }}
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Broadcast Date</label>
+                          <input
+                            type="text"
+                            value={newMedia.date}
+                            onChange={e => setNewMedia({ ...newMedia, date: e.target.value })}
+                            placeholder="e.g. 15 Nov 2024"
+                            className="form-control"
+                            style={{ fontSize: "0.85rem" }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: "0.8rem" }}>
+                        <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Programme / Topic Title *</label>
+                        <input
+                          type="text"
+                          value={newMedia.programme}
+                          onChange={e => setNewMedia({ ...newMedia, programme: e.target.value })}
+                          placeholder="e.g. Higher Education Policy & Continental Repositories"
+                          className="form-control"
+                          style={{ fontSize: "0.85rem" }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: "0.8rem" }}>
+                        <label className="form-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Video / Article URL</label>
+                        <input
+                          type="url"
+                          value={newMedia.url}
+                          onChange={e => setNewMedia({ ...newMedia, url: e.target.value })}
+                          placeholder="https://www.youtube.com/watch?v=..."
+                          className="form-control"
+                          style={{ fontSize: "0.85rem" }}
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAddMedia}
+                        disabled={!newMedia.outlet.trim() || !newMedia.programme.trim()}
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: "0.8rem", padding: "0.35rem 0.85rem" }}
+                      >
+                        <i className="fa-solid fa-plus" style={{ marginRight: "4px" }}></i> Add Media Feature
+                      </button>
+                    </div>
+
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.6rem" }}>
+                        Current Media Appearances ({dossierState.media.length})
+                      </div>
+                      {dossierState.media.length === 0 ? (
+                        <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", padding: "1rem", textAlign: "center", background: "var(--color-bg-card-subtle)", borderRadius: "8px" }}>
+                          No media appearances recorded yet.
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", maxHeight: "250px", overflowY: "auto" }}>
+                          {dossierState.media.map((m, idx) => (
+                            <div key={idx} style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card-subtle)", borderRadius: "6px", border: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "var(--color-text-main)" }}>{m.programme}</div>
+                                <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+                                  {m.outlet}{m.date ? ` • ${m.date}` : ""}
+                                </div>
+                              </div>
+                              <button type="button" onClick={() => handleRemoveMedia(idx)} className="btn btn-secondary btn-sm" style={{ color: "#dc2626", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>
+                                <i className="fa-solid fa-trash"></i>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* SUB-TAB 7: BIBTEX IMPORTER */}
+                {editModalTab === "bibtex" && (
+                  <div>
+                    <div style={{ marginBottom: "1rem", padding: "0.8rem 1rem", background: "var(--color-bg-card-subtle)", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.84rem", color: "var(--color-text-muted)", lineHeight: 1.5 }}>
+                      <strong>How to export from Google Scholar:</strong>
+                      <ol style={{ margin: "0.4rem 0 0", paddingLeft: "1.2rem", fontSize: "0.8rem" }}>
+                        <li>Open your <a href="https://scholar.google.com" target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-primary)" }}>Google Scholar</a> profile.</li>
+                        <li>Select your publications checkbox &rarr; click <strong>Export</strong> &rarr; choose <strong>BibTeX</strong>.</li>
+                        <li>Paste the exported text into the box below and click <strong>Parse & Import into Books / Monographs</strong>.</li>
+                      </ol>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: "1rem" }}>
+                      <label className="form-label" style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                        Paste BibTeX Text
+                      </label>
+                      <textarea
+                        value={bibtexInput}
+                        onChange={e => {
+                          setBibtexInput(e.target.value);
+                          setBibtexParsedCount(null);
+                        }}
+                        placeholder="@book{author2023methods,&#10;  title={Advanced Research Methodologies in Higher Education},&#10;  author={Doe, John},&#10;  year={2023},&#10;  publisher={Academic Press}&#10;}&#10;@article{...}"
+                        rows={8}
+                        className="form-control"
+                        style={{ fontFamily: "monospace", fontSize: "0.82rem", resize: "vertical" }}
+                      />
+                    </div>
+
+                    {bibtexParsedCount !== null && (
+                      <div style={{ marginBottom: "1rem", padding: "0.6rem 0.9rem", background: "#f0fdf4", border: "1px solid #86efac", borderRadius: "6px", color: "#166534", fontSize: "0.84rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <i className="fa-solid fa-circle-check" style={{ color: "#16a34a" }}></i>
+                        <span>Successfully parsed and added <strong>{bibtexParsedCount}</strong> publication{bibtexParsedCount !== 1 ? "s" : ""} to your Books & Monographs list! Click <strong>Save Profile Changes</strong> below to persist.</span>
+                      </div>
+                    )}
+
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      <button
+                        type="button"
+                        onClick={handleParseAndImportBibTeX}
+                        disabled={!bibtexInput.trim()}
+                        className="btn btn-primary btn-sm"
+                        style={{ fontSize: "0.82rem", padding: "0.45rem 1rem" }}
+                      >
+                        <i className="fa-solid fa-file-import" style={{ marginRight: "6px" }}></i>
+                        Parse & Import into Books / Monographs
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUB-TAB 8: SECURITY & PASSWORD */}
+                {editModalTab === "security" && (
+                  <div>
+                    <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.75rem", color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <i className="fa-solid fa-shield-halved" style={{ color: "var(--color-primary)" }}></i>
+                      Account Password & Security
+                    </h4>
+                    <p style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", marginBottom: "1.2rem", lineHeight: 1.5 }}>
+                      Update your account password to ensure your researcher profile and publishing credentials remain secure. Passwords must be at least 8 characters long.
+                    </p>
+
+                    {securityMessage && (
+                      <div
+                        style={{
+                          marginBottom: "1rem",
+                          padding: "0.65rem 0.9rem",
+                          borderRadius: "8px",
+                          fontSize: "0.82rem",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          background: securityMessage.type === "success" ? "#f0fdf4" : "#fef2f2",
+                          border: `1px solid ${securityMessage.type === "success" ? "#86efac" : "#fca5a5"}`,
+                          color: securityMessage.type === "success" ? "#166534" : "#991b1b"
+                        }}
+                      >
+                        <i className={`fa-solid ${securityMessage.type === "success" ? "fa-circle-check" : "fa-triangle-exclamation"}`}></i>
+                        <span>{securityMessage.text}</span>
+                      </div>
+                    )}
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "420px" }}>
+                      <div>
+                        <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.35rem", color: "var(--color-text-main)" }}>
+                          Current Password
+                        </label>
+                        <input
+                          type="password"
+                          value={securityForm.currentPassword}
+                          onChange={(e) => setSecurityForm({ ...securityForm, currentPassword: e.target.value })}
+                          placeholder="Enter your current password"
+                          className="input"
+                          style={{ width: "100%", fontSize: "0.85rem", padding: "0.5rem 0.75rem" }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.35rem", color: "var(--color-text-main)" }}>
+                          New Password
+                        </label>
+                        <input
+                          type="password"
+                          value={securityForm.newPassword}
+                          onChange={(e) => setSecurityForm({ ...securityForm, newPassword: e.target.value })}
+                          placeholder="Minimum 8 characters"
+                          className="input"
+                          style={{ width: "100%", fontSize: "0.85rem", padding: "0.5rem 0.75rem" }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.35rem", color: "var(--color-text-main)" }}>
+                          Confirm New Password
+                        </label>
+                        <input
+                          type="password"
+                          value={securityForm.confirmPassword}
+                          onChange={(e) => setSecurityForm({ ...securityForm, confirmPassword: e.target.value })}
+                          placeholder="Re-enter new password"
+                          className="input"
+                          style={{ width: "100%", fontSize: "0.85rem", padding: "0.5rem 0.75rem" }}
+                        />
+                      </div>
+
+                      <div style={{ marginTop: "0.5rem" }}>
+                        <button
+                          type="button"
+                          disabled={securitySubmitting || !securityForm.newPassword}
+                          onClick={async () => {
+                            setSecurityMessage(null);
+                            if (!securityForm.newPassword) {
+                              setSecurityMessage({ type: "error", text: "Please enter a new password." });
+                              return;
+                            }
+                            if (securityForm.newPassword.length < 8) {
+                              setSecurityMessage({ type: "error", text: "New password must be at least 8 characters long." });
+                              return;
+                            }
+                            if (securityForm.newPassword !== securityForm.confirmPassword) {
+                              setSecurityMessage({ type: "error", text: "New password and confirmation do not match." });
+                              return;
+                            }
+
+                            setSecuritySubmitting(true);
+                            try {
+                              const res = await fetch("/api/researcher/profile", {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  id: targetId,
+                                  currentPassword: securityForm.currentPassword,
+                                  newPassword: securityForm.newPassword
+                                })
+                              });
+                              const resData = await res.json();
+                              if (resData.success) {
+                                setSecurityMessage({ type: "success", text: "Your password has been changed successfully!" });
+                                setSecurityForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                              } else {
+                                setSecurityMessage({ type: "error", text: resData.error || "Failed to update password." });
+                              }
+                            } catch (err: any) {
+                              setSecurityMessage({ type: "error", text: err.message || "An unexpected error occurred." });
+                            } finally {
+                              setSecuritySubmitting(false);
+                            }
+                          }}
+                          className="btn btn-primary"
+                          style={{ fontSize: "0.82rem", padding: "0.5rem 1.2rem", fontWeight: 700 }}
+                        >
+                          <i className="fa-solid fa-key" style={{ marginRight: "6px" }}></i>
+                          {securitySubmitting ? "Updating Password..." : "Update Password"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bottom Action Footer */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1.5rem", paddingTop: "1.2rem", borderTop: "1px solid var(--color-border)", flexWrap: "wrap", gap: "0.75rem" }}>
+                  <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+                    All changes to dossier tabs are saved together.
+                  </span>
+                  <div style={{ display: "flex", gap: "0.75rem" }}>
+                    <button type="button" onClick={() => setShowEditProfileModal(false)} className="btn btn-secondary btn-sm">
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary btn-sm" disabled={savingProfile}>
+                      {savingProfile ? "Saving Dossier..." : "Save Profile & Portfolio Changes"}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
@@ -3675,7 +5618,7 @@ function ResearcherProfileContent() {
                     type="text"
                     value={claimJournalSearch}
                     onChange={e => handleSearchUnclaimedJournals(e.target.value)}
-                    placeholder="Search journal name, ISSN, or publisher (e.g. ARJESS)..."
+                    placeholder="Search journal name, ISSN, or publisher ..."
                     className="form-control"
                     style={{ width: "100%", padding: "0.65rem 1rem", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.88rem" }}
                   />
@@ -4078,6 +6021,239 @@ function ResearcherProfileContent() {
         )}
 
       </main>
+
+      {/* Modal: Word Document (.docx) Profile Importer */}
+      {showDocxImportModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(15, 23, 42, 0.78)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10000,
+            padding: "1rem",
+            backdropFilter: "blur(6px)"
+          }}
+          onClick={() => {
+            if (!savingProfile && !isParsingDocx) {
+              setShowDocxImportModal(false);
+              setDocxImportPreview(null);
+            }
+          }}
+        >
+          <div
+            className="card-surface"
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: "640px",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              padding: "clamp(1.2rem, 3vw, 2rem)",
+              borderRadius: "16px",
+              background: "var(--color-bg-card)",
+              border: "1px solid var(--color-border)",
+              boxShadow: "0 20px 45px rgba(0,0,0,0.3)"
+            }}
+          >
+            {/* Modal Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem" }}>
+              <div>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.78rem", fontWeight: 700, color: "#2563eb", background: "rgba(37, 99, 235, 0.1)", padding: "0.2rem 0.6rem", borderRadius: "6px", marginBottom: "0.4rem" }}>
+                  <i className="fa-solid fa-file-word"></i>
+                  <span>Document Importer</span>
+                </div>
+                <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0, color: "var(--color-text-main)" }}>
+                  {t.researcher_page?.docx_modal_title || "Import Profile & Academic Dossier (.docx)"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDocxImportModal(false);
+                  setDocxImportPreview(null);
+                }}
+                disabled={savingProfile || isParsingDocx}
+                style={{ background: "none", border: "none", fontSize: "1.3rem", color: "var(--color-text-muted)", cursor: "pointer" }}
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <p style={{ fontSize: "0.86rem", color: "var(--color-text-body)", lineHeight: 1.5, marginBottom: "1.4rem" }}>
+              {t.researcher_page?.docx_modal_desc || "Upload your structured academic CV or profile Word document. The importer automatically detects your scholarly profiles, books & monographs, consultancy projects, innovations, and media features."}
+            </p>
+
+            {/* Upload Dropzone */}
+            {!docxImportPreview && (
+              <label
+                style={{
+                  border: "2px dashed var(--color-border)",
+                  borderRadius: "12px",
+                  padding: "2.5rem 1.5rem",
+                  textAlign: "center",
+                  cursor: isParsingDocx ? "not-allowed" : "pointer",
+                  display: "block",
+                  background: "var(--color-bg-card-subtle)",
+                  transition: "border-color 0.2s ease"
+                }}
+              >
+                {isParsingDocx ? (
+                  <div style={{ padding: "1rem 0" }}>
+                    <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "2.2rem", color: "var(--color-primary)", marginBottom: "0.8rem" }}></i>
+                    <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--color-text-main)" }}>
+                      {t.researcher_page?.docx_extracting || "Extracting sections & tables from Word document..."}
+                    </div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "4px" }}>
+                      Parsing publication venues, consultancies, external IDs and media...
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <i className="fa-solid fa-cloud-arrow-up" style={{ fontSize: "2.4rem", color: "var(--color-primary)", marginBottom: "0.8rem" }}></i>
+                    <div style={{ fontWeight: 700, fontSize: "1rem", color: "var(--color-text-main)" }}>
+                      {t.researcher_page?.docx_dropzone_text || "Click to choose or drop your .docx file here"}
+                    </div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "6px" }}>
+                      {t.researcher_page?.docx_dropzone_sub || "Supports standard Microsoft Word documents (.docx) up to 25MB"}
+                    </div>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept=".docx"
+                  onChange={handleDocxFileSelected}
+                  disabled={isParsingDocx}
+                  style={{ display: "none" }}
+                />
+              </label>
+            )}
+
+            {/* Extracted Preview */}
+            {docxImportPreview && (
+              <div>
+                <div style={{ background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", borderRadius: "12px", padding: "1.25rem", marginBottom: "1.5rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 700, fontSize: "0.95rem", color: "#16a34a", marginBottom: "1rem" }}>
+                    <i className="fa-solid fa-circle-check"></i>
+                    <span>Extracted Dossier Content</span>
+                  </div>
+
+                  {/* Summary Metric Pills */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "0.6rem", marginBottom: "1.2rem" }}>
+                    <div style={{ background: "var(--color-bg-base)", padding: "0.7rem", borderRadius: "8px", border: "1px solid var(--color-border)", textAlign: "center" }}>
+                      <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--color-primary)" }}>
+                        {docxImportPreview.dossier?.books?.length || 0}
+                      </div>
+                      <div style={{ fontSize: "0.74rem", color: "var(--color-text-muted)", fontWeight: 600 }}>Books &amp; Monographs</div>
+                    </div>
+
+                    <div style={{ background: "var(--color-bg-base)", padding: "0.7rem", borderRadius: "8px", border: "1px solid var(--color-border)", textAlign: "center" }}>
+                      <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0284c7" }}>
+                        {docxImportPreview.dossier?.consultancies?.length || 0}
+                      </div>
+                      <div style={{ fontSize: "0.74rem", color: "var(--color-text-muted)", fontWeight: 600 }}>Consultancy Projects</div>
+                    </div>
+
+                    <div style={{ background: "var(--color-bg-base)", padding: "0.7rem", borderRadius: "8px", border: "1px solid var(--color-border)", textAlign: "center" }}>
+                      <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#16a34a" }}>
+                        {docxImportPreview.dossier?.innovations?.length || 0}
+                      </div>
+                      <div style={{ fontSize: "0.74rem", color: "var(--color-text-muted)", fontWeight: 600 }}>Innovations &amp; Patents</div>
+                    </div>
+
+                    <div style={{ background: "var(--color-bg-base)", padding: "0.7rem", borderRadius: "8px", border: "1px solid var(--color-border)", textAlign: "center" }}>
+                      <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#e11d48" }}>
+                        {docxImportPreview.dossier?.media?.length || 0}
+                      </div>
+                      <div style={{ fontSize: "0.74rem", color: "var(--color-text-muted)", fontWeight: 600 }}>Media Broadcasts</div>
+                    </div>
+                  </div>
+
+                  {/* Scholarly Networks detected */}
+                  <div>
+                    <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: "0.5rem" }}>
+                      Detected Profiles &amp; Registries:
+                    </div>
+                    <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap" }}>
+                      {docxImportPreview.externalLinks?.googleScholar && (
+                        <span style={{ fontSize: "0.76rem", padding: "0.2rem 0.55rem", borderRadius: "6px", background: "rgba(37, 99, 235, 0.1)", color: "#2563eb", fontWeight: 600, border: "1px solid rgba(37, 99, 235, 0.25)" }}>
+                          <i className="fa-brands fa-google" style={{ marginRight: "4px" }}></i> Google Scholar
+                        </span>
+                      )}
+                      {docxImportPreview.externalLinks?.amazonAuthor && (
+                        <span style={{ fontSize: "0.76rem", padding: "0.2rem 0.55rem", borderRadius: "6px", background: "rgba(217, 119, 6, 0.1)", color: "#d97706", fontWeight: 600, border: "1px solid rgba(217, 119, 6, 0.25)" }}>
+                          <i className="fa-brands fa-amazon" style={{ marginRight: "4px" }}></i> Amazon Author Store
+                        </span>
+                      )}
+                      {docxImportPreview.profile?.orcid && (
+                        <span style={{ fontSize: "0.76rem", padding: "0.2rem 0.55rem", borderRadius: "6px", background: "rgba(166, 206, 57, 0.15)", color: "#15803d", fontWeight: 600, border: "1px solid rgba(166, 206, 57, 0.3)" }}>
+                          <i className="fa-brands fa-orcid" style={{ marginRight: "4px" }}></i> ORCID ({docxImportPreview.profile.orcid})
+                        </span>
+                      )}
+                      {docxImportPreview.externalLinks?.researchGate && (
+                        <span style={{ fontSize: "0.76rem", padding: "0.2rem 0.55rem", borderRadius: "6px", background: "rgba(5, 150, 105, 0.1)", color: "#059669", fontWeight: 600, border: "1px solid rgba(5, 150, 105, 0.25)" }}>
+                          <i className="fa-brands fa-researchgate" style={{ marginRight: "4px" }}></i> ResearchGate
+                        </span>
+                      )}
+                      {docxImportPreview.externalLinks?.academia && (
+                        <span style={{ fontSize: "0.76rem", padding: "0.2rem 0.55rem", borderRadius: "6px", background: "rgba(71, 85, 105, 0.1)", color: "#475569", fontWeight: 600, border: "1px solid var(--color-border)" }}>
+                          <i className="fa-solid fa-graduation-cap" style={{ marginRight: "4px" }}></i> Academia.edu
+                        </span>
+                      )}
+                      {docxImportPreview.externalLinks?.linkedIn && (
+                        <span style={{ fontSize: "0.76rem", padding: "0.2rem 0.55rem", borderRadius: "6px", background: "rgba(2, 132, 199, 0.1)", color: "#0284c7", fontWeight: 600, border: "1px solid rgba(2, 132, 199, 0.25)" }}>
+                          <i className="fa-brands fa-linkedin" style={{ marginRight: "4px" }}></i> LinkedIn
+                        </span>
+                      )}
+                      {docxImportPreview.externalLinks?.semanticScholar && (
+                        <span style={{ fontSize: "0.76rem", padding: "0.2rem 0.55rem", borderRadius: "6px", background: "rgba(124, 58, 237, 0.1)", color: "#7c3aed", fontWeight: 600, border: "1px solid rgba(124, 58, 237, 0.25)" }}>
+                          <i className="fa-solid fa-book-open" style={{ marginRight: "4px" }}></i> Semantic Scholar
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "0.8rem", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={() => setDocxImportPreview(null)}
+                    disabled={savingProfile}
+                    className="btn btn-secondary"
+                    style={{ fontSize: "0.86rem", padding: "0.6rem 1.2rem", borderRadius: "8px" }}
+                  >
+                    Select Different Document
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleApplyDocxImport}
+                    disabled={savingProfile}
+                    className="btn btn-primary"
+                    style={{ fontSize: "0.86rem", fontWeight: 700, padding: "0.6rem 1.4rem", borderRadius: "8px", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                  >
+                    {savingProfile ? (
+                      <>
+                        <i className="fa-solid fa-circle-notch fa-spin"></i>
+                        <span>{t.researcher_page?.docx_applying || "Applying & Saving..."}</span>
+                      </>
+                    ) : (
+                      <>
+                        <i className="fa-solid fa-check"></i>
+                        <span>{t.researcher_page?.docx_apply_btn || "Apply to Profile & Save"}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Verified AfriScholar ID & Certificate Modal */}
         {showScholarCertModal && (
