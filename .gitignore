@@ -20,8 +20,9 @@
 # production
 /build
 
-# misc
-.DS_Store
+# scratch
+scratch/
+
 *.pem
 ~$*
 *.tmp

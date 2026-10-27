@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/db";
 import { getScholarScientometrics } from "../../../lib/scholar-metrics";
+import { tokenizeQuery, matchesQueryFuzzy, calculateFuzzyScore, normalizeSearchText } from "../../../lib/fuzzy-search";
 
 export const dynamic = "force-dynamic";
 
@@ -22,63 +23,86 @@ export async function GET(request: Request) {
       });
     }
 
-    const queryLower = q.toLowerCase();
+    const tokens = tokenizeQuery(q);
+    const cleanQ = q.replace(/^["']|["']$/g, "").trim();
 
-    // 1. Search Journals
-    const [journalsRaw, totalJournals] = await Promise.all([
-      prisma.journal.findMany({
-        where: {
-          OR: [
-            { name: { contains: q } },
-            { publisherName: { contains: q } },
-            { issn: { contains: q } },
-            { eissn: { contains: q } },
-            { country: { contains: q } }
-          ]
-        },
-        take: 6,
-        select: {
-          id: true,
-          name: true,
-          publisherName: true,
-          country: true,
-          qualityGrade: true,
-          issn: true,
-          isIndexed: true,
-          reports: {
-            orderBy: { year: "desc" },
-            take: 1,
-            select: {
-              standardScore: true
-            }
+    // ==========================================
+    // 1. Search Journals (Multi-Word & Fuzzy)
+    // ==========================================
+    const journalCandidateOrs: any[] = [
+      { name: { contains: cleanQ } },
+      { publisherName: { contains: cleanQ } },
+      { issn: { contains: cleanQ } },
+      { eissn: { contains: cleanQ } },
+      { country: { contains: cleanQ } }
+    ];
+
+    for (const t of tokens) {
+      if (t.length > 2) {
+        journalCandidateOrs.push({ name: { contains: t } });
+        journalCandidateOrs.push({ publisherName: { contains: t } });
+      }
+    }
+
+    const journalsRaw = await prisma.journal.findMany({
+      where: { OR: journalCandidateOrs },
+      take: 50,
+      select: {
+        id: true,
+        name: true,
+        publisherName: true,
+        country: true,
+        qualityGrade: true,
+        issn: true,
+        isIndexed: true,
+        reports: {
+          orderBy: { year: "desc" },
+          take: 1,
+          select: {
+            standardScore: true
           }
         }
-      }),
-      prisma.journal.count({
-        where: {
-          OR: [
-            { name: { contains: q } },
-            { publisherName: { contains: q } },
-            { issn: { contains: q } },
-            { eissn: { contains: q } },
-            { country: { contains: q } }
-          ]
-        }
+      }
+    });
+
+    // Score and rank journals with fuzzy fallback
+    const scoredJournals = journalsRaw
+      .map(j => {
+        const isMatch = matchesQueryFuzzy(q, [j.name, j.publisherName, j.country, j.issn]);
+        const score = calculateFuzzyScore(q, j.name, j.publisherName || "");
+        return {
+          id: j.id,
+          name: j.name,
+          publisherName: j.publisherName,
+          country: j.country,
+          qualityGrade: j.qualityGrade || "B",
+          issn: j.issn,
+          isIndexed: j.isIndexed,
+          ajciScore: j.reports?.[0]?.standardScore || null,
+          isMatch,
+          score
+        };
       })
-    ]);
+      .filter(j => j.isMatch || j.score > 100)
+      .sort((a, b) => b.score - a.score || (b.ajciScore || 0) - (a.ajciScore || 0));
 
-    const formattedJournals = journalsRaw.map(j => ({
-      id: j.id,
-      name: j.name,
-      publisherName: j.publisherName,
-      country: j.country,
-      qualityGrade: j.qualityGrade || "B",
-      issn: j.issn,
-      isIndexed: j.isIndexed,
-      ajciScore: j.reports?.[0]?.standardScore || null
-    }));
+    // ==========================================
+    // 2. Search Scholars (Multi-Word & Fuzzy + Deduplicated)
+    // ==========================================
+    const scholarCandidateOrs: any[] = [
+      { name: { contains: cleanQ } },
+      { institution: { contains: cleanQ } },
+      { bio: { contains: cleanQ } },
+      { orcid: { contains: cleanQ } }
+    ];
 
-    // 2. Search Scholars
+    for (const t of tokens) {
+      if (t.length > 1) {
+        scholarCandidateOrs.push({ name: { contains: t } });
+        scholarCandidateOrs.push({ institution: { contains: t } });
+      }
+    }
+
     const matchingUsers = await prisma.user.findMany({
       where: {
         AND: [
@@ -89,16 +113,11 @@ export async function GET(request: Request) {
             ]
           },
           {
-            OR: [
-              { name: { contains: q } },
-              { institution: { contains: q } },
-              { bio: { contains: q } },
-              { orcid: { contains: q } }
-            ]
+            OR: scholarCandidateOrs
           }
         ]
       },
-      take: 12,
+      take: 40,
       select: {
         id: true,
         name: true,
@@ -107,6 +126,7 @@ export async function GET(request: Request) {
         institution: true,
         department: true,
         bio: true,
+        isClaimed: true,
         totalCitations: true,
         hIndex: true,
         i10Index: true,
@@ -131,28 +151,15 @@ export async function GET(request: Request) {
       }
     });
 
-    const totalScholars = await prisma.user.count({
-      where: {
-        AND: [
-          {
-            OR: [
-              { role: "RESEARCHER" },
-              { claims: { some: { status: "VERIFIED" } } }
-            ]
-          },
-          {
-            OR: [
-              { name: { contains: q } },
-              { institution: { contains: q } },
-              { bio: { contains: q } },
-              { orcid: { contains: q } }
-            ]
-          }
-        ]
-      }
-    });
+    // Score and deduplicate scholars
+    const dedupScholarMap = new Map<string, any>();
 
-    const formattedScholars = matchingUsers.map(u => {
+    for (const u of matchingUsers) {
+      const isMatch = matchesQueryFuzzy(q, [u.name, u.institution, u.department, u.bio, u.orcid]);
+      const score = calculateFuzzyScore(q, u.name, u.institution || "");
+
+      if (!isMatch && score < 120) continue;
+
       const articles = (u.claims || []).map(c => c.article).filter(Boolean);
       const citationCounts = articles.map(a => {
         const directCites = a.citedBy ? a.citedBy.length : 0;
@@ -211,7 +218,7 @@ export async function GET(request: Request) {
         }
       }
 
-      return {
+      const scholarItem = {
         id: u.id,
         name: u.name,
         institution: u.institution || "African University",
@@ -219,12 +226,36 @@ export async function GET(request: Request) {
         articlesCount,
         totalCitations,
         hIndex,
-        orcid: u.orcid
+        orcid: u.orcid,
+        isClaimed: u.isClaimed,
+        score
       };
-    }).sort((a, b) => b.totalCitations - a.totalCitations);
 
-    // 3. Search Articles Across the 33,600+ Repositories
-    const cleanQ = q.replace(/^["']|["']$/g, "").trim();
+      // Deduplication key
+      const normName = normalizeSearchText(u.name).replace(/\b(prof|dr|mr|mrs|ms)\b/g, "").trim();
+      const dedupKey = u.orcid ? `orcid:${u.orcid}` : `name:${normName}`;
+
+      if (!dedupScholarMap.has(dedupKey)) {
+        dedupScholarMap.set(dedupKey, scholarItem);
+      } else {
+        const existing = dedupScholarMap.get(dedupKey);
+        // Prefer record with higher citations or claimed
+        const preferred = (scholarItem.isClaimed && !existing.isClaimed) || (scholarItem.totalCitations > existing.totalCitations)
+          ? scholarItem
+          : existing;
+        preferred.totalCitations = Math.max(preferred.totalCitations, scholarItem.totalCitations, existing.totalCitations);
+        preferred.hIndex = Math.max(preferred.hIndex, scholarItem.hIndex, existing.hIndex);
+        preferred.score = Math.max(preferred.score, scholarItem.score, existing.score);
+        dedupScholarMap.set(dedupKey, preferred);
+      }
+    }
+
+    const formattedScholars = Array.from(dedupScholarMap.values())
+      .sort((a, b) => b.score - a.score || b.totalCitations - a.totalCitations);
+
+    // ==========================================
+    // 3. Search Articles Across Repositories (Multi-Word & Fuzzy)
+    // ==========================================
     const isDoi = cleanQ.startsWith("10.") || cleanQ.includes("doi.org/");
     const bareDoi = cleanQ.replace(/^https?:\/\/(dx\.)?doi\.org\//i, "").replace(/^doi:\s*/i, "").trim();
 
@@ -232,77 +263,85 @@ export async function GET(request: Request) {
       { title: { contains: cleanQ } },
       { abstract: { contains: cleanQ } }
     ];
+
     if (isDoi || bareDoi.length > 5) {
       articleOrConditions.push({ doi: { contains: bareDoi } });
     }
 
-    const [articlesRaw, totalArticles] = await Promise.all([
-      prisma.article.findMany({
-        where: {
-          OR: articleOrConditions
-        },
-        take: 20,
-        orderBy: [
-          { citationCount: "desc" },
-          { publishDate: "desc" }
-        ],
-        select: {
-          id: true,
-          title: true,
-          doi: true,
-          abstract: true,
-          url: true,
-          pdfUrl: true,
-          publishDate: true,
-          citationCount: true,
-          journal: {
-            select: {
-              id: true,
-              name: true,
-              country: true,
-              qualityGrade: true,
-              issn: true,
-              eissn: true
-            }
+    // Add significant token conditions for title matches
+    for (const t of tokens) {
+      if (t.length > 3) {
+        articleOrConditions.push({ title: { contains: t } });
+      }
+    }
+
+    const articlesRaw = await prisma.article.findMany({
+      where: { OR: articleOrConditions },
+      take: 40,
+      orderBy: [
+        { citationCount: "desc" },
+        { publishDate: "desc" }
+      ],
+      select: {
+        id: true,
+        title: true,
+        doi: true,
+        abstract: true,
+        url: true,
+        pdfUrl: true,
+        publishDate: true,
+        citationCount: true,
+        journal: {
+          select: {
+            id: true,
+            name: true,
+            country: true,
+            qualityGrade: true,
+            issn: true,
+            eissn: true
           }
         }
-      }),
-      prisma.article.count({
-        where: {
-          OR: articleOrConditions
-        }
-      })
-    ]);
-
-    const formattedArticles = articlesRaw.map(a => {
-      let snippet = "";
-      if (a.abstract) {
-        const cleanAbs = a.abstract.replace(/<[^>]*>?/gm, "").trim();
-        snippet = cleanAbs.length > 240 ? cleanAbs.slice(0, 240) + "..." : cleanAbs;
       }
-      return {
-        id: a.id,
-        title: a.title,
-        doi: a.doi,
-        abstract: snippet,
-        url: a.url,
-        pdfUrl: a.pdfUrl,
-        publishDate: a.publishDate ? a.publishDate.toISOString() : null,
-        year: a.publishDate ? new Date(a.publishDate).getFullYear() : null,
-        citationCount: a.citationCount || 0,
-        journal: a.journal
-      };
     });
+
+    const formattedArticles = articlesRaw
+      .map(a => {
+        let snippet = "";
+        if (a.abstract) {
+          const cleanAbs = a.abstract.replace(/<[^>]*>?/gm, "").trim();
+          snippet = cleanAbs.length > 240 ? cleanAbs.slice(0, 240) + "..." : cleanAbs;
+        }
+
+        const isMatch = matchesQueryFuzzy(q, [a.title, a.journal?.name, a.doi]);
+        const score = calculateFuzzyScore(q, a.title, a.journal?.name || "");
+
+        return {
+          id: a.id,
+          title: a.title,
+          doi: a.doi,
+          abstract: snippet,
+          url: a.url,
+          pdfUrl: a.pdfUrl,
+          publishDate: a.publishDate ? a.publishDate.toISOString() : null,
+          year: a.publishDate ? new Date(a.publishDate).getFullYear() : null,
+          citationCount: a.citationCount || 0,
+          journal: a.journal,
+          isMatch,
+          score
+        };
+      })
+      .filter(a => a.isMatch || a.score > 80)
+      .sort((a, b) => b.score - a.score || b.citationCount - a.citationCount);
 
     return NextResponse.json({
       success: true,
       query: q,
-      journals: formattedJournals,
+      journals: scoredJournals.slice(0, 8),
       scholars: formattedScholars.slice(0, 12),
-      articles: formattedArticles,
-      totalJournals,
-      totalScholars,
-      totalArticles
+      articles: formattedArticles.slice(0, 20),
+      totalJournals: scoredJournals.length,
+      totalScholars: formattedScholars.length,
+      totalArticles: formattedArticles.length
     });
 
   } catch (error: any) {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/db";
 import { ALL_AFRICAN_COUNTRIES } from "../../data/african-countries";
 import { getScholarScientometrics } from "../../../lib/scholar-metrics";
+import { matchesQueryFuzzy, calculateFuzzyScore, normalizeSearchText } from "../../../lib/fuzzy-search";
 
 export const dynamic = "force-dynamic";
 
@@ -516,12 +517,41 @@ export async function GET(request: Request) {
       };
     });
 
+    // 2.5 Smart Deduplication: Merge duplicate records sharing ORCID or normalized Name + Institution
+    const deduplicatedMap = new Map<string, typeof scholars[0]>();
+    for (const s of scholars) {
+      const normName = normalizeSearchText(s.name).replace(/\b(prof|dr|mr|mrs|ms)\b/g, "").trim();
+      const normInst = normalizeSearchText(s.institution).slice(0, 15);
+      const dedupKey = s.orcid ? `orcid:${s.orcid}` : `name:${normName}_inst:${normInst}`;
+
+      if (!deduplicatedMap.has(dedupKey)) {
+        deduplicatedMap.set(dedupKey, s);
+      } else {
+        const existing = deduplicatedMap.get(dedupKey)!;
+        // Keep the record with higher citations or claimed status
+        const preferred = (s.isClaimed && !existing.isClaimed) || (s.totalCitations > existing.totalCitations) ? s : existing;
+        const secondary = preferred === s ? existing : s;
+
+        // Consolidate metrics & articles
+        preferred.totalCitations = Math.max(preferred.totalCitations, secondary.totalCitations);
+        preferred.hIndex = Math.max(preferred.hIndex, secondary.hIndex);
+        preferred.articlesCount = Math.max(preferred.articlesCount, secondary.articlesCount);
+        if (!preferred.orcid && secondary.orcid) preferred.orcid = secondary.orcid;
+        if (!preferred.googleScholarUrl && secondary.googleScholarUrl) preferred.googleScholarUrl = secondary.googleScholarUrl;
+        if (!preferred.isClaimed && secondary.isClaimed) preferred.isClaimed = true;
+
+        deduplicatedMap.set(dedupKey, preferred);
+      }
+    }
+
+    const uniqueScholars = Array.from(deduplicatedMap.values());
+
     // 3. In African Scholar Directory: Strict Continental by default, or include Diaspora when toggled
     let filtered = includeInternational 
-      ? scholars 
+      ? uniqueScholars 
       : includeDiaspora 
-        ? scholars.filter(s => s.isAfrican || s.isDiaspora || country !== "")
-        : scholars.filter(s => (s.isAfrican && !s.isDiaspora) || country !== "");
+        ? uniqueScholars.filter(s => s.isAfrican || s.isDiaspora || country !== "")
+        : uniqueScholars.filter(s => (s.isAfrican && !s.isDiaspora) || country !== "");
 
     // 4. Aggregate Broad Disciplines & Sub-Disciplines based on African Scholars
     const broadDisciplineMap: Record<string, number> = {};
@@ -552,17 +582,25 @@ export async function GET(request: Request) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 25);
 
-    // 5. Apply User Filters
+    // 5. Apply User Filters with Multi-Word Tokenization & Typo-Tolerant Fuzzy Search
     if (q) {
-      filtered = filtered.filter(s => 
-        s.name.toLowerCase().includes(q) ||
-        s.institution.toLowerCase().includes(q) ||
-        s.institutionCountry.toLowerCase().includes(q) ||
-        (s.originCountry && s.originCountry.toLowerCase().includes(q)) ||
-        s.broadDiscipline.toLowerCase().includes(q) ||
-        s.researchInterests.some(ri => ri.toLowerCase().includes(q)) ||
-        (s.orcid && s.orcid.toLowerCase().includes(q))
-      );
+      filtered = filtered
+        .map(s => {
+          const isMatch = matchesQueryFuzzy(q, [
+            s.name,
+            s.institution,
+            s.institutionCountry,
+            s.originCountry,
+            s.broadDiscipline,
+            ...(s.researchInterests || []),
+            s.orcid
+          ]);
+          const relevanceScore = isMatch ? calculateFuzzyScore(q, s.name, s.institution) : 0;
+          return { scholar: s, isMatch, relevanceScore };
+        })
+        .filter(item => item.isMatch)
+        .sort((a, b) => b.relevanceScore - a.relevanceScore)
+        .map(item => item.scholar);
     }
 
     if (interest) {

@@ -75,6 +75,8 @@ function ResearcherProfileContent() {
   // Claiming & Authorship Verification State
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [suggestedWorks, setSuggestedWorks] = useState<any[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState<boolean>(false);
   const [searching, setSearching] = useState<boolean>(false);
   const [verifyingArticle, setVerifyingArticle] = useState<any | null>(null);
   const [authorRole, setAuthorRole] = useState<string>("Lead Author");
@@ -316,6 +318,22 @@ function ResearcherProfileContent() {
   }, []);
 
   const targetId = id || currentUser?.id;
+
+  // Load OpenAlex suggested publications when claim modal opens
+  useEffect(() => {
+    if (showClaimModal && targetId && suggestedWorks.length === 0) {
+      setLoadingSuggestions(true);
+      fetch(`/api/researcher/claim?mode=suggested&researcherId=${encodeURIComponent(targetId)}`)
+        .then(res => res.json())
+        .then(resData => {
+          if (resData.success && Array.isArray(resData.suggestions)) {
+            setSuggestedWorks(resData.suggestions);
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoadingSuggestions(false));
+    }
+  }, [showClaimModal, targetId, suggestedWorks.length]);
 
   // Load avatar and follow state from localStorage
   useEffect(() => {
@@ -862,7 +880,7 @@ function ResearcherProfileContent() {
     e.preventDefault();
     setSearching(true);
     try {
-      const res = await fetch(`/api/researcher/claim?query=${encodeURIComponent(searchQuery.trim())}`);
+      const res = await fetch(`/api/researcher/claim?query=${encodeURIComponent(searchQuery.trim())}&researcherId=${encodeURIComponent(targetId || "")}`);
       const searchData = await res.json();
       if (searchData.success) {
         setSearchResults(searchData.articles || []);
@@ -885,7 +903,10 @@ function ResearcherProfileContent() {
     setVerificationData(null);
 
     try {
-      const res = await fetch(`/api/researcher/claim?mode=verify&articleId=${encodeURIComponent(article.id)}&researcherId=${encodeURIComponent(targetId)}`);
+      const verifyParam = article.isExternal && article.doi
+        ? `doi=${encodeURIComponent(article.doi)}`
+        : `articleId=${encodeURIComponent(article.id)}`;
+      const res = await fetch(`/api/researcher/claim?mode=verify&${verifyParam}&researcherId=${encodeURIComponent(targetId)}`);
       const vData = await res.json();
       if (vData.success && vData.verification) {
         setVerificationData(vData.verification);
@@ -932,16 +953,25 @@ function ResearcherProfileContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           articleId: verifyingArticle.id, 
+          doi: verifyingArticle.doi || undefined,
           researcherId: targetId,
           role: authorRole,
           institutionalEmail: institutionalEmail.trim(),
-          manualJustification: manualJustification.trim()
+          manualJustification: manualJustification.trim(),
+          externalMetadata: verifyingArticle.isExternal ? {
+            title: verifyingArticle.title,
+            journalName: verifyingArticle.journalName,
+            publishDate: verifyingArticle.publishDate,
+            citationCount: verifyingArticle.citationCount,
+            url: verifyingArticle.url
+          } : undefined
         })
       });
       const resData = await res.json();
       if (resData.success) {
         await loadProfile();
         setSearchResults((prev) => prev.filter((a) => a.id !== verifyingArticle.id));
+        setSuggestedWorks((prev) => prev.filter((a) => a.id !== verifyingArticle.id && a.doi !== verifyingArticle.doi));
         setVerifyingArticle(null);
         showToast(resData.message || "Authorship verified & publication linked successfully!");
       } else {
@@ -3420,26 +3450,104 @@ function ResearcherProfileContent() {
               ) : (
                 <>
                   {/* Search Form */}
-                  <form onSubmit={handleSearchArticles} style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>
+                  <form onSubmit={handleSearchArticles} style={{ display: "flex", gap: "0.5rem", marginBottom: "1.2rem" }}>
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      placeholder={t.researcher_page.claim_search_placeholder}
+                      placeholder="Search papers by title, author, or enter DOI (e.g. 10.xxxx/...)"
                       className="form-control"
                       style={{ flex: 1 }}
                     />
                     <button type="submit" className="btn btn-primary" style={{ padding: "0 1.2rem", whiteSpace: "nowrap" }} disabled={searching}>
-                      {searching ? t.researcher_page.searching : t.researcher_page.claim_search_btn}
+                      {searching ? (
+                        <>
+                          <i className="fa-solid fa-circle-notch fa-spin" style={{ marginRight: "6px" }}></i>
+                          Searching...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fa-solid fa-magnifying-glass" style={{ marginRight: "6px" }}></i>
+                          Search Repositories
+                        </>
+                      )}
                     </button>
                   </form>
+
+                  {/* OpenAlex Suggested Publications (if any and not actively searching) */}
+                  {searchResults.length === 0 && !searching && suggestedWorks.length > 0 && (
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+                        <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "6px" }}>
+                          <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#d97706" }}></i>
+                          Suggested Publications from OpenAlex Registry ({suggestedWorks.length})
+                        </div>
+                        <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+                          Matched to your scholar profile
+                        </span>
+                      </div>
+
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", maxHeight: "320px", overflowY: "auto", paddingRight: "4px" }}>
+                        {suggestedWorks.map(sug => (
+                          <div
+                            key={sug.id}
+                            style={{
+                              padding: "0.9rem",
+                              borderRadius: "8px",
+                              border: "1px solid var(--color-border)",
+                              background: "var(--color-bg-base)",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              gap: "1rem",
+                              flexWrap: "wrap"
+                            }}
+                          >
+                            <div style={{ flex: 1, minWidth: "220px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                                <span style={{ fontSize: "0.68rem", background: "rgba(245, 158, 11, 0.12)", color: "#d97706", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "1px 6px", borderRadius: "4px", fontWeight: 700 }}>
+                                  External (OpenAlex)
+                                </span>
+                                {sug.citationCount > 0 && (
+                                  <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
+                                    • {sug.citationCount} {sug.citationCount === 1 ? "citation" : "citations"}
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ fontWeight: 600, color: "var(--color-text-main)", fontSize: "0.88rem", lineHeight: 1.35 }}>
+                                {sug.title}
+                              </div>
+                              <div style={{ fontSize: "0.76rem", color: "var(--color-text-muted)", marginTop: "0.2rem" }}>
+                                {sug.journalName || "Academic Publication"}{sug.doi ? ` • DOI: ${sug.doi}` : ""}
+                              </div>
+                            </div>
+                            {sug.isAlreadyClaimed ? (
+                              <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px", padding: "0.3rem 0.6rem" }}>
+                                <i className="fa-solid fa-circle-check"></i> Already Linked
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleInitiateClaim(sug)}
+                                className="btn btn-primary btn-sm"
+                                style={{ fontSize: "0.78rem", padding: "0.4rem 0.8rem", whiteSpace: "nowrap" }}
+                              >
+                                Claim Publication
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Results List */}
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
                     {searchResults.length === 0 ? (
-                      <p style={{ textAlign: "center", color: "var(--color-text-muted)", padding: "2rem 0" }}>
-                        {searching ? t.researcher_page.searching : t.researcher_page.no_articles_found}
-                      </p>
+                      suggestedWorks.length === 0 && (
+                        <p style={{ textAlign: "center", color: "var(--color-text-muted)", padding: "2rem 0" }}>
+                          {searching ? t.researcher_page.searching : t.researcher_page.no_articles_found}
+                        </p>
+                      )
                     ) : (
                       searchResults.map(art => (
                         <div 
@@ -3457,11 +3565,27 @@ function ResearcherProfileContent() {
                           }}
                         >
                           <div style={{ flex: 1, minWidth: "220px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                              {art.isExternal ? (
+                                <span style={{ fontSize: "0.68rem", background: "rgba(245, 158, 11, 0.12)", color: "#d97706", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "1px 6px", borderRadius: "4px", fontWeight: 700 }}>
+                                  External Publication (Crossref)
+                                </span>
+                              ) : (
+                                <span style={{ fontSize: "0.68rem", background: "rgba(34, 197, 94, 0.12)", color: "#16a34a", border: "1px solid rgba(34, 197, 94, 0.3)", padding: "1px 6px", borderRadius: "4px", fontWeight: 700 }}>
+                                  AJI Indexed Repository
+                                </span>
+                              )}
+                              {art.citationCount > 0 && (
+                                <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
+                                  • {art.citationCount} {art.citationCount === 1 ? "citation" : "citations"}
+                                </span>
+                              )}
+                            </div>
                             <div style={{ fontWeight: 600, color: "var(--color-text-main)", fontSize: "0.92rem" }}>
                               {art.title}
                             </div>
                             <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "0.2rem" }}>
-                              {art.journal?.name}{art.doi ? ` • DOI: ${art.doi}` : ""}
+                              {art.journalName || art.journal?.name}{art.doi ? ` • DOI: ${art.doi}` : ""}
                             </div>
                           </div>
                           <button

@@ -13,7 +13,7 @@ interface PostItem {
   content: string;
   attachmentUrl: string | null;
   attachmentName: string | null;
-  attachmentType: "DOCUMENT" | "IMAGE" | "AUDIO" | null;
+  attachmentType: "DOCUMENT" | "IMAGE" | "AUDIO" | "LINK" | null;
   tags: string[];
   likesCount: number;
   commentsCount: number;
@@ -73,7 +73,10 @@ function PostsPageContent() {
   const [tags, setTags] = useState<string>("");
   const [attachmentUrl, setAttachmentUrl] = useState<string>("");
   const [attachmentName, setAttachmentName] = useState<string>("");
-  const [attachmentType, setAttachmentType] = useState<"DOCUMENT" | "IMAGE" | "AUDIO" | null>(null);
+  const [attachmentType, setAttachmentType] = useState<"DOCUMENT" | "IMAGE" | "AUDIO" | "LINK" | null>(null);
+  const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
+  const [showLinkInput, setShowLinkInput] = useState<boolean>(false);
+  const [linkInputUrl, setLinkInputUrl] = useState<string>("");
   const [audience, setAudience] = useState<"PUBLIC" | "FOLLOWERS" | "PRIVATE">("PUBLIC");
   const [showAudienceMenu, setShowAudienceMenu] = useState<boolean>(false);
   const [uploadingFile, setUploadingFile] = useState<boolean>(false);
@@ -149,12 +152,32 @@ function PostsPageContent() {
   };
 
   const openComposer = (mode: "POST" | "DRAFT") => {
+    setEditingDraftId(null);
+    setTitle("");
+    setContent("");
+    setTags("");
+    setAttachmentUrl("");
+    setAttachmentName("");
+    setAttachmentType(null);
     setComposerMode(mode);
     if (mode === "DRAFT") {
       setAudience("PRIVATE");
     } else {
       setAudience("PUBLIC");
     }
+    setShowComposerModal(true);
+  };
+
+  const handleEditDraft = (draft: PostItem) => {
+    setEditingDraftId(draft.id);
+    setTitle(draft.title || "");
+    setContent(draft.content || "");
+    setTags(Array.isArray(draft.tags) ? draft.tags.join(", ") : ((draft.tags as any) || ""));
+    setAttachmentUrl(draft.attachmentUrl || "");
+    setAttachmentName(draft.attachmentName || "");
+    setAttachmentType(draft.attachmentType || null);
+    setComposerMode("DRAFT");
+    setAudience("PRIVATE");
     setShowComposerModal(true);
   };
 
@@ -288,19 +311,26 @@ function PostsPageContent() {
     setComposerError(null);
 
     try {
+      const payload: any = {
+        title: title.trim() || null,
+        content: content.trim(),
+        tags: tags.trim() ? tags.split(",").map(t => t.trim()).filter(Boolean) : [],
+        attachmentUrl: attachmentUrl || null,
+        attachmentName: attachmentName || null,
+        attachmentType: attachmentType || null,
+        audience: composerMode === "DRAFT" ? "PRIVATE" : audience,
+        isDraft: composerMode === "DRAFT"
+      };
+
+      if (editingDraftId) {
+        payload.action = "updateDraft";
+        payload.draftId = editingDraftId;
+      }
+
       const res = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim() || null,
-          content: content.trim(),
-          tags: tags.trim() ? tags.split(",").map(t => t.trim()).filter(Boolean) : [],
-          attachmentUrl: attachmentUrl || null,
-          attachmentName: attachmentName || null,
-          attachmentType: attachmentType || null,
-          audience: composerMode === "DRAFT" ? "PRIVATE" : audience,
-          isDraft: composerMode === "DRAFT"
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
@@ -309,7 +339,10 @@ function PostsPageContent() {
         return;
       }
 
-      if (composerMode === "DRAFT") {
+      if (editingDraftId) {
+        showToast("Manuscript draft updated successfully!");
+        loadDrafts();
+      } else if (composerMode === "DRAFT") {
         setDrafts(prev => [data.post, ...prev]);
         setFeedTab("drafts");
         showToast("Manuscript draft saved privately. Your work is protected.");
@@ -319,6 +352,7 @@ function PostsPageContent() {
       }
 
       // Reset Composer
+      setEditingDraftId(null);
       setTitle("");
       setContent("");
       setTags("");
@@ -1184,6 +1218,16 @@ function PostsPageContent() {
                       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", borderTop: "1px solid var(--color-border)", paddingTop: "0.85rem", alignItems: "center" }}>
                         <button
                           type="button"
+                          onClick={() => handleEditDraft(draft)}
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontSize: "0.78rem", padding: "0.35rem 0.8rem", color: "var(--color-primary)", borderColor: "var(--color-primary)", fontWeight: 700 }}
+                          title="Edit your draft manuscript title, content, or attachments"
+                        >
+                          <i className="fa-solid fa-pen-to-square" style={{ marginRight: "4px" }}></i> Edit Draft
+                        </button>
+
+                        <button
+                          type="button"
                           onClick={() => handleShareDraft(draft.id)}
                           className="btn btn-secondary btn-sm"
                           style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem" }}
@@ -1609,6 +1653,45 @@ function PostsPageContent() {
                             Your browser does not support the audio element.
                           </audio>
                         </div>
+                      )}
+
+                      {/* 4. EXTERNAL PUBLICATION LINK / ACADEMIC BACKLINK */}
+                      {post.attachmentUrl && (post.attachmentType === "LINK" || post.attachmentUrl.startsWith("http")) && post.attachmentType !== "DOCUMENT" && post.attachmentType !== "IMAGE" && post.attachmentType !== "AUDIO" && (
+                        <a 
+                          href={post.attachmentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: "12px",
+                            background: "rgba(245, 158, 11, 0.05)",
+                            border: "1px solid rgba(245, 158, 11, 0.25)",
+                            borderRadius: "12px",
+                            padding: "0.85rem 1.15rem",
+                            marginBottom: "1rem",
+                            textDecoration: "none",
+                            transition: "all 0.15s ease"
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+                            <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "rgba(245, 158, 11, 0.15)", color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                            </div>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: "0.86rem", fontWeight: 700, color: "var(--color-text-main)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {post.attachmentName || "Original Published Article"}
+                              </div>
+                              <div style={{ fontSize: "0.74rem", color: "var(--color-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {post.attachmentUrl}
+                              </div>
+                            </div>
+                          </div>
+                          <span style={{ fontSize: "0.76rem", fontWeight: 700, color: "var(--color-primary)", display: "flex", alignItems: "center", gap: "4px", flexShrink: 0, whiteSpace: "nowrap" }}>
+                            Read Full Article ↗
+                          </span>
+                        </a>
                       )}
 
                       {/* Hashtags */}
@@ -2758,9 +2841,9 @@ function PostsPageContent() {
               {attachmentUrl && (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--color-bg-card-subtle)", padding: "0.5rem 0.85rem", borderRadius: "8px", border: "1px solid var(--color-border)", marginBottom: "0.85rem" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    <i className={`fa-solid ${attachmentType === "IMAGE" ? "fa-image" : attachmentType === "AUDIO" ? "fa-microphone-lines" : "fa-file-pdf"}`} style={{ color: "var(--color-primary)" }}></i>
+                    <i className={`fa-solid ${attachmentType === "LINK" ? "fa-arrow-up-right-from-square" : attachmentType === "IMAGE" ? "fa-image" : attachmentType === "AUDIO" ? "fa-microphone-lines" : "fa-file-pdf"}`} style={{ color: "var(--color-primary)" }}></i>
                     <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--color-text-main)" }}>
-                      {attachmentName || "Attached Media"}
+                      {attachmentName || "Attached Resource"}
                     </span>
                   </div>
                   <button
@@ -2770,6 +2853,47 @@ function PostsPageContent() {
                   >
                     Remove
                   </button>
+                </div>
+              )}
+
+              {/* External Publication Link Input Dropdown */}
+              {showLinkInput && (
+                <div style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.3)", borderRadius: "8px", padding: "0.75rem", marginBottom: "0.85rem" }}>
+                  <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "4px" }}>
+                    <i className="fa-solid fa-arrow-up-right-from-square" style={{ marginRight: "4px" }}></i>
+                    Published Article Link / DOI (External Publisher Backlink)
+                  </div>
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    <input
+                      type="url"
+                      placeholder="https://arjess.org/article/... or DOI URL"
+                      value={linkInputUrl}
+                      onChange={e => setLinkInputUrl(e.target.value)}
+                      className="form-control"
+                      style={{ flex: 1, padding: "0.4rem 0.65rem", fontSize: "0.82rem", borderRadius: "6px" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (linkInputUrl.trim()) {
+                          const clean = linkInputUrl.trim();
+                          setAttachmentUrl(clean);
+                          try {
+                            const u = new URL(clean);
+                            setAttachmentName(`Published on ${u.hostname.replace(/^www\./, "")}`);
+                          } catch {
+                            setAttachmentName("Published Article Link");
+                          }
+                          setAttachmentType("LINK");
+                          setShowLinkInput(false);
+                        }
+                      }}
+                      className="btn btn-primary btn-sm"
+                      style={{ fontSize: "0.78rem", padding: "0.4rem 0.8rem", whiteSpace: "nowrap" }}
+                    >
+                      Attach Link
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -2820,12 +2944,23 @@ function PostsPageContent() {
                   >
                     <i className="fa-solid fa-microphone-lines"></i>
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowLinkInput(!showLinkInput)}
+                    title="Attach External Article Link or Publisher URL (e.g. ARJESS, PubMed, Crossref)"
+                    style={{ background: showLinkInput ? "var(--color-primary-light)" : "none", border: "1px solid var(--color-border)", padding: "0.35rem 0.7rem", borderRadius: "6px", cursor: "pointer", color: "var(--color-primary)", fontSize: "0.85rem" }}
+                  >
+                    <i className="fa-solid fa-link"></i>
+                  </button>
                 </div>
 
                 <div style={{ display: "flex", gap: "0.5rem" }}>
                   <button
                     type="button"
-                    onClick={() => setShowComposerModal(false)}
+                    onClick={() => {
+                      setEditingDraftId(null);
+                      setShowComposerModal(false);
+                    }}
                     className="btn btn-secondary btn-sm"
                     style={{ padding: "0.45rem 1rem", fontSize: "0.85rem" }}
                   >
@@ -2841,7 +2976,7 @@ function PostsPageContent() {
                       fontWeight: 700
                     }}
                   >
-                    {submitting ? "Saving..." : composerMode === "DRAFT" ? "Save as Private Draft" : "Post"}
+                    {submitting ? "Saving..." : editingDraftId ? "Save Changes" : composerMode === "DRAFT" ? "Save as Private Draft" : "Post"}
                   </button>
                 </div>
               </div>

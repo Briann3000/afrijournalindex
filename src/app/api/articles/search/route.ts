@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
+import { tokenizeQuery } from "../../../../lib/fuzzy-search";
 
 // Helper to clean and extract bare DOI if user enters full URL, doi: prefix, or quotes
 function extractBareDOI(input: string): string {
@@ -39,6 +40,15 @@ export async function GET(request: Request) {
         { journal: { issn: { contains: cleanQ } } },
         { journal: { eissn: { contains: cleanQ } } }
       ];
+
+      // Multi-word token support
+      const tokens = tokenizeQuery(cleanQ);
+      for (const t of tokens) {
+        if (t.length > 2 && t !== cleanQ.toLowerCase()) {
+          orConditions.push({ title: { contains: t } });
+          orConditions.push({ abstract: { contains: t } });
+        }
+      }
 
       if (isDoiPattern) {
         orConditions.unshift({ doi: { equals: bareDoi } });

@@ -228,6 +228,55 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action, draftId, title, content, attachmentUrl, attachmentName, attachmentType, tags, audience, isDraft } = body;
 
+    const cleanTitle = title ? title.trim() : null;
+    const cleanContent = content ? content.trim() : "";
+    const cleanTags = Array.isArray(tags) ? tags.join(", ") : (tags ? tags.trim() : null);
+
+    // Normalize attachmentType
+    let normAttachmentType = null;
+    if (attachmentUrl) {
+      const typeUpper = (attachmentType || "").toUpperCase();
+      if (typeUpper.includes("LINK") || typeUpper.includes("URL") || typeUpper.includes("ARTICLE")) {
+        normAttachmentType = "LINK";
+      } else if (typeUpper.includes("IMAGE") || typeUpper.includes("PHOTO")) {
+        normAttachmentType = "IMAGE";
+      } else if (typeUpper.includes("AUDIO") || typeUpper.includes("SOUND") || typeUpper.includes("VOICE")) {
+        normAttachmentType = "AUDIO";
+      } else {
+        normAttachmentType = "DOCUMENT";
+      }
+    }
+
+    // Action: Update existing draft manuscript
+    if ((action === "updateDraft" || action === "updatePost") && draftId) {
+      const existing = await (prisma as any).post.findUnique({
+        where: { id: draftId }
+      });
+
+      if (!existing || existing.authorId !== userId) {
+        return NextResponse.json({ success: false, error: "Draft not found or unauthorized." }, { status: 403 });
+      }
+
+      const updated = await (prisma as any).post.update({
+        where: { id: draftId },
+        data: {
+          title: cleanTitle,
+          content: cleanContent,
+          attachmentUrl: attachmentUrl ? attachmentUrl.trim() : null,
+          attachmentName: attachmentName ? attachmentName.trim() : null,
+          attachmentType: normAttachmentType,
+          tags: cleanTags,
+          updatedAt: new Date()
+        }
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: "Draft updated successfully.",
+        post: updated
+      });
+    }
+
     // Action: Publish existing draft manuscript to public feed
     if (action === "publishDraft" && draftId) {
       const existing = await (prisma as any).post.findUnique({
@@ -260,10 +309,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const cleanTitle = title ? title.trim() : null;
-    const cleanContent = content.trim();
-    const cleanTags = Array.isArray(tags) ? tags.join(", ") : (tags ? tags.trim() : null);
-
     // Identify if this is a private manuscript draft
     const isManuscriptDraft = Boolean(isDraft || audience === "PRIVATE" || body.postType === "MANUSCRIPT_DRAFT");
     const postType = isManuscriptDraft
@@ -271,19 +316,6 @@ export async function POST(request: Request) {
       : audience === "FOLLOWERS"
       ? "FOLLOWERS"
       : "SCHOLARLY_POST";
-
-    // Normalize attachmentType
-    let normAttachmentType = null;
-    if (attachmentUrl) {
-      const typeUpper = (attachmentType || "").toUpperCase();
-      if (typeUpper.includes("IMAGE") || typeUpper.includes("PHOTO")) {
-        normAttachmentType = "IMAGE";
-      } else if (typeUpper.includes("AUDIO") || typeUpper.includes("SOUND") || typeUpper.includes("VOICE")) {
-        normAttachmentType = "AUDIO";
-      } else {
-        normAttachmentType = "DOCUMENT";
-      }
-    }
 
     const post = await (prisma as any).post.create({
       data: {
