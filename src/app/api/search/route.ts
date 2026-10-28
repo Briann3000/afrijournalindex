@@ -136,6 +136,7 @@ export async function GET(request: Request) {
         googleScholarId: true,
         googleScholarUrl: true,
         openAlexId: true,
+        dossierData: true,
         claims: {
           where: { status: "VERIFIED" },
           select: {
@@ -207,6 +208,19 @@ export async function GET(request: Request) {
       }
 
       let articlesCount = articles.length;
+      if (u.dossierData) {
+        try {
+          const parsed = typeof u.dossierData === "string" ? JSON.parse(u.dossierData) : u.dossierData;
+          const bCount = Array.isArray(parsed?.books) ? parsed.books.length : 0;
+          const cCount = Array.isArray(parsed?.consultancies) ? parsed.consultancies.length : 0;
+          const iCount = Array.isArray(parsed?.innovations) ? parsed.innovations.length : 0;
+          const dossierTotal = bCount + cCount + iCount;
+          if (dossierTotal > 0) {
+            articlesCount = articles.length + dossierTotal;
+          }
+        } catch {}
+      }
+
       if (articlesCount === 0) {
         if (u.openAlexId && u.openAlexId.includes("A5067554286")) {
           articlesCount = 20;

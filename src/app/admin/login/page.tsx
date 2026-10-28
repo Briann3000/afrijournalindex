@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("kenprokenya@gmail.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -123,7 +123,7 @@ export default function AdminLoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="kenprokenya@gmail.com"
+                placeholder="admin@afrijournalindexing.org"
                 className="admin-input"
                 style={{ width: "100%", background: "#090e1a", border: "1px solid #334155", borderRadius: "10px", padding: "0.65rem 2.5rem 0.65rem 0.9rem", color: "#ffffff", fontSize: "0.9rem", outline: "none", boxSizing: "border-box" }}
               />

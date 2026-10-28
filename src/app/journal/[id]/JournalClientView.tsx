@@ -749,7 +749,7 @@ export default function JournalClientView({
                     }}>
                       <div style={{ fontSize: "0.85rem", color: "var(--color-text-main)", lineHeight: 1.5, flex: 1, minWidth: "240px" }}>
                         <i className="fa-solid fa-circle-info" style={{ color: "#3b82f6", marginRight: "0.5rem" }}></i>
-                        <strong>Global Indexation Pathway:</strong> Looking to index this journal with Scopus or Web of Science? KENPRO provides editorial compliance, peer-review audits, and application readiness support.
+                        <strong>Global Indexation Pathway:</strong> Looking to index this journal with Scopus or Web of Science? Our editorial desk provides compliance reviews, peer-review audits, and application readiness support.
                       </div>
                       <a href="/services" className="btn btn-secondary btn-sm" style={{ whiteSpace: "nowrap", fontSize: "0.8rem", padding: "0.35rem 0.75rem" }}>
                         Explore Services <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.7rem", marginLeft: "4px" }}></i>

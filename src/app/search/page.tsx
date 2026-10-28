@@ -621,7 +621,7 @@ function SearchPageContent() {
                           <span style={{ color: "var(--color-border)" }}>•</span>
                           <span style={{ fontWeight: 700, color: "#16a34a" }}>h-{scholar.hIndex}</span>
                           <span style={{ color: "var(--color-border)" }}>•</span>
-                          <span style={{ color: "var(--color-text-muted)" }}>{scholar.articlesCount} papers</span>
+                          <span style={{ color: "var(--color-text-muted)" }}>{scholar.articlesCount} {scholar.articlesCount === 1 ? "work" : "works"}</span>
                         </div>
                       </div>
                     </a>

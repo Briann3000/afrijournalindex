@@ -100,12 +100,16 @@ export function tokenMatchesWordFuzzy(token: string, targetWords: string[]): boo
 
   for (const word of targetWords) {
     // Exact or direct prefix match
-    if (word === token || word.startsWith(token) || token.startsWith(word)) {
+    if (word === token || word.startsWith(token)) {
       return true;
     }
 
-    // Substring containment (e.g. "wanjohi" inside "wanjohikenpro")
-    if (word.includes(token) || token.includes(word)) {
+    // Substring containment only if the word is long enough (prevents single-letter words like "a" matching anything containing "a")
+    if (word.length >= 3 && word.includes(token)) {
+      return true;
+    }
+
+    if (token.length >= 4 && word.length >= 4 && token.includes(word)) {
       return true;
     }
 

@@ -1092,7 +1092,7 @@ function PostsPageContent() {
                 }}
               >
                 <i className="fa-solid fa-earth-africa"></i>
-                <span>Public Feed ({posts.length})</span>
+                <span>Public Posts ({posts.length})</span>
               </button>
 
               {user && (
@@ -2866,7 +2866,7 @@ function PostsPageContent() {
                   <div style={{ display: "flex", gap: "6px" }}>
                     <input
                       type="url"
-                      placeholder="https://arjess.org/article/... or DOI URL"
+                      placeholder="https://journal-portal.org/article/... or DOI URL"
                       value={linkInputUrl}
                       onChange={e => setLinkInputUrl(e.target.value)}
                       className="form-control"
@@ -2947,7 +2947,7 @@ function PostsPageContent() {
                   <button
                     type="button"
                     onClick={() => setShowLinkInput(!showLinkInput)}
-                    title="Attach External Article Link or Publisher URL (e.g. ARJESS, PubMed, Crossref)"
+                    title="Attach External Article Link or Publisher URL (e.g. Journal Website, PubMed, Crossref)"
                     style={{ background: showLinkInput ? "var(--color-primary-light)" : "none", border: "1px solid var(--color-border)", padding: "0.35rem 0.7rem", borderRadius: "6px", cursor: "pointer", color: "var(--color-primary)", fontSize: "0.85rem" }}
                   >
                     <i className="fa-solid fa-link"></i>

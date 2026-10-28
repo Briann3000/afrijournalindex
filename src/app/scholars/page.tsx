@@ -686,6 +686,7 @@ function ScholarsDirectoryContent() {
                   <tbody>
                     {scholars.map((scholar: any, idx: number) => {
                       const rowNumber = (pagination.page - 1) * pagination.limit + idx + 1;
+                      const scholarSlug = scholar.email?.split("@")[0] || scholar.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
                       const initials = scholar.name
                         .split(" ")
                         .map((n: string) => n[0])
@@ -745,7 +746,7 @@ function ScholarsDirectoryContent() {
                               </div>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <a 
-                                  href={`/researcher?id=${scholar.id}`}
+                                  href={`/researcher?id=${scholarSlug}`}
                                   style={{ 
                                     color: "var(--color-text-main)", 
                                     fontWeight: 700, 
@@ -904,7 +905,7 @@ function ScholarsDirectoryContent() {
                               </button>
 
                               <a
-                                href={`/researcher?id=${scholar.id}`}
+                                href={`/researcher?id=${scholarSlug}`}
                                 className="btn btn-secondary btn-sm"
                                 style={{ padding: "0.35rem 0.65rem", fontSize: "0.78rem" }}
                                 title="View Scholar Profile"
@@ -924,6 +925,7 @@ function ScholarsDirectoryContent() {
               <div className="scholars-mobile-cards" style={{ display: "none", flexDirection: "column", gap: "0.75rem", padding: "0.75rem" }}>
                 {scholars.map((scholar: any, idx: number) => {
                   const rowNumber = (pagination.page - 1) * pagination.limit + idx + 1;
+                  const scholarSlug = scholar.email?.split("@")[0] || scholar.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
                   const initials = scholar.name
                     .split(" ")
                     .map((n: string) => n[0])
@@ -977,7 +979,7 @@ function ScholarsDirectoryContent() {
                           </div>
                           <div style={{ minWidth: 0 }}>
                             <a 
-                              href={`/researcher?id=${scholar.id}`}
+                              href={`/researcher?id=${scholarSlug}`}
                               style={{ 
                                 color: "var(--color-text-main)", 
                                 fontWeight: 700, 
@@ -1027,7 +1029,7 @@ function ScholarsDirectoryContent() {
                             {isFollowed ? "Following" : "Follow"}
                           </button>
                           <a
-                            href={`/researcher?id=${scholar.id}`}
+                            href={`/researcher?id=${scholarSlug}`}
                             className="btn btn-secondary btn-sm"
                             style={{ fontSize: "0.72rem", padding: "0.25rem 0.55rem" }}
                           >
@@ -1173,14 +1175,14 @@ function ScholarsDirectoryContent() {
                 <input 
                   type="text" 
                   required
-                  placeholder="e.g. Prof. Anthony M. Wanjohi"
+                  placeholder="e.g. Prof. Kwame Mensah"
                   value={registerForm.name}
                   onChange={e => setRegisterForm({ ...registerForm, name: e.target.value })}
                   style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
                 />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.75rem" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
                     Academic Email <span style={{ color: "#ef4444" }}>*</span>
@@ -1188,7 +1190,7 @@ function ScholarsDirectoryContent() {
                   <input 
                     type="email" 
                     required
-                    placeholder="name@university.ac.ke"
+                    placeholder="scholar@university.ac.za"
                     value={registerForm.email}
                     onChange={e => setRegisterForm({ ...registerForm, email: e.target.value })}
                     style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
@@ -1211,14 +1213,14 @@ function ScholarsDirectoryContent() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.75rem" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
                     University / Institution
                   </label>
                   <input 
                     type="text" 
-                    placeholder="e.g. University of Nairobi"
+                    placeholder="e.g. University of Cape Town"
                     value={registerForm.institution}
                     onChange={e => setRegisterForm({ ...registerForm, institution: e.target.value })}
                     style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
@@ -1259,7 +1261,7 @@ function ScholarsDirectoryContent() {
                 </label>
                 <input 
                   type="text" 
-                  placeholder="e.g. 0000-0002-6980-0298"
+                  placeholder="e.g. 0000-0002-1825-0097"
                   value={registerForm.orcid}
                   onChange={e => setRegisterForm({ ...registerForm, orcid: e.target.value })}
                   style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
