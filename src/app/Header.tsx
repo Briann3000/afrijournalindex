@@ -265,10 +265,47 @@ export default function Header({ activePage }: HeaderProps) {
             )}
           </div>
 
-          {/* Direct African Scholars Directory Link */}
-          <a href="/scholars" className={`nav-link ${activePage === "scholars" ? "active" : ""}`}>
-            Scholars
-          </a>
+          {/* Afri Scholar Dropdown Menu */}
+          <div className="nav-dropdown-wrapper" style={{ position: "relative" }}>
+            <button 
+              type="button"
+              className={`nav-link nav-dropdown-btn ${activePage === "scholars" ? "active" : ""}`}
+              onClick={() => toggleDropdown("afrischolar")}
+              onMouseEnter={() => setOpenDropdown("afrischolar")}
+              style={{ background: "none", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}
+            >
+              <span>Afri Scholar</span>
+              <i className="fa-solid fa-chevron-down" style={{ fontSize: "0.68rem", opacity: 0.8, transition: "transform 0.2s", transform: openDropdown === "afrischolar" ? "rotate(180deg)" : "rotate(0deg)" }}></i>
+            </button>
+
+            {openDropdown === "afrischolar" && (
+              <div 
+                className="nav-dropdown-menu"
+                onMouseLeave={() => setOpenDropdown(null)}
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: "0",
+                  minWidth: "250px",
+                  background: "#181820",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderRadius: "10px",
+                  padding: "0.6rem 0",
+                  boxShadow: "0 14px 30px rgba(0,0,0,0.6)",
+                  zIndex: 110
+                }}
+              >
+                <a href="/scholars" className="nav-dropdown-item">
+                  <i className="fa-solid fa-users-viewfinder" style={{ color: "#f59e0b", width: "20px" }}></i>
+                  <span>Browse Afri Scholar</span>
+                </a>
+                <a href="/scholars?register=true" className="nav-dropdown-item">
+                  <i className="fa-solid fa-user-plus" style={{ color: "#10b981", width: "20px" }}></i>
+                  <span>Register as an Afri Scholar</span>
+                </a>
+              </div>
+            )}
+          </div>
 
           {/* Group 3: Community (Posts & Forum) */}
           <div className="nav-dropdown-wrapper" style={{ position: "relative" }}>
@@ -302,7 +339,7 @@ export default function Header({ activePage }: HeaderProps) {
               >
                 <a href="/posts" className="nav-dropdown-item">
                   <i className="fa-solid fa-scroll" style={{ color: "#f59e0b", width: "20px" }}></i>
-                  <span>Scholarly Feed &amp; Drafts</span>
+                  <span>Scholarly Posts &amp; Drafts</span>
                 </a>
                 <a href="/forum" className="nav-dropdown-item">
                   <i className="fa-solid fa-comments" style={{ color: "#f59e0b", width: "20px" }}></i>
@@ -859,17 +896,60 @@ export default function Header({ activePage }: HeaderProps) {
               )}
             </div>
 
-            {/* Direct Scholars Directory Link */}
+            {/* Mobile Accordion: Afri Scholar */}
             <div style={{ borderTop: "1px solid #1e293b", paddingTop: "0.85rem" }}>
-              <Link 
-                href="/scholars" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`nav-link ${activePage === "scholars" ? "active" : ""}`}
-                style={{ fontSize: "1.05rem", fontWeight: 600, color: "#ffffff", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+              <button 
+                type="button"
+                onClick={() => toggleMobileSection("afrischolar")}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  background: "none",
+                  border: "none",
+                  color: "#ffffff",
+                  fontSize: "1.05rem",
+                  fontWeight: 600,
+                  padding: "0.4rem 0",
+                  cursor: "pointer"
+                }}
               >
-                <i className="fa-solid fa-graduation-cap" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
-                <span>Scholars</span>
-              </Link>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <i className="fa-solid fa-graduation-cap" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
+                  <span>Afri Scholar</span>
+                </div>
+                <i 
+                  className="fa-solid fa-chevron-down" 
+                  style={{ 
+                    fontSize: "0.8rem", 
+                    color: "#94a3b8",
+                    transition: "transform 0.2s ease",
+                    transform: mobileExpanded.afrischolar ? "rotate(180deg)" : "rotate(0deg)"
+                  }}
+                ></i>
+              </button>
+
+              {mobileExpanded.afrischolar && (
+                <div style={{ paddingLeft: "32px", display: "flex", flexDirection: "column", gap: "0.6rem", marginTop: "0.5rem" }}>
+                  <Link 
+                    href="/scholars"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    style={{ color: "#94a3b8", textDecoration: "none", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "8px" }}
+                  >
+                    <i className="fa-solid fa-users-viewfinder" style={{ width: "16px", color: "#f59e0b" }}></i>
+                    <span>Browse Afri Scholar</span>
+                  </Link>
+                  <Link 
+                    href="/scholars?register=true"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    style={{ color: "#94a3b8", textDecoration: "none", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "8px" }}
+                  >
+                    <i className="fa-solid fa-user-plus" style={{ width: "16px", color: "#10b981" }}></i>
+                    <span>Register as an Afri Scholar</span>
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Mobile Accordion: Community (Posts & Forum) */}
@@ -913,7 +993,7 @@ export default function Header({ activePage }: HeaderProps) {
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
                     <i className="fa-solid fa-scroll" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
-                    <span>Scholarly Feed &amp; Drafts</span>
+                    <span>Scholarly Posts &amp; Drafts</span>
                   </Link>
                   <Link 
                     href="/forum" 

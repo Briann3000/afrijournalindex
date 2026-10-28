@@ -33,6 +33,7 @@ function ResearcherProfileContent() {
   });
   const [securitySubmitting, setSecuritySubmitting] = useState(false);
   const [securityMessage, setSecurityMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [showToolsDropdown, setShowToolsDropdown] = useState<boolean>(false);
   const [showLoginPromptModal, setShowLoginPromptModal] = useState<boolean>(false);
   const [activeCiteArticle, setActiveCiteArticle] = useState<any | null>(null);
   const [citeFormat, setCiteFormat] = useState<"APA" | "Harvard" | "Chicago" | "Vancouver" | "BibTeX" | "RIS">("APA");
@@ -1097,10 +1098,14 @@ function ResearcherProfileContent() {
     }
   };
 
-  // True PDF Portfolio Document Download (Native PDF binary, no printer dialog, no HTML dump)
+  // True Comprehensive Academic Portfolio Document Download (Authoritative Dossier for Appointments, Promotions & Grants)
   const handleExportCV = () => {
     if (!data) return;
     const { profile, metrics, articles } = data;
+    const books = dossierState.books || [];
+    const consultancies = dossierState.consultancies || [];
+    const innovations = dossierState.innovations || [];
+    const media = dossierState.media || [];
 
     try {
       const doc = new jsPDF({
@@ -1110,75 +1115,85 @@ function ResearcherProfileContent() {
       });
 
       const primaryColor = [15, 23, 42]; // slate-900
+      const secondaryColor = [30, 41, 59]; // slate-800
       const mutedColor = [100, 116, 139]; // slate-500
+      const accentBrand = [2, 132, 199]; // sky-600
       const accentGreen = [22, 163, 74]; // green-600
       const lineColor = [226, 232, 240]; // slate-200
+      const cardBg = [248, 250, 252]; // slate-50
 
-      let y = 22;
+      let y = 20;
 
-      // Header Tag
+      const checkPageBreak = (neededSpace: number) => {
+        if (y + neededSpace > 270) {
+          doc.addPage();
+          y = 20;
+        }
+      };
+
+      // Header Tag Bar
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(8.5);
-      doc.setTextColor(accentGreen[0], accentGreen[1], accentGreen[2]);
-      doc.text("AFRIJOURNAL INDEX  •  VERIFIED SCHOLAR PORTFOLIO", 20, y);
-      y += 7;
+      doc.setFontSize(8);
+      doc.setTextColor(accentBrand[0], accentBrand[1], accentBrand[2]);
+      doc.text("AFRIJOURNAL INDEX  •  CONTINENTAL REPOSITORY OF SCHOLARLY RESEARCH", 20, y);
+      y += 6;
 
-      // Scholar Name
+      // Scholar Full Name
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(21);
+      doc.setFontSize(22);
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text(profile.name || "Scholar Profile", 20, y);
+      doc.text(profile.name || "Academic Scholar", 20, y);
       y += 7;
 
       // Academic Rank & Department
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
-      const rankDept = `${profile.academicRank || "Senior Research Fellow & Author"} — ${profile.department || "School of Education & Social Sciences"}`;
+      const rankDept = `${profile.academicRank || "Academic Researcher"} — ${profile.department || "Academic Department"}`;
       doc.text(rankDept, 20, y);
       y += 5;
 
-      // Institution & Country
-      const instCountry = `${profile.institution || "University of Nairobi"}, ${profile.country || "Kenya"}`;
+      // Affiliation, Country, & Verification
+      const instCountry = `${profile.institution || "African Academic Institution"}, ${profile.country || "Africa"}`;
       doc.text(instCountry, 20, y);
       y += 5;
 
-      // ORCID if present
-      if (profile.orcid) {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(9);
-        doc.setTextColor(accentGreen[0], accentGreen[1], accentGreen[2]);
-        doc.text(`ORCID iD: https://orcid.org/${profile.orcid}`, 20, y);
-        y += 5;
-      }
+      // Identifiers: ORCID, Verified Profile URL
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(accentGreen[0], accentGreen[1], accentGreen[2]);
+      const idString = `AfriJournal Scholar ID: ${profile.id}  •  ${profile.orcid ? `ORCID: ${profile.orcid}` : "Peer-Verified Academic Profile"}`;
+      doc.text(idString, 20, y);
+      y += 5;
 
       // Top divider
-      y += 2;
       doc.setDrawColor(lineColor[0], lineColor[1], lineColor[2]);
-      doc.setLineWidth(0.4);
+      doc.setLineWidth(0.5);
       doc.line(20, y, 190, y);
-      y += 8;
+      y += 7;
 
-      // Section: Bibliometric Impact Summary
+      // ==========================================
+      // SECTION: BIBLIOMETRIC & CITATION IMPACT
+      // ==========================================
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text("BIBLIOMETRIC IMPACT SUMMARY", 20, y);
-      y += 6;
+      doc.text("EXECUTIVE SCIENTOMETRIC IMPACT & CITATION METRICS", 20, y);
+      y += 5;
 
-      // Metrics Boxes Row
-      const boxWidth = 38;
+      const totalWorks = articles.length + books.length + consultancies.length + innovations.length;
+      const boxWidth = 38.5;
       const boxHeight = 16;
-      const metricsData = [
-        { label: "HIRSCH H-INDEX", val: `h-${metrics.hIndex}` },
-        { label: "TOTAL CITATIONS", val: `${metrics.totalCitations}` },
-        { label: "PEER-REVIEWED PAPERS", val: `${articles.length}` },
-        { label: "i10-INDEX", val: `${metrics.i10Index || 2}` }
+      const metricsBoxes = [
+        { label: "HIRSCH H-INDEX", val: `h-${metrics.hIndex || 0}` },
+        { label: "TOTAL CITATIONS", val: `${metrics.totalCitations || 0}` },
+        { label: "TOTAL INDEXED WORKS", val: `${totalWorks}` },
+        { label: "i10-INDEX", val: `${metrics.i10Index || 0}` }
       ];
 
-      metricsData.forEach((m, idx) => {
-        const x = 20 + idx * 43.5;
-        doc.setFillColor(248, 250, 252);
+      metricsBoxes.forEach((m, idx) => {
+        const x = 20 + idx * 44;
+        doc.setFillColor(cardBg[0], cardBg[1], cardBg[2]);
         doc.setDrawColor(203, 213, 225);
         doc.roundedRect(x, y, boxWidth, boxHeight, 1.5, 1.5, "FD");
 
@@ -1193,55 +1208,181 @@ function ResearcherProfileContent() {
         doc.text(m.label, x + boxWidth / 2, y + 12, { align: "center" });
       });
 
-      y += boxHeight + 10;
+      y += boxHeight + 6;
 
-      // Section: Peer-Reviewed Publications
+      // Output Category Distribution Bar
+      doc.setFillColor(241, 245, 249);
+      doc.roundedRect(20, y, 170, 7, 1, 1, "F");
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text(`INDEXED SCHOLARLY PUBLICATIONS (${articles.length})`, 20, y);
-      y += 6;
+      doc.setFontSize(7.5);
+      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+      doc.text(
+        `Dossier Distribution: ${articles.length} Peer-Reviewed Articles  |  ${books.length} Books/Monographs  |  ${consultancies.length} Consultancies  |  ${innovations.length} Innovations/Patents`,
+        105,
+        y + 4.8,
+        { align: "center" }
+      );
+      y += 12;
 
-      articles.forEach((art: any, index: number) => {
-        // Page break check (standard A4 is 297mm height)
-        if (y > 260) {
-          doc.addPage();
-          y = 22;
-        }
-
-        // Article number and title (wrapped)
+      // Helper function to print a dossier category section
+      const renderSectionHeader = (title: string, count: number, iconLabel: string) => {
+        checkPageBreak(16);
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(9.5);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        
-        const titleLines = doc.splitTextToSize(`${index + 1}. ${art.title}`, 170);
-        doc.text(titleLines, 20, y);
-        y += (titleLines.length * 4.4);
+        doc.setFontSize(10.5);
+        doc.setTextColor(accentBrand[0], accentBrand[1], accentBrand[2]);
+        doc.text(`${iconLabel} ${title.toUpperCase()} (${count})`, 20, y);
+        y += 2;
+        doc.setDrawColor(accentBrand[0], accentBrand[1], accentBrand[2]);
+        doc.setLineWidth(0.3);
+        doc.line(20, y, 190, y);
+        y += 5;
+      };
 
-        // Metadata: Journal, Year, Citations, DOI
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
+      // ==========================================
+      // SECTION 1: PEER-REVIEWED ARTICLES
+      // ==========================================
+      renderSectionHeader("Peer-Reviewed Journal Articles", articles.length, "SECTION 1:");
+      if (articles.length === 0) {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(8.5);
         doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
+        doc.text("No peer-reviewed journal articles indexed under this profile.", 20, y);
+        y += 6;
+      } else {
+        articles.forEach((art: any, index: number) => {
+          checkPageBreak(14);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+          const titleLines = doc.splitTextToSize(`${index + 1}. ${art.title}`, 170);
+          doc.text(titleLines, 20, y);
+          y += titleLines.length * 4.2;
 
-        const journalStr = `${art.journalName || "AfriJournal"} (${art.publishedYear || 2024})  •  ${art.citationsCount || 0} Citations${art.doi ? `  •  DOI: ${art.doi}` : ""}`;
-        const metaLines = doc.splitTextToSize(journalStr, 170);
-        doc.text(metaLines, 20, y);
-        y += (metaLines.length * 3.8) + 4;
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
+          const metaStr = `${art.journalName || "AfriJournal Index"} (${art.publishedYear || 2024})  •  Citations: ${art.citationsCount || 0}${art.doi ? `  •  DOI: ${art.doi}` : ""}`;
+          const metaLines = doc.splitTextToSize(metaStr, 170);
+          doc.text(metaLines, 20, y);
+          y += metaLines.length * 3.8 + 3;
 
-        // Subtle divider
-        doc.setDrawColor(241, 245, 249);
-        doc.line(20, y - 2, 190, y - 2);
-      });
+          doc.setDrawColor(241, 245, 249);
+          doc.line(20, y - 1.5, 190, y - 1.5);
+        });
+      }
+      y += 4;
 
-      // Page numbers & official stamp on all pages
+      // ==========================================
+      // SECTION 2: BOOKS & MONOGRAPHS
+      // ==========================================
+      renderSectionHeader("Books, Monographs & Edited Volumes", books.length, "SECTION 2:");
+      if (books.length === 0) {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(8.5);
+        doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
+        doc.text("No books or monographs recorded.", 20, y);
+        y += 6;
+      } else {
+        books.forEach((b: any, index: number) => {
+          checkPageBreak(14);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+          const titleLines = doc.splitTextToSize(`${index + 1}. ${b.title || "Untitled Book"}`, 170);
+          doc.text(titleLines, 20, y);
+          y += titleLines.length * 4.2;
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
+          const metaStr = `Publisher: ${b.publisher || "Academic Publisher"} (${b.year || "Year Unspecified"})${b.isbn ? `  •  ISBN: ${b.isbn}` : ""}${b.authors ? `  •  Author(s): ${b.authors}` : ""}`;
+          const metaLines = doc.splitTextToSize(metaStr, 170);
+          doc.text(metaLines, 20, y);
+          y += metaLines.length * 3.8 + 3;
+
+          doc.setDrawColor(241, 245, 249);
+          doc.line(20, y - 1.5, 190, y - 1.5);
+        });
+      }
+      y += 4;
+
+      // ==========================================
+      // SECTION 3: CONSULTANCIES & TECHNICAL ADVISORY
+      // ==========================================
+      renderSectionHeader("Consultancies & Technical Advisory Projects", consultancies.length, "SECTION 3:");
+      if (consultancies.length === 0) {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(8.5);
+        doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
+        doc.text("No technical consultancies or advisory projects recorded.", 20, y);
+        y += 6;
+      } else {
+        consultancies.forEach((c: any, index: number) => {
+          checkPageBreak(14);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+          const titleLines = doc.splitTextToSize(`${index + 1}. ${c.title || c.role || "Consultancy Project"}`, 170);
+          doc.text(titleLines, 20, y);
+          y += titleLines.length * 4.2;
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
+          const metaStr = `Client/Partner: ${c.client || c.organization || "Institutional Partner"} (${c.year || "Period Unspecified"})${c.deliverable ? `  •  Deliverable: ${c.deliverable}` : ""}`;
+          const metaLines = doc.splitTextToSize(metaStr, 170);
+          doc.text(metaLines, 20, y);
+          y += metaLines.length * 3.8 + 3;
+
+          doc.setDrawColor(241, 245, 249);
+          doc.line(20, y - 1.5, 190, y - 1.5);
+        });
+      }
+      y += 4;
+
+      // ==========================================
+      // SECTION 4: INNOVATIONS & PATENTS
+      // ==========================================
+      renderSectionHeader("Innovations, Patents & Policy Toolkits", innovations.length, "SECTION 4:");
+      if (innovations.length === 0) {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(8.5);
+        doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
+        doc.text("No registered innovations, toolkits, or patents recorded.", 20, y);
+        y += 6;
+      } else {
+        innovations.forEach((inv: any, index: number) => {
+          checkPageBreak(14);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+          const titleLines = doc.splitTextToSize(`${index + 1}. ${inv.title || "Innovation / Patent"}`, 170);
+          doc.text(titleLines, 20, y);
+          y += titleLines.length * 4.2;
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
+          const metaStr = `Category: ${inv.category || "Applied Innovation"}${inv.registrationNo ? `  •  Ref/Patent: ${inv.registrationNo}` : ""}${inv.year ? ` (${inv.year})` : ""}`;
+          const metaLines = doc.splitTextToSize(metaStr, 170);
+          doc.text(metaLines, 20, y);
+          y += metaLines.length * 3.8 + 3;
+
+          doc.setDrawColor(241, 245, 249);
+          doc.line(20, y - 1.5, 190, y - 1.5);
+        });
+      }
+
+      // Page numbers, timestamp & official stamp across all generated pages
       const totalPages = doc.getNumberOfPages();
+      const generatedDate = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
       for (let p = 1; p <= totalPages; p++) {
         doc.setPage(p);
         doc.setFont("helvetica", "normal");
         doc.setFontSize(7.5);
         doc.setTextColor(148, 163, 184);
         doc.text(
-          `AfriJournal Index Repository  •  https://afrijournalindexing.org  •  Page ${p} of ${totalPages}`,
+          `AfriJournal Index Verified Scholar Dossier  •  Generated ${generatedDate}  •  Page ${p} of ${totalPages}`,
           105,
           288,
           { align: "center" }
@@ -1249,9 +1390,9 @@ function ResearcherProfileContent() {
       }
 
       // Download PDF document directly
-      const cleanFileName = `${(profile.name || "Scholar").replace(/\s+/g, "_")}_AfriJournal_Portfolio.pdf`;
+      const cleanFileName = `${(profile.name || "Scholar").replace(/\s+/g, "_")}_Academic_Dossier_Portfolio.pdf`;
       doc.save(cleanFileName);
-      showToast("Official Scholar PDF Portfolio downloaded successfully!");
+      showToast("Comprehensive Academic Dossier Portfolio downloaded!");
     } catch (err) {
       console.error("PDF generation failed:", err);
       alert("Failed to generate PDF document. Please try again.");
@@ -1823,11 +1964,11 @@ function ResearcherProfileContent() {
                   ))}
                 </div>
 
-                {/* Scholarly Identifiers & External Network Links Bar */}
+                {/* Scholarly Identifiers & External Profiles Bar */}
                 {(profile.googleScholarUrl || profile.externalLinks?.amazonAuthor || profile.externalLinks?.researchGate || profile.externalLinks?.academia || profile.externalLinks?.linkedIn || profile.externalLinks?.semanticScholar) && (
                   <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap", marginTop: "0.75rem", alignItems: "center" }}>
                     <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginRight: "2px" }}>
-                      {t.researcher_page?.scholarly_networks || "Scholarly Networks:"}
+                      {t.researcher_page?.scholarly_networks || "Scholarly Profiles:"}
                     </span>
                     {profile.googleScholarUrl && (
                       <a href={formatUrl(profile.googleScholarUrl)} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "0.22rem 0.6rem", borderRadius: "6px", fontSize: "0.76rem", fontWeight: 600, textDecoration: "none", background: "var(--color-bg-card-subtle)", color: "#2563eb", border: "1px solid rgba(37, 99, 235, 0.25)" }}>
@@ -1864,7 +2005,7 @@ function ResearcherProfileContent() {
               </div>
             </div>
 
-            {/* Right: Clean Action Toolbar */}
+            {/* Right: Clean, Uncluttered Action Toolbar */}
             <div 
               style={{ 
                 display: "flex", 
@@ -1886,7 +2027,7 @@ function ResearcherProfileContent() {
                     gap: "0.45rem",
                     fontSize: "0.82rem",
                     fontWeight: 700,
-                    padding: "0.45rem 0.85rem",
+                    padding: "0.48rem 0.85rem",
                     borderRadius: "8px",
                     background: "#ea580c",
                     borderColor: "#ea580c",
@@ -1911,7 +2052,7 @@ function ResearcherProfileContent() {
                       gap: "0.45rem",
                       fontSize: "0.82rem",
                       fontWeight: 700,
-                      padding: "0.45rem 0.85rem",
+                      padding: "0.48rem 0.85rem",
                       borderRadius: "8px",
                       width: "100%"
                     }}
@@ -1919,8 +2060,9 @@ function ResearcherProfileContent() {
                     <i className="fa-solid fa-user-pen"></i>
                     <span>{t.researcher_page?.edit_profile_btn || "Edit Profile"}</span>
                   </button>
-                  <button
-                    onClick={() => setShowDocxImportModal(true)}
+
+                  <a
+                    href="/posts?tab=drafts"
                     className="btn btn-secondary"
                     style={{
                       display: "inline-flex",
@@ -1929,16 +2071,18 @@ function ResearcherProfileContent() {
                       gap: "0.45rem",
                       fontSize: "0.82rem",
                       fontWeight: 700,
-                      padding: "0.45rem 0.85rem",
+                      padding: "0.48rem 0.85rem",
                       borderRadius: "8px",
-                      background: "var(--color-bg-card-subtle)",
-                      borderColor: "var(--color-border)",
-                      width: "100%"
+                      background: "rgba(16, 185, 129, 0.08)",
+                      borderColor: "rgba(16, 185, 129, 0.35)",
+                      color: "#059669",
+                      width: "100%",
+                      textDecoration: "none"
                     }}
                   >
-                    <i className="fa-solid fa-file-word" style={{ color: "#2563eb" }}></i>
-                    <span>{t.researcher_page?.import_docx_btn || "Import Profile (.docx)"}</span>
-                  </button>
+                    <i className="fa-solid fa-pen-to-square"></i>
+                    <span>Post & Drafts</span>
+                  </a>
                 </>
               ) : (
                 <button
@@ -1951,7 +2095,7 @@ function ResearcherProfileContent() {
                     gap: "0.45rem",
                     fontSize: "0.82rem",
                     fontWeight: 700,
-                    padding: "0.45rem 0.85rem",
+                    padding: "0.48rem 0.85rem",
                     borderRadius: "8px",
                     width: "100%"
                   }}
@@ -1959,32 +2103,6 @@ function ResearcherProfileContent() {
                   <i className={isFollowing ? "fa-solid fa-bell-slash" : "fa-solid fa-bell"}></i>
                   <span>{isFollowing ? (t.researcher_page?.following_scholar || "Following Scholar") : (t.researcher_page?.follow_scholar || "Follow Scholar")}</span>
                 </button>
-              )}
-
-              {profile.cvPdfUrl && (
-                <a
-                  href={formatUrl(profile.cvPdfUrl)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-secondary"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "0.45rem",
-                    fontSize: "0.82rem",
-                    fontWeight: 600,
-                    padding: "0.45rem 0.85rem",
-                    borderRadius: "8px",
-                    color: "var(--color-primary)",
-                    borderColor: "var(--color-primary)",
-                    width: "100%",
-                    textDecoration: "none"
-                  }}
-                >
-                  <i className="fa-solid fa-file-pdf"></i>
-                  <span>{t.researcher_page?.download_cv_btn || "Academic CV (PDF)"}</span>
-                </a>
               )}
 
               <button
@@ -1996,7 +2114,7 @@ function ResearcherProfileContent() {
                   justifyContent: "center",
                   gap: "0.45rem",
                   fontSize: "0.82rem",
-                  padding: "0.45rem 0.85rem",
+                  padding: "0.48rem 0.85rem",
                   borderRadius: "8px",
                   width: "100%"
                 }}
@@ -2005,65 +2123,155 @@ function ResearcherProfileContent() {
                 <span>{t.researcher_page?.share_profile || "Share Profile"}</span>
               </button>
 
-              <a
-                href={profile.googleScholarUrl || `https://scholar.google.com/scholar?q=${encodeURIComponent(profile.name)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-secondary"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "0.45rem",
-                  fontSize: "0.82rem",
-                  padding: "0.45rem 0.85rem",
-                  borderRadius: "8px",
-                  color: "#4285F4",
-                  fontWeight: 600,
-                  width: "100%",
-                  textDecoration: "none"
-                }}
-                title="Search and verify citations on Google Scholar"
-              >
-                <i className="fa-brands fa-google" style={{ color: "#4285F4" }}></i>
-                <span>Google Scholar</span>
-              </a>
+              {/* Compact "Tools & Export" Dropdown */}
+              <div style={{ position: "relative", width: "100%" }}>
+                <button
+                  onClick={() => setShowToolsDropdown(!showToolsDropdown)}
+                  className="btn btn-secondary"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "0.48rem 0.85rem",
+                    borderRadius: "8px",
+                    fontSize: "0.82rem",
+                    fontWeight: 600,
+                    width: "100%",
+                    background: showToolsDropdown ? "var(--color-bg-card-subtle)" : "transparent"
+                  }}
+                >
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
+                    <i className="fa-solid fa-ellipsis-vertical" style={{ color: "var(--color-primary)" }}></i>
+                    <span>Dossier & Tools</span>
+                  </span>
+                  <i className={`fa-solid fa-chevron-${showToolsDropdown ? "up" : "down"}`} style={{ fontSize: "0.7rem", opacity: 0.7 }}></i>
+                </button>
 
-              <button
-                onClick={handleExportCV}
-                className="btn btn-secondary"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "0.45rem",
-                  fontSize: "0.82rem",
-                  padding: "0.45rem 0.85rem",
-                  borderRadius: "8px",
-                  width: "100%"
-                }}
-              >
-                <i className="fa-solid fa-file-pdf" style={{ color: "#dc2626" }}></i>
-                <span>{t.researcher_page?.export_pdf || "Export PDF Portfolio"}</span>
-              </button>
+                {showToolsDropdown && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 4px)",
+                      right: 0,
+                      width: "100%",
+                      minWidth: "200px",
+                      background: "var(--color-bg-card)",
+                      border: "1px solid var(--color-border)",
+                      borderRadius: "10px",
+                      boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+                      zIndex: 100,
+                      padding: "0.35rem 0",
+                      display: "flex",
+                      flexDirection: "column"
+                    }}
+                  >
+                    {profile.cvPdfUrl && (
+                      <a
+                        href={formatUrl(profile.cvPdfUrl)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setShowToolsDropdown(false)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          padding: "0.5rem 0.9rem",
+                          fontSize: "0.8rem",
+                          color: "var(--color-text-main)",
+                          textDecoration: "none",
+                          fontWeight: 500
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg-card-subtle)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      >
+                        <i className="fa-solid fa-file-pdf" style={{ color: "var(--color-primary)", width: "16px" }}></i>
+                        <span>Download CV (PDF)</span>
+                      </a>
+                    )}
 
-              <button
-                onClick={handleExportBibTeX}
-                className="btn btn-secondary"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "0.45rem",
-                  fontSize: "0.82rem",
-                  padding: "0.45rem 0.85rem",
-                  borderRadius: "8px",
-                  width: "100%"
-                }}
-              >
-                <i className="fa-solid fa-file-code" style={{ color: "#0284c7" }}></i>
-                <span>{t.researcher_page?.export_bibtex || "Export BibTeX (.bib)"}</span>
-              </button>
+                    <button
+                      onClick={() => {
+                        setShowToolsDropdown(false);
+                        handleExportCV();
+                      }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "0.5rem 0.9rem",
+                        fontSize: "0.8rem",
+                        color: "var(--color-text-main)",
+                        background: "none",
+                        border: "none",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        fontWeight: 500,
+                        width: "100%"
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg-card-subtle)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                      <i className="fa-solid fa-file-lines" style={{ color: "#dc2626", width: "16px" }}></i>
+                      <span>Official PDF Portfolio</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowToolsDropdown(false);
+                        handleExportBibTeX();
+                      }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "0.5rem 0.9rem",
+                        fontSize: "0.8rem",
+                        color: "var(--color-text-main)",
+                        background: "none",
+                        border: "none",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        fontWeight: 500,
+                        width: "100%"
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg-card-subtle)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                      <i className="fa-solid fa-file-code" style={{ color: "#0284c7", width: "16px" }}></i>
+                      <span>Export BibTeX (.bib)</span>
+                    </button>
+
+                    {isOwner && (
+                      <button
+                        onClick={() => {
+                          setShowToolsDropdown(false);
+                          setShowDocxImportModal(true);
+                        }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          padding: "0.5rem 0.9rem",
+                          fontSize: "0.8rem",
+                          color: "var(--color-text-main)",
+                          background: "none",
+                          border: "none",
+                          textAlign: "left",
+                          cursor: "pointer",
+                          fontWeight: 500,
+                          width: "100%",
+                          borderTop: "1px solid var(--color-border)"
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg-card-subtle)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      >
+                        <i className="fa-solid fa-file-word" style={{ color: "#2563eb", width: "16px" }}></i>
+                        <span>Import Profile (.docx)</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -2150,24 +2358,47 @@ function ResearcherProfileContent() {
                 </span>
               </div>
 
-              <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end", height: "130px", padding: "0.75rem 0.5rem 0", borderBottom: "1px solid var(--color-border)", overflowX: "auto" }}>
+              <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end", height: "135px", padding: "0.75rem 0.5rem 0", borderBottom: "1px solid var(--color-border)", overflowX: "auto" }}>
                 {(metrics.yearlyCitations || []).map((item: any, idx: number) => {
-                  const maxYearCites = Math.max(...(metrics.yearlyCitations || [{ citations: 1 }]).map((x: any) => x.citations), 1);
-                  const barHeight = Math.max((item.citations / maxYearCites) * 100, item.citations > 0 ? 15 : 6);
+                  const citeValues = (metrics.yearlyCitations || []).map((x: any) => x.citations);
+                  const minCites = Math.min(...citeValues, 0);
+                  const maxCites = Math.max(...citeValues, 1);
+                  const range = maxCites - minCites;
+                  // Dynamic proportional scaling so variations stand out clearly
+                  const barHeight = range > 0 ? Math.round(25 + ((item.citations - minCites) / range) * 75) : 60;
+                  const formattedCites = item.citations >= 1000 
+                    ? `${(item.citations / 1000).toFixed(item.citations >= 10000 ? 0 : 1)}k` 
+                    : item.citations.toLocaleString();
+
+                  // Calculate year-over-year variation percentage
+                  const prevItem = idx > 0 ? metrics.yearlyCitations[idx - 1] : null;
+                  const growthPct = prevItem && prevItem.citations > 0 
+                    ? Math.round(((item.citations - prevItem.citations) / prevItem.citations) * 100) 
+                    : null;
 
                   return (
-                    <div key={idx} style={{ flex: 1, minWidth: "32px", display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "flex-end" }}>
-                      <span style={{ fontSize: "0.78rem", fontWeight: 700, color: item.citations > 0 ? "var(--color-text-main)" : "var(--color-text-muted)", marginBottom: "4px" }}>
-                        {item.citations}
-                      </span>
+                    <div key={idx} style={{ flex: 1, minWidth: "38px", display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "flex-end" }}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "4px" }}>
+                        {growthPct !== null && growthPct !== 0 && (
+                          <span style={{ fontSize: "0.68rem", fontWeight: 700, color: growthPct > 0 ? "#16a34a" : "#dc2626", lineHeight: 1, marginBottom: "2px" }}>
+                            {growthPct > 0 ? `+${growthPct}%` : `${growthPct}%`}
+                          </span>
+                        )}
+                        <span style={{ fontSize: "0.78rem", fontWeight: 800, color: item.citations > 0 ? "var(--color-text-main)" : "var(--color-text-muted)" }}>
+                          {formattedCites}
+                        </span>
+                      </div>
                       <div 
-                        title={`${item.citations} verified citations in ${item.year}`}
+                        title={`${item.citations.toLocaleString()} verified citations in ${item.year}${growthPct ? ` (${growthPct > 0 ? `+${growthPct}%` : `${growthPct}%`} YoY)` : ""}`}
                         style={{ 
                           width: "100%", 
-                          maxWidth: "46px", 
+                          maxWidth: "48px", 
                           height: `${barHeight}%`, 
-                          background: item.citations > 0 ? "var(--color-primary)" : "var(--color-border)",
-                          borderRadius: "4px 4px 0 0",
+                          background: item.citations > 0 
+                            ? "linear-gradient(180deg, var(--color-primary) 0%, rgba(245, 158, 11, 0.75) 100%)" 
+                            : "var(--color-border)",
+                          borderRadius: "5px 5px 0 0",
+                          boxShadow: item.citations > 0 ? "0 2px 6px rgba(245, 158, 11, 0.2)" : "none",
                           transition: "height 0.3s ease"
                         }} 
                       />
@@ -2177,6 +2408,44 @@ function ResearcherProfileContent() {
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Scholarship Composition Breakdown */}
+              <div style={{ marginTop: "1rem", background: "var(--color-bg-base)", padding: "0.75rem 1rem", borderRadius: "10px", border: "1px solid var(--color-border)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem", fontSize: "0.78rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                  <span style={{ fontWeight: 700, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "5px" }}>
+                    <i className="fa-solid fa-chart-pie" style={{ color: "var(--color-primary)" }}></i>
+                    Scholarship Distribution &amp; Proportions
+                  </span>
+                  <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>
+                    {data.articles?.length || 0} Articles • {dossierState.books?.length || 0} Books &amp; Monographs • {dossierState.consultancies?.length || 0} Applied Assignments
+                  </span>
+                </div>
+                <div style={{ display: "flex", height: "8px", borderRadius: "4px", overflow: "hidden", background: "var(--color-border)", gap: "2px" }}>
+                  <div 
+                    style={{ 
+                      width: `${Math.max(20, Math.round(((data.articles?.length || 1) / Math.max(1, (data.articles?.length || 0) + (dossierState.books?.length || 0) + (dossierState.consultancies?.length || 0))) * 100))}%`, 
+                      background: "var(--color-primary)", 
+                      borderRadius: "4px 0 0 4px" 
+                    }} 
+                    title={`${data.articles?.length || 0} Journal Articles`} 
+                  />
+                  <div 
+                    style={{ 
+                      width: `${Math.max(15, Math.round(((dossierState.books?.length || 0) / Math.max(1, (data.articles?.length || 0) + (dossierState.books?.length || 0) + (dossierState.consultancies?.length || 0))) * 100))}%`, 
+                      background: "#3b82f6" 
+                    }} 
+                    title={`${dossierState.books?.length || 0} Books & Monographs`} 
+                  />
+                  <div 
+                    style={{ 
+                      flex: 1, 
+                      background: "#10b981", 
+                      borderRadius: "0 4px 4px 0" 
+                    }} 
+                    title={`${dossierState.consultancies?.length || 0} Applied Works & Assignments`} 
+                  />
+                </div>
               </div>
             </div>
 
@@ -2202,7 +2471,7 @@ function ResearcherProfileContent() {
                 Continental Provenance:
               </span>
               <span style={{ color: "var(--color-text-body)" }}>
-                {metrics.provenance?.africanPercent ?? 100}% African Regional Citations ({metrics.provenance?.africanCount ?? metrics.totalCitations}) • {100 - (metrics.provenance?.africanPercent ?? 100)}% International Literature ({metrics.provenance?.globalCount ?? 0})
+                {metrics.provenance?.africanPercent ?? 82}% African Regional Citations ({metrics.provenance?.africanCount ? Number(metrics.provenance.africanCount).toLocaleString() : Number(metrics.totalCitations || 0).toLocaleString()}) • {100 - (metrics.provenance?.africanPercent ?? 82)}% Global Research Impact ({metrics.provenance?.globalCount ? Number(metrics.provenance.globalCount).toLocaleString() : 0})
               </span>
             </div>
 
@@ -2385,6 +2654,18 @@ function ResearcherProfileContent() {
           paddingBottom: "2px",
           scrollbarWidth: "none"
         }}>
+        {/* Scholar Dossier Tabs - Strictly Alphabetical: Articles -> Books -> Consultancies -> Editorial -> Innovations -> Library -> Media */}
+        <div style={{ 
+          display: "flex", 
+          gap: "0.5rem", 
+          borderBottom: "2px solid var(--color-border)", 
+          marginBottom: "1.75rem", 
+          overflowX: "auto", 
+          WebkitOverflowScrolling: "touch", 
+          paddingBottom: "2px", 
+          scrollbarWidth: "none" 
+        }}>
+          {/* 1. Articles */}
           <button
             type="button"
             onClick={() => setActiveTab("publications")}
@@ -2405,11 +2686,11 @@ function ResearcherProfileContent() {
               flexShrink: 0
             }}
           >
-            <i className="fa-solid fa-book-open"></i>
-            <span>{t.researcher_page?.tab_publications || "Publications"} ({data.articles?.length || 0})</span>
+            <i className="fa-solid fa-file-lines"></i>
+            <span>Articles &amp; Books ({(data.articles?.length || 0) + (dossierState.books?.length || 0)})</span>
           </button>
 
-          {/* Books & Monographs Tab (hidden if 0 and !isOwner) */}
+          {/* 2. Books & Monographs */}
           {(dossierState.books.length > 0 || isOwner) && (
             <button
               type="button"
@@ -2432,11 +2713,11 @@ function ResearcherProfileContent() {
               }}
             >
               <i className="fa-solid fa-book"></i>
-              <span>{t.researcher_page?.tab_books || "Books & Monographs"} ({dossierState.books.length})</span>
+              <span>{t.researcher_page?.tab_books || "Books"} ({dossierState.books.length})</span>
             </button>
           )}
 
-          {/* Projects & Consultancy Tab (hidden if 0 and !isOwner) */}
+          {/* 3. Consultancies & Advisory */}
           {(dossierState.consultancies.length > 0 || isOwner) && (
             <button
               type="button"
@@ -2459,11 +2740,38 @@ function ResearcherProfileContent() {
               }}
             >
               <i className="fa-solid fa-briefcase"></i>
-              <span>{t.researcher_page?.tab_consultancy || "Consultancy & Projects"} ({dossierState.consultancies.length})</span>
+              <span>{t.researcher_page?.tab_consultancy || "Consultancies"} ({dossierState.consultancies.length})</span>
             </button>
           )}
 
-          {/* Innovations & Patents Tab (hidden if 0 and !isOwner) */}
+          {/* 4. Editorial & Journals */}
+          {((data.journals?.length || 0) + (data.submissions?.length || 0) > 0 || isOwner) && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("editorial")}
+              style={{
+                padding: "0.75rem clamp(0.85rem, 2vw, 1.4rem)",
+                background: "none",
+                border: "none",
+                borderBottom: activeTab === "editorial" ? "2px solid var(--color-primary)" : "2px solid transparent",
+                marginBottom: "-2px",
+                fontWeight: 700,
+                fontSize: "clamp(0.82rem, 1.8vw, 0.95rem)",
+                color: activeTab === "editorial" ? "var(--color-primary)" : "var(--color-text-muted)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                whiteSpace: "nowrap",
+                flexShrink: 0
+              }}
+            >
+              <i className="fa-solid fa-feather-pointed"></i>
+              <span>{t.researcher_page?.tab_editorial || "Editorial"} ({(data.journals?.length || 0) + (data.submissions?.length || 0)})</span>
+            </button>
+          )}
+
+          {/* 5. Innovations and Patents */}
           {(dossierState.innovations.length > 0 || isOwner) && (
             <button
               type="button"
@@ -2486,11 +2794,38 @@ function ResearcherProfileContent() {
               }}
             >
               <i className="fa-solid fa-lightbulb"></i>
-              <span>{t.researcher_page?.tab_innovations || "Innovations & Patents"} ({dossierState.innovations.length})</span>
+              <span>{t.researcher_page?.tab_innovations || "Innovations and Patents"} ({dossierState.innovations.length})</span>
             </button>
           )}
 
-          {/* Media & Impact Tab (hidden if 0 and !isOwner) */}
+          {/* 6. Library Bookmarks */}
+          {currentUser && isOwner && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("library")}
+              style={{
+                padding: "0.75rem clamp(0.85rem, 2vw, 1.4rem)",
+                background: "none",
+                border: "none",
+                borderBottom: activeTab === "library" ? "2px solid #eab308" : "2px solid transparent",
+                marginBottom: "-2px",
+                fontWeight: 700,
+                fontSize: "clamp(0.82rem, 1.8vw, 0.95rem)",
+                color: activeTab === "library" ? "#eab308" : "var(--color-text-muted)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                whiteSpace: "nowrap",
+                flexShrink: 0
+              }}
+            >
+              <i className="fa-solid fa-bookmark"></i>
+              <span>{t.researcher_page?.tab_library || "Library"} ({savedLibraryArticles.length})</span>
+            </button>
+          )}
+
+          {/* 7. Media & Press */}
           {(dossierState.media.length > 0 || isOwner) && (
             <button
               type="button"
@@ -2516,59 +2851,7 @@ function ResearcherProfileContent() {
               <span>{t.researcher_page?.tab_media || "Media & Impact"} ({dossierState.media.length})</span>
             </button>
           )}
-
-          {/* Editorial & Managed Journals Tab (hidden if 0 and !isOwner) */}
-          {((data.journals?.length || 0) + (data.submissions?.length || 0) > 0 || isOwner) && (
-            <button
-              type="button"
-              onClick={() => setActiveTab("editorial")}
-              style={{
-                padding: "0.75rem clamp(0.85rem, 2vw, 1.4rem)",
-                background: "none",
-                border: "none",
-                borderBottom: activeTab === "editorial" ? "2px solid var(--color-primary)" : "2px solid transparent",
-                marginBottom: "-2px",
-                fontWeight: 700,
-                fontSize: "clamp(0.82rem, 1.8vw, 0.95rem)",
-                color: activeTab === "editorial" ? "var(--color-primary)" : "var(--color-text-muted)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                whiteSpace: "nowrap",
-                flexShrink: 0
-              }}
-            >
-              <i className="fa-solid fa-feather-pointed"></i>
-              <span>{t.researcher_page?.tab_editorial || "Editorial & Journals"} ({(data.journals?.length || 0) + (data.submissions?.length || 0)})</span>
-            </button>
-          )}
-
-          {currentUser && isOwner && (
-            <button
-              type="button"
-              onClick={() => setActiveTab("library")}
-              style={{
-                padding: "0.75rem clamp(0.85rem, 2vw, 1.4rem)",
-                background: "none",
-                border: "none",
-                borderBottom: activeTab === "library" ? "2px solid #eab308" : "2px solid transparent",
-                marginBottom: "-2px",
-                fontWeight: 700,
-                fontSize: "clamp(0.82rem, 1.8vw, 0.95rem)",
-                color: activeTab === "library" ? "#eab308" : "var(--color-text-muted)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                whiteSpace: "nowrap",
-                flexShrink: 0
-              }}
-            >
-              <i className="fa-solid fa-bookmark"></i>
-              <span>{t.researcher_page?.tab_library || "Library Bookmarks"} ({savedLibraryArticles.length})</span>
-            </button>
-          )}
+        </div>
         </div>
 
         {activeTab === "publications" ? (
@@ -2645,7 +2928,7 @@ function ResearcherProfileContent() {
               />
               <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text-main)", margin: 0, display: "flex", alignItems: "center", gap: "0.6rem" }}>
                 <i className="fa-solid fa-book-open" style={{ color: "var(--color-primary)" }}></i>
-                Authored Publications ({filteredArticles.length})
+                Articles &amp; Books ({filteredArticles.length + (dossierState.books?.length || 0)})
               </h2>
             </div>
 

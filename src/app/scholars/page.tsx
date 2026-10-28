@@ -17,6 +17,7 @@ function ScholarsDirectoryContent() {
   const queryPage = parseInt(searchParams.get("page") || "1", 10);
   const queryLimit = parseInt(searchParams.get("limit") || "15", 10);
   const queryDiaspora = searchParams.get("diaspora") === "true";
+  const queryRegister = searchParams.get("register") === "true";
 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -33,11 +34,61 @@ function ScholarsDirectoryContent() {
   const [includeDiaspora, setIncludeDiaspora] = useState<boolean>(queryDiaspora);
   const [followedIds, setFollowedIds] = useState<string[]>([]);
   const [showLoginPromptModal, setShowLoginPromptModal] = useState<boolean>(false);
+  const [showRegisterScholarModal, setShowRegisterScholarModal] = useState<boolean>(queryRegister);
+  const [registerForm, setRegisterForm] = useState({
+    name: "",
+    email: "",
+    institution: "",
+    department: "",
+    country: "",
+    googleScholarUrl: "",
+    orcid: ""
+  });
+  const [registerLoading, setRegisterLoading] = useState<boolean>(false);
+  const [registerError, setRegisterError] = useState<string | null>(null);
+  const [registerSuccess, setRegisterSuccess] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleRegisterScholar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegisterError(null);
+    setRegisterSuccess(null);
+    if (!registerForm.name.trim() || !registerForm.email.trim()) {
+      setRegisterError("Full Name and Academic Email are required.");
+      return;
+    }
+
+    setRegisterLoading(true);
+    try {
+      const res = await fetch("/api/scholars/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(registerForm)
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setRegisterError(data.error || "Failed to register scholar profile.");
+      } else {
+        setRegisterSuccess(data.message || "Your Afri Scholar profile has been registered and indexed successfully!");
+        showToast("Afri Scholar profile registered successfully!");
+        setTimeout(() => {
+          if (data.scholarId) {
+            router.push(`/researcher?id=${data.scholarId}`);
+          } else {
+            setShowRegisterScholarModal(false);
+          }
+        }, 1500);
+      }
+    } catch (err: any) {
+      setRegisterError(err.message || "An error occurred during registration.");
+    } finally {
+      setRegisterLoading(false);
+    }
   };
 
   // Check authentication status on mount
@@ -59,8 +110,9 @@ function ScholarsDirectoryContent() {
   const loadScholars = async () => {
     setLoading(true);
     try {
+      const activeQ = querySearch.trim() || searchTerm.trim();
       const params = new URLSearchParams();
-      if (searchTerm.trim()) params.set("q", searchTerm.trim());
+      if (activeQ) params.set("q", activeQ);
       if (selectedInterest.trim()) params.set("interest", selectedInterest.trim());
       if (selectedCountry.trim()) params.set("country", selectedCountry.trim());
       if (selectedSort) params.set("sort", selectedSort);
@@ -84,8 +136,12 @@ function ScholarsDirectoryContent() {
   };
 
   useEffect(() => {
+    setSearchTerm(querySearch);
+  }, [querySearch]);
+
+  useEffect(() => {
     loadScholars();
-  }, [selectedInterest, selectedCountry, selectedSort, queryPage, pageSize, includeDiaspora]);
+  }, [querySearch, selectedInterest, selectedCountry, selectedSort, queryPage, pageSize, includeDiaspora]);
 
   // Load followed state from localStorage
   useEffect(() => {
@@ -201,17 +257,39 @@ function ScholarsDirectoryContent() {
       <main className="scholars-main-container" style={{ flex: 1, padding: "2rem", maxWidth: "1440px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
         
         {/* 1. Header Banner */}
-        <div style={{ marginBottom: "1.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-primary)", fontWeight: 700, fontSize: "0.82rem", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "0.25rem" }}>
-            <i className="fa-solid fa-graduation-cap"></i>
-            <span>Continental Academic Index</span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-primary)", fontWeight: 700, fontSize: "0.82rem", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "0.25rem" }}>
+              <i className="fa-solid fa-graduation-cap"></i>
+              <span>Continental Academic Registry</span>
+            </div>
+            <h1 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--color-text-main)", margin: "0 0 0.35rem", letterSpacing: "-0.5px" }}>
+              Afri Scholar Directory
+            </h1>
+            <p style={{ fontSize: "0.92rem", color: "var(--color-text-muted)", maxWidth: "880px", margin: 0, lineHeight: 1.5 }}>
+              Verified African researchers, faculty members, and scholars across African universities with authentic citation counts, h-indices, and institutional domains.
+            </p>
           </div>
-          <h1 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--color-text-main)", margin: "0 0 0.35rem", letterSpacing: "-0.5px" }}>
-            African Scholar Directory
-          </h1>
-          <p style={{ fontSize: "0.92rem", color: "var(--color-text-muted)", maxWidth: "880px", margin: 0, lineHeight: 1.5 }}>
-            Verified African researchers, faculty members, and scholars across African universities with authentic citation counts, h-indices, and institutional domains.
-          </p>
+          <div>
+            <button
+              type="button"
+              onClick={() => { setRegisterError(null); setRegisterSuccess(null); setShowRegisterScholarModal(true); }}
+              className="btn btn-primary"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "0.75rem 1.4rem",
+                fontSize: "0.92rem",
+                fontWeight: 700,
+                borderRadius: "8px",
+                boxShadow: "0 4px 12px rgba(245, 158, 11, 0.25)"
+              }}
+            >
+              <i className="fa-solid fa-user-plus"></i>
+              <span>Register as an Afri Scholar</span>
+            </button>
+          </div>
         </div>
 
         {/* 2. Industry-Standard Search & Filter Console (Clean Horizontal Layout) */}
@@ -325,7 +403,7 @@ function ScholarsDirectoryContent() {
             >
               <option value="citations">Sort: Most Cited</option>
               <option value="hindex">Sort: Highest h-index</option>
-              <option value="publications">Sort: Most Articles</option>
+              <option value="publications">Sort: Most Articles &amp; Books</option>
               <option value="name">Sort: Name (A-Z)</option>
             </select>
 
@@ -596,7 +674,7 @@ function ScholarsDirectoryContent() {
                         style={{ padding: "0.9rem 1rem", fontWeight: 700, color: "var(--color-text-main)", textAlign: "center", cursor: "pointer", userSelect: "none", minWidth: "100px" }}
                       >
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                          <span>Articles</span>
+                          <span>Articles &amp; Books</span>
                           {selectedSort === "publications" && <i className="fa-solid fa-arrow-down-wide-short" style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>}
                         </div>
                       </th>
@@ -937,7 +1015,7 @@ function ScholarsDirectoryContent() {
 
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "0.5rem", borderTop: "1px solid var(--color-border)", fontSize: "0.78rem" }}>
                         <div>
-                          <strong style={{ color: "var(--color-primary)", fontSize: "0.9rem" }}>{scholar.totalCitations.toLocaleString()}</strong> citations • <strong>{scholar.articlesCount}</strong> articles
+                          <strong style={{ color: "var(--color-primary)", fontSize: "0.9rem" }}>{scholar.totalCitations.toLocaleString()}</strong> citations • <strong>{scholar.articlesCount}</strong> works (articles &amp; books)
                         </div>
                         <div style={{ display: "flex", gap: "6px" }}>
                           <button
@@ -1016,6 +1094,210 @@ function ScholarsDirectoryContent() {
         )}
 
       </main>
+
+      {/* Modal: Register as an Afri Scholar */}
+      {showRegisterScholarModal && (
+        <div 
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(15, 23, 42, 0.75)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "1rem"
+          }}
+          onClick={() => setShowRegisterScholarModal(false)}
+        >
+          <div 
+            className="card-surface" 
+            style={{ 
+              maxWidth: "580px", 
+              width: "100%", 
+              borderRadius: "16px", 
+              padding: "2rem", 
+              border: "1px solid var(--color-border)",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+              maxHeight: "92vh",
+              overflowY: "auto"
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.2rem" }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--color-primary)", fontWeight: 700, fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "0.2rem" }}>
+                  <i className="fa-solid fa-graduation-cap"></i>
+                  <span>Continental Academic Registry</span>
+                </div>
+                <h3 style={{ fontSize: "1.35rem", fontWeight: 800, color: "var(--color-text-main)", margin: 0 }}>
+                  Register as an Afri Scholar
+                </h3>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setShowRegisterScholarModal(false)}
+                style={{ background: "none", border: "none", color: "var(--color-text-muted)", cursor: "pointer", fontSize: "1.2rem", padding: "4px" }}
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <p style={{ fontSize: "0.86rem", color: "var(--color-text-muted)", marginBottom: "1.4rem", lineHeight: 1.5 }}>
+              Are you an African scholar or researcher missing from the directory? Register your profile below. Provide your Google Scholar URL or ORCID to automatically link and sync your verified citations, articles, and books.
+            </p>
+
+            {registerError && (
+              <div style={{ background: "rgba(220, 38, 38, 0.1)", border: "1px solid rgba(220, 38, 38, 0.3)", color: "#ef4444", padding: "0.75rem 1rem", borderRadius: "8px", fontSize: "0.84rem", marginBottom: "1.2rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="fa-solid fa-circle-exclamation"></i>
+                <span>{registerError}</span>
+              </div>
+            )}
+
+            {registerSuccess && (
+              <div style={{ background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.3)", color: "#10b981", padding: "0.75rem 1rem", borderRadius: "8px", fontSize: "0.84rem", marginBottom: "1.2rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="fa-solid fa-circle-check"></i>
+                <span>{registerSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleRegisterScholar} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
+                  Full Academic Name <span style={{ color: "#ef4444" }}>*</span>
+                </label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. Prof. Anthony M. Wanjohi"
+                  value={registerForm.name}
+                  onChange={e => setRegisterForm({ ...registerForm, name: e.target.value })}
+                  style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
+                    Academic Email <span style={{ color: "#ef4444" }}>*</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    required
+                    placeholder="name@university.ac.ke"
+                    value={registerForm.email}
+                    onChange={e => setRegisterForm({ ...registerForm, email: e.target.value })}
+                    style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
+                    Country <span style={{ color: "var(--color-text-muted)" }}>(Optional)</span>
+                  </label>
+                  <select
+                    value={registerForm.country}
+                    onChange={e => setRegisterForm({ ...registerForm, country: e.target.value })}
+                    style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
+                  >
+                    <option value="">Select African Country</option>
+                    {ALL_AFRICAN_COUNTRIES.map(c => (
+                      <option key={c.code} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
+                    University / Institution
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. University of Nairobi"
+                    value={registerForm.institution}
+                    onChange={e => setRegisterForm({ ...registerForm, institution: e.target.value })}
+                    style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
+                    Department / Faculty
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Department of Economics"
+                    value={registerForm.department}
+                    onChange={e => setRegisterForm({ ...registerForm, department: e.target.value })}
+                    style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
+                  <i className="fa-brands fa-google" style={{ color: "#4285f4", marginRight: "6px" }}></i>
+                  Google Scholar Profile URL <span style={{ color: "var(--color-primary)", fontWeight: 500 }}>(Recommended to sync works)</span>
+                </label>
+                <input 
+                  type="url" 
+                  placeholder="https://scholar.google.com/citations?user=..."
+                  value={registerForm.googleScholarUrl}
+                  onChange={e => setRegisterForm({ ...registerForm, googleScholarUrl: e.target.value })}
+                  style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "var(--color-text-main)", marginBottom: "0.35rem" }}>
+                  <i className="fa-brands fa-orcid" style={{ color: "#a6ce39", marginRight: "6px" }}></i>
+                  ORCID iD <span style={{ color: "var(--color-text-muted)" }}>(Optional)</span>
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. 0000-0002-6980-0298"
+                  value={registerForm.orcid}
+                  onChange={e => setRegisterForm({ ...registerForm, orcid: e.target.value })}
+                  style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
+                />
+              </div>
+
+              <div style={{ marginTop: "0.5rem", display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowRegisterScholarModal(false)}
+                  className="btn btn-secondary"
+                  style={{ padding: "0.65rem 1.2rem", fontSize: "0.88rem" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={registerLoading}
+                  className="btn btn-primary"
+                  style={{ padding: "0.65rem 1.4rem", fontSize: "0.88rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                >
+                  {registerLoading ? (
+                    <>
+                      <i className="fa-solid fa-circle-notch fa-spin"></i>
+                      <span>Registering &amp; Syncing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-user-check"></i>
+                      <span>Register as Afri Scholar</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal: Sign In Required to Follow Scholars */}
       {showLoginPromptModal && (
