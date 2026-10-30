@@ -42,7 +42,7 @@ function getDbConfig() {
   };
 }
 
-const pool = globalForPrisma.pool ?? mariadb.createPool(getDbConfig());
+export const pool = globalForPrisma.pool ?? mariadb.createPool(getDbConfig());
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.pool = pool;
 }

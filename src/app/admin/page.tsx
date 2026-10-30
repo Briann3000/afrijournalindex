@@ -33,7 +33,7 @@ interface Stats {
   wosJournals?: number;
 }
 
-type TabKey = "overview" | "submissions" | "claims" | "journals" | "doi" | "moderation" | "users" | "harvester" | "payments";
+type TabKey = "overview" | "submissions" | "claims" | "journals" | "campaigns" | "doi" | "moderation" | "users" | "harvester" | "payments";
 
 export default function AdminPortalPage() {
   const router = useRouter();
@@ -153,6 +153,29 @@ export default function AdminPortalPage() {
   const [userRoleFilter, setUserRoleFilter] = useState<string>("ALL");
   const [userPage, setUserPage] = useState<number>(1);
   const [userPageSize] = useState<number>(15);
+
+  // -------------------------------------------------------------
+  // Campaigns Controls (Phase 5: Pan-African Outreach)
+  // -------------------------------------------------------------
+  const [campaignCandidates, setCampaignCandidates] = useState<any[]>([]);
+  const [campaignSummary, setCampaignSummary] = useState<{ total: number; pending: number; invited: number; applied: number }>({ total: 0, pending: 0, invited: 0, applied: 0 });
+  const [campaignLoading, setCampaignLoading] = useState<boolean>(false);
+  const [campaignSelectedIds, setCampaignSelectedIds] = useState<string[]>([]);
+  const [campaignTrackFilter, setCampaignTrackFilter] = useState<string>("ALL");
+  const [campaignCountryFilter, setCampaignCountryFilter] = useState<string>("ALL");
+  const [campaignSearch, setCampaignSearch] = useState<string>("");
+  const [campaignDispatching, setCampaignDispatching] = useState<boolean>(false);
+  const [campaignLang, setCampaignLang] = useState<"en" | "fr" | "sw" | "ar" | "pt">("en");
+  const [campaignPage, setCampaignPage] = useState<number>(1);
+  const [campaignPageSize] = useState<number>(15);
+
+  // Email Preview & Edit Modal States
+  const [previewModalOpen, setPreviewModalOpen] = useState<boolean>(false);
+  const [previewCandidate, setPreviewCandidate] = useState<any | null>(null);
+  const [previewSubject, setPreviewSubject] = useState<string>("");
+  const [previewHtml, setPreviewHtml] = useState<string>("");
+  const [previewEditMode, setPreviewEditMode] = useState<boolean>(false);
+  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
 
   const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
     setToast({ message, type });
@@ -563,7 +586,127 @@ export default function AdminPortalPage() {
     }
   };
 
+    // -------------------------------------------------------------
+  // ACTIONS: Pan-African Outreach & Campaigns
   // -------------------------------------------------------------
+  const fetchCampaignData = async () => {
+    setCampaignLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (campaignCountryFilter !== "ALL") params.set("country", campaignCountryFilter);
+      if (campaignTrackFilter !== "ALL") params.set("track", campaignTrackFilter);
+
+      const res = await fetch(`/api/admin/campaigns?${params.toString()}`);
+      const data = await res.json();
+      if (data.success) {
+        setCampaignCandidates(data.candidates || []);
+        if (data.summary) {
+          setCampaignSummary(data.summary);
+        }
+      } else {
+        showToast(data.error || "Failed to load campaign leads.", "error");
+      }
+    } catch {
+      showToast("Network error fetching campaign candidates.", "error");
+    } finally {
+      setCampaignLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "campaigns") {
+      fetchCampaignData();
+    }
+  }, [activeTab, campaignCountryFilter, campaignTrackFilter]);
+
+  const handleRunHarvester = async () => {
+    setCampaignLoading(true);
+    try {
+      const res = await fetch("/api/admin/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "harvest" })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Harvest completed! Added ${data.result?.added || 0} leads.`);
+        fetchCampaignData();
+      } else {
+        showToast(data.error || "Harvester run failed.", "error");
+      }
+    } catch {
+      showToast("Network error executing harvester.", "error");
+    } finally {
+      setCampaignLoading(false);
+    }
+  };
+
+  const handleOpenEmailPreview = async (candidate: any) => {
+    setPreviewCandidate(candidate);
+    setPreviewLoading(true);
+    setPreviewEditMode(false);
+    setPreviewModalOpen(true);
+    try {
+      const res = await fetch("/api/admin/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "preview",
+          candidateId: candidate.id,
+          lang: campaignLang
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.preview) {
+        setPreviewSubject(data.preview.subject);
+        setPreviewHtml(data.preview.html);
+      } else {
+        showToast(data.error || "Failed to generate email preview.", "error");
+      }
+    } catch {
+      showToast("Network error previewing email template.", "error");
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const handleDispatchInvitations = async (candidateIds: string[]) => {
+    if (!candidateIds.length) return;
+    setCampaignDispatching(true);
+    try {
+      const payload: any = {
+        action: "dispatch",
+        candidateIds,
+        lang: campaignLang
+      };
+      if (previewModalOpen && candidateIds.length === 1) {
+        payload.customSubject = previewSubject;
+        payload.customHtml = previewHtml;
+      }
+      const res = await fetch("/api/admin/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Dispatched ${data.dispatchedCount || candidateIds.length} invitations successfully!`);
+        setCampaignSelectedIds([]);
+        if (previewModalOpen) {
+          setPreviewModalOpen(false);
+        }
+        fetchCampaignData();
+      } else {
+        showToast(data.error || "Failed to dispatch invitations.", "error");
+      }
+    } catch {
+      showToast("Network error dispatching campaign emails.", "error");
+    } finally {
+      setCampaignDispatching(false);
+    }
+  };
+
+// -------------------------------------------------------------
   // ACTIONS: OAI Harvester & Metrics Engine
   // -------------------------------------------------------------
   const handleRunHarvest = async (e: React.FormEvent) => {
@@ -1548,6 +1691,278 @@ export default function AdminPortalPage() {
           {/* ========================================================= */}
           {/* TAB 4: JOURNALS DIRECTORY                                 */}
           {/* ========================================================= */}
+          
+          {/* ========================================================= */}
+          {/* TAB 4B: PAN-AFRICAN OUTREACH & CAMPAIGNS                  */}
+          {/* ========================================================= */}
+          {activeTab === "campaigns" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "1.25rem" }}>
+                <div>
+                  <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <i className="fa-solid fa-bullhorn" style={{ color: "#2dd4bf" }}></i>
+                    Pan-African Journal Outreach & Campaign Desk
+                  </h3>
+                  <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>
+                    Manage editorial invitations across both indexed journals (claim portal & metrics) and unindexed journals (free indexing & OJS incubation).
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", alignItems: "center" }}>
+                  <button
+                    type="button"
+                    onClick={handleRunHarvester}
+                    disabled={campaignLoading}
+                    className="admin-btn admin-btn-secondary"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem" }}
+                  >
+                    <i className={`fa-solid ${campaignLoading ? "fa-spinner fa-spin" : "fa-magnifying-glass-chart"}`}></i>
+                    Harvest Directory Leads
+                  </button>
+
+                  <select
+                    value={campaignLang}
+                    onChange={(e) => setCampaignLang(e.target.value as any)}
+                    className="admin-select"
+                    style={{ width: "120px", fontSize: "0.8rem" }}
+                  >
+                    <option value="en">English</option>
+                    <option value="fr">French</option>
+                    <option value="sw">Swahili</option>
+                    <option value="ar">Arabic</option>
+                    <option value="pt">Portuguese</option>
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDispatchInvitations(campaignSelectedIds)}
+                    disabled={campaignDispatching || campaignSelectedIds.length === 0}
+                    className="admin-btn admin-btn-primary"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem" }}
+                  >
+                    <i className={`fa-solid ${campaignDispatching ? "fa-spinner fa-spin" : "fa-paper-plane"}`}></i>
+                    Send {campaignSelectedIds.length > 0 ? `(${campaignSelectedIds.length})` : ""} Invitations
+                  </button>
+                </div>
+              </div>
+
+              {/* Summary Cards */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginBottom: "1.25rem" }}>
+                <div style={{ background: "#0f172a", border: "1px solid #1e293b", padding: "1.2rem", borderRadius: "12px", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", textTransform: "uppercase", fontWeight: 700 }}>Total Leads Mapped</div>
+                  <div style={{ fontSize: "1.8rem", fontWeight: 800, color: "#ffffff", marginTop: "0.3rem" }}>{campaignSummary.total}</div>
+                </div>
+
+                <div style={{ background: "#0f172a", border: "1px solid #1e293b", padding: "1.2rem", borderRadius: "12px", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.75rem", color: "#fbbf24", textTransform: "uppercase", fontWeight: 700 }}>Pending Dispatch</div>
+                  <div style={{ fontSize: "1.8rem", fontWeight: 800, color: "#fbbf24", marginTop: "0.3rem" }}>{campaignSummary.pending}</div>
+                </div>
+
+                <div style={{ background: "#0f172a", border: "1px solid #1e293b", padding: "1.2rem", borderRadius: "12px", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.75rem", color: "#38bdf8", textTransform: "uppercase", fontWeight: 700 }}>Invitations Sent</div>
+                  <div style={{ fontSize: "1.8rem", fontWeight: 800, color: "#38bdf8", marginTop: "0.3rem" }}>{campaignSummary.invited}</div>
+                </div>
+
+                <div style={{ background: "#0f172a", border: "1px solid #1e293b", padding: "1.2rem", borderRadius: "12px", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.75rem", color: "#34d399", textTransform: "uppercase", fontWeight: 700 }}>Applied for Indexing</div>
+                  <div style={{ fontSize: "1.8rem", fontWeight: 800, color: "#34d399", marginTop: "0.3rem" }}>{campaignSummary.applied}</div>
+                </div>
+              </div>
+
+              {/* Filters */}
+              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem" }}>
+                <div style={{ flex: 1, minWidth: "220px" }}>
+                  <input
+                    type="text"
+                    value={campaignSearch}
+                    onChange={(e) => { setCampaignSearch(e.target.value); setCampaignPage(1); }}
+                    placeholder="Search candidate journals, universities, editor emails..."
+                    className="admin-input"
+                  />
+                </div>
+
+                <div style={{ width: "220px" }}>
+                  <select
+                    value={campaignTrackFilter}
+                    onChange={(e) => { setCampaignTrackFilter(e.target.value); setCampaignPage(1); }}
+                    className="admin-select"
+                  >
+                    <option value="ALL">All Tracks (2,200+ Leads)</option>
+                    <option value="INDEXED_CLAIM">Indexed Journals (Claim & Metrics)</option>
+                    <option value="FREE_INDEXING">Unindexed Journals (Free Indexing)</option>
+                    <option value="OJS_INCUBATION">Universities (OJS Incubation)</option>
+                  </select>
+                </div>
+
+                <div style={{ width: "160px" }}>
+                  <select
+                    value={campaignCountryFilter}
+                    onChange={(e) => { setCampaignCountryFilter(e.target.value); setCampaignPage(1); }}
+                    className="admin-select"
+                  >
+                    <option value="ALL">All Countries</option>
+                    {ALL_COUNTRY_NAMES.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Candidates Table */}
+              <div className="admin-table-container">
+                <div className="admin-table-scroll">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: "40px", textAlign: "center" }}>
+                          <input
+                            type="checkbox"
+                            checked={campaignCandidates.length > 0 && campaignSelectedIds.length === campaignCandidates.length}
+                            onChange={(e) => {
+                              if (e.target.checked) setCampaignSelectedIds(campaignCandidates.map(c => c.id));
+                              else setCampaignSelectedIds([]);
+                            }}
+                          />
+                        </th>
+                        <th>Journal Candidate & Institution</th>
+                        <th>Country</th>
+                        <th>Editorial Contact</th>
+                        <th>Outreach Track</th>
+                        <th>Status</th>
+                        <th style={{ textAlign: "right" }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const filtered = campaignCandidates.filter(c => {
+                          const q = campaignSearch.toLowerCase().trim();
+                          const matchesQ = !q || c.journalName?.toLowerCase().includes(q) || c.institutionName?.toLowerCase().includes(q) || c.editorEmail?.toLowerCase().includes(q);
+                          const matchesTrack = campaignTrackFilter === "ALL" || c.invitationTrack === campaignTrackFilter;
+                          const matchesCountry = campaignCountryFilter === "ALL" || c.country === campaignCountryFilter;
+                          return matchesQ && matchesTrack && matchesCountry;
+                        });
+
+                        const startIdx = (campaignPage - 1) * campaignPageSize;
+                        const paged = filtered.slice(startIdx, startIdx + campaignPageSize);
+
+                        return (
+                          <>
+                            {paged.map(c => {
+                              const isSelected = campaignSelectedIds.includes(c.id);
+                              return (
+                                <tr key={c.id} style={{ background: isSelected ? "rgba(13, 148, 136, 0.08)" : "transparent" }}>
+                                  <td style={{ textAlign: "center" }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={(e) => {
+                                        if (e.target.checked) setCampaignSelectedIds(prev => [...prev, c.id]);
+                                        else setCampaignSelectedIds(prev => prev.filter(id => id !== c.id));
+                                      }}
+                                    />
+                                  </td>
+                                  <td>
+                                    <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{c.journalName}</div>
+                                    <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>{c.institutionName || c.publisherName || "Independent"}</div>
+                                    {c.issn && <div style={{ fontSize: "0.7rem", fontFamily: "monospace", color: "#64748b" }}>ISSN: {c.issn}</div>}
+                                  </td>
+                                  <td>
+                                    <span style={{ fontSize: "0.82rem", color: "#cbd5e1" }}>{c.country}</span>
+                                  </td>
+                                  <td>
+                                    <div style={{ fontSize: "0.82rem", color: "#f1f5f9" }}>{c.editorName || "Editor"}</div>
+                                    <div style={{ fontSize: "0.75rem", color: "#38bdf8", fontFamily: "monospace" }}>{c.editorEmail}</div>
+                                  </td>
+                                  <td>
+                                    <span style={{
+                                      fontSize: "0.72rem",
+                                      padding: "2px 8px",
+                                      borderRadius: "6px",
+                                      fontWeight: 700,
+                                      background: c.invitationTrack === "INDEXED_CLAIM"
+                                        ? "rgba(22, 163, 74, 0.15)"
+                                        : c.invitationTrack === "FREE_INDEXING"
+                                        ? "rgba(37, 99, 235, 0.15)"
+                                        : "rgba(13, 148, 136, 0.15)",
+                                      color: c.invitationTrack === "INDEXED_CLAIM"
+                                        ? "#4ade80"
+                                        : c.invitationTrack === "FREE_INDEXING"
+                                        ? "#60a5fa"
+                                        : "#2dd4bf"
+                                    }}>
+                                      {c.invitationTrack === "INDEXED_CLAIM" ? "Indexed (Claim & Metrics)" : c.invitationTrack === "FREE_INDEXING" ? "Free Indexing" : "OJS Incubation"}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <span className={`admin-badge ${c.invitationStatus === "INVITED" ? "admin-badge-info" : c.invitationStatus === "APPLIED" ? "admin-badge-success" : "admin-badge-warning"}`}>
+                                      {c.invitationStatus}
+                                    </span>
+                                  </td>
+                                  <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenEmailPreview(c)}
+                                      className="admin-btn admin-btn-secondary admin-btn-sm"
+                                      style={{ marginRight: "6px" }}
+                                      title="Preview & Edit Email Template"
+                                    >
+                                      <i className="fa-solid fa-eye"></i> Preview / Edit
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={campaignDispatching}
+                                      onClick={() => handleDispatchInvitations([c.id])}
+                                      className="admin-btn admin-btn-primary admin-btn-sm"
+                                      style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}
+                                    >
+                                      <i className="fa-solid fa-paper-plane" style={{ fontSize: "0.7rem" }}></i> Send
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                            {filtered.length === 0 && (
+                              <tr>
+                                <td colSpan={7} style={{ textAlign: "center", padding: "2.5rem", color: "#64748b" }}>
+                                  <i className="fa-solid fa-folder-open" style={{ fontSize: "2rem", display: "block", marginBottom: "0.5rem" }}></i>
+                                  No journal candidates match the selected filters.
+                                </td>
+                              </tr>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Candidate Pagination Controls */}
+                <div style={{ padding: "0.85rem 1rem", borderTop: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#94a3b8" }}>
+                  <div>
+                    Showing Page <strong>{campaignPage}</strong> (15 per page)
+                  </div>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button
+                      type="button"
+                      disabled={campaignPage <= 1}
+                      onClick={() => setCampaignPage(p => Math.max(1, p - 1))}
+                      className="admin-btn admin-btn-secondary admin-btn-sm"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCampaignPage(p => p + 1)}
+                      className="admin-btn admin-btn-secondary admin-btn-sm"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === "journals" && (
             <div>
               <div style={{ marginBottom: "1rem" }}>

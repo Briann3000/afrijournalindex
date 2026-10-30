@@ -406,5 +406,38 @@ model PostLike {
   @@map("post_like")
 }
 
+// -------------------------------------------------------------
+// Phase 5: Pan-African Journal Candidates & Outreach Directory
+// -------------------------------------------------------------
+
+model JournalCandidate {
+  id               String    @id @default(uuid())
+  journalName      String    @db.VarChar(500)
+  issn             String?   @db.VarChar(50)
+  eissn            String?   @db.VarChar(50)
+  publisherName    String?   @db.VarChar(500)
+  institutionName  String?   @db.VarChar(500)
+  country          String    @default("Pan-African") @db.VarChar(100)
+  websiteUrl       String?   @db.Text
+  editorName       String?   @db.VarChar(255)
+  editorEmail      String    @db.VarChar(191)
+  discipline       String?   @default("Multidisciplinary") @db.VarChar(150)
+  invitationTrack  String    @default("FREE_INDEXING") @db.VarChar(50) // "FREE_INDEXING", "INDEXED_CLAIM", or "OJS_INCUBATION"
+  invitationStatus String    @default("PENDING") @db.VarChar(50) // "PENDING", "INVITED", "CLICKED", "APPLIED", "UNSUBSCRIBED"
+  isIndexedJournal Boolean   @default(false)
+  journalId        String?   @db.VarChar(191)
+  invitedAt        DateTime?
+  inviteToken      String?   @unique @db.VarChar(100)
+  notes            String?   @db.Text
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([editorEmail])
+  @@index([country])
+  @@index([invitationTrack])
+  @@index([invitationStatus])
+  @@map("journal_candidate")
+}
+
 
 
