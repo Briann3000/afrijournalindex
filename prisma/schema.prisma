@@ -66,6 +66,8 @@ model User {
   posts         Post[]
   postComments  PostComment[]
   postLikes     PostLike[]
+  reviewRequests ManuscriptReviewRequest[] @relation("AuthorReviewRequests")
+  reviewAssignments ManuscriptReviewAssignment[] @relation("ReviewerAssignments")
 
   @@index([institutionId])
   @@index([totalCitations])
@@ -438,6 +440,104 @@ model JournalCandidate {
   @@index([invitationStatus])
   @@map("journal_candidate")
 }
+
+// -------------------------------------------------------------
+// Phase 6: AfriJournal Reviewer Portal & Reviewer Hub
+// -------------------------------------------------------------
+
+enum ReviewRequestStatus {
+  AWAITING_REVIEWER
+  UNDER_REVIEW
+  COMPLETED
+  EXPIRED
+  WITHDRAWN
+}
+
+enum AssignmentStatus {
+  INVITED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  SUBMITTED
+}
+
+enum RecommendationType {
+  ACCEPT_AS_IS
+  MINOR_REVISION
+  MAJOR_REVISION
+  REJECT_RESUBMIT
+}
+
+model ManuscriptReviewRequest {
+  id                    String                 @id @default(uuid())
+  trackingCode          String                 @unique @db.VarChar(50)
+  authorId              String
+  author                User                   @relation("AuthorReviewRequests", fields: [authorId], references: [id], onDelete: Cascade)
+  
+  title                 String                 @db.VarChar(500)
+  abstract              String                 @db.LongText
+  discipline            String                 @db.VarChar(150)
+  targetJournal         String?                @db.VarChar(255)
+  manuscriptFileUrl     String                 @db.Text
+  supplementaryUrl      String?                @db.Text
+  
+  status                ReviewRequestStatus    @default(AWAITING_REVIEWER)
+  excludedReviewers     String?                @db.Text
+  candidateQueue        String                 @db.Text
+  currentCascadeIndex   Int                    @default(0)
+  
+  completedAt           DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  assignments           ManuscriptReviewAssignment[]
+
+  @@index([authorId])
+  @@index([trackingCode])
+  @@index([status])
+  @@map("manuscript_review_request")
+}
+
+model ManuscriptReviewAssignment {
+  id                        String                 @id @default(uuid())
+  reviewRequestId           String
+  reviewRequest             ManuscriptReviewRequest @relation(fields: [reviewRequestId], references: [id], onDelete: Cascade)
+  
+  reviewerId                String
+  reviewer                  User                   @relation("ReviewerAssignments", fields: [reviewerId], references: [id], onDelete: Cascade)
+  
+  status                    AssignmentStatus       @default(INVITED)
+  invitationToken           String                 @unique @db.VarChar(100)
+  invitationExpiresAt       DateTime
+  reviewDeadlineAt          DateTime?
+  
+  methodologyScore          Int?
+  originalityScore          Int?
+  literatureScore           Int?
+  integrityScore            Int?
+  presentationScore         Int?
+  overallRecommendation     RecommendationType?
+  
+  feedbackSummary           String?                @db.Text
+  methodologyCritique       String?                @db.LongText
+  literatureCritique        String?                @db.LongText
+  actionableRevisions       String?                @db.LongText
+  confidentialNotes         String?                @db.Text
+  
+  certificateIssued         Boolean                @default(false)
+  certificateVerificationId String?                @unique @db.VarChar(100)
+  
+  completedAt               DateTime?
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
+
+  @@unique([reviewRequestId, reviewerId])
+  @@index([reviewerId])
+  @@index([status])
+  @@index([invitationToken])
+  @@map("manuscript_review_assignment")
+}
+
 
 
 

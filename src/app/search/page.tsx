@@ -416,7 +416,7 @@ function SearchPageContent() {
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
                         {article.journal && (
                           <a 
-                            href={`/journal/${article.journal.id}`}
+                            href={`/journal/${article.journal.issn || article.journal.id}`}
                             style={{ fontWeight: 600, color: "var(--color-primary)", textDecoration: "none" }}
                           >
                             <i className="fa-solid fa-book-journal-whills" style={{ marginRight: "4px" }}></i>
@@ -485,7 +485,7 @@ function SearchPageContent() {
                         )}
                         {article.journal && (
                           <a 
-                            href={`/journal/${article.journal.id}`}
+                            href={`/journal/${article.journal.issn || article.journal.id}`}
                             style={{ color: "var(--color-primary)", textDecoration: "none", fontWeight: 600, marginLeft: "auto" }}
                           >
                             View Journal Dossier <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.7rem", marginLeft: "2px" }}></i>
@@ -516,7 +516,7 @@ function SearchPageContent() {
                   {results.journals.map(journal => (
                     <a
                       key={journal.id}
-                      href={`/journal/${journal.id}`}
+                      href={`/journal/${journal.issn || journal.id}`}
                       className="card-surface"
                       style={{
                         padding: "1.2rem",
@@ -575,23 +575,25 @@ function SearchPageContent() {
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1rem" }}>
-                  {results.scholars.map(scholar => (
-                    <a
-                      key={scholar.id}
-                      href={`/researcher?id=${scholar.id}`}
-                      className="card-surface"
-                      style={{
-                        padding: "1.2rem",
-                        borderRadius: "12px",
-                        border: "1px solid var(--color-border)",
-                        textDecoration: "none",
-                        color: "inherit",
-                        display: "flex",
-                        gap: "0.85rem",
-                        alignItems: "flex-start",
-                        transition: "all 0.15s ease"
-                      }}
-                    >
+                  {results.scholars.map(scholar => {
+                    const scholarSlug = scholar.email?.split("@")[0] || scholar.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                    return (
+                      <a
+                        key={scholar.id}
+                        href={`/researcher?id=${scholarSlug}`}
+                        className="card-surface"
+                        style={{
+                          padding: "1.2rem",
+                          borderRadius: "12px",
+                          border: "1px solid var(--color-border)",
+                          textDecoration: "none",
+                          color: "inherit",
+                          display: "flex",
+                          gap: "0.85rem",
+                          alignItems: "flex-start",
+                          transition: "all 0.15s ease"
+                        }}
+                      >
                       <div 
                         style={{
                           width: "40px",
@@ -625,7 +627,8 @@ function SearchPageContent() {
                         </div>
                       </div>
                     </a>
-                  ))}
+                  );
+                })}
                 </div>
               </div>
             )}

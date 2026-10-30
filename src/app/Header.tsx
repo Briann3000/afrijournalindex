@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLang } from "./LangContext";
 
 interface HeaderProps {
-  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about" | "compare" | "referee-finder" | "scholars" | "forum" | "posts" | "services" | "community";
+  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about" | "compare" | "referee-finder" | "scholars" | "forum" | "posts" | "services" | "community" | "review" | "reviewer";
 }
 
 export default function Header({ activePage }: HeaderProps) {
@@ -164,11 +164,6 @@ export default function Header({ activePage }: HeaderProps) {
           className="nav-menu" 
           id="navMenu"
         >
-          {/* Direct Home Link */}
-          <a href="/" className={`nav-link ${activePage === "home" ? "active" : ""}`}>
-            {t.nav.home}
-          </a>
-
           {/* Group 1: Journals & Submissions */}
           <div className="nav-dropdown-wrapper" style={{ position: "relative" }}>
             <button 
@@ -207,9 +202,13 @@ export default function Header({ activePage }: HeaderProps) {
                   <i className="fa-solid fa-code-compare" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.compare || "Compare Journals"}</span>
                 </a>
-                <a href="/referee-finder" className="nav-dropdown-item">
+                <a href="/review/submit" className="nav-dropdown-item">
                   <i className="fa-solid fa-user-check" style={{ color: "#f59e0b", width: "20px" }}></i>
-                  <span>{t.nav.referee_finder || "Referee Finder"}</span>
+                  <span>Reviewer Finder</span>
+                </a>
+                <a href="/reviewer" className="nav-dropdown-item">
+                  <i className="fa-solid fa-list-check" style={{ color: "#f59e0b", width: "20px" }}></i>
+                  <span>Reviewer Desk</span>
                 </a>
                 <a href="/submit" className="nav-dropdown-item">
                   <i className="fa-solid fa-cloud-arrow-up" style={{ color: "#f59e0b", width: "20px" }}></i>
@@ -339,7 +338,7 @@ export default function Header({ activePage }: HeaderProps) {
               >
                 <a href="/posts" className="nav-dropdown-item">
                   <i className="fa-solid fa-scroll" style={{ color: "#f59e0b", width: "20px" }}></i>
-                  <span>Scholarly Posts &amp; Drafts</span>
+                  <span>Posts</span>
                 </a>
                 <a href="/forum" className="nav-dropdown-item">
                   <i className="fa-solid fa-comments" style={{ color: "#f59e0b", width: "20px" }}></i>
@@ -349,12 +348,125 @@ export default function Header({ activePage }: HeaderProps) {
             )}
           </div>
 
-          {/* Standalone Top-Level Services Link */}
-          <a href="/services" className={`nav-link ${activePage === "services" ? "active" : ""}`}>
-            Services
-          </a>
+          {/* Group 4: Services Dropdown Menu */}
+          <div className="nav-dropdown-wrapper" style={{ position: "relative" }}>
+            <button 
+              type="button"
+              className={`nav-link nav-dropdown-btn ${activePage === "services" ? "active" : ""}`}
+              onClick={() => toggleDropdown("services")}
+              onMouseEnter={() => setOpenDropdown("services")}
+              style={{ background: "none", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}
+            >
+              <span>Services</span>
+              <i className="fa-solid fa-chevron-down" style={{ fontSize: "0.68rem", opacity: 0.8, transition: "transform 0.2s", transform: openDropdown === "services" ? "rotate(180deg)" : "rotate(0deg)" }}></i>
+            </button>
 
-          {/* Group 4: About & Standards */}
+            {openDropdown === "services" && (
+              <div 
+                className="nav-dropdown-menu"
+                onMouseLeave={() => setOpenDropdown(null)}
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: "0",
+                  minWidth: "290px",
+                  background: "#181820",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderRadius: "10px",
+                  padding: "0.6rem 0",
+                  boxShadow: "0 14px 30px rgba(0,0,0,0.6)",
+                  zIndex: 110
+                }}
+              >
+                <a href="/services#ojs_setup" className="nav-dropdown-item">
+                  <i className="fa-solid fa-server" style={{ color: "#0284c7", width: "20px" }}></i>
+                  <span>OJS Setup &amp; Online Incubation</span>
+                </a>
+                <a href="/services#indexing_ajci" className="nav-dropdown-item">
+                  <i className="fa-solid fa-chart-line" style={{ color: "#16a34a", width: "20px" }}></i>
+                  <span>Journal Indexing &amp; AJCI Citation Matrix</span>
+                </a>
+                <a href="/services#scopus_prep" className="nav-dropdown-item">
+                  <i className="fa-solid fa-award" style={{ color: "#f59e0b", width: "20px" }}></i>
+                  <span>Scopus, WoS &amp; DOAJ Preparation</span>
+                </a>
+                <a href="/services#rankings_advisory" className="nav-dropdown-item">
+                  <i className="fa-solid fa-ranking-star" style={{ color: "#6366f1", width: "20px" }}></i>
+                  <span>Institutional Research Rankings Advisory</span>
+                </a>
+                <a href="/services#afrischolar_id" className="nav-dropdown-item">
+                  <i className="fa-solid fa-id-card-clip" style={{ color: "#8b5cf6", width: "20px" }}></i>
+                  <span>AfriScholar Indexing &amp; Verified ID (ASID)</span>
+                </a>
+                <div style={{ borderTop: "1px solid rgba(255, 255, 255, 0.08)", margin: "0.3rem 0" }}></div>
+                <a href="/services" className="nav-dropdown-item" style={{ fontWeight: 700, color: "#f59e0b" }}>
+                  <i className="fa-solid fa-arrow-right" style={{ width: "20px" }}></i>
+                  <span>View All Services Overview</span>
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* Group 5: Resources & Academic Knowledge */}
+          <div className="nav-dropdown-wrapper" style={{ position: "relative" }}>
+            <button 
+              type="button"
+              className="nav-link nav-dropdown-btn"
+              onClick={() => toggleDropdown("resources_menu")}
+              onMouseEnter={() => setOpenDropdown("resources_menu")}
+              style={{ background: "none", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}
+            >
+              <span>Resources</span>
+              <i className="fa-solid fa-chevron-down" style={{ fontSize: "0.68rem", opacity: 0.8, transition: "transform 0.2s", transform: openDropdown === "resources_menu" ? "rotate(180deg)" : "rotate(0deg)" }}></i>
+            </button>
+
+            {openDropdown === "resources_menu" && (
+              <div 
+                className="nav-dropdown-menu"
+                onMouseLeave={() => setOpenDropdown(null)}
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: "0",
+                  minWidth: "280px",
+                  background: "#181820",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderRadius: "10px",
+                  padding: "0.6rem 0",
+                  boxShadow: "0 14px 30px rgba(0,0,0,0.6)",
+                  zIndex: 110
+                }}
+              >
+                <a href="/resources/ethics" className="nav-dropdown-item">
+                  <i className="fa-solid fa-scale-balanced" style={{ color: "#f59e0b", width: "20px" }}></i>
+                  <span>Publication Ethics &amp; Authorship</span>
+                </a>
+                <a href="/resources/predatory-journals" className="nav-dropdown-item">
+                  <i className="fa-solid fa-shield-virus" style={{ color: "#ef4444", width: "20px" }}></i>
+                  <span>Avoiding Predatory Journals</span>
+                </a>
+                <a href="/resources/open-access" className="nav-dropdown-item">
+                  <i className="fa-solid fa-lock-open" style={{ color: "#10b981", width: "20px" }}></i>
+                  <span>Open Access in African Research</span>
+                </a>
+                <a href="/resources/ajci-guide" className="nav-dropdown-item">
+                  <i className="fa-solid fa-chart-pie" style={{ color: "#38bdf8", width: "20px" }}></i>
+                  <span>AJCI Evaluation &amp; Metrics Guide</span>
+                </a>
+                <a href="/review/submit" className="nav-dropdown-item">
+                  <i className="fa-solid fa-file-shield" style={{ color: "#a855f7", width: "20px" }}></i>
+                  <span>Peer Review Guidelines</span>
+                </a>
+                <div style={{ borderTop: "1px solid rgba(255, 255, 255, 0.08)", margin: "0.3rem 0" }}></div>
+                <a href="/resources" className="nav-dropdown-item" style={{ fontWeight: 700, color: "#f59e0b" }}>
+                  <i className="fa-solid fa-arrow-right" style={{ width: "20px" }}></i>
+                  <span>Browse All Resources</span>
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* Group 6: About & Organization */}
           <div className="nav-dropdown-wrapper" style={{ position: "relative" }}>
             <button 
               type="button"
@@ -387,10 +499,6 @@ export default function Header({ activePage }: HeaderProps) {
                 <a href="/about" className="nav-dropdown-item">
                   <i className="fa-solid fa-circle-info" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.about}</span>
-                </a>
-                <a href="/methodology" className="nav-dropdown-item">
-                  <i className="fa-solid fa-scale-balanced" style={{ color: "#f59e0b", width: "20px" }}></i>
-                  <span>{t.footer.methodology}</span>
                 </a>
                 <a href="/faq" className="nav-dropdown-item">
                   <i className="fa-solid fa-circle-question" style={{ color: "#f59e0b", width: "20px" }}></i>
@@ -572,7 +680,7 @@ export default function Header({ activePage }: HeaderProps) {
                     </div>
 
                     <a 
-                      href={`/researcher?id=${user.id}`} 
+                      href={`/researcher?id=${user.email ? user.email.split("@")[0] : user.id}`} 
                       onClick={() => setOpenDropdown(null)}
                       className="nav-dropdown-item"
                       style={{ padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "10px", color: "#f1f5f9", textDecoration: "none", fontSize: "0.84rem", borderRadius: "6px", cursor: "pointer" }}
@@ -582,13 +690,23 @@ export default function Header({ activePage }: HeaderProps) {
                     </a>
 
                     <a 
-                      href={`/researcher?id=${user.id}&tab=library`} 
+                      href={`/researcher?id=${user.email ? user.email.split("@")[0] : user.id}&tab=library`} 
                       onClick={() => setOpenDropdown(null)}
                       className="nav-dropdown-item"
                       style={{ padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "10px", color: "#f1f5f9", textDecoration: "none", fontSize: "0.84rem", borderRadius: "6px", cursor: "pointer" }}
                     >
                       <i className="fa-solid fa-star" style={{ color: "#fbbf24", width: "16px" }}></i>
                       <span>Reading Library</span>
+                    </a>
+
+                    <a 
+                      href="/reviewer" 
+                      onClick={() => setOpenDropdown(null)}
+                      className="nav-dropdown-item"
+                      style={{ padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "10px", color: "#f1f5f9", textDecoration: "none", fontSize: "0.84rem", borderRadius: "6px", cursor: "pointer" }}
+                    >
+                      <i className="fa-solid fa-list-check" style={{ color: "var(--color-primary)", width: "16px" }}></i>
+                      <span>Reviewer Workspace</span>
                     </a>
 
                     {user.role === "ADMIN" && (
@@ -814,12 +932,25 @@ export default function Header({ activePage }: HeaderProps) {
                     <span>{t.nav.compare || "Compare Journals"}</span>
                   </Link>
                   <Link 
-                    href="/referee-finder" 
+                    href="/review/submit" 
                     onClick={() => setIsMobileMenuOpen(false)} 
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
-                    <i className="fa-solid fa-user-check" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
-                    <span>{t.nav.referee_finder || "Referee Finder"}</span>
+                    <i className="fa-solid fa-file-shield" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Reviewer Portal</span>
+                  </Link>
+                  <Link 
+                    href="/reviewer" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", justifyContent: "space-between", textDecoration: "none" }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <i className="fa-solid fa-list-check" style={{ color: "var(--color-primary)", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                      <span>Reviewer Workspace</span>
+                    </div>
+                    <span style={{ fontSize: "0.7rem", fontWeight: 700, padding: "2px 7px", borderRadius: "8px", background: "rgba(16, 185, 129, 0.2)", color: "#10b981" }}>
+                      Referees
+                    </span>
                   </Link>
                   <Link 
                     href="/submit" 
@@ -1106,7 +1237,7 @@ export default function Header({ activePage }: HeaderProps) {
                     </Link>
                   )}
                   <Link 
-                    href={`/researcher?id=${user.id}`} 
+                    href={`/researcher?id=${user.email ? user.email.split("@")[0] : user.id}`} 
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="btn btn-secondary" 
                     style={{ width: "100%", justifyContent: "center", background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}
@@ -1114,12 +1245,20 @@ export default function Header({ activePage }: HeaderProps) {
                     <i className={`fa-solid ${user.role === "PUBLISHER" ? "fa-feather-pointed" : "fa-user-graduate"}`}></i> {user.role === "PUBLISHER" ? "Editor & Scholar Profile" : t.nav.profile}
                   </Link>
                   <Link 
-                    href={`/researcher?id=${user.id}&tab=library`} 
+                    href={`/researcher?id=${user.email ? user.email.split("@")[0] : user.id}&tab=library`} 
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="btn btn-secondary" 
                     style={{ width: "100%", justifyContent: "center", background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}
                   >
                     <i className="fa-solid fa-star" style={{ color: "#fbbf24" }}></i> Reading Library
+                  </Link>
+                  <Link 
+                    href="/reviewer" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="btn btn-secondary" 
+                    style={{ width: "100%", justifyContent: "center", background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}
+                  >
+                    <i className="fa-solid fa-list-check" style={{ color: "var(--color-primary)" }}></i> Reviewer Workspace
                   </Link>
                   <button 
                     onClick={async () => {
