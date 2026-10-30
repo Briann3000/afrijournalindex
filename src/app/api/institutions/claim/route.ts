@@ -24,6 +24,11 @@ export async function GET(request: Request) {
         websiteUrl: true,
         isClaimed: true,
         claimedByUserId: true,
+        isKenproVerified: true,
+        logoUrl: true,
+        bannerUrl: true,
+        accreditationBody: true,
+        contactEmail: true,
         totalPublications: true,
         totalCitations: true,
         institutionalHIndex: true
@@ -58,7 +63,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const targetUserId = body.userId || userId;
-    const { institutionId, roleTitle, officialEmail } = body;
+    const { institutionId, roleTitle, officialEmail, logoUrl, accreditationBody, verificationDocUrl } = body;
 
     if (!targetUserId) {
       return NextResponse.json({
@@ -111,7 +116,13 @@ export async function POST(request: Request) {
       where: { id: institution.id },
       data: {
         isClaimed: true,
-        claimedByUserId: user.id
+        claimedByUserId: user.id,
+        isKenproVerified: true,
+        verificationDate: new Date(),
+        ...(logoUrl ? { logoUrl } : {}),
+        ...(accreditationBody ? { accreditationBody } : {}),
+        ...(verificationDocUrl ? { verificationDocUrl } : {}),
+        ...(officialEmail ? { contactEmail: officialEmail } : {})
       }
     });
 

@@ -123,7 +123,6 @@ export default function AdminLoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@afrijournalindexing.org"
                 className="admin-input"
                 style={{ width: "100%", background: "#090e1a", border: "1px solid #334155", borderRadius: "10px", padding: "0.65rem 2.5rem 0.65rem 0.9rem", color: "#ffffff", fontSize: "0.9rem", outline: "none", boxSizing: "border-box" }}
               />

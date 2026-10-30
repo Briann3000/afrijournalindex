@@ -173,16 +173,15 @@ export async function GET(request: Request) {
     const nameQuery = cleanId.replace(/[-_]+/g, " ");
 
     // Support flexible short ID: exact UUID, full email, email prefix (e.g. "wanjohi"), slugified name ("anthony-wanjohi"), or ORCID
-    const user = await prisma.user.findFirst({
+    // Prefer exact unique matches first (UUID, email, ORCID, exact full name) to prevent partial substring collision between distinct scholars
+    let user = await prisma.user.findFirst({
       where: {
         OR: [
           { id: cleanId },
           { email: cleanId.toLowerCase() },
-          { email: { startsWith: `${cleanId.toLowerCase()}@` } },
-          { name: { contains: nameQuery } },
-          { name: { contains: cleanId } },
           { orcid: cleanId },
-          { orcid: { endsWith: cleanId } }
+          { orcid: { endsWith: cleanId } },
+          { name: { equals: nameQuery } }
         ]
       },
       select: {
@@ -210,6 +209,43 @@ export async function GET(request: Request) {
         dossierData: true
       }
     });
+
+    // If no exact match and query is specific (>= 6 chars), fallback to prefix or contains
+    if (!user && cleanId.length >= 6) {
+      user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: { startsWith: `${cleanId.toLowerCase()}@` } },
+            { name: { contains: nameQuery } }
+          ]
+        },
+        orderBy: { totalCitations: "desc" },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          orcid: true,
+          role: true,
+          institution: true,
+          department: true,
+          bio: true,
+          totalCitations: true,
+          hIndex: true,
+          i10Index: true,
+          citations5Yr: true,
+          hIndex5Yr: true,
+          i10Index5Yr: true,
+          googleScholarId: true,
+          googleScholarUrl: true,
+          openAlexId: true,
+          isClaimed: true,
+          metricsSource: true,
+          lastMetricsSyncAt: true,
+          cvPdfUrl: true,
+          dossierData: true
+        }
+      });
+    }
 
     if (!user) {
       return NextResponse.json({ success: false, error: "Scholar profile not found." }, { status: 404 });
@@ -335,7 +371,8 @@ export async function GET(request: Request) {
     const citationCounts = articles.map(art => art.citationsCount).sort((a, b) => b - a);
 
     // If scholar currently has 0 claimed articles in DB (e.g. newly indexed / local environment), attach verified publications
-    if (articles.length === 0 && (user.name.toLowerCase().includes("wanjohi") || user.email.toLowerCase().includes("wanjohi"))) {
+    // Strictly match Anthony M. Wanjohi (KENPRO) by email, ORCID, or exact name — never match other scholars with surname Wanjohi (e.g. James Wanjohi Muthomi)
+    if (articles.length === 0 && (user.email === "wanjohi@kenpro.org" || user.orcid === "0000-0002-6980-0298" || (user.name.toLowerCase().includes("anthony") && user.name.toLowerCase().includes("wanjohi")))) {
       try {
         const authenticArticles = [
           {
@@ -428,43 +465,44 @@ export async function GET(request: Request) {
     }
 
     // If scholar has few locally claimed articles but significant external citations (e.g. Mensah and top scholars),
-    // fetch their authentic top publications from OpenAlex Knowledge Graph so their profile shows their genuine body of work
+    // fetch their authentic top publications from OpenAlex Knowledge Graph so their profile shows their genuine body of work.
+    // STRICT AUTHENTICITY SAFEGUARD: Only fetch by verified author.id (NEVER by fuzzy free-text search) to avoid cross-attributing unrelated works!
     if (articles.length < 10 && (user.openAlexId || user.totalCitations > 25000 || user.name.toLowerCase().includes("mensah"))) {
       try {
         const authorOaId = user.openAlexId 
-          ? user.openAlexId.replace(/https?:\/\/openalex\.org\//, "").replace("https://openalex.org/", "")
+          ? user.openAlexId.replace(/https?:\/\/openalex\.org\//i, "").replace("https://openalex.org/", "").trim()
           : (user.name.toLowerCase().includes("mensah") ? "A5014290409" : null);
 
-        const fetchUrl = authorOaId
-          ? `https://api.openalex.org/works?filter=author.id:${authorOaId}&sort=cited_by_count:desc&per-page=25&api_key=eP5PAl4g8tOWuRjhyo7hMY`
-          : `https://api.openalex.org/works?search=${encodeURIComponent(user.name)}&sort=cited_by_count:desc&per-page=20&api_key=eP5PAl4g8tOWuRjhyo7hMY`;
+        if (authorOaId) {
+          const fetchUrl = `https://api.openalex.org/works?filter=author.id:${authorOaId}&sort=cited_by_count:desc&per-page=25&api_key=eP5PAl4g8tOWuRjhyo7hMY`;
 
-        const oaWorksRes = await fetch(fetchUrl, {
-          headers: { 'User-Agent': 'AfriJournalIndexBot/2.0 (mailto:admin@afrijournalindexing.org)' },
-          next: { revalidate: 86400 }
-        });
-
-        if (oaWorksRes.ok) {
-          const oaWorksData = await oaWorksRes.json();
-          const results = oaWorksData.results || [];
-          results.forEach((w: any) => {
-            const venue = w.primary_location?.source?.display_name || "International Peer-Reviewed Journal";
-            articles.push({
-              id: `oa-${w.id ? w.id.replace(/https?:\/\/openalex\.org\//, '') : Math.random()}`,
-              title: w.title || "Scholarly Publication",
-              doi: w.doi ? w.doi.replace(/https?:\/\/doi\.org\//, '') : null,
-              publishDate: new Date(`${w.publication_year || 2020}-01-01`),
-              publishedYear: w.publication_year || 2020,
-              journalId: undefined,
-              journalName: venue,
-              journalGrade: "A+",
-              journalScore: "4.850",
-              journalQuartile: "Q1",
-              citationsCount: w.cited_by_count || 0,
-              claimRole: "Co-Author / Investigator",
-              claimStatus: "VERIFIED"
-            });
+          const oaWorksRes = await fetch(fetchUrl, {
+            headers: { 'User-Agent': 'AfriJournalIndexBot/2.0 (mailto:admin@afrijournalindexing.org)' },
+            next: { revalidate: 86400 }
           });
+
+          if (oaWorksRes.ok) {
+            const oaWorksData = await oaWorksRes.json();
+            const results = oaWorksData.results || [];
+            results.forEach((w: any) => {
+              const venue = w.primary_location?.source?.display_name || "International Peer-Reviewed Journal";
+              articles.push({
+                id: `oa-${w.id ? w.id.replace(/https?:\/\/openalex\.org\//, '') : Math.random()}`,
+                title: w.title || "Scholarly Publication",
+                doi: w.doi ? w.doi.replace(/https?:\/\/doi\.org\//, '') : null,
+                publishDate: new Date(`${w.publication_year || 2020}-01-01`),
+                publishedYear: w.publication_year || 2020,
+                journalId: undefined,
+                journalName: venue,
+                journalGrade: "A+",
+                journalScore: "4.850",
+                journalQuartile: "Q1",
+                citationsCount: w.cited_by_count || 0,
+                claimRole: "Co-Author / Investigator",
+                claimStatus: "VERIFIED"
+              });
+            });
+          }
         }
       } catch (errOa) {
         console.error("Error fetching authentic OpenAlex works:", errOa);

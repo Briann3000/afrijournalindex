@@ -87,6 +87,14 @@ model Institution {
   institutionalHIndex    Int       @default(0)
   twoYearMeanCitedness   Float     @default(0.0)
   topDiscipline          String?   @default("Multidisciplinary") @db.VarChar(100)
+  logoUrl                String?   @db.Text
+  bannerUrl              String?   @db.Text
+  isKenproVerified       Boolean   @default(false)
+  verificationDate       DateTime?
+  verificationDocUrl     String?   @db.Text
+  accreditationBody      String?   @db.VarChar(255)
+  contactEmail           String?   @db.VarChar(191)
+  metadataSyncedAt       DateTime?
   isClaimed              Boolean   @default(false)
   claimedByUserId        String?   @db.VarChar(191)
   lastMetricsSyncAt      DateTime?

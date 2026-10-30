@@ -245,9 +245,13 @@ export async function GET(request: Request) {
         score
       };
 
-      // Deduplication key
+      // Deduplication key: Prefer exact unique identifier (id, orcid, or openAlexId)
+      // Do NOT merge distinct scholars with different institutional affiliations or different names
       const normName = normalizeSearchText(u.name).replace(/\b(prof|dr|mr|mrs|ms)\b/g, "").trim();
-      const dedupKey = u.orcid ? `orcid:${u.orcid}` : `name:${normName}`;
+      const normInst = normalizeSearchText(u.institution || "").slice(0, 15);
+      const dedupKey = u.orcid 
+        ? `orcid:${u.orcid}` 
+        : (u.openAlexId ? `oa:${u.openAlexId.replace(/https?:\/\/openalex\.org\//i, "")}` : `name:${normName}_inst:${normInst}_id:${u.id}`);
 
       if (!dedupScholarMap.has(dedupKey)) {
         dedupScholarMap.set(dedupKey, scholarItem);

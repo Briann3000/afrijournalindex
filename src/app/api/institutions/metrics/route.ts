@@ -226,6 +226,7 @@ export async function GET(request: Request) {
     else if (instLower.includes("addis ababa")) specificDomain = "aau.edu.et";
     else if (instLower.includes("kwazulu")) specificDomain = "ukzn.ac.za";
     else if (instLower.includes("lagos")) specificDomain = "unilag.edu.ng";
+    else if (instLower.includes("kenpro")) specificDomain = "kenpro.org";
 
     const dbInstitution = await prisma.institution.findFirst({
       where: {
@@ -394,6 +395,52 @@ export async function GET(request: Request) {
 
     // Group and map affiliated journals
     const journalMap: Record<string, any> = {};
+
+    // 1. Fetch direct journals published by or registered to this institution
+    const directJournals = await prisma.journal.findMany({
+      where: {
+        OR: [
+          { publisherName: { contains: institutionName } },
+          { name: { contains: institutionName } },
+          ...(dbInstitution?.domain ? [{ websiteUrl: { contains: dbInstitution.domain } }] : [])
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        issn: true,
+        eissn: true,
+        qualityGrade: true,
+        websiteUrl: true,
+        isIndexed: true,
+        reports: {
+          orderBy: { year: "desc" },
+          take: 1
+        },
+        _count: {
+          select: {
+            articles: true
+          }
+        }
+      }
+    });
+
+    for (const j of directJournals) {
+      const latestReport = j.reports[0];
+      journalMap[j.id] = {
+        id: j.id,
+        name: j.name,
+        issn: j.issn || j.eissn || "Active",
+        qualityGrade: j.qualityGrade || "A",
+        websiteUrl: j.websiteUrl,
+        isIndexed: j.isIndexed,
+        ajciScore: latestReport ? latestReport.standardScore : 0.85,
+        articlesCount: j._count?.articles || 0,
+        citationsCount: 0
+      };
+    }
+
+    // 2. Supplement from fetched articles
     for (const art of articles) {
       const j = art.journal;
       if (!j) continue;
@@ -402,7 +449,10 @@ export async function GET(request: Request) {
         journalMap[j.id] = {
           id: j.id,
           name: j.name,
+          issn: "Active",
           qualityGrade: j.qualityGrade || "B",
+          websiteUrl: null,
+          isIndexed: true,
           ajciScore: latestReport ? latestReport.standardScore : 0,
           articlesCount: 0,
           citationsCount: 0
@@ -418,6 +468,13 @@ export async function GET(request: Request) {
       country: dbInstitution?.country || (benchmarkMatch ? benchmarkMatch.country : "African Institution"),
       domain: dbInstitution?.domain,
       websiteUrl: dbInstitution?.websiteUrl,
+      logoUrl: dbInstitution?.logoUrl,
+      bannerUrl: dbInstitution?.bannerUrl,
+      isKenproVerified: dbInstitution?.isKenproVerified || false,
+      verificationDate: dbInstitution?.verificationDate,
+      accreditationBody: dbInstitution?.accreditationBody,
+      contactEmail: dbInstitution?.contactEmail,
+      metadataSyncedAt: dbInstitution?.metadataSyncedAt,
       isClaimed: dbInstitution?.isClaimed || false,
       totalPublications,
       totalCitations,

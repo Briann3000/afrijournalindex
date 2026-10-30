@@ -215,7 +215,12 @@
     "add_book_btn": "Ongeza Kitabu / Monografia",
     "add_consultancy_btn": "Ongeza Mradi",
     "add_innovation_btn": "Ongeza Ubunifu",
-    "add_media_btn": "Ongeza Kipengele cha Vyombo vya Habari"
+    "add_media_btn": "Ongeza Kipengele cha Vyombo vya Habari",
+    "unclaimed_profile_title": "Wasifu wa Mwanataaluma Usiodaiwa",
+    "unclaimed_profile_prompt": "Je, wewe ni {name}? Wasifu huu umekusanywa kutoka kwa sajili zilizothibitishwa za kitaaluma. Dai wasifu wako ili uhariri vyuo vyako, udhibiti kazi zako na ufikie dashibodi yako.",
+    "claim_profile_btn": "Dai Wasifu Huu",
+    "ingestion_notice_title": "Taarifa ya Ujumuishaji wa Machapisho ya Kisayansi",
+    "ingestion_notice_desc": "AfriJournal Index inasawazisha manukuu halisi ya Kiafrika na machapisho kutoka Crossref, OpenAlex, na hazina zilizothibitishwa za taasisi. Ikiwa wewe ni msomi huyu, dai wasifu huu ili kuunganisha ORCID yako na kuthibitisha machapisho yako kamili."
   },
   "institution_page": {
     "title": "Dashibodi ya Utafiti ya Taasisi",
@@ -243,7 +248,25 @@
     "no_results": "Hakuna kumbukumbu za kitaasisi zilizopatikana.",
     "search_table": "Chuja jedwali la taasisi...",
     "sort_by": "Panga Kwa",
-    "back_to_leaderboard": "← Rudi Kwenye Viwango vya Vyuo"
+    "back_to_leaderboard": "← Rudi Kwenye Viwango vya Vyuo",
+    "kenpro_verified": "Taasisi Iliyothibitishwa na KENPRO",
+    "kenpro_verified_desc": "Imeidhinishwa na kuthibitishwa rasmi na Kurugenzi ya Utafiti wa Kitaaluma ya KENPRO.",
+    "auto_map_btn": "Unganisha Kiotomatiki kutoka Tovuti",
+    "mapping_website": "Inaunganisha tovuti...",
+    "upload_crest_btn": "Pakia Nembo ya Chuo",
+    "accreditation_body_label": "Mamlaka ya Ithibati",
+    "website_domain_label": "Kikoa Rasmi cha Kitaaluma",
+    "hosted_journals_heading": "Majarida Yanayoendeshwa na Taasisi",
+    "no_hosted_journals": "Hakuna majarida yaliyosajiliwa chini ya wasifu huu wa taasisi kwa sasa.",
+    "verified_faculty_heading": "Wasomi na Wahadhiri Wanaohusishwa",
+    "claim_institution_title": "Dai au Thibitisha Wasifu wa Taasisi",
+    "claim_institution_desc": "Wawakilishi walioidhinishwa wanaweza kudai na kuthibitisha wasifu wa taasisi yao.",
+    "upload_verification_doc": "Nyaraka ya Ithibati au Hati ya Chuo (PDF/DOCX)",
+    "uploading_doc": "Inapakia...",
+    "upload_success": "Faili imepakiwa kwa ufanisi.",
+    "upload_error": "Upakiaji salama umeshindikana. Aina zinazoruhusiwa: PDF, PNG, JPG (Kiwango cha juu 10MB).",
+    "mapping_success": "Wasifu wa taasisi umenaswa kwa ufanisi kutoka kwenye tovuti rasmi.",
+    "mapping_failed": "Haikuweza kuunganisha tovuti kiotomatiki. Tafadhali thibitisha anwani ya tovuti."
   },
   "submit_page": {
     "title": "Tovuti ya Kuwasilisha Jarida",
@@ -651,5 +674,131 @@
     "started_on": "Ilianza mnamo",
     "publishing": "Inachapisha...",
     "posting": "Inatuma..."
+  },
+  "services_page": {
+    "hero_badge": "Ushauri wa Kitaaluma na Uhariri wa AfriJournal",
+    "hero_title": "Uchapishaji wa Kitaaluma, Uandishi na Ushauri wa Uorodheshaji",
+    "hero_subtitle": "AfriJournal Index inatoa huduma kamili za uhariri kwa taasisi na waandishi. Kuanzia usanidi wa mifumo ya OJS kwa vyuo vikuu na maandalizi ya kuorodheshwa Scopus/WoS, hadi mapitio ya makala na uhariri wa lugha.",
+    "cta_consultation": "Omba Ushauri",
+    "cta_explore": "Tazama Orodha ya Majarida",
+    "heading_title": "Nguzo Saba za Uchapishaji na Uorodheshaji",
+    "heading_subtitle": "Huduma maalum kwa vyuo vikuu vya Afrika, wahariri wa majarida, na wasomi binafsi.",
+    "tab_all": "Huduma Zote",
+    "tab_institutions": "Taasisi na Wachapishaji",
+    "tab_researchers": "Watafiti na Wasomi",
+    "deliver_heading": "Tunachotoa:",
+    "ideal_for": "Inafaa kwa:",
+    "select_service": "Chagua Huduma Hii",
+    "callout_title": "Je, Wewe ni Kiongozi wa Chuo Kikuu au Mhariri wa Jarida?",
+    "callout_desc": "AfriJournal Index inashirikiana na vyuo vikuu na mashirika ya kisayansi kuanzisha majarida ya mtandaoni, kusakinisha mifumo ya OJS, na kuandaa maombi rasmi ya kuingizwa Scopus na Web of Science.",
+    "callout_btn": "Wasiliana na Bodi ya Uhariri",
+    "form_badge": "Ombi la Ushauri",
+    "form_title": "Wasilisha Ombi la Ushauri wa Kitaasisi au Mwandishi",
+    "form_subtitle": "Wataalamu wetu watachunguza mahitaji yako na kukujibu ndani ya saa 24–48.",
+    "form_success_title": "Ombi Lako Limepokelewa",
+    "form_success_desc": "Asante, {name}. Mshauri wa AfriJournal amepokea ombi lako kuhusu {serviceType} na atawasiliana nawe kupitia {email} hivi karibuni.",
+    "form_submit_another": "Tuma Ombi Jingine",
+    "form_view_drafts": "Nenda kwenye Machapisho",
+    "label_name": "Jina Kamili *",
+    "label_email": "Barua Pepe ya Chuo Kikuu *",
+    "label_institution": "Chuo Kikuu / Taasisi *",
+    "label_service": "Huduma Inayoombwa *",
+    "label_journal_name": "Jina la Jarida au Mada (Kama Ipo)",
+    "label_details": "Maelezo ya Mradi na Malengo *",
+    "placeholder_name": "Prof. / Dkt. / Jina la Mtafiti",
+    "placeholder_email": "mfano: mwandishi@chuo.ac.ke",
+    "placeholder_institution": "mfano: Chuo Kikuu cha Nairobi / Dar es Salaam",
+    "placeholder_journal": "mfano: Jarida la Maendeleo Endelevu la Afrika",
+    "placeholder_details": "Eleza mahitaji ya jarida au muswada wako...",
+    "btn_submit": "Tuma Ombi la Ushauri",
+    "btn_submitting": "Inatuma Ombi...",
+    "pillar_institutional": "Huduma za Taasisi na Wachapishaji",
+    "pillar_researcher": "Huduma za Watafiti na Waandishi",
+    "services": {
+      "ojs_setup": {
+        "title": "Kuanzisha Majarida ya Vyuo Vikuu na Usanidi wa OJS",
+        "badge": "Kwa Vyuo Vikuu",
+        "description": "Usanidi kamili wa mifumo ya kidijitali ya majarida ya kitaaluma (OJS) kwa vyuo vikuu vya Afrika.",
+        "features": [
+          "Usakinishaji wa mfumo wa OJS 3.x kwenye tovuti ya chuo kikuu.",
+          "Upangaji wa michakato ya uhariri: mapitio ya siri na barua za maamuzi.",
+          "Uunganishaji wa kiotomatiki wa nambari za DOI (Crossref / Zenodo) na OAI-PMH.",
+          "Kuzingatia maadili ya COPE na udhibiti madhubuti wa unakili (plagiarism)."
+        ],
+        "idealFor": "Vyuo vikuu, idara za utafiti na mashirika ya kitaaluma yanayoanzisha majarida mapya."
+      },
+      "indexing_ajci": {
+        "title": "Uorodheshaji wa Majarida na Hesabu ya Alama ya AJCI",
+        "badge": "Uorodheshaji Rasmi",
+        "description": "Kuingizwa kwenye hifadhidata ya AfriJournal na hesabu ya wazi ya uzito wa nukuu (AJCI).",
+        "features": [
+          "Uorodheshaji kwenye orodha ya bara zima na uthibitisho wa ISSN.",
+          "Hesabu ya alama ya AJCI ya miaka miwili kulingana na data halisi za nukuu.",
+          "Kiwango cha Uwakilishi wa Kikanda (RRQ) kinachopima mchango wa maendeleo Afrika.",
+          "Mihuri ya kidijitali iliyothibitishwa na vyeti vya utambuzi."
+        ],
+        "idealFor": "Majarida ya kitaaluma ya Afrika yanayotafuta utambuzi wa bara na metriki halisi."
+      },
+      "scopus_prep": {
+        "title": "Maandalizi ya Kuingizwa Scopus, Web of Science na DOAJ",
+        "badge": "Ushauri wa Utambuzi",
+        "description": "Uchunguzi wa kimaadili, kiteknolojia na kiuhariri ili kukiandaa jarida kuingia Scopus na WoS.",
+        "features": [
+          "Ukaguzi wa awali wa vigezo vya kimataifa na mtawanyiko wa bodi ya wahariri.",
+          "Kuunganisha miongozo ya maadili ya uchapishaji kulingana na sheria za COPE.",
+          "Uandaaji wa faili rasmi ya maombi na sampuli za makala.",
+          "Msaada wakati wa tathmini na majibu kwa bodi ya CSAB."
+        ],
+        "idealFor": "Wahariri wakuu na idara za uchapishaji za vyuo vikuu."
+      },
+      "rankings_advisory": {
+        "title": "Viwango vya Utafiti vya Vyuo Vikuu na Taasisi",
+        "badge": "Tathmini ya Kitaasisi",
+        "description": "Ripoti linganishi za uzalishaji wa tafiti na ubora wa nukuu katika vyuo vikuu vya Afrika.",
+        "features": [
+          "Ulinganisho wa utendaji wa utafiti kati ya vitivo na idara mbalimbali.",
+          "Ufuatiliaji wa ukuaji wa nukuu na ushirikiano wa kimataifa.",
+          "Uthibitisho rasmi wa wasifu wa taasisi mtandaoni.",
+          "Kusaidia bodi za upandishwaji vyeo na utoaji wa ruzuku za utafiti."
+        ],
+        "idealFor": "Makamu Wakuu wa Vyuo, Wakurugenzi wa Utafiti, na Wakutubi Wakuu."
+      },
+      "afrischolar_id": {
+        "title": "Usajili wa AfriScholar na Nambari ya Utambulisho (ASID)",
+        "badge": "Kwa Watafiti",
+        "description": "Nambari ya kudumu ya utambulisho wa mtafiti wa Afrika (ASID) inayounganisha ORCID na Google Scholar.",
+        "features": [
+          "Utambulisho wa kudumu wa ASID kwa ajili ya upandishwaji vyeo na ruzuku.",
+          "Usawazishaji wa moja kwa moja na machapisho ya ORCID na Google Scholar.",
+          "Ripoti kamili ya PDF inayoorodhesha vitabu, miradi, hataza na ushauri wa kitaalamu.",
+          "Taarifa za papo hapo kuhusu nukuu mpya katika majarida ya Afrika."
+        ],
+        "idealFor": "Maprofesa, wahadhiri, watafiti na wanafunzi wa uzamili kote barani Afrika."
+      },
+      "manuscript_review": {
+        "title": "Mapitio ya Muswada Kupitia Lango Letu la Wakaguzi",
+        "badge": "Lango la Wakaguzi",
+        "description": "Ukaguzi wa siri wa muswada kabla ya kuwasilisha jaridani unaofanywa na wataalamu bobezi.",
+        "features": [
+          "Ukaguzi wa kina wa mbinu za utafiti, sampuli na uchambuzi wa takwimu.",
+          "Ukaguzi wa unakili (plagiarism) ili kulinda uadilifu wa kitaaluma.",
+          "Ripoti ya kina yenye maelekezo ya moja kwa moja ya kuboresha muswada.",
+          "Kuelekezwa kwa wakaguzi waliobobea katika uga wako wa kitaaluma."
+        ],
+        "idealFor": "Wasomi wanaolenga majarida yenye viwango vya juu (Q1/Q2) wanaotaka maoni huru."
+      },
+      "manuscript_prep": {
+        "title": "Maandalizi ya Muswada na Usaidizi wa Kiteknolojia",
+        "badge": "Msaada kwa Waandishi",
+        "description": "Usaidizi wa kiufundi wa kuweka makala za utafiti na tasnifu katika muundo rasmi wa uchapishaji.",
+        "features": [
+          "Kuweka katika muundo wa IMRAD (Utangulizi, Mbinu, Matokeo, Mjadala).",
+          "Kusanifisha marejeleo kulingana na mwongozo wa jarida (APA 7th, Harvard, n.k.).",
+          "Kuhariri lugha ya Kiingereza cha kitaaluma ili kiwe wazi na fasaha.",
+          "Kuboresha muhtasari (abstract) na maneno muhimu ili kuongeza upatikanaji mtandaoni."
+        ],
+        "idealFor": "Watafiti wachanga na wanafunzi wa uzamivu wanaotayarisha makala zao za kwanza."
+      }
+    }
   }
 }

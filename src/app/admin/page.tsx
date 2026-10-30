@@ -33,7 +33,7 @@ interface Stats {
   wosJournals?: number;
 }
 
-type TabKey = "overview" | "submissions" | "claims" | "journals" | "moderation" | "users" | "harvester" | "payments";
+type TabKey = "overview" | "submissions" | "claims" | "journals" | "doi" | "moderation" | "users" | "harvester" | "payments";
 
 export default function AdminPortalPage() {
   const router = useRouter();
@@ -117,6 +117,23 @@ export default function AdminPortalPage() {
   const [claimStatusFilter, setClaimStatusFilter] = useState<string>("ALL");
   const [claimPage, setClaimPage] = useState<number>(1);
   const [claimPageSize] = useState<number>(10);
+
+  // -------------------------------------------------------------
+  // DOI Minting Desk (Zenodo / DataCite Engine)
+  // -------------------------------------------------------------
+  const [doiJournalId, setDoiJournalId] = useState<string>("264679fc-eb2d-4d55-b26e-3204dd06b46a");
+  const [doiStatusFilter, setDoiStatusFilter] = useState<"pending" | "minted" | "all">("pending");
+  const [doiArticles, setDoiArticles] = useState<any[]>([]);
+  const [doiTotalArticles, setDoiTotalArticles] = useState<number>(0);
+  const [doiPage, setDoiPage] = useState<number>(1);
+  const [doiTotalPages, setDoiTotalPages] = useState<number>(1);
+  const [doiLoading, setDoiLoading] = useState<boolean>(false);
+  const [doiEnv, setDoiEnv] = useState<{ isSandbox: boolean; baseUrl: string } | null>(null);
+  const [doiAuthorizedJournals, setDoiAuthorizedJournals] = useState<any[]>([]);
+  const [doiSelectedIds, setDoiSelectedIds] = useState<string[]>([]);
+  const [doiBatchProcessing, setDoiBatchProcessing] = useState<boolean>(false);
+  const [doiBatchResults, setDoiBatchResults] = useState<any[] | null>(null);
+  const [doiArticleDates, setDoiArticleDates] = useState<Record<string, string>>({});
 
   // -------------------------------------------------------------
   // Journals Controls
@@ -437,6 +454,113 @@ export default function AdminPortalPage() {
         }
       }
     });
+  };
+
+  // -------------------------------------------------------------
+  // ACTIONS: DOI Minting Desk (Zenodo / DataCite)
+  // -------------------------------------------------------------
+  const fetchDoiDeskData = async () => {
+    setDoiLoading(true);
+    try {
+      // 1. Fetch authorized journals summary
+      const authRes = await fetch("/api/admin/doi/mint");
+      const authData = await authRes.json();
+      if (authData.success) {
+        setDoiAuthorizedJournals(authData.authorizedJournals || []);
+        setDoiEnv(authData.environment || null);
+      }
+
+      // 2. Fetch target journal articles
+      const artRes = await fetch(`/api/admin/doi/mint?journalId=${encodeURIComponent(doiJournalId)}&status=${doiStatusFilter}&page=${doiPage}&limit=10`);
+      const artData = await artRes.json();
+      if (artData.success) {
+        setDoiArticles(artData.articles || []);
+        setDoiTotalArticles(artData.pagination?.total || 0);
+        setDoiTotalPages(artData.pagination?.totalPages || 1);
+
+        // Pre-populate date map with official policy issue dates
+        const initialDates: Record<string, string> = {};
+        (artData.articles || []).forEach((a: any) => {
+          if (a.officialPublishDate) {
+            initialDates[a.id] = a.officialPublishDate;
+          }
+        });
+        setDoiArticleDates(prev => ({ ...initialDates, ...prev }));
+      } else {
+        showToast(artData.error || "Failed loading DOI articles.", "error");
+      }
+    } catch {
+      showToast("Network error fetching DOI data.", "error");
+    } finally {
+      setDoiLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "doi") {
+      fetchDoiDeskData();
+    }
+  }, [activeTab, doiJournalId, doiStatusFilter, doiPage]);
+
+  const handleMintSingleDoi = async (artId: string, artTitle: string) => {
+    setActionLoadingId(artId);
+    const chosenDate = doiArticleDates[artId];
+    try {
+      const res = await fetch("/api/admin/doi/mint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          articleId: artId,
+          publicationDate: chosenDate 
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.results?.[0]?.success) {
+        const minted = data.results[0];
+        showToast(`DOI minted successfully: ${minted.doi}`);
+        fetchDoiDeskData();
+      } else {
+        const errMsg = data.results?.[0]?.error || data.error || "DOI minting failed.";
+        showToast(errMsg, "error");
+      }
+    } catch {
+      showToast("Network error during DOI minting.", "error");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleBatchMint = async (idsToMint: string[]) => {
+    if (idsToMint.length === 0) {
+      showToast("No pending articles selected for batch minting.", "error");
+      return;
+    }
+
+    setDoiBatchProcessing(true);
+    setDoiBatchResults(null);
+    try {
+      const res = await fetch("/api/admin/doi/mint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          articleIds: idsToMint,
+          datesMap: doiArticleDates
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDoiBatchResults(data.results || []);
+        showToast(`Batch completed: ${data.successCount} minted, ${data.failedCount} failed.`);
+        setDoiSelectedIds([]);
+        fetchDoiDeskData();
+      } else {
+        showToast(data.error || "Batch minting failed.", "error");
+      }
+    } catch {
+      showToast("Network error during batch minting.", "error");
+    } finally {
+      setDoiBatchProcessing(false);
+    }
   };
 
   // -------------------------------------------------------------
@@ -884,6 +1008,14 @@ export default function AdminPortalPage() {
             >
               <span><i className="fa-solid fa-book" style={{ width: "20px" }}></i> Journals Catalog</span>
               <span style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "monospace" }}>{stats?.totalJournals || 0}</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab("doi"); setSidebarOpen(false); }}
+              className={`admin-nav-btn ${activeTab === "doi" ? "active" : ""}`}
+            >
+              <span><i className="fa-solid fa-fingerprint" style={{ width: "20px" }}></i> DOI Minting Desk</span>
+              <span className="admin-badge admin-badge-success" style={{ fontSize: "0.65rem", padding: "1px 6px" }}>Zenodo</span>
             </button>
 
             <div className="admin-nav-category">Community & Safety</div>
@@ -1615,6 +1747,452 @@ export default function AdminPortalPage() {
                       <button
                         disabled={journalPage * journalPageSize >= filteredJournals.length}
                         onClick={() => setJournalPage(p => p + 1)}
+                        className="admin-btn admin-btn-secondary admin-btn-sm"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* TAB: DOI MINTING DESK (ZENODO / DATACITE)                 */}
+          {/* ========================================================= */}
+          {activeTab === "doi" && (
+            <div>
+              {/* Header */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem", flexWrap: "wrap", gap: "1rem" }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: 0 }}>
+                      DOI Minting Desk
+                    </h3>
+                    <span 
+                      className={`admin-badge ${doiEnv?.isSandbox ? "admin-badge-warning" : "admin-badge-success"}`}
+                      style={{ fontSize: "0.7rem", textTransform: "uppercase" }}
+                    >
+                      {doiEnv?.isSandbox ? "Sandbox Mode (10.5072)" : "Live Production (10.5281)"}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: "0.25rem 0 0" }}>
+                    Automated persistent identifier minting via CERN Zenodo &amp; DataCite. Strict journal whitelist active.
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  <button
+                    disabled={doiLoading || doiBatchProcessing}
+                    onClick={() => fetchDoiDeskData()}
+                    className="admin-btn admin-btn-secondary admin-btn-sm"
+                  >
+                    <i className={`fa-solid fa-arrows-rotate ${doiLoading ? "fa-spin" : ""}`}></i> Refresh
+                  </button>
+                  <button
+                    disabled={doiLoading || doiBatchProcessing || doiArticles.filter(a => !a.doi).length === 0}
+                    onClick={() => {
+                      const pendingOnPage = doiArticles.filter(a => !a.doi).map(a => a.id);
+                      handleBatchMint(pendingOnPage.slice(0, 10));
+                    }}
+                    className="admin-btn admin-btn-primary admin-btn-sm"
+                  >
+                    <i className={`fa-solid ${doiBatchProcessing ? "fa-spinner fa-spin" : "fa-wand-magic-sparkles"}`}></i>
+                    {doiBatchProcessing ? "Minting Batch..." : "Mint Page Pending (Max 10)"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Journal Whitelist Selector & Statistics Cards */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem", marginBottom: "1.25rem" }}>
+                {doiAuthorizedJournals.map(j => (
+                  <div 
+                    key={j.journalId}
+                    onClick={() => { setDoiJournalId(j.journalId); setDoiPage(1); }}
+                    style={{
+                      background: doiJournalId === j.journalId ? "rgba(16, 185, 129, 0.1)" : "#090e1a",
+                      border: doiJournalId === j.journalId ? "1px solid #10b981" : "1px solid #1e293b",
+                      borderRadius: "12px",
+                      padding: "1rem",
+                      cursor: "pointer",
+                      transition: "all 0.2s"
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
+                      <span style={{ fontSize: "0.7rem", color: "#10b981", fontWeight: 700, textTransform: "uppercase" }}>
+                        Community: {j.communitySlug}
+                      </span>
+                      <span style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "monospace" }}>
+                        ISSN: {j.issn || "N/A"}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#ffffff", marginBottom: "0.6rem" }}>
+                      {j.name}
+                    </div>
+                    <div style={{ display: "flex", gap: "1rem", fontSize: "0.75rem" }}>
+                      <div>
+                        <span style={{ color: "#64748b" }}>Total: </span>
+                        <strong style={{ color: "#f1f5f9" }}>{j.totalArticles}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: "#64748b" }}>Minted: </span>
+                        <strong style={{ color: "#10b981" }}>{j.mintedArticles}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: "#64748b" }}>Pending: </span>
+                        <strong style={{ color: "#fbbf24" }}>{j.pendingArticles}</strong>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Filter Tabs */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #1e293b", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <button
+                    onClick={() => { setDoiStatusFilter("pending"); setDoiPage(1); }}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      borderBottom: doiStatusFilter === "pending" ? "2px solid #10b981" : "2px solid transparent",
+                      color: doiStatusFilter === "pending" ? "#10b981" : "#94a3b8",
+                      padding: "0.6rem 0.8rem",
+                      fontSize: "0.85rem",
+                      fontWeight: 700,
+                      cursor: "pointer"
+                    }}
+                  >
+                    Pending Minting
+                  </button>
+                  <button
+                    onClick={() => { setDoiStatusFilter("minted"); setDoiPage(1); }}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      borderBottom: doiStatusFilter === "minted" ? "2px solid #10b981" : "2px solid transparent",
+                      color: doiStatusFilter === "minted" ? "#10b981" : "#94a3b8",
+                      padding: "0.6rem 0.8rem",
+                      fontSize: "0.85rem",
+                      fontWeight: 700,
+                      cursor: "pointer"
+                    }}
+                  >
+                    Registered DOIs
+                  </button>
+                  <button
+                    onClick={() => { setDoiStatusFilter("all"); setDoiPage(1); }}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      borderBottom: doiStatusFilter === "all" ? "2px solid #10b981" : "2px solid transparent",
+                      color: doiStatusFilter === "all" ? "#10b981" : "#94a3b8",
+                      padding: "0.6rem 0.8rem",
+                      fontSize: "0.85rem",
+                      fontWeight: 700,
+                      cursor: "pointer"
+                    }}
+                  >
+                    All Articles ({doiTotalArticles})
+                  </button>
+                </div>
+
+                <div style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                  Page {doiPage} of {doiTotalPages} ({doiTotalArticles} records)
+                </div>
+              </div>
+
+              {/* Batch Results Log Display */}
+              {doiBatchResults && (
+                <div style={{ background: "#090e1a", border: "1px solid #1e293b", borderRadius: "10px", padding: "1rem", marginBottom: "1rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                    <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#ffffff" }}>
+                      Batch Execution Log
+                    </div>
+                    <button 
+                      onClick={() => setDoiBatchResults(null)}
+                      style={{ background: "transparent", border: "none", color: "#64748b", cursor: "pointer", fontSize: "0.75rem" }}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                    {doiBatchResults.map((r, i) => (
+                      <div key={i} style={{ fontSize: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <i className={`fa-solid ${r.success ? "fa-circle-check" : "fa-circle-xmark"}`} style={{ color: r.success ? "#10b981" : "#ef4444" }}></i>
+                        <span style={{ color: "#f1f5f9", fontWeight: 600 }}>{r.title?.slice(0, 50)}...</span>
+                        {r.doi && (
+                          <span style={{ fontFamily: "monospace", color: "#34d399" }}>DOI: {r.doi}</span>
+                        )}
+                        {r.error && (
+                          <span style={{ color: "#f87171" }}>{r.error}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Articles Table */}
+              <div className="admin-table-container">
+                <div className="admin-table-scroll">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: "35px" }}>
+                          <input
+                            type="checkbox"
+                            checked={doiArticles.length > 0 && doiSelectedIds.length === doiArticles.filter(a => !a.doi).length}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setDoiSelectedIds(doiArticles.filter(a => !a.doi).map(a => a.id));
+                              } else {
+                                setDoiSelectedIds([]);
+                              }
+                            }}
+                          />
+                        </th>
+                        <th>Article Title</th>
+                        <th>Authors &amp; Affiliation</th>
+                        <th>PDF Status</th>
+                        <th>DOI / Identifiers</th>
+                        <th>Official Issue Date</th>
+                        <th style={{ textAlign: "right" }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {doiArticles.map(art => {
+                        const isMinted = Boolean(art.doi);
+                        const isProcessing = actionLoadingId === art.id;
+
+                        return (
+                          <tr key={art.id}>
+                            <td>
+                              {!isMinted && (
+                                <input
+                                  type="checkbox"
+                                  checked={doiSelectedIds.includes(art.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setDoiSelectedIds(prev => [...prev, art.id]);
+                                    } else {
+                                      setDoiSelectedIds(prev => prev.filter(x => x !== art.id));
+                                    }
+                                  }}
+                                />
+                              )}
+                            </td>
+                            <td style={{ maxWidth: "300px" }}>
+                              <div style={{ fontWeight: 700, color: "#f1f5f9", lineHeight: 1.3 }}>
+                                {art.title}
+                              </div>
+                              <div style={{ fontSize: "0.7rem", color: "#64748b", marginTop: "3px" }}>
+                                ID: <span style={{ fontFamily: "monospace" }}>{art.id}</span>
+                              </div>
+                            </td>
+                            <td style={{ maxWidth: "200px" }}>
+                              {art.authors && art.authors.length > 0 ? (
+                                art.authors.map((auth: any, idx: number) => (
+                                  <div key={idx} style={{ fontSize: "0.75rem", color: "#cbd5e1" }}>
+                                    <strong style={{ color: "#ffffff" }}>{auth.name}</strong>
+                                    {auth.institution && <span style={{ color: "#64748b" }}> ({auth.institution})</span>}
+                                  </div>
+                                ))
+                              ) : (
+                                <span style={{ fontSize: "0.75rem", color: "#64748b", fontStyle: "italic" }}>
+                                  Editorial Desk (Unclaimed)
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              {art.pdfUrl ? (
+                                <a 
+                                  href={art.pdfUrl} 
+                                  target="_blank" 
+                                  rel="noreferrer"
+                                  className="admin-badge admin-badge-info"
+                                  style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                                >
+                                  <i className="fa-solid fa-file-pdf"></i> Available
+                                </a>
+                              ) : (
+                                <span className="admin-badge admin-badge-danger">Missing PDF</span>
+                              )}
+                            </td>
+                            <td>
+                              {isMinted ? (
+                                <div>
+                                  <a 
+                                    href={`https://doi.org/${art.doi}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{
+                                      fontFamily: "monospace",
+                                      color: "#34d399",
+                                      fontSize: "0.78rem",
+                                      fontWeight: 700,
+                                      textDecoration: "none",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "4px"
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-check-circle" style={{ color: "#10b981" }}></i>
+                                    {art.doi}
+                                  </a>
+                                </div>
+                              ) : (
+                                <span className="admin-badge admin-badge-warning">Pending</span>
+                              )}
+                            </td>
+                            <td style={{ whiteSpace: "nowrap" }}>
+                              {isMinted ? (
+                                <span style={{ color: "#94a3b8", fontSize: "0.8rem", fontFamily: "monospace" }}>
+                                  {art.officialPublishDate || (art.publishDate ? new Date(art.publishDate).toISOString().split("T")[0] : "—")}
+                                </span>
+                              ) : (
+                                <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+                                  <input
+                                    type="date"
+                                    value={doiArticleDates[art.id] || art.officialPublishDate || ""}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setDoiArticleDates(prev => ({ ...prev, [art.id]: val }));
+                                    }}
+                                    style={{
+                                      background: "#090e1a",
+                                      border: "1px solid #334155",
+                                      color: "#34d399",
+                                      padding: "0.25rem 0.5rem",
+                                      borderRadius: "6px",
+                                      fontSize: "0.78rem",
+                                      fontFamily: "monospace",
+                                      outline: "none"
+                                    }}
+                                  />
+                                  <div style={{ display: "flex", gap: "3px" }}>
+                                    {(() => {
+                                      const y = art.publishDate ? new Date(art.publishDate).getFullYear() : 2024;
+                                      return (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() => setDoiArticleDates(prev => ({ ...prev, [art.id]: `${y}-04-30` }))}
+                                            style={{
+                                              background: "transparent",
+                                              border: "1px solid #1e293b",
+                                              color: (doiArticleDates[art.id] || art.officialPublishDate) === `${y}-04-30` ? "#10b981" : "#64748b",
+                                              fontSize: "0.65rem",
+                                              padding: "1px 4px",
+                                              borderRadius: "3px",
+                                              cursor: "pointer"
+                                            }}
+                                            title="Issue 1: 30 April"
+                                          >
+                                            Apr 30
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => setDoiArticleDates(prev => ({ ...prev, [art.id]: `${y}-08-30` }))}
+                                            style={{
+                                              background: "transparent",
+                                              border: "1px solid #1e293b",
+                                              color: (doiArticleDates[art.id] || art.officialPublishDate) === `${y}-08-30` ? "#10b981" : "#64748b",
+                                              fontSize: "0.65rem",
+                                              padding: "1px 4px",
+                                              borderRadius: "3px",
+                                              cursor: "pointer"
+                                            }}
+                                            title="Issue 2: 30 August"
+                                          >
+                                            Aug 30
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => setDoiArticleDates(prev => ({ ...prev, [art.id]: `${y}-12-30` }))}
+                                            style={{
+                                              background: "transparent",
+                                              border: "1px solid #1e293b",
+                                              color: (doiArticleDates[art.id] || art.officialPublishDate) === `${y}-12-30` ? "#10b981" : "#64748b",
+                                              fontSize: "0.65rem",
+                                              padding: "1px 4px",
+                                              borderRadius: "3px",
+                                              cursor: "pointer"
+                                            }}
+                                            title="Issue 3: 30 December"
+                                          >
+                                            Dec 30
+                                          </button>
+                                        </>
+                                      );
+                                    })()}
+                                  </div>
+                                </div>
+                              )}
+                            </td>
+                            <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                              {isMinted ? (
+                                <a
+                                  href={`https://doi.org/${art.doi}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="admin-btn admin-btn-secondary admin-btn-sm"
+                                  style={{ fontSize: "0.75rem", padding: "0.3rem 0.65rem" }}
+                                >
+                                  <i className="fa-solid fa-arrow-up-right-from-square"></i> Resolve
+                                </a>
+                              ) : (
+                                <button
+                                  disabled={isProcessing || !art.pdfUrl}
+                                  onClick={() => handleMintSingleDoi(art.id, art.title)}
+                                  className="admin-btn admin-btn-primary admin-btn-sm"
+                                  style={{ fontSize: "0.75rem", padding: "0.3rem 0.65rem" }}
+                                >
+                                  {isProcessing ? (
+                                    <>
+                                      <i className="fa-solid fa-circle-notch fa-spin"></i> Minting...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <i className="fa-solid fa-fingerprint"></i> Mint DOI
+                                    </>
+                                  )}
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+
+                      {doiArticles.length === 0 && (
+                        <tr>
+                          <td colSpan={7} style={{ textAlign: "center", padding: "2.5rem", color: "#64748b" }}>
+                            {doiLoading ? "Loading articles from repository..." : "No articles found matching this filter."}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination Controls */}
+                {doiTotalPages > 1 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem 1.25rem", borderTop: "1px solid #1e293b", flexWrap: "wrap", gap: "0.5rem" }}>
+                    <div style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                      Showing page {doiPage} of {doiTotalPages} ({doiTotalArticles} articles)
+                    </div>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <button
+                        disabled={doiPage <= 1 || doiLoading}
+                        onClick={() => setDoiPage(p => Math.max(1, p - 1))}
+                        className="admin-btn admin-btn-secondary admin-btn-sm"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        disabled={doiPage >= doiTotalPages || doiLoading}
+                        onClick={() => setDoiPage(p => p + 1)}
                         className="admin-btn admin-btn-secondary admin-btn-sm"
                       >
                         Next

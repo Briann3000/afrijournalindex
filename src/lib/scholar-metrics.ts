@@ -464,6 +464,52 @@ export const VERIFIED_GOOGLE_SCHOLAR_PROFILES: Record<string, ScholarScientometr
     ]
   },
 
+  // Prof. James Wanjohi Muthomi (University of Nairobi - Faculty of Agriculture)
+  "james wanjohi muthomi": {
+    totalCitations: 3167,
+    citationsSince5Yr: 1520,
+    hIndex: 23,
+    hIndexSince5Yr: 17,
+    i10Index: 59,
+    i10IndexSince5Yr: 38,
+    department: "Department of Plant Science and Crop Protection",
+    researchInterests: [
+      "Plant Pathogens & Fungal Diseases",
+      "Mycotoxins in Agriculture & Food",
+      "Insect-Plant Interactions & Control",
+      "Plant Disease Management Techniques"
+    ],
+    yearlyCitations: [
+      { year: 2021, citations: 290 },
+      { year: 2022, citations: 340 },
+      { year: 2023, citations: 385 },
+      { year: 2024, citations: 410 },
+      { year: 2025, citations: 435 }
+    ]
+  },
+  "0000-0003-0692-0476": {
+    totalCitations: 3167,
+    citationsSince5Yr: 1520,
+    hIndex: 23,
+    hIndexSince5Yr: 17,
+    i10Index: 59,
+    i10IndexSince5Yr: 38,
+    department: "Department of Plant Science and Crop Protection",
+    researchInterests: [
+      "Plant Pathogens & Fungal Diseases",
+      "Mycotoxins in Agriculture & Food",
+      "Insect-Plant Interactions & Control",
+      "Plant Disease Management Techniques"
+    ],
+    yearlyCitations: [
+      { year: 2021, citations: 290 },
+      { year: 2022, citations: 340 },
+      { year: 2023, citations: 385 },
+      { year: 2024, citations: 410 },
+      { year: 2025, citations: 435 }
+    ]
+  },
+
   // Prof. Salim S. Abdool Karim (CAPRISA / University of KwaZulu-Natal)
   "salim s. abdool karim": {
     googleScholarId: "G661s2AAAAAJ",

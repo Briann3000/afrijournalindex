@@ -218,7 +218,12 @@
     "add_book_btn": "Add Book / Monograph",
     "add_consultancy_btn": "Add Project",
     "add_innovation_btn": "Add Innovation",
-    "add_media_btn": "Add Media Feature"
+    "add_media_btn": "Add Media Feature",
+    "unclaimed_profile_title": "Unclaimed Scholar Profile",
+    "unclaimed_profile_prompt": "Are you {name}? This profile has been curated from verified academic registries. Claim your profile to edit affiliations, manage works, and access your dashboard.",
+    "claim_profile_btn": "Claim This Profile",
+    "ingestion_notice_title": "Scientific Bibliography Ingestion Notice",
+    "ingestion_notice_desc": "AfriJournal Index synchronizes authentic African citations and scholarship from Crossref, OpenAlex, and verified institutional repositories. Due to external indexing latency, some historical works may not yet be ingested in this snapshot. If you are this scholar, claim this profile to link your ORCID and verify your complete bibliography."
   },
   "institution_page": {
     "title": "Institutional Research & University Rankings",
@@ -246,7 +251,25 @@
     "no_results": "No institutional records found matching criteria.",
     "search_table": "Filter institutional table...",
     "sort_by": "Sort By",
-    "back_to_leaderboard": "← Back to University Leaderboard"
+    "back_to_leaderboard": "← Back to University Leaderboard",
+    "kenpro_verified": "KENPRO Verified Institution",
+    "kenpro_verified_desc": "Officially accredited and verified by Kenya Projects Organization (KENPRO) Academic Research Directorate.",
+    "auto_map_btn": "Auto-Map from Website",
+    "mapping_website": "Mapping Website...",
+    "upload_crest_btn": "Upload Crest / Logo",
+    "accreditation_body_label": "Accreditation Authority",
+    "website_domain_label": "Official Academic Domain",
+    "hosted_journals_heading": "Hosted & Published Journals",
+    "no_hosted_journals": "No registered journals currently hosted under this institution profile.",
+    "verified_faculty_heading": "Affiliated Scholars & Faculty",
+    "claim_institution_title": "Claim or Verify Institutional Profile",
+    "claim_institution_desc": "Authorized representatives (Vice-Chancellors, Research Directors, University Librarians) may claim and verify their institution profile.",
+    "upload_verification_doc": "Accreditation or Charter Document (PDF/DOCX)",
+    "uploading_doc": "Uploading...",
+    "upload_success": "File uploaded successfully.",
+    "upload_error": "Secure upload failed. Allowed types: PDF, PNG, JPG (Max 10MB).",
+    "mapping_success": "Institutional profile successfully mapped from website.",
+    "mapping_failed": "Could not auto-map website. Please verify URL."
   },
   "submit_page": {
     "title": "Journal Submission Portal",
@@ -746,5 +769,131 @@
     "started_on": "Started on",
     "publishing": "Publishing...",
     "posting": "Posting..."
+  },
+  "services_page": {
+    "hero_badge": "AfriJournal Scholarly & Editorial Advisory",
+    "hero_title": "Academic Publishing, Writing & Indexation Advisory",
+    "hero_subtitle": "AfriJournal Index provides comprehensive institutional and author-level editorial advisory. From turnkey OJS setup for universities and Scopus/WoS indexation prep, to pre-submission peer review critique and manuscript polishing.",
+    "cta_consultation": "Request Consultation",
+    "cta_explore": "Explore Directory",
+    "heading_title": "Seven Core Publishing & Indexing Pillars",
+    "heading_subtitle": "Specialized services tailored for African universities, academic journal editors, and individual scholars.",
+    "tab_all": "All Services",
+    "tab_institutions": "Institutions & Publishers",
+    "tab_researchers": "Researchers & Scholars",
+    "deliver_heading": "What We Deliver:",
+    "ideal_for": "Ideal for:",
+    "select_service": "Select Service",
+    "callout_title": "Are You an African University Directorate or Journal Editor?",
+    "callout_desc": "AfriJournal Index partners with university presses, research directorates, and scientific societies to launch online peer-reviewed journals, deploy standard OJS systems, and assemble formal Scopus & Web of Science application dossiers.",
+    "callout_btn": "Contact Advisory Board",
+    "form_badge": "Consultation Request",
+    "form_title": "Request Institutional or Author Consultation",
+    "form_subtitle": "Our academic and technical specialists will review your requirements and respond within 24–48 hours.",
+    "form_success_title": "Consultation Request Received",
+    "form_success_desc": "Thank you, {name}. An AfriJournal editorial advisor has received your request regarding {serviceType} and will reach out to {email} shortly.",
+    "form_submit_another": "Submit Another Request",
+    "form_view_drafts": "Go to Posts & Drafts",
+    "label_name": "Your Full Name *",
+    "label_email": "Academic Email Address *",
+    "label_institution": "University / Academic Institution *",
+    "label_service": "Service Track Requested *",
+    "label_journal_name": "Journal Title or Proposed Subject (If Applicable)",
+    "label_details": "Project Requirements & Specific Objectives *",
+    "placeholder_name": "Prof. / Dr. / Researcher Name",
+    "placeholder_email": "e.g. author@university.ac",
+    "placeholder_institution": "e.g. University of Nairobi / Makerere University",
+    "placeholder_journal": "e.g. African Journal of Sustainable Development",
+    "placeholder_details": "Describe your journal, manuscript, or institutional project needs...",
+    "btn_submit": "Submit Consultation Request",
+    "btn_submitting": "Submitting Request...",
+    "pillar_institutional": "Institutional & Publisher Track",
+    "pillar_researcher": "Researcher & Author Track",
+    "services": {
+      "ojs_setup": {
+        "title": "University Journal Setup & Online OJS Incubation",
+        "badge": "For Universities",
+        "description": "Turnkey digital publishing platform setup for African universities and faculties launching or migrating online peer-reviewed journals.",
+        "features": [
+          "Open Journal Systems (OJS 3.x) Deployment: Full installation on university subdomain (e.g. journal.univ.ac.ke) with custom academic branding.",
+          "Editorial Workflow Configuration: Setting up double-blind peer review routing, reviewer invitation templates, and editorial decision letters.",
+          "DOI & OAI-PMH Metadata Pipeline: Direct integration with Crossref, Zenodo, and DataCite for automatic deposition of DOIs and metadata.",
+          "Anti-Plagiarism & Ethics Compliance: Establishing standard COPE publication ethics, author declaration policies, and retraction guidelines."
+        ],
+        "idealFor": "Universities, research directorates, academic departments, and scientific societies launching new online journals."
+      },
+      "indexing_ajci": {
+        "title": "Journal Indexing & AJCI Citation Matrix",
+        "badge": "Official Indexation",
+        "description": "Comprehensive indexing in AfriJournal Index repository with transparent 2-year AJCI impact factor calculation and regional citation analytics.",
+        "features": [
+          "Continental Repository Indexation: Full listing in AfriJournal Index directory with verified digital ISSN mapping.",
+          "2-Year AJCI Impact Metric: Deterministic bibliometric calculation based on authentic citations across Crossref and OpenAlex.",
+          "Regional Representation Quotient (RRQ): Pan-African citation provenance scoring to measure continental developmental impact.",
+          "Verifiable Digital Seal: Cryptographic verification badges and downloadable accreditation certificates."
+        ],
+        "idealFor": "African academic journals seeking verified continental visibility and official citation ranking metrics."
+      },
+      "scopus_prep": {
+        "title": "Journal Preparation for Scopus, Web of Science & DOAJ",
+        "badge": "Accreditation Advisory",
+        "description": "Technical, ethical, and editorial readiness auditing to prepare African journals for successful inclusion in Scopus (CSAB), Clarivate WoS, and DOAJ.",
+        "features": [
+          "Pre-Evaluation Compliance Audit: Gap analysis covering editorial board diversity, international authorship ratios, and citation velocity.",
+          "Ethical Framework Harmonization: Developing transparent peer review guidelines adhering strictly to COPE standards.",
+          "Application Dossier Packaging: Compilation of formal journal justification documents, publication schedules, and sample articles.",
+          "Direct CSAB Representation Support: Step-by-step assistance addressing reviewer queries during formal evaluation."
+        ],
+        "idealFor": "Chief Editors, University Presses, and Managing Editors preparing their journals for international accreditation."
+      },
+      "rankings_advisory": {
+        "title": "Institutional & University Research Rankings",
+        "badge": "Institutional Benchmarking",
+        "description": "Authoritative university research benchmark reports, departmental citation density analysis, and faculty research output mapping across Africa.",
+        "features": [
+          "Continental Faculty Benchmarking: Aggregating verified publications and h-index tallies across academic departments.",
+          "Citation Velocity Reports: Tracking annual institutional citation growth and international collaboration provenance.",
+          "Institutional Profile Attestation: Verified organizational landing pages linking university press journals and faculty bibliographies.",
+          "Tenure & Grant Assessment Support: Objective bibliometric metrics to support academic appointments, promotions, and research funding."
+        ],
+        "idealFor": "Vice-Chancellors, Deputy Vice-Chancellors (Research), University Librarians, and Directorate of Research & Innovations."
+      },
+      "afrischolar_id": {
+        "title": "AfriScholar Indexing & Verified Scholar ID (ASID)",
+        "badge": "For Researchers",
+        "description": "Permanent African Academic Identifier (ASID) linking ORCID, Google Scholar, and institutional registries into a verified academic profile.",
+        "features": [
+          "Permanent ASID Credential: Cryptographic continental researcher identification for tenure files, grant bids, and peer review credentialing.",
+          "ORCID & Google Scholar Sync: Unified synchronization of authentic authored publications, eliminating duplicate author profiles.",
+          "Comprehensive Academic Dossier: Downloadable authoritative PDF portfolio documenting authored books, consultancies, patents, and media features.",
+          "Real-Time Citation Alerts: Automated tracking of new citations and regional impact metrics across African journals."
+        ],
+        "idealFor": "Professors, faculty researchers, postdoctoral fellows, and postgraduate scholars across all African universities."
+      },
+      "manuscript_review": {
+        "title": "Reviewing Manuscripts Through Our Reviewer Portal",
+        "badge": "Peer Review Portal",
+        "description": "Pre-submission double-blind peer review simulation conducted by vetted African and international discipline experts through our reviewer desk.",
+        "features": [
+          "Methodological & Statistical Scrutiny: In-depth evaluation of experimental designs, sample sizes, instrumentation, and econometric/statistical models.",
+          "Originality & Plagiarism Pre-Screening: Rigorous textual similarity screening to safeguard academic integrity and prevent copyright conflicts.",
+          "Reviewer Rebuttal Simulation: Actionable reviewer reports highlighting potential criticisms to resolve before journal submission.",
+          "Discipline-Specific Expert Matching: Manuscripts routed strictly to verified referee specialists in your specific sub-discipline."
+        ],
+        "idealFor": "Scholars targeting high-impact Q1/Q2 journals who want rigorous peer feedback before formal submission."
+      },
+      "manuscript_prep": {
+        "title": "Manuscript Preparation & Technical Assistance",
+        "badge": "Author Support",
+        "description": "Hands-on technical assistance for scholars structuring draft working papers, dissertations, and research articles for publication.",
+        "features": [
+          "IMRAD Structuring: Organizing Introduction, Methodology, Results, and Discussion into standard academic conventions.",
+          "Reference & Citation Harmonization: Precise formatting according to target journal style (APA 7th, Harvard, Chicago, Vancouver, IEEE).",
+          "Academic English & Language Polishing: Sentence-level refinement ensuring precision, clarity, and rigorous scholarly tone.",
+          "Abstract & Keyword Optimization: High-impact structuring to maximize discovery across Google Scholar, AJCI, and indexing engines."
+        ],
+        "idealFor": "Early-career researchers, doctoral candidates, and faculty converting field research and theses into publishable papers."
+      }
+    }
   }
 }

@@ -549,16 +549,19 @@ export async function GET(request: Request) {
         researchInterests,
         articlesCount,
         totalCitations,
-        hIndex
+        hIndex,
+        openAlexId: u.openAlexId
       };
     });
 
-    // 2.5 Smart Deduplication: Merge duplicate records sharing ORCID or normalized Name + Institution
+    // 2.5 Smart Deduplication: Merge duplicate records sharing ORCID, OpenAlex ID, or normalized Name + Institution
     const deduplicatedMap = new Map<string, typeof scholars[0]>();
     for (const s of scholars) {
       const normName = normalizeSearchText(s.name).replace(/\b(prof|dr|mr|mrs|ms)\b/g, "").trim();
       const normInst = normalizeSearchText(s.institution).slice(0, 15);
-      const dedupKey = s.orcid ? `orcid:${s.orcid}` : `name:${normName}_inst:${normInst}`;
+      const dedupKey = s.orcid 
+        ? `orcid:${s.orcid}` 
+        : (s.openAlexId ? `oa:${s.openAlexId.replace(/https?:\/\/openalex\.org\//i, "")}` : `name:${normName}_inst:${normInst}_id:${s.id}`);
 
       if (!deduplicatedMap.has(dedupKey)) {
         deduplicatedMap.set(dedupKey, s);

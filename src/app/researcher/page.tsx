@@ -1738,10 +1738,12 @@ function ResearcherProfileContent() {
               </div>
               <div>
                 <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#9a3412" }}>
-                  Unclaimed Scholar Profile
+                  {t.researcher_page?.unclaimed_profile_title || "Unclaimed Scholar Profile"}
                 </div>
                 <div style={{ fontSize: "0.84rem", color: "#c2410c", marginTop: "2px" }}>
-                  Are you <strong>{profile.name}</strong>? This profile has been curated from verified academic registries. Claim your profile to edit affiliations, manage works, and access your dashboard.
+                  {t.researcher_page?.unclaimed_profile_prompt 
+                    ? t.researcher_page.unclaimed_profile_prompt.replace("{name}", profile.name) 
+                    : `Are you ${profile.name}? This profile has been curated from verified academic registries. Claim your profile to edit affiliations, manage works, and access your dashboard.`}
                 </div>
               </div>
             </div>
@@ -1762,7 +1764,7 @@ function ResearcherProfileContent() {
                 fontSize: "0.85rem"
               }}
             >
-              <i className="fa-solid fa-check-to-slot"></i> Claim Profile
+              <i className="fa-solid fa-check-to-slot"></i> {t.researcher_page?.claim_profile_btn || "Claim Profile"}
             </button>
           </div>
         )}
@@ -2912,83 +2914,71 @@ function ResearcherProfileContent() {
           </div>
         )}
 
-        {/* Ingestion Disclaimer & Scholar Claim Notice */}
-        <div style={{
-          marginBottom: "1.5rem",
-          padding: "1rem 1.3rem",
-          borderRadius: "12px",
-          background: "linear-gradient(135deg, rgba(30, 58, 138, 0.05) 0%, rgba(13, 148, 136, 0.05) 100%)",
-          border: "1px solid rgba(13, 148, 136, 0.25)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "1rem"
-        }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.85rem", maxWidth: "800px" }}>
-            <div style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "8px",
-              background: "rgba(13, 148, 136, 0.15)",
-              color: "var(--color-primary)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-              fontSize: "1.05rem"
-            }}>
-              <i className="fa-solid fa-circle-info"></i>
-            </div>
-            <div>
-              <div style={{ fontSize: "0.92rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.2rem" }}>
-                Scientific Bibliography Ingestion Notice
+        {/* Ingestion Disclaimer & Scholar Claim Notice:
+            Only display for unauthenticated visitors viewing an UNCLAIMED scholar profile.
+            Never display if:
+            1. User is authenticated (currentUser exists)
+            2. Profile is already claimed (profile?.isClaimed is true)
+        */}
+        {!currentUser && !profile?.isClaimed && (
+          <div style={{
+            marginBottom: "1.5rem",
+            padding: "1rem 1.3rem",
+            borderRadius: "12px",
+            background: "linear-gradient(135deg, rgba(30, 58, 138, 0.05) 0%, rgba(13, 148, 136, 0.05) 100%)",
+            border: "1px solid rgba(13, 148, 136, 0.25)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "1rem"
+          }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "0.85rem", maxWidth: "800px" }}>
+              <div style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "8px",
+                background: "rgba(13, 148, 136, 0.15)",
+                color: "var(--color-primary)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                fontSize: "1.05rem"
+              }}>
+                <i className="fa-solid fa-circle-info"></i>
               </div>
-              <p style={{ margin: 0, fontSize: "0.84rem", color: "var(--color-text-muted)", lineHeight: 1.5 }}>
-                AfriJournal Index synchronizes authentic African citations and scholarship from Crossref, OpenAlex, and verified institutional repositories. Due to external indexing latency, some historical works may not yet be ingested in this snapshot. If you are this scholar, you can claim your profile or register to link your ORCID and Google Scholar records to ensure your complete bibliography is indexed.
-              </p>
+              <div>
+                <div style={{ fontSize: "0.92rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "0.2rem" }}>
+                  {t.researcher_page?.ingestion_notice_title || "Scientific Bibliography Ingestion Notice"}
+                </div>
+                <p style={{ margin: 0, fontSize: "0.84rem", color: "var(--color-text-muted)", lineHeight: 1.5 }}>
+                  {t.researcher_page?.ingestion_notice_desc || "AfriJournal Index synchronizes authentic African citations and scholarship from Crossref, OpenAlex, and verified institutional repositories. Due to external indexing latency, some historical works may not yet be ingested in this snapshot. If you are this scholar, claim this profile to link your ORCID and verify your complete bibliography."}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
-            {!profile?.isClaimed && (
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
               <button
                 type="button"
                 onClick={() => setShowClaimProfileModal(true)}
-                className="btn btn-outline-primary"
+                className="btn btn-primary"
                 style={{
                   fontSize: "0.82rem",
                   fontWeight: 600,
-                  padding: "0.5rem 1rem",
+                  padding: "0.5rem 1.1rem",
                   borderRadius: "8px",
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: "0.4rem"
+                  gap: "0.45rem"
                 }}
               >
                 <i className="fa-solid fa-user-check"></i>
-                <span>Claim Profile</span>
+                <span>{t.researcher_page?.claim_profile_btn || "Claim This Profile"}</span>
               </button>
-            )}
-            <a
-              href="/scholars?register=true"
-              className="btn btn-primary"
-              style={{
-                fontSize: "0.82rem",
-                fontWeight: 600,
-                padding: "0.5rem 1rem",
-                borderRadius: "8px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.4rem",
-                textDecoration: "none"
-              }}
-            >
-              <i className="fa-solid fa-user-plus"></i>
-              <span>Register as Scholar</span>
-            </a>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 5. Authored Publications Container with Clean Pagination */}
         <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>

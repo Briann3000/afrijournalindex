@@ -215,7 +215,12 @@
     "add_book_btn": "Adicionar Livro / Monografia",
     "add_consultancy_btn": "Adicionar Projeto",
     "add_innovation_btn": "Adicionar Inovação",
-    "add_media_btn": "Adicionar Aparição na Mídia"
+    "add_media_btn": "Adicionar Aparição na Mídia",
+    "unclaimed_profile_title": "Perfil de Pesquisador Não Reivindicado",
+    "unclaimed_profile_prompt": "Você é {name}? Este perfil foi selecionado a partir de registros acadêmicos verificados. Reivindique seu perfil para editar afiliações, gerenciar trabalhos e acessar seu painel.",
+    "claim_profile_btn": "Reivindicar Este Perfil",
+    "ingestion_notice_title": "Aviso de Ingestão de Bibliografia Científica",
+    "ingestion_notice_desc": "O AfriJournal Index sincroniza citações e produções acadêmicas africanas autênticas da Crossref, OpenAlex e repositórios institucionais verificados. Se você é este acadêmico, reivindique este perfil para vincular seu ORCID e verificar sua bibliografia completa."
   },
   "institution_page": {
     "title": "Consola de Investigação Institucional",
@@ -243,7 +248,25 @@
     "no_results": "Nenhum registo institucional encontrado com os critérios.",
     "search_table": "Filtrar tabela institucional...",
     "sort_by": "Ordenar Por",
-    "back_to_leaderboard": "← Voltar à Classificação Universitária"
+    "back_to_leaderboard": "← Voltar à Classificação Universitária",
+    "kenpro_verified": "Instituição Verificada pela KENPRO",
+    "kenpro_verified_desc": "Oficialmente credenciada e verificada pela Diretoria de Pesquisa Acadêmica da KENPRO.",
+    "auto_map_btn": "Mapeamento Automático pelo Site",
+    "mapping_website": "Mapeando site...",
+    "upload_crest_btn": "Carregar Brasão / Logotipo",
+    "accreditation_body_label": "Órgão de Acreditação",
+    "website_domain_label": "Domínio Acadêmico Oficial",
+    "hosted_journals_heading": "Revistas Hospedadas e Publicadas",
+    "no_hosted_journals": "Nenhuma revista registrada atualmente sob este perfil institucional.",
+    "verified_faculty_heading": "Pesquisadores e Docentes Filiados",
+    "claim_institution_title": "Reivindicar ou Verificar Perfil Institucional",
+    "claim_institution_desc": "Representantes autorizados podem reivindicar e verificar o perfil de sua instituição.",
+    "upload_verification_doc": "Documento de Credenciamento ou Estatuto (PDF/DOCX)",
+    "uploading_doc": "Enviando...",
+    "upload_success": "Arquivo enviado com sucesso.",
+    "upload_error": "Falha no envio seguro. Tipos permitidos: PDF, PNG, JPG (Máximo 10MB).",
+    "mapping_success": "Perfil institucional mapeado com sucesso a partir do site.",
+    "mapping_failed": "Não foi possível mapear automaticamente o site. Verifique o URL."
   },
   "submit_page": {
     "title": "Portal de Submissão de Revistas",
@@ -651,5 +674,131 @@
     "started_on": "Iniciado em",
     "publishing": "A publicar...",
     "posting": "A enviar..."
+  },
+  "services_page": {
+    "hero_badge": "Assessoria Acadêmica & Editorial AfriJournal",
+    "hero_title": "Publicação Acadêmica, Redação e Assessoria de Indexação",
+    "hero_subtitle": "O AfriJournal Index oferece consultoria institucional e para autores. Desde a implementação completa do OJS para universidades até a preparação para indexação na Scopus/WoS e revisão de manuscritos.",
+    "cta_consultation": "Solicitar Consulta",
+    "cta_explore": "Explorar Diretório",
+    "heading_title": "Sete Pilares Fundamentais de Publicação e Indexação",
+    "heading_subtitle": "Serviços especializados para universidades africanas, conselhos editoriais e pesquisadores.",
+    "tab_all": "Todos os Serviços",
+    "tab_institutions": "Instituições & Editoras",
+    "tab_researchers": "Pesquisadores & Autores",
+    "deliver_heading": "O que entregamos:",
+    "ideal_for": "Ideal para:",
+    "select_service": "Selecionar este Serviço",
+    "callout_title": "Você é um Diretor Universitário ou Editor de Periódico?",
+    "callout_desc": "O AfriJournal Index estabelece parcerias com universidades e sociedades científicas para lançar periódicos online, implementar plataformas OJS e preparar dossiês para indexação na Scopus e Web of Science.",
+    "callout_btn": "Falar com o Conselho Editorial",
+    "form_badge": "Solicitação de Consulta",
+    "form_title": "Solicitar Consulta Institucional ou de Autor",
+    "form_subtitle": "Nossos especialistas analisarão seus requisitos e responderão em 24 a 48 horas.",
+    "form_success_title": "Solicitação de Consulta Recebida",
+    "form_success_desc": "Obrigado, {name}. Um consultor editorial do AfriJournal recebeu sua solicitação referente a {serviceType} e entrará em contato em {email} em breve.",
+    "form_submit_another": "Enviar Outra Solicitação",
+    "form_view_drafts": "Ir para Publicações",
+    "label_name": "Nome Completo *",
+    "label_email": "E-mail Institucional *",
+    "label_institution": "Universidade / Instituição Acadêmica *",
+    "label_service": "Serviço Solicitado *",
+    "label_journal_name": "Nome da Revista ou Disciplina (se aplicável)",
+    "label_details": "Requisitos e Objetivos do Projeto *",
+    "placeholder_name": "Prof. / Dr. / Nome do Pesquisador",
+    "placeholder_email": "autor@universidade.ac",
+    "placeholder_institution": "ex.: Universidade Eduardo Mondlane / Agostinho Neto",
+    "placeholder_journal": "ex.: Revista Africana de Desenvolvimento Sustentável",
+    "placeholder_details": "Descreva as necessidades da sua revista ou do seu manuscrito...",
+    "btn_submit": "Enviar Solicitação de Consulta",
+    "btn_submitting": "Enviando Solicitação...",
+    "pillar_institutional": "Vertente Institucional e Editoras",
+    "pillar_researcher": "Vertente Pesquisadores e Autores",
+    "services": {
+      "ojs_setup": {
+        "title": "Criação de Revistas Universitárias e Incubação OJS",
+        "badge": "Para Universidades",
+        "description": "Implementação de infraestrutura de publicação digital completa em OJS para universidades africanas.",
+        "features": [
+          "Instalação e configuração completa do OJS 3.x no subdomínio da universidade.",
+          "Configuração de fluxos editoriais: revisão cega por pares e modelos de decisão.",
+          "Depósito automatizado de metadados OAI-PMH e registros de DOI (Crossref / Zenodo).",
+          "Conformidade com padrões éticos internacionais COPE e políticas anti-plágio."
+        ],
+        "idealFor": "Universidades, faculdades, diretorias de pesquisa e sociedades científicas."
+      },
+      "indexing_ajci": {
+        "title": "Indexação de Periódicos e Matriz de Citações AJCI",
+        "badge": "Indexação Oficial",
+        "description": "Indexação no repositório AfriJournal com cálculo transparente do fator de impacto AJCI de 2 anos.",
+        "features": [
+          "Listagem no diretório continental com mapeamento do ISSN verificado.",
+          "Fator de impacto continental de 2 anos (AJCI) calculado a partir de dados reais.",
+          "Quociente de Representação Regional (RRQ) medindo o impacto no desenvolvimento africano.",
+          "Selos digitais verificados e certificados de acreditação oficiais para download."
+        ],
+        "idealFor": "Periódicos acadêmicos africanos em busca de visibilidade e métricas comprovadas."
+      },
+      "scopus_prep": {
+        "title": "Preparação para Indexação na Scopus, Web of Science e DOAJ",
+        "badge": "Assessoria de Acreditação",
+        "description": "Auditoria técnica, ética e editorial para preparar periódicos para inclusão na Scopus e WoS.",
+        "features": [
+          "Auditoria prévia de critérios internacionais e diversidade geográfica do conselho.",
+          "Alinhamento rigoroso com as diretrizes internacionais de ética em publicação (COPE).",
+          "Montagem do dossiê formal de candidatura e seleção de artigos exemplares.",
+          "Acompanhamento e suporte durante a fase de avaliação do conselho CSAB."
+        ],
+        "idealFor": "Editores-chefes e diretorias editoriais visando reconhecimento internacional."
+      },
+      "rankings_advisory": {
+        "title": "Rankings Universitários e de Pesquisa",
+        "badge": "Avaliação Institucional",
+        "description": "Relatórios de benchmarking sobre a produtividade científica e métricas de citação em universidades da África.",
+        "features": [
+          "Comparação do desempenho de pesquisa entre faculdades e índice h por departamento.",
+          "Análise da velocidade de crescimento das citações e colaborações internacionais.",
+          "Páginas de perfil institucional verificadas no índice continental.",
+          "Apoio a processos de promoção docente, contratação e alocação de financiamentos."
+        ],
+        "idealFor": "Reitores, Vice-Reitores de Pesquisa e Diretores de Bibliotecas Universitárias."
+      },
+      "afrischolar_id": {
+        "title": "Indexação AfriScholar e Identificador de Pesquisador (ASID)",
+        "badge": "Para Pesquisadores",
+        "description": "Identificador acadêmico africano permanente (ASID) que unifica ORCID e Google Scholar num perfil autenticado.",
+        "features": [
+          "Identificador permanente ASID para processos de progressão e candidaturas a bolsas.",
+          "Sincronização direta com registros de publicações no ORCID e Google Scholar.",
+          "Dossiê acadêmico completo em PDF comprovando livros, consultorias e inovações.",
+          "Alertas em tempo real sobre novas citações recebidas em periódicos africanos."
+        ],
+        "idealFor": "Professores, pesquisadores e pós-graduandos em todas as universidades de África."
+      },
+      "manuscript_review": {
+        "title": "Revisão de Manuscritos no Portal de Avaliadores",
+        "badge": "Portal de Revisores",
+        "description": "Simulação de avaliação por pares cega antes do envio formal, conduzida por especialistas da sua disciplina.",
+        "features": [
+          "Análise aprofundada da metodologia científica, amostragem e modelos estatísticos.",
+          "Varredura prévia de originalidade para prevenir conflitos de plágio e direitos autorais.",
+          "Parecer técnico com recomendações claras para diminuir rejeições editoriais.",
+          "Atribuição a pareceristas rigorosamente qualificados na sua área de especialidade."
+        ],
+        "idealFor": "Autores que desejam submeter a periódicos conceituados (Q1/Q2) e buscam feedback criterioso."
+      },
+      "manuscript_prep": {
+        "title": "Preparação de Manuscritos e Normatização Técnica",
+        "badge": "Apoio ao Autor",
+        "description": "Apoio prático para formatação e estruturação de artigos científicos e teses para publicação.",
+        "features": [
+          "Estruturação conforme as normas IMRAD (Introdução, Metodologia, Resultados, Discussão).",
+          "Normatização rigorosa de referências e citações (APA 7ª, Harvard, Vancouver, IEEE).",
+          "Polimento da língua inglesa acadêmica para garantir clareza, fluidez e rigor científico.",
+          "Otimização do título e resumo para aumentar o alcance em buscadores acadêmicos."
+        ],
+        "idealFor": "Pesquisadores em início de carreira e doutorandos que preparam seus artigos para publicação."
+      }
+    }
   }
 }

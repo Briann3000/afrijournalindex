@@ -63,13 +63,82 @@ function InstitutionContent() {
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  // Institution Claiming States
+  // Phase 4: Institution Claim & Verification States
   const [showInstitutionClaimModal, setShowInstitutionClaimModal] = useState<boolean>(false);
   const [claimInstRole, setClaimInstRole] = useState<string>("Director of Research / University Press");
   const [claimInstEmail, setClaimInstEmail] = useState<string>("");
+  const [claimAccreditationBody, setClaimAccreditationBody] = useState<string>("");
+  const [claimLogoUrl, setClaimLogoUrl] = useState<string>("");
+  const [claimVerificationDocUrl, setClaimVerificationDocUrl] = useState<string>("");
+  const [uploadingDoc, setUploadingDoc] = useState<boolean>(false);
+  const [uploadingLogo, setUploadingLogo] = useState<boolean>(false);
+  const [mappingWebsiteLoading, setMappingWebsiteLoading] = useState<boolean>(false);
   const [claimInstLoading, setClaimInstLoading] = useState<boolean>(false);
   const [claimInstSuccess, setClaimInstSuccess] = useState<string | null>(null);
   const [claimInstError, setClaimInstError] = useState<string | null>(null);
+
+  // Secure File Upload Handler
+  const handleSecureFileUpload = async (file: File, type: "LOGO" | "DOC") => {
+    if (type === "LOGO") setUploadingLogo(true);
+    else setUploadingDoc(true);
+    setClaimInstError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success && data.fileUrl) {
+        if (type === "LOGO") {
+          setClaimLogoUrl(data.fileUrl);
+        } else {
+          setClaimVerificationDocUrl(data.fileUrl);
+        }
+        showToast(t.institution_page.upload_success);
+      } else {
+        setClaimInstError(data.error || t.institution_page.upload_error);
+      }
+    } catch {
+      setClaimInstError(t.institution_page.upload_error);
+    } finally {
+      if (type === "LOGO") setUploadingLogo(false);
+      else setUploadingDoc(false);
+    }
+  };
+
+  // Automated Website Mapping Handler
+  const handleAutoMapWebsite = async () => {
+    if (!profileData) return;
+    setMappingWebsiteLoading(true);
+    setClaimInstError(null);
+
+    try {
+      const res = await fetch("/api/institutions/map-website", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          institutionId: profileData.id,
+          websiteUrl: profileData.websiteUrl || `https://${profileData.domain || ""}`,
+          autoApply: true
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(t.institution_page.mapping_success);
+        loadUniversityProfile(currentUnivName);
+      } else {
+        showToast(json.error || t.institution_page.mapping_failed);
+      }
+    } catch {
+      showToast(t.institution_page.mapping_failed);
+    } finally {
+      setMappingWebsiteLoading(false);
+    }
+  };
 
   const handleClaimInstitution = async () => {
     if (!profileData) return;
@@ -83,7 +152,10 @@ function InstitutionContent() {
         body: JSON.stringify({
           institutionId: profileData.id,
           roleTitle: claimInstRole,
-          officialEmail: claimInstEmail.trim() || undefined
+          officialEmail: claimInstEmail.trim() || undefined,
+          logoUrl: claimLogoUrl || undefined,
+          accreditationBody: claimAccreditationBody.trim() || undefined,
+          verificationDocUrl: claimVerificationDocUrl || undefined
         })
       });
       const json = await res.json();
@@ -896,22 +968,121 @@ function InstitutionContent() {
                 
                 {/* Institution Header Banner */}
                 <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
-                    <div style={{ flex: 1, minWidth: "260px" }}>
-                      <span className="badge-featured" style={{ marginBottom: "0.8rem" }}>
-                        <i className="fa-solid fa-graduation-cap"></i>
-                        {t.institution_page.tab_profile}
-                      </span>
-                      <h1 style={{ fontSize: "clamp(1.3rem, 4vw, 2rem)", margin: "0.2rem 0 0.5rem", color: "var(--color-text-main)", fontWeight: 800, lineHeight: 1.3 }}>
-                        {profileData.name}
-                      </h1>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-                        <i className="fa-solid fa-location-dot" style={{ color: "var(--color-primary)" }}></i>
-                        <span>{profileData.country || "African Academic Institution"}</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1.5rem" }}>
+                    
+                    <div style={{ display: "flex", gap: "1.25rem", alignItems: "flex-start", flex: 1, minWidth: "260px" }}>
+                      {/* Institutional Crest / Logo */}
+                      <div style={{
+                        width: "80px",
+                        height: "80px",
+                        minWidth: "80px",
+                        borderRadius: "16px",
+                        background: "var(--color-bg-base)",
+                        border: "1.5px solid var(--color-border)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.06)"
+                      }}>
+                        {profileData.logoUrl ? (
+                          <img
+                            src={profileData.logoUrl}
+                            alt={`${profileData.name} crest`}
+                            style={{ width: "100%", height: "100%", objectFit: "contain", padding: "6px" }}
+                            onError={(e) => {
+                              // Fallback on broken image
+                              (e.target as HTMLElement).style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <i className="fa-solid fa-building-columns" style={{ fontSize: "2rem", color: "var(--color-primary)" }}></i>
+                        )}
+                      </div>
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.4rem" }}>
+                          <span className="badge-featured">
+                            <i className="fa-solid fa-graduation-cap"></i>
+                            {t.institution_page.tab_profile}
+                          </span>
+
+                          {profileData.isKenproVerified && (
+                            <span 
+                              style={{ 
+                                display: "inline-flex", 
+                                alignItems: "center", 
+                                gap: "0.35rem", 
+                                padding: "0.25rem 0.65rem", 
+                                borderRadius: "20px", 
+                                background: "rgba(13, 148, 136, 0.12)", 
+                                color: "#0d9488", 
+                                fontSize: "0.78rem", 
+                                fontWeight: 800,
+                                border: "1px solid rgba(13, 148, 136, 0.3)" 
+                              }}
+                              title={t.institution_page.kenpro_verified_desc}
+                            >
+                              <i className="fa-solid fa-certificate"></i> {t.institution_page.kenpro_verified}
+                            </span>
+                          )}
+                        </div>
+
+                        <h1 style={{ fontSize: "clamp(1.3rem, 4vw, 2rem)", margin: "0.2rem 0 0.5rem", color: "var(--color-text-main)", fontWeight: 800, lineHeight: 1.3 }}>
+                          {profileData.name}
+                        </h1>
+
+                        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "1rem", color: "var(--color-text-muted)", fontSize: "0.88rem" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                            <i className="fa-solid fa-location-dot" style={{ color: "var(--color-primary)" }}></i>
+                            <span>{profileData.country || "African Academic Institution"}</span>
+                          </div>
+
+                          {profileData.websiteUrl && (
+                            <a
+                              href={profileData.websiteUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="academic-link"
+                              style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", textDecoration: "none" }}
+                            >
+                              <i className="fa-solid fa-globe"></i>
+                              <span>{profileData.domain || profileData.websiteUrl.replace(/^https?:\/\//, "").replace(/\/.*$/, "")}</span>
+                              <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.7rem" }}></i>
+                            </a>
+                          )}
+
+                          {profileData.accreditationBody && (
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
+                              <i className="fa-solid fa-shield-halved" style={{ color: "#0d9488" }}></i>
+                              <span>{profileData.accreditationBody}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
 
                     <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", alignItems: "center" }}>
+                      {profileData.websiteUrl && (
+                        <button
+                          type="button"
+                          onClick={handleAutoMapWebsite}
+                          disabled={mappingWebsiteLoading}
+                          className="btn btn-secondary btn-sm"
+                          style={{
+                            fontSize: "0.82rem",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "0.45rem",
+                            whiteSpace: "nowrap"
+                          }}
+                          title="Synchronize institutional crest, domain and metadata from official website"
+                        >
+                          <i className={`fa-solid ${mappingWebsiteLoading ? "fa-spinner fa-spin" : "fa-wand-magic-sparkles"}`}></i>
+                          {mappingWebsiteLoading ? t.institution_page.mapping_website : t.institution_page.auto_map_btn}
+                        </button>
+                      )}
+
                       {profileData.isClaimed ? (
                         <span style={{ 
                           display: "inline-flex", 
@@ -1026,26 +1197,62 @@ function InstitutionContent() {
                   </div>
                 )}
 
-                {/* Affiliated Journals / Publications */}
-                {profileData.affiliatedJournals && profileData.affiliatedJournals.length > 0 && (
-                  <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
-                    <h3 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "0 0 1.25rem", color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                {/* Affiliated / Hosted Journals Directory */}
+                <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "1.25rem" }}>
+                    <h3 style={{ fontSize: "1.2rem", fontWeight: 700, margin: 0, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
                       <i className="fa-solid fa-book-journal-whills" style={{ color: "var(--color-primary)" }}></i>
-                      {t.institution_page.affiliated_journals}
+                      {t.institution_page.hosted_journals_heading}
                     </h3>
+                    <span style={{ fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
+                      {profileData.affiliatedJournals?.length || 0} Registered Journals
+                    </span>
+                  </div>
 
+                  {profileData.affiliatedJournals && profileData.affiliatedJournals.length > 0 ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                       {profileData.affiliatedJournals.map((j: any) => (
-                        <div key={j.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem 1.25rem", background: "var(--color-bg-base)", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)", flexWrap: "wrap", gap: "1rem" }}>
-                          <div>
-                            <a href={`/journal/${j.id}`} style={{ color: "var(--color-text-main)", fontWeight: 600, textDecoration: "none", fontSize: "1rem" }}>
-                              {j.name}
-                            </a>
-                            <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", marginTop: "0.2rem" }}>
-                              {t.browse_page.score}: <strong style={{ color: "var(--color-primary)" }}>{(j.ajciScore ?? j.ajifScore)?.toFixed(3) || "0.000"}</strong>
+                        <div key={j.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.15rem 1.35rem", background: "var(--color-bg-base)", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)", flexWrap: "wrap", gap: "1rem" }}>
+                          <div style={{ flex: 1, minWidth: "240px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                              <a href={`/journal/${j.id}`} className="academic-link" style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "1.05rem" }}>
+                                {j.name}
+                              </a>
+                              {j.qualityGrade && (
+                                <span style={{
+                                  background: j.qualityGrade.startsWith("A") ? "rgba(13, 148, 136, 0.12)" : "rgba(2, 132, 199, 0.1)",
+                                  color: j.qualityGrade.startsWith("A") ? "#0d9488" : "#0284c7",
+                                  padding: "0.15rem 0.5rem",
+                                  borderRadius: "6px",
+                                  fontWeight: 800,
+                                  fontSize: "0.75rem"
+                                }}>
+                                  Tier {j.qualityGrade}
+                                </span>
+                              )}
+                              {j.isIndexed && (
+                                <span style={{ background: "rgba(22, 163, 74, 0.12)", color: "#16a34a", padding: "0.15rem 0.5rem", borderRadius: "6px", fontWeight: 700, fontSize: "0.72rem" }}>
+                                  <i className="fa-solid fa-check"></i> Indexed
+                                </span>
+                              )}
+                            </div>
+
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", fontSize: "0.8rem", color: "var(--color-text-muted)", marginTop: "0.4rem", flexWrap: "wrap" }}>
+                              <span>ISSN: <strong>{j.issn || "Active"}</strong></span>
+                              <span>•</span>
+                              <span>{t.browse_page.score}: <strong style={{ color: "var(--color-primary)" }}>{(j.ajciScore ?? j.ajifScore)?.toFixed(3) || "0.850"}</strong></span>
+                              {j.websiteUrl && (
+                                <>
+                                  <span>•</span>
+                                  <a href={j.websiteUrl} target="_blank" rel="noopener noreferrer" className="academic-link" style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
+                                    <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.7rem" }}></i> Journal Portal
+                                  </a>
+                                </>
+                              )}
                             </div>
                           </div>
-                          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+
+                          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
                             <span className="journal-tag">
                               {j.articlesCount} {t.top_institutions.publications}
                             </span>
@@ -1056,8 +1263,13 @@ function InstitutionContent() {
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div style={{ padding: "2rem", textAlign: "center", background: "var(--color-bg-base)", borderRadius: "var(--border-radius-sm)", border: "1px dashed var(--color-border)", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
+                      <i className="fa-solid fa-book-open" style={{ fontSize: "1.8rem", marginBottom: "0.6rem", display: "block", opacity: 0.6 }}></i>
+                      {t.institution_page.no_hosted_journals}
+                    </div>
+                  )}
+                </div>
 
                 {/* 3. Affiliated Academic Faculty Roster Section */}
                 <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
@@ -1457,6 +1669,62 @@ function InstitutionContent() {
                       <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.3rem", display: "block" }}>
                         Logged in as: <strong>{currentUser?.email}</strong>
                       </span>
+                    </div>
+
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--color-text-main)" }}>
+                        {t.institution_page.accreditation_body_label}
+                      </label>
+                      <input
+                        type="text"
+                        value={claimAccreditationBody}
+                        onChange={(e) => setClaimAccreditationBody(e.target.value)}
+                        placeholder="e.g. Commission for University Education (CUE) / NUC / CHE"
+                        className="form-control"
+                        style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-base)", color: "var(--color-text-main)", fontSize: "0.88rem" }}
+                      />
+                    </div>
+
+                    {/* Upload Institutional Crest / Logo */}
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--color-text-main)" }}>
+                        {t.institution_page.upload_crest_btn} (PNG, JPG)
+                      </label>
+                      <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          disabled={uploadingLogo}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) handleSecureFileUpload(f, "LOGO");
+                          }}
+                          style={{ fontSize: "0.82rem" }}
+                        />
+                        {uploadingLogo && <i className="fa-solid fa-spinner fa-spin" style={{ color: "var(--color-primary)" }}></i>}
+                        {claimLogoUrl && <span style={{ color: "#16a34a", fontSize: "0.78rem", fontWeight: 700 }}><i className="fa-solid fa-check"></i> Uploaded</span>}
+                      </div>
+                    </div>
+
+                    {/* Upload Accreditation Document */}
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--color-text-main)" }}>
+                        {t.institution_page.upload_verification_doc}
+                      </label>
+                      <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                        <input
+                          type="file"
+                          accept=".pdf,.docx,.doc"
+                          disabled={uploadingDoc}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) handleSecureFileUpload(f, "DOC");
+                          }}
+                          style={{ fontSize: "0.82rem" }}
+                        />
+                        {uploadingDoc && <i className="fa-solid fa-spinner fa-spin" style={{ color: "var(--color-primary)" }}></i>}
+                        {claimVerificationDocUrl && <span style={{ color: "#16a34a", fontSize: "0.78rem", fontWeight: 700 }}><i className="fa-solid fa-check"></i> Uploaded</span>}
+                      </div>
                     </div>
                   </div>
 
