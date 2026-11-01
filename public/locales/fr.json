@@ -5,7 +5,7 @@
     "browse": "Parcourir l'Annuaire",
     "submit": "Soumettre une Revue",
     "pricing": "Tarifs",
-    "rankings": "Classements & Quartiles",
+    "rankings": "Classements",
     "institution": "Classements Institutionnels",
     "researcher": "Profil Chercheur",
     "about": "À Propos",
@@ -24,7 +24,8 @@
     "afrischolar": "Afri Scholar",
     "browse_afrischolar": "Explorer Afri Scholar",
     "register_afrischolar": "S'inscrire comme Afri Scholar",
-    "articles_and_books": "Articles et Livres"
+    "articles_and_books": "Articles et Livres",
+    "journal_rankings": "Classement des Revues"
   },
   "hero": {
     "pre_badge": "Index Savant Panafricain & Autorité Bibliométrique",

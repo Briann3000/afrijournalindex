@@ -5,7 +5,7 @@
     "browse": "تصفح الدليل",
     "submit": "تقديم مجلة",
     "pricing": "الأسعار والتقارير",
-    "rankings": "التصنيفات والأرباع",
+    "rankings": "التصنيفات",
     "institution": "تصنيفات الجامعات والمؤسسات",
     "researcher": "الملف الأكاديمي للباحث",
     "about": "من نحن",
@@ -24,7 +24,8 @@
     "afrischolar": "Afri Scholar",
     "browse_afrischolar": "تصفح Afri Scholar",
     "register_afrischolar": "سجل كباحث في Afri Scholar",
-    "articles_and_books": "المقالات والكتب"
+    "articles_and_books": "المقالات والكتب",
+    "journal_rankings": "تصنيفات المجلات"
   },
   "hero": {
     "pre_badge": "الفهرس الأكاديمي الإفريقي الشامل والمرجعية الببليومترية",

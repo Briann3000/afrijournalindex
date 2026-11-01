@@ -205,6 +205,35 @@ export async function GET(request: Request) {
   }
 }
 
+function validateExternalUrl(urlString: string): { valid: boolean; error?: string } {
+  try {
+    const parsed = new URL(urlString.trim());
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return { valid: false, error: "Only HTTP and HTTPS links are permitted." };
+    }
+    const host = parsed.hostname.toLowerCase();
+    if (
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host === "::1" ||
+      host === "0.0.0.0" ||
+      host.endsWith(".local") ||
+      host.endsWith(".internal") ||
+      host.startsWith("192.168.") ||
+      host.startsWith("10.") ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)
+    ) {
+      return { valid: false, error: "External URL cannot point to internal or private addresses." };
+    }
+    if (!host.includes(".")) {
+      return { valid: false, error: "Invalid domain address for external website link." };
+    }
+    return { valid: true };
+  } catch {
+    return { valid: false, error: "Malformed URL format. Please provide a complete URL starting with https://" };
+  }
+}
+
 // POST /api/posts - Create a new unified scholarly post / draft
 export async function POST(request: Request) {
   try {
@@ -232,12 +261,30 @@ export async function POST(request: Request) {
     const cleanContent = content ? content.trim() : "";
     const cleanTags = Array.isArray(tags) ? tags.join(", ") : (tags ? tags.trim() : null);
 
-    // Normalize attachmentType
+    // Word limit check: Maximum 500 words for scholarly community posts
+    if (cleanContent) {
+      const words = cleanContent.split(/\s+/).filter(Boolean);
+      if (words.length > 500) {
+        return NextResponse.json(
+          { success: false, error: `Post exceeds the 500-word limit (${words.length} words detected). Please shorten your post content.` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Normalize attachmentType & security check external URLs
     let normAttachmentType = null;
     if (attachmentUrl) {
       const typeUpper = (attachmentType || "").toUpperCase();
-      if (typeUpper.includes("LINK") || typeUpper.includes("URL") || typeUpper.includes("ARTICLE")) {
+      if (typeUpper.includes("LINK") || typeUpper.includes("URL") || typeUpper.includes("ARTICLE") || attachmentUrl.startsWith("http://") || attachmentUrl.startsWith("https://")) {
         normAttachmentType = "LINK";
+        const urlValidation = validateExternalUrl(attachmentUrl);
+        if (!urlValidation.valid) {
+          return NextResponse.json(
+            { success: false, error: urlValidation.error },
+            { status: 400 }
+          );
+        }
       } else if (typeUpper.includes("IMAGE") || typeUpper.includes("PHOTO")) {
         normAttachmentType = "IMAGE";
       } else if (typeUpper.includes("AUDIO") || typeUpper.includes("SOUND") || typeUpper.includes("VOICE")) {

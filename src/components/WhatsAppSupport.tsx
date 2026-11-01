@@ -1,9 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
+import { usePathname } from "next/navigation";
 
 export default function WhatsAppSupport() {
   const [hovered, setHovered] = useState(false);
+  const pathname = usePathname();
+
+  // Hide WhatsApp support button on admin pages
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <div

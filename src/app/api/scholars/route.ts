@@ -341,6 +341,9 @@ export async function GET(request: Request) {
       where: {
         OR: [
           { role: "RESEARCHER" },
+          { totalCitations: { gt: 0 } },
+          { openAlexId: { not: null } },
+          { orcid: { not: null } },
           { claims: { some: { status: "VERIFIED" } } }
         ]
       },

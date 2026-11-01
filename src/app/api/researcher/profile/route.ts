@@ -172,13 +172,14 @@ export async function GET(request: Request) {
 
     const nameQuery = cleanId.replace(/[-_]+/g, " ");
 
-    // Support flexible short ID: exact UUID, full email, email prefix (e.g. "wanjohi"), slugified name ("anthony-wanjohi"), or ORCID
-    // Prefer exact unique matches first (UUID, email, ORCID, exact full name) to prevent partial substring collision between distinct scholars
+    // Support flexible short ID: exact UUID, full email, email prefix (e.g. "wanjohi" matching "wanjohi@kenpro.org"), slugified name ("anthony-wanjohi"), or ORCID
+    // Prefer exact unique matches first (UUID, email, email prefix, ORCID, exact full name) to prevent partial substring collision between distinct scholars
     let user = await prisma.user.findFirst({
       where: {
         OR: [
           { id: cleanId },
           { email: cleanId.toLowerCase() },
+          { email: { startsWith: `${cleanId.toLowerCase()}@` } },
           { orcid: cleanId },
           { orcid: { endsWith: cleanId } },
           { name: { equals: nameQuery } }
@@ -776,8 +777,13 @@ export async function GET(request: Request) {
       }
     }
 
+    const rawScholarUrl = user.googleScholarUrl || dossier.externalLinks?.googleScholar || null;
+    const isValidScholarProfile = rawScholarUrl && rawScholarUrl.includes("citations?user=");
+    const scholarUrlFallback = `https://scholar.google.com/scholar?q=${encodeURIComponent(user.name)}`;
+
     const consolidatedLinks = {
-      googleScholar: user.googleScholarUrl || dossier.externalLinks?.googleScholar || null,
+      googleScholar: isValidScholarProfile ? rawScholarUrl : (rawScholarUrl || scholarUrlFallback),
+      googleScholarSearchFallback: scholarUrlFallback,
       orcid: user.orcid ? `https://orcid.org/${user.orcid.replace(/https?:\/\/orcid\.org\//i, "")}` : (dossier.externalLinks?.orcid || null),
       amazonAuthor: dossier.externalLinks?.amazonAuthor || null,
       academia: dossier.externalLinks?.academia || null,

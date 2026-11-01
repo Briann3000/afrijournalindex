@@ -448,8 +448,9 @@ export default function Submit() {
                         value={formData.frequency}
                         onChange={handleChange}
                       >
-                        <option value="Quarterly">Quarterly (4 issues/yr)</option>
+                        <option value="Quarterly">Quarterly (3 issues/yr — Termly)</option>
                         <option value="Biannual">Biannual (2 issues/yr)</option>
+                        <option value="FourIssues">Four Issues/yr (Quarterly - Every 3 months)</option>
                         <option value="Monthly">Monthly (12 issues/yr)</option>
                         <option value="Continuous">Continuous Open Access</option>
                       </select>

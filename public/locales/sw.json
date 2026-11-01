@@ -5,7 +5,7 @@
     "browse": "Vinjari Orodha",
     "submit": "Wasilisha Jarida",
     "pricing": "Gharama & Ripoti",
-    "rankings": "Viwango & Robo (Q1-Q4)",
+    "rankings": "Viwango",
     "institution": "Viwango vya Taasisi na Vyuo",
     "researcher": "Wasifu wa Mtafiti",
     "about": "Kuhusu Sisi",
@@ -24,7 +24,8 @@
     "afrischolar": "Afri Scholar",
     "browse_afrischolar": "Vinjari Afri Scholar",
     "register_afrischolar": "Jisajili kama Afri Scholar",
-    "articles_and_books": "Makala na Vitabu"
+    "articles_and_books": "Makala na Vitabu",
+    "journal_rankings": "Nafasi za Majarida"
   },
   "hero": {
     "pre_badge": "Kielezo cha Kitaaluma cha Afrika Nzima & Mamlaka ya Vipimo",
