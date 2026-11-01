@@ -152,7 +152,7 @@ export default function AfricaMap() {
     <div className="africa-map-wrapper" style={{ width: "100%", margin: "0 auto" }}>
       
       {/* Interactive Map Canvas Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "2rem", alignItems: "center" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: "2rem", alignItems: "center" }}>
         
         {/* Left Column: Full Pan-African Topology Vector Map */}
         <div style={{ minWidth: 0, width: "100%", position: "relative", background: "var(--color-bg-card)", borderRadius: "16px", padding: "1.25rem", border: "1px solid var(--color-border)", boxShadow: "0 4px 20px -4px rgba(15, 23, 42, 0.06)" }}>

@@ -5,7 +5,7 @@
     "browse": "Vinjari Orodha",
     "submit": "Wasilisha Jarida",
     "pricing": "Gharama & Ripoti",
-    "rankings": "Viwango & Robo (Q1-Q4)",
+    "rankings": "Viwango",
     "institution": "Viwango vya Taasisi na Vyuo",
     "researcher": "Wasifu wa Mtafiti",
     "about": "Kuhusu Sisi",
@@ -20,7 +20,14 @@
     "indexing_portal": "Tovuti ya Uorodheshaji",
     "group_journals": "Majarida & Maombi",
     "group_metrics": "Viwango & Taasisi",
-    "group_about": "Kuhusu & Nyenzo"
+    "group_about": "Kuhusu & Nyenzo",
+    "resources": "Rasilimali",
+    "ethics": "Maadili ya Uchapishaji",
+    "predatory": "Kuepuka Majarida ya Ulaghai",
+    "open_access": "Ufikiaji Huria Afrika",
+    "ajci_guide": "Mwongozo wa Vipimo vya AJCI",
+    "services": "Huduma",
+    "journal_rankings": "Nafasi za Majarida"
   },
   "hero": {
     "pre_badge": "Kielezo cha Kitaaluma cha Afrika Nzima & Mamlaka ya Vipimo",

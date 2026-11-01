@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLang } from "./LangContext";
 
 interface HeaderProps {
-  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about" | "compare" | "referee-finder" | "scholars" | "forum" | "posts" | "services" | "community" | "review" | "reviewer";
+  activePage?: "home" | "browse" | "rankings" | "submit" | "pricing" | "about" | "compare" | "referee-finder" | "scholars" | "forum" | "posts" | "services" | "community" | "review" | "reviewer" | "resources";
 }
 
 export default function Header({ activePage }: HeaderProps) {
@@ -18,6 +18,10 @@ export default function Header({ activePage }: HeaderProps) {
   const [mobileExpanded, setMobileExpanded] = useState<{ [key: string]: boolean }>({
     journals: false,
     rankings: false,
+    afrischolar: false,
+    community: false,
+    services: false,
+    resources: false,
     about: false,
   });
   const [user, setUser] = useState<any>(null);
@@ -231,7 +235,7 @@ export default function Header({ activePage }: HeaderProps) {
               onMouseEnter={() => setOpenDropdown("rankings")}
               style={{ background: "none", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}
             >
-              <span>{t.nav.rankings}</span>
+              <span>{t?.nav?.rankings || "Rankings"}</span>
               <i className="fa-solid fa-chevron-down" style={{ fontSize: "0.68rem", opacity: 0.8, transition: "transform 0.2s", transform: openDropdown === "rankings" ? "rotate(180deg)" : "rotate(0deg)" }}></i>
             </button>
 
@@ -254,11 +258,11 @@ export default function Header({ activePage }: HeaderProps) {
               >
                 <a href="/rankings" className="nav-dropdown-item">
                   <i className="fa-solid fa-chart-line" style={{ color: "#f59e0b", width: "20px" }}></i>
-                  <span>{t.nav.rankings}</span>
+                  <span>{t?.nav?.journal_rankings || "Journal Rankings"}</span>
                 </a>
                 <a href="/institution" className="nav-dropdown-item">
                   <i className="fa-solid fa-building-columns" style={{ color: "#f59e0b", width: "20px" }}></i>
-                  <span>{t.nav.institution}</span>
+                  <span>{t?.nav?.institution || "Institutional Rankings"}</span>
                 </a>
               </div>
             )}
@@ -411,7 +415,7 @@ export default function Header({ activePage }: HeaderProps) {
           <div className="nav-dropdown-wrapper" style={{ position: "relative" }}>
             <button 
               type="button"
-              className="nav-link nav-dropdown-btn"
+              className={`nav-link nav-dropdown-btn ${activePage === "resources" ? "active" : ""}`}
               onClick={() => toggleDropdown("resources_menu")}
               onMouseEnter={() => setOpenDropdown("resources_menu")}
               style={{ background: "none", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}
@@ -453,7 +457,7 @@ export default function Header({ activePage }: HeaderProps) {
                   <i className="fa-solid fa-chart-pie" style={{ color: "#38bdf8", width: "20px" }}></i>
                   <span>AJCI Evaluation &amp; Metrics Guide</span>
                 </a>
-                <a href="/review/submit" className="nav-dropdown-item">
+                <a href="/resources/peer-review" className="nav-dropdown-item">
                   <i className="fa-solid fa-file-shield" style={{ color: "#a855f7", width: "20px" }}></i>
                   <span>Peer Review Guidelines</span>
                 </a>
@@ -471,15 +475,15 @@ export default function Header({ activePage }: HeaderProps) {
             <button 
               type="button"
               className={`nav-link nav-dropdown-btn ${activePage === "about" ? "active" : ""}`}
-              onClick={() => toggleDropdown("resources")}
-              onMouseEnter={() => setOpenDropdown("resources")}
+              onClick={() => toggleDropdown("about")}
+              onMouseEnter={() => setOpenDropdown("about")}
               style={{ background: "none", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}
             >
               <span>{t.nav.about}</span>
-              <i className="fa-solid fa-chevron-down" style={{ fontSize: "0.68rem", opacity: 0.8, transition: "transform 0.2s", transform: openDropdown === "resources" ? "rotate(180deg)" : "rotate(0deg)" }}></i>
+              <i className="fa-solid fa-chevron-down" style={{ fontSize: "0.68rem", opacity: 0.8, transition: "transform 0.2s", transform: openDropdown === "about" ? "rotate(180deg)" : "rotate(0deg)" }}></i>
             </button>
 
-            {openDropdown === "resources" && (
+            {openDropdown === "about" && (
               <div 
                 className="nav-dropdown-menu"
                 onMouseLeave={() => setOpenDropdown(null)}
@@ -936,21 +940,16 @@ export default function Header({ activePage }: HeaderProps) {
                     onClick={() => setIsMobileMenuOpen(false)} 
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
-                    <i className="fa-solid fa-file-shield" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
-                    <span>Reviewer Portal</span>
+                    <i className="fa-solid fa-user-check" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Reviewer Finder</span>
                   </Link>
                   <Link 
                     href="/reviewer" 
                     onClick={() => setIsMobileMenuOpen(false)} 
-                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", justifyContent: "space-between", textDecoration: "none" }}
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <i className="fa-solid fa-list-check" style={{ color: "var(--color-primary)", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
-                      <span>Reviewer Workspace</span>
-                    </div>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, padding: "2px 7px", borderRadius: "8px", background: "rgba(16, 185, 129, 0.2)", color: "#10b981" }}>
-                      Referees
-                    </span>
+                    <i className="fa-solid fa-list-check" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Reviewer Desk</span>
                   </Link>
                   <Link 
                     href="/submit" 
@@ -993,7 +992,7 @@ export default function Header({ activePage }: HeaderProps) {
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <i className="fa-solid fa-chart-line" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
-                  <span>{t.nav.rankings}</span>
+                  <span>{t?.nav?.rankings || "Rankings"}</span>
                 </div>
                 <i 
                   className="fa-solid fa-chevron-down" 
@@ -1013,7 +1012,7 @@ export default function Header({ activePage }: HeaderProps) {
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
                     <i className="fa-solid fa-chart-line" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
-                    <span>{t.nav.rankings}</span>
+                    <span>{t?.nav?.journal_rankings || "Journal Rankings"}</span>
                   </Link>
                   <Link 
                     href="/institution" 
@@ -1021,7 +1020,7 @@ export default function Header({ activePage }: HeaderProps) {
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
                     <i className="fa-solid fa-building-columns" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
-                    <span>{t.nav.institution}</span>
+                    <span>{t?.nav?.institution || "Institutional Rankings"}</span>
                   </Link>
                 </div>
               )}
@@ -1124,7 +1123,7 @@ export default function Header({ activePage }: HeaderProps) {
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
                     <i className="fa-solid fa-scroll" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
-                    <span>Scholarly Posts &amp; Drafts</span>
+                    <span>Posts</span>
                   </Link>
                   <Link 
                     href="/forum" 
@@ -1138,19 +1137,179 @@ export default function Header({ activePage }: HeaderProps) {
               )}
             </div>
 
-            {/* Standalone Services Link */}
+            {/* Mobile Accordion: Services */}
             <div style={{ borderTop: "1px solid #1e293b", paddingTop: "0.85rem" }}>
-              <Link 
-                href="/services" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`nav-link ${activePage === "services" ? "active" : ""}`}
-                style={{ fontSize: "1.05rem", fontWeight: 600, color: "#ffffff", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+              <button 
+                type="button"
+                onClick={() => toggleMobileSection("services")}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  background: "none",
+                  border: "none",
+                  color: "#ffffff",
+                  fontSize: "1.05rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  padding: "0.4rem 0"
+                }}
               >
-                <i className="fa-solid fa-pen-ruler" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
-                <span>Services</span>
-              </Link>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <i className="fa-solid fa-pen-ruler" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
+                  <span>{t.nav.services || "Services"}</span>
+                </div>
+                <i 
+                  className="fa-solid fa-chevron-down" 
+                  style={{ 
+                    fontSize: "0.8rem", 
+                    color: "#94a3b8",
+                    transition: "transform 0.2s ease",
+                    transform: mobileExpanded.services ? "rotate(180deg)" : "rotate(0deg)"
+                  }}
+                ></i>
+              </button>
+              {mobileExpanded.services && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", padding: "0.6rem 0 0.4rem 1.75rem" }}>
+                  <Link 
+                    href="/services#ojs_setup" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-server" style={{ color: "#0284c7", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>OJS Setup &amp; Online Incubation</span>
+                  </Link>
+                  <Link 
+                    href="/services#indexing_ajci" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-chart-line" style={{ color: "#16a34a", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Journal Indexing &amp; AJCI Citation Matrix</span>
+                  </Link>
+                  <Link 
+                    href="/services#scopus_prep" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-award" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Scopus, WoS &amp; DOAJ Preparation</span>
+                  </Link>
+                  <Link 
+                    href="/services#rankings_advisory" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-ranking-star" style={{ color: "#6366f1", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Institutional Research Rankings Advisory</span>
+                  </Link>
+                  <Link 
+                    href="/services#afrischolar_id" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-id-card-clip" style={{ color: "#8b5cf6", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>AfriScholar Indexing &amp; Verified ID (ASID)</span>
+                  </Link>
+                  <Link 
+                    href="/services" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#f59e0b", fontWeight: 700, fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-arrow-right" style={{ width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>View All Services Overview</span>
+                  </Link>
+                </div>
+              )}
             </div>
 
+            {/* Mobile Accordion: Resources */}
+            <div style={{ borderTop: "1px solid #1e293b", paddingTop: "0.85rem" }}>
+              <button 
+                type="button"
+                onClick={() => toggleMobileSection("resources")}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  background: "none",
+                  border: "none",
+                  color: "#ffffff",
+                  fontSize: "1.05rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  padding: "0.4rem 0"
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <i className="fa-solid fa-book-bookmark" style={{ width: "22px", color: "#f59e0b", textAlign: "center" }}></i>
+                  <span>Resources</span>
+                </div>
+                <i 
+                  className="fa-solid fa-chevron-down" 
+                  style={{ 
+                    fontSize: "0.8rem", 
+                    color: "#94a3b8",
+                    transition: "transform 0.2s ease",
+                    transform: mobileExpanded.resources ? "rotate(180deg)" : "rotate(0deg)"
+                  }}
+                ></i>
+              </button>
+              {mobileExpanded.resources && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", padding: "0.6rem 0 0.4rem 1.75rem" }}>
+                  <Link 
+                    href="/resources/ethics" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-scale-balanced" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Publication Ethics &amp; Authorship</span>
+                  </Link>
+                  <Link 
+                    href="/resources/predatory-journals" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-shield-virus" style={{ color: "#ef4444", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Avoiding Predatory Journals</span>
+                  </Link>
+                  <Link 
+                    href="/resources/open-access" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-lock-open" style={{ color: "#10b981", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Open Access in African Research</span>
+                  </Link>
+                  <Link 
+                    href="/resources/ajci-guide" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-chart-pie" style={{ color: "#38bdf8", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>AJCI Evaluation &amp; Metrics Guide</span>
+                  </Link>
+                  <Link 
+                    href="/resources/peer-review" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-file-shield" style={{ color: "#a855f7", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Peer Review Guidelines</span>
+                  </Link>
+                  <Link 
+                    href="/resources" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#f59e0b", fontWeight: 700, fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-arrow-right" style={{ width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Browse All Resources</span>
+                  </Link>
+                </div>
+              )}
+            </div>
             {/* Mobile Accordion 3: Resources & About */}
             <div style={{ borderTop: "1px solid #1e293b", paddingTop: "0.85rem" }}>
               <button 

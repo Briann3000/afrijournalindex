@@ -83,7 +83,7 @@ export async function GET(request: Request) {
           score
         };
       })
-      .filter(j => j.isMatch || j.score > 100)
+      .filter(j => j.isMatch || j.score > 30)
       .sort((a, b) => b.score - a.score || (b.ajciScore || 0) - (a.ajciScore || 0));
 
     // ==========================================
@@ -109,6 +109,9 @@ export async function GET(request: Request) {
           {
             OR: [
               { role: "RESEARCHER" },
+              { totalCitations: { gt: 0 } },
+              { openAlexId: { not: null } },
+              { orcid: { not: null } },
               { claims: { some: { status: "VERIFIED" } } }
             ]
           },
@@ -117,7 +120,11 @@ export async function GET(request: Request) {
           }
         ]
       },
-      take: 40,
+      take: 80,
+      orderBy: [
+        { totalCitations: "desc" },
+        { hIndex: "desc" }
+      ],
       select: {
         id: true,
         name: true,
@@ -154,12 +161,13 @@ export async function GET(request: Request) {
 
     // Score and deduplicate scholars
     const dedupScholarMap = new Map<string, any>();
+    const minScholarScore = tokens.length > 1 ? tokens.length * 140 : 80;
 
     for (const u of matchingUsers) {
       const isMatch = matchesQueryFuzzy(q, [u.name, u.institution, u.department, u.bio, u.orcid]);
       const score = calculateFuzzyScore(q, u.name, u.institution || "");
 
-      if (!isMatch && score < 120) continue;
+      if (!isMatch && score < minScholarScore) continue;
 
       const articles = (u.claims || []).map(c => c.article).filter(Boolean);
       const citationCounts = articles.map(a => {
@@ -330,8 +338,8 @@ export async function GET(request: Request) {
           snippet = cleanAbs.length > 240 ? cleanAbs.slice(0, 240) + "..." : cleanAbs;
         }
 
-        const isMatch = matchesQueryFuzzy(q, [a.title, a.journal?.name, a.doi]);
-        const score = calculateFuzzyScore(q, a.title, a.journal?.name || "");
+        const isMatch = matchesQueryFuzzy(q, [a.title, a.journal?.name, a.doi, a.abstract]);
+        const score = calculateFuzzyScore(q, a.title, (a.journal?.name || "") + " " + (a.abstract ? a.abstract.slice(0, 150) : ""));
 
         return {
           id: a.id,
@@ -348,7 +356,7 @@ export async function GET(request: Request) {
           score
         };
       })
-      .filter(a => a.isMatch || a.score > 80)
+      .filter(a => a.isMatch || a.score > 30)
       .sort((a, b) => b.score - a.score || b.citationCount - a.citationCount);
 
     return NextResponse.json({

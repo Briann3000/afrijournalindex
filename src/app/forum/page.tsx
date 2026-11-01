@@ -132,7 +132,7 @@ export default function ForumPage() {
           </div>
 
           {/* 2-Column Responsive Layout: Sticky Sidebar (Left) + Discussions Stream (Right) */}
-          <div style={{ display: "grid", gridTemplateColumns: "310px 1fr", gap: "2rem", alignItems: "start" }} className="forum-grid-container">
+          <div className="forum-grid-container">
 
             {/* LEFT SIDEBAR */}
             <aside style={{ position: "sticky", top: "90px", display: "flex", flexDirection: "column", gap: "1.25rem" }}>

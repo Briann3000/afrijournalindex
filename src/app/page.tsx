@@ -31,8 +31,53 @@ export default function Home() {
   const router = useRouter();
   const [heroJournal, setHeroJournal] = useState<ShowcaseJournal | null>(null);
   const [showcaseJournals, setShowcaseJournals] = useState<ShowcaseJournal[]>([]);
+  const [top10Journals, setTop10Journals] = useState<any[]>([]);
+  const [loadingTopJournals, setLoadingTopJournals] = useState<boolean>(true);
   const [heroSearchQuery, setHeroSearchQuery] = useState<string>("");
   const [heroSearchType, setHeroSearchType] = useState<"all" | "articles" | "journals" | "scholars">("all");
+  const [liveSearchResults, setLiveSearchResults] = useState<any>(null);
+  const [isSearchingLive, setIsSearchingLive] = useState<boolean>(false);
+  const [showLiveDropdown, setShowLiveDropdown] = useState<boolean>(false);
+  const searchDropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Debounced live search preview
+  useEffect(() => {
+    if (!heroSearchQuery.trim() || heroSearchQuery.trim().length < 2) {
+      setLiveSearchResults(null);
+      setIsSearchingLive(false);
+      setShowLiveDropdown(false);
+      return;
+    }
+
+    setIsSearchingLive(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(heroSearchQuery.trim())}`);
+        const data = await res.json();
+        if (data.success) {
+          setLiveSearchResults(data);
+          setShowLiveDropdown(true);
+        }
+      } catch (err) {
+        console.error("Live search preview error:", err);
+      } finally {
+        setIsSearchingLive(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [heroSearchQuery]);
+
+  // Click outside to close live search dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target as Node)) {
+        setShowLiveDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +92,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    async function loadShowcase() {
+    async function loadData() {
       try {
         const res = await fetch("/api/journals/showcase", { cache: "no-store" });
         const data = await res.json();
@@ -58,8 +103,20 @@ export default function Home() {
       } catch (err) {
         console.error("Failed to load showcase journals:", err);
       }
+
+      try {
+        const rankRes = await fetch("/api/journals/rankings");
+        const rankData = await rankRes.json();
+        if (rankData.success && Array.isArray(rankData.rankings)) {
+          setTop10Journals(rankData.rankings.slice(0, 10));
+        }
+      } catch (err) {
+        console.error("Failed to load top 10 journal rankings:", err);
+      } finally {
+        setLoadingTopJournals(false);
+      }
     }
-    loadShowcase();
+    loadData();
   }, []);
 
   const disciplinesMarquee = [
@@ -104,7 +161,7 @@ export default function Home() {
               </p>
 
               {/* Direct Prominent Hero Quick Search with Entity Filter Tabs */}
-              <div style={{ maxWidth: "640px", width: "100%", marginBottom: "1.5rem" }}>
+              <div ref={searchDropdownRef} style={{ maxWidth: "640px", width: "100%", marginBottom: "1.5rem", position: "relative" }}>
                 {/* Search Entity Filter Tabs */}
                 <div style={{ display: "flex", gap: "6px", marginBottom: "8px", flexWrap: "wrap" }}>
                   <button
@@ -147,7 +204,7 @@ export default function Home() {
                     }}
                   >
                     <i className="fa-solid fa-file-lines" style={{ fontSize: "0.78rem" }}></i>
-                    Articles (33,600+)
+                    Articles
                   </button>
                   <button
                     type="button"
@@ -168,7 +225,7 @@ export default function Home() {
                     }}
                   >
                     <i className="fa-solid fa-book-journal-whills" style={{ fontSize: "0.78rem" }}></i>
-                    Journals (1,740+)
+                    Journals
                   </button>
                   <button
                     type="button"
@@ -189,7 +246,7 @@ export default function Home() {
                     }}
                   >
                     <i className="fa-solid fa-user-graduate" style={{ fontSize: "0.78rem" }}></i>
-                    Scholars (2,300+)
+                    Scholars
                   </button>
                 </div>
 
@@ -207,20 +264,21 @@ export default function Home() {
                     transition: "border-color 0.2s ease"
                   }}
                 >
-                  <i className="fa-solid fa-magnifying-glass" style={{ color: "var(--color-primary)", marginRight: "10px", fontSize: "0.95rem" }}></i>
+                  <i className={`fa-solid ${isSearchingLive ? "fa-circle-notch fa-spin" : "fa-magnifying-glass"}`} style={{ color: "var(--color-primary)", marginRight: "10px", fontSize: "0.95rem" }}></i>
                   <input
                     type="text"
                     placeholder={
                       heroSearchType === "articles" 
-                        ? "Search 33,600+ peer-reviewed articles (e.g. environmental sustainability)..."
+                        ? "Search peer-reviewed research articles (e.g. renewable energy, public health)..."
                         : heroSearchType === "journals"
-                        ? "Search 1,740+ African journals by title, publisher, or ISSN..."
+                        ? "Search African journals by title, publisher, or ISSN..."
                         : heroSearchType === "scholars"
-                        ? "Search 2,300+ verified African researchers by name, institution, or ORCID..."
-                        : "Search 33,600+ articles, 1,740+ journals, and verified African scholars..."
+                        ? "Search verified African researchers by name, institution, or ORCID..."
+                        : "Search peer-reviewed articles, African journals, and researchers..."
                     }
                     value={heroSearchQuery}
                     onChange={(e) => setHeroSearchQuery(e.target.value)}
+                    onFocus={() => { if (liveSearchResults) setShowLiveDropdown(true); }}
                     style={{
                       border: "none",
                       outline: "none",
@@ -244,6 +302,161 @@ export default function Home() {
                     Search
                   </button>
                 </form>
+
+                {/* Instant Live Autocomplete Dropdown Preview */}
+                {showLiveDropdown && liveSearchResults && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 6px)",
+                      left: 0,
+                      right: 0,
+                      background: "#ffffff",
+                      border: "1px solid var(--color-border)",
+                      borderRadius: "14px",
+                      boxShadow: "0 20px 40px -8px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(212, 160, 74, 0.25)",
+                      zIndex: 300,
+                      maxHeight: "min(460px, 75vh)",
+                      overflowY: "auto",
+                      padding: "0.6rem 0",
+                      textAlign: "left"
+                    }}
+                  >
+                    {/* Journals Section */}
+                    {liveSearchResults.journals && liveSearchResults.journals.length > 0 && (
+                      <div style={{ padding: "0.4rem 0" }}>
+                        <div style={{ fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", color: "var(--color-primary)", padding: "0 1rem 0.35rem", letterSpacing: "0.05em" }}>
+                          Journals ({liveSearchResults.totalJournals})
+                        </div>
+                        {liveSearchResults.journals.slice(0, 3).map((j: any) => (
+                          <Link
+                            key={j.id}
+                            href={`/journal/${j.id}`}
+                            onClick={() => setShowLiveDropdown(false)}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              padding: "0.45rem 1rem",
+                              textDecoration: "none",
+                              color: "var(--color-text-main)",
+                              fontSize: "0.86rem",
+                              transition: "background 0.15s ease"
+                            }}
+                            className="hover-bg-light"
+                          >
+                            <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginRight: "8px" }}>
+                              <i className="fa-solid fa-book-journal-whills" style={{ color: "#f59e0b", marginRight: "8px", fontSize: "0.8rem" }}></i>
+                              {j.name}
+                            </span>
+                            <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", flexShrink: 0 }}>
+                              {j.country} • Grade {j.qualityGrade}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Articles Section */}
+                    {liveSearchResults.articles && liveSearchResults.articles.length > 0 && (
+                      <div style={{ borderTop: "1px solid var(--color-border-subtle)", padding: "0.4rem 0" }}>
+                        <div style={{ fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", color: "var(--color-primary)", padding: "0 1rem 0.35rem", letterSpacing: "0.05em" }}>
+                          Peer-Reviewed Articles ({liveSearchResults.totalArticles})
+                        </div>
+                        {liveSearchResults.articles.slice(0, 3).map((a: any) => (
+                          <Link
+                            key={a.id}
+                            href={a.url || a.doi ? (a.doi ? `https://doi.org/${a.doi}` : a.url) : `/search?q=${encodeURIComponent(a.title)}`}
+                            target={a.doi || a.url ? "_blank" : "_self"}
+                            onClick={() => setShowLiveDropdown(false)}
+                            style={{
+                              display: "block",
+                              padding: "0.45rem 1rem",
+                              textDecoration: "none",
+                              color: "var(--color-text-main)",
+                              fontSize: "0.84rem",
+                              transition: "background 0.15s ease"
+                            }}
+                            className="hover-bg-light"
+                          >
+                            <div style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              <i className="fa-solid fa-file-lines" style={{ color: "#3b82f6", marginRight: "8px", fontSize: "0.8rem" }}></i>
+                              {a.title}
+                            </div>
+                            <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginTop: "2px" }}>
+                              {a.journal?.name ? `${a.journal.name} • ` : ""}{a.year || "Scholarly Article"}
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Scholars Section */}
+                    {liveSearchResults.scholars && liveSearchResults.scholars.length > 0 && (
+                      <div style={{ borderTop: "1px solid var(--color-border-subtle)", padding: "0.4rem 0" }}>
+                        <div style={{ fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", color: "var(--color-primary)", padding: "0 1rem 0.35rem", letterSpacing: "0.05em" }}>
+                          African Scholars ({liveSearchResults.totalScholars})
+                        </div>
+                        {liveSearchResults.scholars.slice(0, 3).map((s: any) => (
+                          <Link
+                            key={s.id}
+                            href={`/researcher?id=${s.id}`}
+                            onClick={() => setShowLiveDropdown(false)}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              padding: "0.45rem 1rem",
+                              textDecoration: "none",
+                              color: "var(--color-text-main)",
+                              fontSize: "0.84rem",
+                              transition: "background 0.15s ease"
+                            }}
+                            className="hover-bg-light"
+                          >
+                            <span style={{ fontWeight: 600 }}>
+                              <i className="fa-solid fa-user-graduate" style={{ color: "#10b981", marginRight: "8px", fontSize: "0.8rem" }}></i>
+                              {s.name}
+                            </span>
+                            <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted)" }}>
+                              {s.institution || "African Scholar"}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Zero results preview state */}
+                    {(!liveSearchResults.journals || liveSearchResults.journals.length === 0) &&
+                     (!liveSearchResults.articles || liveSearchResults.articles.length === 0) &&
+                     (!liveSearchResults.scholars || liveSearchResults.scholars.length === 0) && (
+                      <div style={{ padding: "1.2rem", textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.85rem" }}>
+                        No instant matches found. Press <strong>Search</strong> to search full repository.
+                      </div>
+                    )}
+
+                    {/* Bottom Action Footer */}
+                    <div style={{ borderTop: "1px solid var(--color-border)", padding: "0.5rem 1rem 0.2rem", textAlign: "center" }}>
+                      <button
+                        type="button"
+                        onClick={handleHeroSearch}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--color-primary)",
+                          fontSize: "0.82rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px"
+                        }}
+                      >
+                        View all comprehensive results for &quot;{heroSearchQuery}&quot; <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Hero Action CTA Group: 2 High-Priority Action Buttons */}
@@ -330,7 +543,7 @@ export default function Home() {
                     {/* Card Action Link */}
                     <div style={{ marginTop: "1.2rem", paddingTop: "0.85rem", borderTop: "1px solid #f1f5f9" }}>
                       <a 
-                        href={`/journal/${heroJournal.id}`} 
+                        href={`/journal/${heroJournal.issn || heroJournal.id}`} 
                         className="hover-primary" 
                         style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "space-between" }}
                       >
@@ -416,21 +629,21 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 6. Institutional Research Leaderboard Preview */}
+        {/* 6. Top 10 African Journals Leaderboard */}
         <section style={{ padding: "4.5rem 0", background: "var(--color-bg-card)", borderTop: "1px solid var(--color-border)" }}>
           <div className="container">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
               <div>
-                <span className="journal-tag" style={{ marginBottom: "0.5rem" }}>{t.nav.institution}</span>
+                <span className="journal-tag" style={{ marginBottom: "0.5rem" }}>Continental Impact</span>
                 <h2 style={{ fontSize: "1.85rem", fontWeight: 800, color: "var(--color-navy)", margin: "0.3rem 0" }}>
-                  {t.top_institutions.title}
+                  Top 10 African Journals Leaderboard
                 </h2>
                 <p style={{ color: "var(--color-text-muted)", fontSize: "0.95rem" }}>
-                  {t.top_institutions.subtitle}
+                  Leading African peer-reviewed journals evaluated on publication regularity, citation velocity, and AJCI standards.
                 </p>
               </div>
-              <a href="/institution" className="btn btn-secondary btn-sm" style={{ padding: "0.65rem 1.25rem", borderRadius: "10px", flexShrink: 0 }}>
-                {t.top_institutions.view_all} <i className="fa-solid fa-arrow-right" style={{ marginLeft: "5px" }}></i>
+              <a href="/rankings" className="btn btn-secondary btn-sm" style={{ padding: "0.65rem 1.25rem", borderRadius: "10px", flexShrink: 0 }}>
+                View All Journal Rankings <i className="fa-solid fa-arrow-right" style={{ marginLeft: "5px" }}></i>
               </a>
             </div>
 
@@ -438,96 +651,67 @@ export default function Home() {
               <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.92rem" }}>
                 <thead>
                   <tr style={{ background: "var(--color-bg-alt)", borderBottom: "1px solid var(--color-border)" }}>
-                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", width: "80px" }}>{t.top_institutions.rank}</th>
-                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>{t.top_institutions.institution}</th>
-                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>{t.top_institutions.country}</th>
-                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>{t.top_institutions.publications}</th>
-                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>{t.top_institutions.citations}</th>
-                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>{t.top_institutions.h_index}</th>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", width: "70px" }}>Rank</th>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>Journal Title &amp; Publisher</th>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>Country</th>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>Quartile</th>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>Grade</th>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>AJCI Score</th>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>Citations</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {top5Universities.map((univ) => (
-                    <tr key={univ.rank} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.2s" }} className="hover-row">
-                      <td style={{ padding: "1rem 1.25rem", fontWeight: 800, color: univ.rank <= 3 ? "var(--color-primary)" : "var(--color-navy)" }}>
-                        #{univ.rank}
-                      </td>
-                      <td style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>
-                        <a href={`/institution?name=${encodeURIComponent(univ.name)}`} style={{ color: "var(--color-navy)" }} className="hover-primary">
-                          {univ.name}
-                        </a>
-                      </td>
-                      <td style={{ padding: "1rem 1.25rem", color: "var(--color-text-muted)" }}>
-                        <i className="fa-solid fa-location-dot" style={{ marginRight: "6px", color: "var(--color-primary)" }}></i>
-                        {univ.country}
-                      </td>
-                      <td style={{ padding: "1rem 1.25rem", textAlign: "center", fontWeight: 600 }}>
-                        {univ.publications.toLocaleString()}
-                      </td>
-                      <td style={{ padding: "1rem 1.25rem", textAlign: "center", fontWeight: 700, color: "var(--color-primary)" }}>
-                        {univ.citations.toLocaleString()}
-                      </td>
-                      <td style={{ padding: "1rem 1.25rem", textAlign: "center" }}>
-                        <span style={{ background: "#eff6ff", color: "#1d4ed8", padding: "0.25rem 0.65rem", borderRadius: "8px", fontWeight: 700, fontSize: "0.85rem" }}>
-                          h-{univ.hIndex}
-                        </span>
+                  {loadingTopJournals ? (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: "center", padding: "3rem", color: "var(--color-text-muted)" }}>
+                        <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: "0.5rem" }}></i> Loading top African journals...
                       </td>
                     </tr>
-                  ))}
+                  ) : top10Journals.length > 0 ? (
+                    top10Journals.map((j, idx) => (
+                      <tr key={j.id} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.2s" }} className="hover-row">
+                        <td style={{ padding: "1rem 1.25rem", fontWeight: 800, color: idx < 3 ? "var(--color-primary)" : "var(--color-navy)" }}>
+                          #{idx + 1}
+                        </td>
+                        <td style={{ padding: "1rem 1.25rem", fontWeight: 700 }}>
+                          <a href={`/journal/${j.issn || j.id}`} style={{ color: "var(--color-navy)", textDecoration: "none" }} className="hover-primary">
+                            {j.name}
+                          </a>
+                          <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", fontWeight: 400, marginTop: "2px" }}>
+                            ISSN: {j.issn || j.eissn || "N/A"} • {j.publisherName || "African Academic Publisher"}
+                          </div>
+                        </td>
+                        <td style={{ padding: "1rem 1.25rem", color: "var(--color-text-muted)" }}>
+                          <i className="fa-solid fa-location-dot" style={{ marginRight: "6px", color: "var(--color-primary)" }}></i>
+                          {j.country}
+                        </td>
+                        <td style={{ padding: "1rem 1.25rem", textAlign: "center" }}>
+                          <span style={{ background: "#eff6ff", color: "#1d4ed8", padding: "0.2rem 0.55rem", borderRadius: "6px", fontWeight: 700, fontSize: "0.8rem" }}>
+                            {j.quartile || "Q1"}
+                          </span>
+                        </td>
+                        <td style={{ padding: "1rem 1.25rem", textAlign: "center" }}>
+                          <span style={{ fontWeight: 800, color: "#16a34a" }}>
+                            {j.qualityGrade || "A"}
+                          </span>
+                        </td>
+                        <td style={{ padding: "1rem 1.25rem", textAlign: "center", fontWeight: 700, color: "var(--color-primary)" }}>
+                          {Number(j.score || 0).toFixed(3)}
+                        </td>
+                        <td style={{ padding: "1rem 1.25rem", textAlign: "center", fontWeight: 600 }}>
+                          {Number(j.citationCount || 0).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-muted)" }}>
+                        No indexed journals found in current rankings.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
-            </div>
-          </div>
-        </section>
-
-        {/* 7. Verified Seed Directory Showcase */}
-        <section style={{ padding: "4.5rem 0", background: "var(--color-bg-alt)" }}>
-          <div className="container">
-            <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-              <span className="journal-tag">{t.showcase.badge_verified}</span>
-              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--color-navy)", marginTop: "0.5rem" }}>
-                {t.showcase.title}
-              </h2>
-              <p style={{ color: "var(--color-text-muted)", maxWidth: "620px", margin: "0.5rem auto 0" }}>
-                {t.showcase.desc}
-              </p>
-            </div>
-
-            <div className="journals-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem" }}>
-              {showcaseJournals.length > 0 ? (
-                showcaseJournals.map((journal) => (
-                  <div key={journal.id} className="glass-card" style={{ padding: "1.75rem", background: "var(--color-bg-card)", borderRadius: "16px", border: "1px solid var(--color-border)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                    <div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
-                        <span className="journal-tag" style={{ background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe" }}>
-                          {journal.quartile} Quartile
-                        </span>
-                        <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: 700, background: "#dcfce7", padding: "0.2rem 0.6rem", borderRadius: "6px" }}>
-                          AJCI {journal.score.toFixed(3)}
-                        </span>
-                      </div>
-                      <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.5rem", lineHeight: "1.4" }}>
-                        {journal.name}
-                      </h3>
-                      <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.2rem", lineHeight: "1.5" }}>
-                        {journal.description}
-                      </p>
-                    </div>
-                    <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                        ISSN: {journal.issn} • {journal.country}
-                      </span>
-                      <a href={`/journal/${journal.id}`} className="btn btn-primary btn-sm">
-                        {t.showcase.view_journal}
-                      </a>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div style={{ padding: "3rem", textAlign: "center", gridColumn: "1 / -1", color: "var(--color-text-muted)" }}>
-                  <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: "0.5rem" }}></i> Loading verified continental journals...
-                </div>
-              )}
             </div>
           </div>
         </section>

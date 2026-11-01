@@ -5,7 +5,7 @@
     "browse": "Parcourir l'Annuaire",
     "submit": "Soumettre une Revue",
     "pricing": "Tarifs",
-    "rankings": "Classements & Quartiles",
+    "rankings": "Classements",
     "institution": "Classements Institutionnels",
     "researcher": "Profil Chercheur",
     "about": "À Propos",
@@ -20,7 +20,14 @@
     "indexing_portal": "Portail d'Indexation",
     "group_journals": "Revues & Soumissions",
     "group_metrics": "Métriques & Institutions",
-    "group_about": "À Propos & Ressources"
+    "group_about": "À Propos & Ressources",
+    "resources": "Ressources",
+    "ethics": "Éthique de Publication",
+    "predatory": "Éviter les Revues Prédatrices",
+    "open_access": "Libre Accès en Afrique",
+    "ajci_guide": "Guide Métriques AJCI",
+    "services": "Services",
+    "journal_rankings": "Classement des Revues"
   },
   "hero": {
     "pre_badge": "Index Savant Panafricain & Autorité Bibliométrique",

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ALL_COUNTRY_NAMES } from "../data/african-countries";
+import ResourceContentRenderer from "@/components/ResourceContentRenderer";
 
 interface AdminUser {
   id: string;
@@ -33,7 +34,7 @@ interface Stats {
   wosJournals?: number;
 }
 
-type TabKey = "overview" | "submissions" | "claims" | "journals" | "campaigns" | "doi" | "moderation" | "users" | "harvester" | "payments";
+type TabKey = "overview" | "submissions" | "claims" | "journals" | "resources" | "campaigns" | "doi" | "moderation" | "users" | "harvester" | "payments";
 
 export default function AdminPortalPage() {
   const router = useRouter();
@@ -64,6 +65,40 @@ export default function AdminPortalPage() {
   const [comments, setComments] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
+  const [adminResources, setAdminResources] = useState<any[]>([]);
+  const [loadingResources, setLoadingResources] = useState<boolean>(false);
+  const [editingResource, setEditingResource] = useState<any | null>(null);
+  const [isResourceModalOpen, setIsResourceModalOpen] = useState<boolean>(false);
+  const [resourceFormData, setResourceFormData] = useState({
+    title: "",
+    slug: "",
+    category: "Publication Ethics",
+    summary: "",
+    content: "",
+    isPublished: true,
+    fileUrl: "",
+    fileName: ""
+  });
+  const [isAddingCategory, setIsAddingCategory] = useState<boolean>(false);
+  const [customCategory, setCustomCategory] = useState<string>("");
+  const [uploadingAttachment, setUploadingAttachment] = useState<boolean>(false);
+  const [resourceEditorTab, setResourceEditorTab] = useState<"write" | "preview">("write");
+
+  const insertToolbarSyntax = (before: string, after: string = "", defaultText: string = "") => {
+    const textarea = document.getElementById("admin-resource-content-editor") as HTMLTextAreaElement | null;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentVal = resourceFormData.content || "";
+    const selected = currentVal.substring(start, end) || defaultText;
+    const replacement = `${before}${selected}${after}`;
+    const newVal = currentVal.substring(0, start) + replacement + currentVal.substring(end);
+    setResourceFormData(prev => ({ ...prev, content: newVal }));
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + before.length, start + before.length + selected.length);
+    }, 50);
+  };
 
   // Action in progress indicator
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -219,6 +254,7 @@ export default function AdminPortalPage() {
         setComments(data.comments || []);
         setUsers(data.users || []);
         setPayments(data.payments || []);
+        fetchAdminResources();
         if (data.journals && data.journals.length > 0 && !harvestForm.journalId) {
           setHarvestForm(prev => ({ ...prev, journalId: data.journals[0].id }));
         }
@@ -238,6 +274,196 @@ export default function AdminPortalPage() {
   }, []);
 
   // 3. Admin Logout
+    // -------------------------------------------------------------
+  // Resource Manager CRUD (For Prof / Admin)
+  // -------------------------------------------------------------
+  const fetchAdminResources = async () => {
+    setLoadingResources(true);
+    try {
+      const res = await fetch("/api/admin/resources");
+      const data = await res.json();
+      if (data.success && Array.isArray(data.resources)) {
+        setAdminResources(data.resources);
+      }
+    } catch {
+      showToast("Failed to fetch resources.", "error");
+    } finally {
+      setLoadingResources(false);
+    }
+  };
+
+  const handleOpenAddResource = () => {
+    setEditingResource(null);
+    setIsAddingCategory(false);
+    setCustomCategory("");
+    setResourceFormData({
+      title: "",
+      slug: "",
+      category: "Publication Ethics",
+      summary: "",
+      content: "",
+      isPublished: true,
+      fileUrl: "",
+      fileName: ""
+    });
+    setResourceEditorTab("write");
+    setIsResourceModalOpen(true);
+  };
+
+  const handleUploadAttachment = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Security whitelist check (.pdf, .doc, .docx)
+    const allowedExts = [".pdf", ".doc", ".docx"];
+    const ext = "." + file.name.split(".").pop()?.toLowerCase();
+    if (!allowedExts.includes(ext)) {
+      showToast("Security error: Only .pdf, .doc, and .docx documents are accepted.", "error");
+      return;
+    }
+
+    // Security size limit: 15MB
+    if (file.size > 15 * 1024 * 1024) {
+      showToast("File size exceeds 15MB limit.", "error");
+      return;
+    }
+
+    setUploadingAttachment(true);
+    try {
+      const data = new FormData();
+      data.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: data
+      });
+      const json = await res.json();
+      if (json.success && json.url) {
+        setResourceFormData(prev => ({
+          ...prev,
+          fileUrl: json.url,
+          fileName: json.filename || file.name
+        }));
+        showToast("Attachment uploaded securely!");
+      } else {
+        showToast(json.error || "Upload failed.", "error");
+      }
+    } catch {
+      showToast("Network error uploading attachment.", "error");
+    } finally {
+      setUploadingAttachment(false);
+    }
+  };
+
+  const handleOpenEditResource = (r: any) => {
+    setEditingResource(r);
+    const standardCategories = [
+      "Publication Ethics",
+      "Predatory Journals",
+      "Open Access",
+      "AJCI Metrics",
+      "Peer Review"
+    ];
+    const cat = r.category || "Publication Ethics";
+    if (standardCategories.includes(cat)) {
+      setIsAddingCategory(false);
+      setCustomCategory("");
+    } else {
+      setIsAddingCategory(true);
+      setCustomCategory(cat);
+    }
+    setResourceFormData({
+      title: r.title || "",
+      slug: r.slug || "",
+      category: cat,
+      summary: r.summary || "",
+      content: r.content || "",
+      isPublished: r.isPublished !== false,
+      fileUrl: r.fileUrl || "",
+      fileName: r.fileName || ""
+    });
+    setResourceEditorTab("write");
+    setIsResourceModalOpen(true);
+  };
+
+  const handleSaveResource = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resourceFormData.title.trim() || !resourceFormData.content.trim()) {
+      showToast("Please provide both title and content.", "error");
+      return;
+    }
+
+    try {
+      const finalCategory = isAddingCategory ? (customCategory.trim() || resourceFormData.category) : resourceFormData.category;
+      const payload = {
+        ...resourceFormData,
+        category: finalCategory
+      };
+      const isEdit = !!editingResource?.id;
+      const url = "/api/admin/resources";
+      const method = isEdit ? "PUT" : "POST";
+      const body = isEdit ? { id: editingResource.id, ...payload } : payload;
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(isEdit ? "Resource updated successfully!" : "Resource created successfully!");
+        setIsResourceModalOpen(false);
+        fetchAdminResources();
+      } else {
+        showToast(data.error || "Failed to save resource.", "error");
+      }
+    } catch {
+      showToast("Network error while saving resource.", "error");
+    }
+  };
+
+  const handleToggleResourcePublish = async (r: any) => {
+    try {
+      const res = await fetch("/api/admin/resources", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: r.id, isPublished: !r.isPublished })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(r.isPublished ? "Resource set to Draft." : "Resource Published live!");
+        fetchAdminResources();
+      } else {
+        showToast(data.error || "Failed to toggle status.", "error");
+      }
+    } catch {
+      showToast("Network error toggling status.", "error");
+    }
+  };
+
+  const handleDeleteResource = async (id: string, title: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Resource Guide",
+      description: `Are you sure you want to permanently delete "${title}"? This cannot be undone.`,
+      confirmLabel: "Delete Resource",
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        try {
+          const res = await fetch(`/api/admin/resources?id=${id}`, { method: "DELETE" });
+          const data = await res.json();
+          if (data.success) {
+            showToast("Resource deleted successfully.");
+            fetchAdminResources();
+          } else {
+            showToast(data.error || "Failed to delete resource.", "error");
+          }
+        } catch {
+          showToast("Network error deleting resource.", "error");
+        }
+      }
+    });
+  };
+
   const handleLogout = async () => {
     try {
       await fetch("/api/admin/auth", { method: "DELETE" });
@@ -879,7 +1105,7 @@ export default function AdminPortalPage() {
   // Loading Screen
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#090d16", color: "#94a3b8" }}>
+      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#090d16", color: "#475569" }}>
         <i className="fa-solid fa-circle-notch fa-spin" style={{ color: "#10b981", fontSize: "2rem", marginBottom: "1rem" }}></i>
         <p style={{ fontSize: "0.9rem", fontWeight: 600 }}>Loading Editorial Command Center...</p>
       </div>
@@ -904,8 +1130,8 @@ export default function AdminPortalPage() {
       {confirmDialog.isOpen && (
         <div className="admin-modal-backdrop">
           <div className="admin-modal-box" style={{ maxWidth: "440px" }}>
-            <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.5rem" }}>{confirmDialog.title}</h3>
-            <p style={{ fontSize: "0.85rem", color: "#cbd5e1", lineHeight: 1.5, margin: "0 0 1.5rem" }}>{confirmDialog.description}</p>
+            <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.5rem" }}>{confirmDialog.title}</h3>
+            <p style={{ fontSize: "0.85rem", color: "#334155", lineHeight: 1.5, margin: "0 0 1.5rem" }}>{confirmDialog.description}</p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
               <button
                 type="button"
@@ -934,16 +1160,16 @@ export default function AdminPortalPage() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "1px solid #1e293b", paddingBottom: "1rem" }}>
               <div>
                 <span className="admin-badge admin-badge-success">{selectedSubmission.status}</span>
-                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0.5rem 0 0.2rem" }}>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: "0.5rem 0 0.2rem" }}>
                   {selectedSubmission.journalName}
                 </h3>
-                <p style={{ fontSize: "0.75rem", color: "#94a3b8", margin: 0 }}>
+                <p style={{ fontSize: "0.75rem", color: "#475569", margin: 0 }}>
                   Publisher: {selectedSubmission.publisherName} • {selectedSubmission.country}
                 </p>
               </div>
               <button
                 onClick={() => setSelectedSubmission(null)}
-                style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "1.1rem" }}
+                style={{ background: "transparent", border: "none", color: "#475569", cursor: "pointer", fontSize: "1.1rem" }}
               >
                 <i className="fa-solid fa-xmark"></i>
               </button>
@@ -951,32 +1177,32 @@ export default function AdminPortalPage() {
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem", padding: "1.25rem 0" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-                <div style={{ background: "#090e1a", padding: "0.75rem", borderRadius: "10px", border: "1px solid #1e293b" }}>
+                <div style={{ background: "#f8fafc", padding: "0.75rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
                   <div style={{ fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>ISSN / E-ISSN</div>
-                  <div style={{ fontFamily: "monospace", fontSize: "0.85rem", color: "#f1f5f9", marginTop: "2px" }}>
+                  <div style={{ fontFamily: "monospace", fontSize: "0.85rem", color: "#0f172a", marginTop: "2px" }}>
                     {selectedSubmission.issn || "N/A"} / {selectedSubmission.eissn || "N/A"}
                   </div>
                 </div>
-                <div style={{ background: "#090e1a", padding: "0.75rem", borderRadius: "10px", border: "1px solid #1e293b" }}>
+                <div style={{ background: "#f8fafc", padding: "0.75rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
                   <div style={{ fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>Frequency</div>
-                  <div style={{ fontSize: "0.85rem", color: "#f1f5f9", marginTop: "2px" }}>
+                  <div style={{ fontSize: "0.85rem", color: "#0f172a", marginTop: "2px" }}>
                     {selectedSubmission.frequency || "Quarterly"}
                   </div>
                 </div>
               </div>
 
-              <div style={{ background: "#090e1a", padding: "0.75rem", borderRadius: "10px", border: "1px solid #1e293b" }}>
+              <div style={{ background: "#f8fafc", padding: "0.75rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
                 <div style={{ fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>Submitter Profile</div>
-                <div style={{ fontSize: "0.85rem", color: "#f1f5f9", fontWeight: 600 }}>
+                <div style={{ fontSize: "0.85rem", color: "#0f172a", fontWeight: 600 }}>
                   {selectedSubmission.submitter?.name} ({selectedSubmission.submitter?.email})
                 </div>
-                <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
+                <div style={{ fontSize: "0.75rem", color: "#475569" }}>
                   {selectedSubmission.submitter?.institution || "No institution specified"}
                 </div>
               </div>
 
               {selectedSubmission.websiteUrl && (
-                <div style={{ background: "#090e1a", padding: "0.75rem", borderRadius: "10px", border: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ background: "#f8fafc", padding: "0.75rem", borderRadius: "10px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ overflow: "hidden", textOverflow: "ellipsis", marginRight: "1rem" }}>
                     <div style={{ fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>Official Website</div>
                     <div style={{ fontSize: "0.8rem", color: "#34d399", fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -995,10 +1221,10 @@ export default function AdminPortalPage() {
               )}
 
               {selectedSubmission.pdfFileUrl && (
-                <div style={{ background: "#090e1a", padding: "0.75rem", borderRadius: "10px", border: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ background: "#f8fafc", padding: "0.75rem", borderRadius: "10px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <div style={{ fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>Dossier Document</div>
-                    <div style={{ fontSize: "0.8rem", color: "#cbd5e1" }}>Attached verification proof / PDF</div>
+                    <div style={{ fontSize: "0.8rem", color: "#334155" }}>Attached verification proof / PDF</div>
                   </div>
                   <a
                     href={selectedSubmission.pdfFileUrl}
@@ -1014,13 +1240,13 @@ export default function AdminPortalPage() {
 
               <div>
                 <div style={{ fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>Journal Scope</div>
-                <div style={{ fontSize: "0.8rem", color: "#cbd5e1", lineHeight: 1.5, background: "#090e1a", padding: "0.75rem", borderRadius: "10px", border: "1px solid #1e293b" }}>
+                <div style={{ fontSize: "0.8rem", color: "#334155", lineHeight: 1.5, background: "#f8fafc", padding: "0.75rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
                   {selectedSubmission.description || "No description provided."}
                 </div>
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#cbd5e1", marginBottom: "4px" }}>
+                <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>
                   Append Editorial Note / Audit Finding
                 </label>
                 <textarea
@@ -1033,7 +1259,7 @@ export default function AdminPortalPage() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#cbd5e1", marginBottom: "4px" }}>
+                <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>
                   Quality Grade
                 </label>
                 <select
@@ -1093,7 +1319,7 @@ export default function AdminPortalPage() {
       {/* ------------------------------------------------------------- */}
       {/* SIDEBAR NAVIGATION                                            */}
       {/* ------------------------------------------------------------- */}
-      <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
+      <aside className={`admin-sidebar ${sidebarOpen ? "open" : "collapsed"}`}>
         <div>
           {/* Brand Heading */}
           <div className="admin-sidebar-header">
@@ -1102,13 +1328,13 @@ export default function AdminPortalPage() {
                 <i className="fa-solid fa-shield-halved"></i>
               </div>
               <div>
-                <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "#ffffff", display: "block", lineHeight: 1.1 }}>AfriJournal</span>
+                <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", display: "block", lineHeight: 1.1 }}>AfriJournal</span>
                 <span style={{ fontSize: "0.65rem", fontWeight: 700, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.05em", display: "block" }}>Admin Console</span>
               </div>
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
-              style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "1rem" }}
+              style={{ background: "transparent", border: "none", color: "#475569", cursor: "pointer", fontSize: "1rem" }}
             >
               <i className="fa-solid fa-xmark"></i>
             </button>
@@ -1151,6 +1377,13 @@ export default function AdminPortalPage() {
             >
               <span><i className="fa-solid fa-book" style={{ width: "20px" }}></i> Journals Catalog</span>
               <span style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "monospace" }}>{stats?.totalJournals || 0}</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab("resources"); setSidebarOpen(false); fetchAdminResources(); }}
+              className={`admin-nav-btn ${activeTab === "resources" ? "active" : ""}`}
+            >
+              <span><i className="fa-solid fa-book-bookmark" style={{ width: "20px" }}></i> Resources Hub</span>
             </button>
 
             <button
@@ -1207,7 +1440,7 @@ export default function AdminPortalPage() {
               {currentUser?.email?.substring(0, 2).toUpperCase() || "AD"}
             </div>
             <div style={{ overflow: "hidden" }}>
-              <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#ffffff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {currentUser?.name || "Chief Admin"}
               </div>
               <div style={{ fontSize: "0.7rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -1218,7 +1451,7 @@ export default function AdminPortalPage() {
           <button
             onClick={handleLogout}
             title="Terminate Admin Session"
-            style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "0.95rem", padding: "4px" }}
+            style={{ background: "transparent", border: "none", color: "#475569", cursor: "pointer", fontSize: "0.95rem", padding: "4px" }}
           >
             <i className="fa-solid fa-arrow-right-from-bracket"></i>
           </button>
@@ -1228,18 +1461,20 @@ export default function AdminPortalPage() {
       {/* ------------------------------------------------------------- */}
       {/* MAIN CONTENT AREA                                             */}
       {/* ------------------------------------------------------------- */}
-      <div className="admin-main-wrap">
+      <div className={`admin-main-wrap ${!sidebarOpen ? "full-width" : ""}`}>
         {/* Top Header */}
         <header className="admin-topbar">
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <button
-              onClick={() => setSidebarOpen(true)}
-              style={{ background: "transparent", border: "none", color: "#ffffff", cursor: "pointer", fontSize: "1.1rem" }}
+              type="button"
+              onClick={() => setSidebarOpen(prev => !prev)}
+              style={{ background: "transparent", border: "none", color: "#0f172a", cursor: "pointer", fontSize: "1.1rem", padding: "4px 8px" }}
+              title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
             >
               <i className="fa-solid fa-bars"></i>
             </button>
-            <div style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
-              <span>Console</span> <span style={{ color: "#475569" }}>/</span> <strong style={{ color: "#ffffff", textTransform: "capitalize" }}>{activeTab}</strong>
+            <div style={{ fontSize: "0.82rem", color: "#475569" }}>
+              <span>Console</span> <span style={{ color: "#475569" }}>/</span> <strong style={{ color: "#0f172a", textTransform: "capitalize" }}>{activeTab}</strong>
             </div>
           </div>
 
@@ -1293,7 +1528,7 @@ export default function AdminPortalPage() {
                     {stats?.indexedJournals || 0}
                     <span style={{ fontSize: "0.85rem", color: "#64748b", fontWeight: 500, marginLeft: "6px" }}>/ {stats?.totalJournals || 0}</span>
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", display: "flex", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: "0.75rem", color: "#475569", display: "flex", justifyContent: "space-between" }}>
                     <span>Paid Certificates</span>
                     <strong style={{ color: "#10b981" }}>{stats?.paidCertificates || 0}</strong>
                   </div>
@@ -1311,7 +1546,7 @@ export default function AdminPortalPage() {
                   <div className="admin-kpi-value" style={{ color: "#fbbf24" }}>
                     {stats?.pendingSubmissions || 0}
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", display: "flex", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: "0.75rem", color: "#475569", display: "flex", justifyContent: "space-between" }}>
                     <span>Total Submissions</span>
                     <span>{stats?.totalSubmissions || 0}</span>
                   </div>
@@ -1325,7 +1560,7 @@ export default function AdminPortalPage() {
                   <div className="admin-kpi-value" style={{ color: "#38bdf8" }}>
                     {stats?.pendingClaims || 0}
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", display: "flex", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: "0.75rem", color: "#475569", display: "flex", justifyContent: "space-between" }}>
                     <span>Total Claim Records</span>
                     <span>{stats?.totalClaims || 0}</span>
                   </div>
@@ -1339,7 +1574,7 @@ export default function AdminPortalPage() {
                   <div className="admin-kpi-value">
                     {stats?.totalUsers || 0}
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", display: "flex", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: "0.75rem", color: "#475569", display: "flex", justifyContent: "space-between" }}>
                     <span>Forum Topics / Posts</span>
                     <span style={{ color: "#d8b4fe", fontFamily: "monospace" }}>{(stats?.totalForumTopics || 0)} / {(stats?.totalPosts || 0)}</span>
                   </div>
@@ -1348,10 +1583,10 @@ export default function AdminPortalPage() {
 
               {/* Action Banner Highlights */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.25rem", marginBottom: "1.75rem" }}>
-                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "16px", padding: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 4px 12px -2px rgba(15, 23, 42, 0.04)" }}>
                   <div>
-                    <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>Submissions Review Queue</h4>
-                    <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: "0 0 1rem", maxWidth: "300px" }}>
+                    <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.25rem" }}>Submissions Review Queue</h4>
+                    <p style={{ fontSize: "0.78rem", color: "#475569", margin: "0 0 1rem", maxWidth: "300px" }}>
                       {stats?.pendingSubmissions || 0} journals are awaiting editorial evaluation and quality grading.
                     </p>
                     <button
@@ -1366,10 +1601,10 @@ export default function AdminPortalPage() {
                   </div>
                 </div>
 
-                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "16px", padding: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 4px 12px -2px rgba(15, 23, 42, 0.04)" }}>
                   <div>
-                    <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>Community Moderation Desk</h4>
-                    <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: "0 0 1rem", maxWidth: "300px" }}>
+                    <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.25rem" }}>Community Moderation Desk</h4>
+                    <p style={{ fontSize: "0.78rem", color: "#475569", margin: "0 0 1rem", maxWidth: "300px" }}>
                       Audit forum discourse topics, scholar social updates, and public reviews across all journals.
                     </p>
                     <button
@@ -1390,14 +1625,14 @@ export default function AdminPortalPage() {
                 {/* Recent Submissions */}
                 <div className="admin-table-container" style={{ padding: "1.25rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                    <h4 style={{ fontSize: "0.9rem", fontWeight: 800, color: "#ffffff", margin: 0 }}>Latest Submissions</h4>
+                    <h4 style={{ fontSize: "0.9rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>Latest Submissions</h4>
                     <button onClick={() => setActiveTab("submissions")} style={{ background: "transparent", border: "none", color: "#34d399", fontSize: "0.75rem", cursor: "pointer", fontWeight: 600 }}>View All</button>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
                     {submissions.slice(0, 5).map(sub => (
                       <div key={sub.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0", borderBottom: "1px solid #141e33", fontSize: "0.8rem" }}>
                         <div style={{ overflow: "hidden", textOverflow: "ellipsis", marginRight: "0.75rem" }}>
-                          <div style={{ fontWeight: 600, color: "#f1f5f9", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sub.journalName}</div>
+                          <div style={{ fontWeight: 600, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sub.journalName}</div>
                           <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{sub.country} • {sub.submitter?.name}</div>
                         </div>
                         <span className={`admin-badge ${sub.status === "ACCEPTED" ? "admin-badge-success" : sub.status === "REJECTED" ? "admin-badge-danger" : "admin-badge-warning"}`}>
@@ -1414,14 +1649,14 @@ export default function AdminPortalPage() {
                 {/* Recent Author Claims */}
                 <div className="admin-table-container" style={{ padding: "1.25rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                    <h4 style={{ fontSize: "0.9rem", fontWeight: 800, color: "#ffffff", margin: 0 }}>Recent Publication Claims</h4>
+                    <h4 style={{ fontSize: "0.9rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>Recent Publication Claims</h4>
                     <button onClick={() => setActiveTab("claims")} style={{ background: "transparent", border: "none", color: "#38bdf8", fontSize: "0.75rem", cursor: "pointer", fontWeight: 600 }}>View All</button>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
                     {claims.slice(0, 5).map(c => (
                       <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0", borderBottom: "1px solid #141e33", fontSize: "0.8rem" }}>
                         <div style={{ overflow: "hidden", textOverflow: "ellipsis", marginRight: "0.75rem" }}>
-                          <div style={{ fontWeight: 600, color: "#f1f5f9", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.article?.title || "Article Claim"}</div>
+                          <div style={{ fontWeight: 600, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.article?.title || "Article Claim"}</div>
                           <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{c.user?.name} ({c.user?.institution || "Independent"})</div>
                         </div>
                         <span className={`admin-badge ${c.status === "VERIFIED" ? "admin-badge-success" : "admin-badge-info"}`}>
@@ -1444,12 +1679,12 @@ export default function AdminPortalPage() {
           {activeTab === "submissions" && (
             <div>
               <div style={{ marginBottom: "1rem" }}>
-                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>Editorial Submissions Queue</h3>
-                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Evaluate, audit, and approve African journal indexation applications.</p>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.25rem" }}>Editorial Submissions Queue</h3>
+                <p style={{ fontSize: "0.8rem", color: "#475569", margin: 0 }}>Evaluate, audit, and approve African journal indexation applications.</p>
               </div>
 
               {/* Filters */}
-              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem" }}>
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem", boxShadow: "0 4px 12px -2px rgba(15, 23, 42, 0.03)" }}>
                 <div style={{ flex: 1, minWidth: "220px" }}>
                   <input
                     type="text"
@@ -1506,17 +1741,17 @@ export default function AdminPortalPage() {
                       {pagedSubmissions.map(sub => (
                         <tr key={sub.id}>
                           <td>
-                            <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{sub.journalName}</div>
+                            <div style={{ fontWeight: 700, color: "#0f172a" }}>{sub.journalName}</div>
                             <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{sub.country} • {sub.publisherName}</div>
                           </td>
                           <td style={{ fontFamily: "monospace" }}>
                             {sub.issn || sub.eissn || "—"}
                           </td>
                           <td>
-                            <div style={{ color: "#f1f5f9" }}>{sub.submitter?.name}</div>
+                            <div style={{ color: "#0f172a" }}>{sub.submitter?.name}</div>
                             <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{sub.submitter?.email}</div>
                           </td>
-                          <td style={{ color: "#94a3b8" }}>
+                          <td style={{ color: "#475569" }}>
                             {new Date(sub.createdAt).toLocaleDateString()}
                           </td>
                           <td>
@@ -1550,7 +1785,7 @@ export default function AdminPortalPage() {
 
                 {/* Pagination */}
                 {filteredSubmissions.length > subPageSize && (
-                  <div style={{ padding: "0.85rem 1rem", borderTop: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#94a3b8" }}>
+                  <div style={{ padding: "0.85rem 1rem", borderTop: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#475569" }}>
                     <div>
                       Showing {(subPage - 1) * subPageSize + 1} to {Math.min(subPage * subPageSize, filteredSubmissions.length)} of {filteredSubmissions.length}
                     </div>
@@ -1582,12 +1817,12 @@ export default function AdminPortalPage() {
           {activeTab === "claims" && (
             <div>
               <div style={{ marginBottom: "1rem" }}>
-                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>Researcher Authorship Claims</h3>
-                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Verify scholars claiming author credentials on indexed articles.</p>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.25rem" }}>Researcher Authorship Claims</h3>
+                <p style={{ fontSize: "0.8rem", color: "#475569", margin: 0 }}>Verify scholars claiming author credentials on indexed articles.</p>
               </div>
 
               {/* Filters */}
-              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem" }}>
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem", boxShadow: "0 4px 12px -2px rgba(15, 23, 42, 0.03)" }}>
                 <div style={{ flex: 1, minWidth: "220px" }}>
                   <input
                     type="text"
@@ -1630,20 +1865,20 @@ export default function AdminPortalPage() {
                       {pagedClaims.map(c => (
                         <tr key={c.id}>
                           <td>
-                            <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{c.user?.name}</div>
+                            <div style={{ fontWeight: 700, color: "#0f172a" }}>{c.user?.name}</div>
                             <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{c.user?.institution || "Independent"}</div>
                             {c.user?.orcid && <div style={{ fontSize: "0.7rem", fontFamily: "monospace", color: "#10b981" }}>ORCID: {c.user.orcid}</div>}
                           </td>
                           <td style={{ maxWidth: "260px" }}>
-                            <div style={{ color: "#f1f5f9", fontWeight: 600 }}>{c.article?.title}</div>
+                            <div style={{ color: "#0f172a", fontWeight: 600 }}>{c.article?.title}</div>
                           </td>
                           <td>
-                            <div style={{ color: "#cbd5e1" }}>{c.article?.journal?.name}</div>
+                            <div style={{ color: "#334155" }}>{c.article?.journal?.name}</div>
                             {c.article?.doi && (
                               <div style={{ fontSize: "0.7rem", fontFamily: "monospace", color: "#64748b" }}>DOI: {c.article.doi}</div>
                             )}
                           </td>
-                          <td style={{ color: "#94a3b8" }}>
+                          <td style={{ color: "#475569" }}>
                             {new Date(c.claimedAt).toLocaleDateString()}
                           </td>
                           <td>
@@ -1689,6 +1924,670 @@ export default function AdminPortalPage() {
           )}
 
           {/* ========================================================= */}
+          {/* TAB: RESOURCES MANAGER (FOR PROF / ADMIN)                 */}
+          {/* ========================================================= */}
+          {activeTab === "resources" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+                <div>
+                  <h2 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.25rem" }}>
+                    Scholarly Resources &amp; Guides Hub
+                  </h2>
+                  <p style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", margin: 0 }}>
+                    Create, edit, and publish academic publishing guides, ethics policies, and model statements for African scholars.
+                  </p>
+                </div>
+                <div style={{ display: "flex", gap: "0.75rem" }}>
+                  <button
+                    type="button"
+                    onClick={fetchAdminResources}
+                    className="admin-btn admin-btn-secondary"
+                  >
+                    <i className="fa-solid fa-arrows-rotate"></i> Refresh
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleOpenAddResource}
+                    className="admin-btn admin-btn-primary"
+                  >
+                    <i className="fa-solid fa-plus"></i> Add New Resource
+                  </button>
+                </div>
+              </div>
+
+              {/* Resources Table */}
+              <div className="admin-table-container">
+                <div className="admin-table-scroll">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Resource</th>
+                        <th style={{ width: "110px", textAlign: "center" }}>Status</th>
+                        <th style={{ width: "120px", whiteSpace: "nowrap" }}>Modified</th>
+                        <th style={{ width: "110px", textAlign: "right" }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {adminResources.map((r: any) => (
+                        <tr key={r.id}>
+                          <td style={{ verticalAlign: "middle" }}>
+                            <div style={{ fontWeight: 700, color: "var(--color-navy)", fontSize: "0.92rem", lineHeight: 1.35 }}>
+                              {r.title}
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", fontSize: "0.75rem", marginTop: "4px" }}>
+                              <span style={{ fontWeight: 700, color: "#b45309", background: "rgba(180, 83, 9, 0.08)", padding: "1px 6px", borderRadius: "4px" }}>
+                                {r.category || "General"}
+                              </span>
+                              <span style={{ color: "#94a3b8" }}>•</span>
+                              <span style={{ fontFamily: "monospace", color: "#64748b", fontSize: "0.75rem" }}>
+                                /resources/{r.slug}
+                              </span>
+                              {r.fileName && (
+                                <span style={{ color: "#16a34a", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                                  <i className="fa-solid fa-paperclip"></i> {r.fileName}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td style={{ textAlign: "center", whiteSpace: "nowrap", verticalAlign: "middle" }}>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleResourcePublish(r)}
+                              className={`admin-badge ${r.isPublished ? "admin-badge-success" : "admin-badge-warning"}`}
+                              style={{ cursor: "pointer", border: "none" }}
+                              title="Click to toggle status"
+                            >
+                              <i className={`fa-solid ${r.isPublished ? "fa-check" : "fa-clock"}`}></i>
+                              {r.isPublished ? "Published" : "Draft"}
+                            </button>
+                          </td>
+                          <td style={{ fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap", verticalAlign: "middle" }}>
+                            {new Date(r.updatedAt || r.createdAt).toLocaleDateString()}
+                          </td>
+                          <td style={{ textAlign: "right", whiteSpace: "nowrap", verticalAlign: "middle" }}>
+                            <div style={{ display: "inline-flex", gap: "6px" }}>
+                              <a
+                                href={`/resources/${r.slug}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="admin-btn admin-btn-secondary admin-btn-sm"
+                                title="View public page"
+                              >
+                                <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditResource(r)}
+                                className="admin-btn admin-btn-secondary admin-btn-sm"
+                                title="Edit Resource"
+                              >
+                                <i className="fa-solid fa-pen-to-square"></i>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteResource(r.id, r.title)}
+                                className="admin-btn admin-btn-danger admin-btn-sm"
+                                title="Delete Resource"
+                              >
+                                <i className="fa-solid fa-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {adminResources.length === 0 && !loadingResources && (
+                        <tr>
+                          <td colSpan={4} style={{ textAlign: "center", padding: "2.5rem 1rem", color: "#64748b" }}>
+                            <i className="fa-solid fa-book-bookmark" style={{ fontSize: "2rem", marginBottom: "0.5rem", display: "block", color: "#334155" }}></i>
+                            No custom database resources yet. Click <strong>Add New Resource</strong> to publish an academic guide.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* WordPress-Style Scholarly Resource Publishing Suite */}
+              {isResourceModalOpen && (
+                <div className="admin-modal-backdrop" style={{ zIndex: 1100, padding: "8px" }}>
+                  <div
+                    style={{
+                      maxWidth: "1400px",
+                      width: "98vw",
+                      height: "96vh",
+                      maxHeight: "96vh",
+                      display: "flex",
+                      flexDirection: "column",
+                      padding: 0,
+                      borderRadius: "14px",
+                      overflow: "hidden",
+                      background: "#ffffff",
+                      boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.4)",
+                      border: "1px solid #cbd5e1"
+                    }}
+                  >
+                    {/* Header Bar with Integrated Actions (Maximizes Canvas Space) */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.55rem 1.25rem", borderBottom: "1px solid #e2e8f0", background: "#f8fafc", flexShrink: 0, gap: "1rem" }}>
+                      {/* Left: Close & Breadcrumb */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <button
+                          type="button"
+                          onClick={() => setIsResourceModalOpen(false)}
+                          style={{
+                            background: "#ffffff",
+                            border: "1px solid #cbd5e1",
+                            width: "32px",
+                            height: "32px",
+                            borderRadius: "8px",
+                            fontSize: "0.85rem",
+                            color: "#334155",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            transition: "all 0.15s ease"
+                          }}
+                          title="Back to Resources List"
+                        >
+                          <i className="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span style={{ fontSize: "0.92rem", fontWeight: 700, color: "#0f172a" }}>
+                            {editingResource ? "Edit Scholarly Resource" : "Create New Resource"}
+                          </span>
+                          <span className={`admin-badge ${resourceFormData.isPublished ? "admin-badge-success" : "admin-badge-warning"}`} style={{ fontSize: "0.72rem" }}>
+                            {resourceFormData.isPublished ? "● Published" : "○ Draft"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Center: Write vs Live Preview Tabs (Highlighted for Clear Visibility) */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{ display: "flex", background: "#f1f5f9", padding: "3px", borderRadius: "8px", border: "1px solid #cbd5e1" }}>
+                          <button
+                            type="button"
+                            onClick={() => setResourceEditorTab("write")}
+                            style={{
+                              border: "none",
+                              padding: "5px 14px",
+                              borderRadius: "6px",
+                              fontSize: "0.82rem",
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              background: resourceEditorTab === "write" ? "#0f172a" : "transparent",
+                              color: resourceEditorTab === "write" ? "#ffffff" : "#475569",
+                              boxShadow: resourceEditorTab === "write" ? "0 1px 3px rgba(0,0,0,0.15)" : "none",
+                              transition: "all 0.15s ease"
+                            }}
+                          >
+                            <i className="fa-solid fa-pen-nib"></i> Write
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setResourceEditorTab("preview")}
+                            style={{
+                              border: resourceEditorTab === "preview" ? "1px solid #92400e" : "1px solid #fde68a",
+                              padding: "5px 14px",
+                              borderRadius: "6px",
+                              fontSize: "0.82rem",
+                              fontWeight: 800,
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              background: resourceEditorTab === "preview" ? "#b45309" : "#fef3c7",
+                              color: resourceEditorTab === "preview" ? "#ffffff" : "#92400e",
+                              boxShadow: resourceEditorTab === "preview" ? "0 2px 6px rgba(180, 83, 9, 0.35)" : "0 1px 3px rgba(180, 83, 9, 0.15)",
+                              transition: "all 0.15s ease"
+                            }}
+                          >
+                            <i className="fa-solid fa-eye"></i> Live Preview
+                          </button>
+                        </div>
+                        <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                          {resourceFormData.content.trim() ? resourceFormData.content.trim().split(/\s+/).length : 0} words
+                        </span>
+                      </div>
+
+                      {/* Right: Actions (Save / Publish) */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        {editingResource?.slug && (
+                          <a
+                            href={`/resources/${resourceFormData.slug || editingResource.slug}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="admin-btn admin-btn-secondary admin-btn-sm"
+                            style={{ fontSize: "0.78rem" }}
+                            title="Open live public view"
+                          >
+                            <i className="fa-solid fa-arrow-up-right-from-square"></i> Live Page
+                          </a>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setIsResourceModalOpen(false)}
+                          className="admin-btn admin-btn-secondary admin-btn-sm"
+                          style={{ fontSize: "0.78rem" }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          form="admin-resource-publish-form"
+                          className="admin-btn admin-btn-primary admin-btn-sm"
+                          style={{ fontSize: "0.82rem", fontWeight: 700, padding: "0.45rem 1.15rem" }}
+                        >
+                          <i className="fa-solid fa-cloud-arrow-up"></i> {editingResource ? "Save Changes" : "Publish Resource"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <form
+                      id="admin-resource-publish-form"
+                      onSubmit={handleSaveResource}
+                      style={{ display: "flex", flex: 1, minHeight: 0, overflow: "hidden" }}
+                    >
+                      <div className="admin-publishing-grid" style={{ display: "grid", gridTemplateColumns: "1fr 310px", width: "100%", height: "100%", minHeight: 0, overflow: "hidden" }}>
+                        
+                        {/* LEFT COLUMN: Main Writing Canvas */}
+                        <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, height: "100%", overflow: "hidden", background: "#ffffff" }}>
+                          {/* Title Input Bar */}
+                          <div style={{ padding: "0.85rem 1.75rem 0.6rem", flexShrink: 0, borderBottom: "1px solid #f1f5f9" }}>
+                            <input
+                              type="text"
+                              required
+                              value={resourceFormData.title}
+                              onChange={e => setResourceFormData({ ...resourceFormData, title: e.target.value })}
+                              placeholder="Title of Scholarly Guide or Resource..."
+                              style={{
+                                width: "100%",
+                                fontSize: "1.45rem",
+                                fontWeight: 700,
+                                border: "none",
+                                outline: "none",
+                                color: "#0f172a",
+                                background: "transparent",
+                                padding: "0.2rem 0",
+                                fontFamily: "var(--font-ui), sans-serif",
+                                letterSpacing: "-0.01em"
+                              }}
+                            />
+                          </div>
+
+                          {/* Sticky Formatting Toolbar */}
+                          <div style={{
+                            flexShrink: 0,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            background: "#f8fafc",
+                            padding: "0.4rem 1.75rem",
+                            borderBottom: "1px solid #e2e8f0",
+                            flexWrap: "wrap",
+                            gap: "0.4rem"
+                          }}>
+                            {/* Formatting Buttons */}
+                            <div style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap" }}>
+                              <button
+                                type="button"
+                                title="Bold (**text**)"
+                                onClick={() => insertToolbarSyntax("**", "**", "bold text")}
+                                className="admin-editor-toolbar-btn"
+                              >
+                                <strong>B</strong>
+                              </button>
+                              <button
+                                type="button"
+                                title="Italic (*text*)"
+                                onClick={() => insertToolbarSyntax("*", "*", "italic text")}
+                                className="admin-editor-toolbar-btn"
+                              >
+                                <em>I</em>
+                              </button>
+                              <span style={{ width: "1px", height: "18px", background: "#cbd5e1", margin: "0 4px" }}></span>
+                              <button
+                                type="button"
+                                title="Section Heading (H2)"
+                                onClick={() => insertToolbarSyntax("## ", "\n", "Section Heading")}
+                                className="admin-editor-toolbar-btn"
+                              >
+                                H2
+                              </button>
+                              <button
+                                type="button"
+                                title="Sub-heading (H3)"
+                                onClick={() => insertToolbarSyntax("### ", "\n", "Sub-heading")}
+                                className="admin-editor-toolbar-btn"
+                              >
+                                H3
+                              </button>
+                              <span style={{ width: "1px", height: "18px", background: "#cbd5e1", margin: "0 4px" }}></span>
+                              <button
+                                type="button"
+                                title="Bullet List (- item)"
+                                onClick={() => insertToolbarSyntax("- ", "\n", "List item")}
+                                className="admin-editor-toolbar-btn"
+                              >
+                                <i className="fa-solid fa-list-ul"></i>
+                              </button>
+                              <button
+                                type="button"
+                                title="Numbered List (1. item)"
+                                onClick={() => insertToolbarSyntax("1. ", "\n", "Step item")}
+                                className="admin-editor-toolbar-btn"
+                              >
+                                <i className="fa-solid fa-list-ol"></i>
+                              </button>
+                              <button
+                                type="button"
+                                title="Quote Block (> quote)"
+                                onClick={() => insertToolbarSyntax("> ", "\n", "Quotation")}
+                                className="admin-editor-toolbar-btn"
+                              >
+                                <i className="fa-solid fa-quote-left"></i>
+                              </button>
+                              <span style={{ width: "1px", height: "18px", background: "#cbd5e1", margin: "0 4px" }}></span>
+                              <button
+                                type="button"
+                                title="Insert Callout Card (:::callout)"
+                                onClick={() => insertToolbarSyntax("\n:::callout\n", "\n:::\n", "Key evaluative notice or protocol details...")}
+                                className="admin-editor-toolbar-btn-special"
+                                style={{ color: "#0f172a" }}
+                              >
+                                + Callout
+                              </button>
+                              <button
+                                type="button"
+                                title="Insert Penalty Sanctions Box (:::penalty)"
+                                onClick={() => insertToolbarSyntax("\n:::penalty\n", "\n:::\n", "**Sanctions for Academic Misconduct:**\n1. Formal retraction of all published papers.\n2. Multi-year submission blacklisting.")}
+                                className="admin-editor-toolbar-btn-special"
+                                style={{ color: "#b91c1c", borderColor: "#fecaca", background: "#fef2f2" }}
+                              >
+                                + Penalty
+                              </button>
+                              <button
+                                type="button"
+                                title="Insert Warning Box (:::warning)"
+                                onClick={() => insertToolbarSyntax("\n:::warning\n", "\n:::\n", "**Critical Warning Signs:**\n- Unrealistic turnaround times\n- Bogus or hijacked metrics")}
+                                className="admin-editor-toolbar-btn-special"
+                                style={{ color: "#b45309", borderColor: "#fde68a", background: "#fffbeb" }}
+                              >
+                                + Warning
+                              </button>
+                              <button
+                                type="button"
+                                title="Insert Calculation Formula Box (:::formula)"
+                                onClick={() => insertToolbarSyntax("\n:::formula\n", "\n:::\n", "AJCI Score = C / P")}
+                                className="admin-editor-toolbar-btn-special"
+                                style={{ color: "#0f172a" }}
+                              >
+                                + Formula
+                              </button>
+                            </div>
+
+                            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                              <span style={{ fontSize: "0.72rem", color: "#64748b" }}>
+                                Standard Academic Markdown
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setResourceEditorTab(resourceEditorTab === "write" ? "preview" : "write")}
+                                style={{
+                                  background: resourceEditorTab === "preview" ? "#0f172a" : "#fef3c7",
+                                  color: resourceEditorTab === "preview" ? "#ffffff" : "#92400e",
+                                  border: `1px solid ${resourceEditorTab === "preview" ? "#0f172a" : "#fde68a"}`,
+                                  borderRadius: "6px",
+                                  padding: "3px 10px",
+                                  fontSize: "0.76rem",
+                                  fontWeight: 800,
+                                  cursor: "pointer",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "5px",
+                                  boxShadow: "0 1px 3px rgba(180, 83, 9, 0.15)",
+                                  transition: "all 0.15s ease"
+                                }}
+                                title="Toggle live preview"
+                              >
+                                <i className={`fa-solid ${resourceEditorTab === "preview" ? "fa-pen-nib" : "fa-eye"}`}></i>
+                                {resourceEditorTab === "preview" ? "Back to Write" : "Live Preview"}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Editor Body / Preview Body */}
+                          {resourceEditorTab === "write" ? (
+                            <textarea
+                              id="admin-resource-content-editor"
+                              required
+                              value={resourceFormData.content}
+                              onChange={e => setResourceFormData({ ...resourceFormData, content: e.target.value })}
+                              placeholder="Write or paste your scholarly guide in markdown here...&#10;&#10;Use ## for Section Headings&#10;Use ### for Sub-headings&#10;Use - for Bullet points&#10;Use 1. for Numbered steps&#10;Use :::card for structured summary boxes&#10;Use :::formula for metric calculations"
+                              style={{
+                                padding: "1.5rem 1.75rem",
+                                border: "none",
+                                outline: "none",
+                                fontSize: "15px",
+                                fontWeight: 400,
+                                lineHeight: 1.8,
+                                fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+                                color: "#1e293b",
+                                flex: 1,
+                                height: "100%",
+                                minHeight: 0,
+                                resize: "none",
+                                overflowY: "auto",
+                                boxSizing: "border-box"
+                              }}
+                            />
+                          ) : (
+                            <div style={{ padding: "2rem 2.5rem", flex: 1, height: "100%", minHeight: 0, overflowY: "auto", background: "#ffffff" }}>
+                              <div style={{ maxWidth: "860px", margin: "0 auto" }}>
+                                <div style={{ borderBottom: "1px solid #e2e8f0", paddingBottom: "1.25rem", marginBottom: "1.75rem" }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "0.5rem" }}>
+                                    <span style={{ fontWeight: 700, fontSize: "0.75rem", color: "#b45309", background: "rgba(180, 83, 9, 0.08)", padding: "2px 8px", borderRadius: "4px" }}>
+                                      {resourceFormData.category}
+                                    </span>
+                                    <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>•</span>
+                                    <span style={{ fontSize: "0.75rem", color: "#64748b", fontFamily: "monospace" }}>
+                                      /resources/{resourceFormData.slug || "slug"}
+                                    </span>
+                                  </div>
+                                  <h1 style={{ fontSize: "1.9rem", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.5rem", lineHeight: 1.25 }}>
+                                    {resourceFormData.title || "Untitled Resource"}
+                                  </h1>
+                                  {resourceFormData.summary && (
+                                    <p style={{ fontSize: "1rem", color: "var(--color-text-muted)", margin: 0, lineHeight: 1.6 }}>
+                                      {resourceFormData.summary}
+                                    </p>
+                                  )}
+                                </div>
+                                <ResourceContentRenderer content={resourceFormData.content} />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* RIGHT COLUMN: Publishing Inspector Sidebar */}
+                        <div style={{ width: "310px", borderLeft: "1px solid #e2e8f0", background: "#f8fafc", padding: "1rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                          {/* Card 1: Publish Status */}
+                          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "0.85rem" }}>
+                            <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", color: "#475569", marginBottom: "6px" }}>
+                              Publishing Status
+                            </label>
+                            <select
+                              value={resourceFormData.isPublished ? "true" : "false"}
+                              onChange={e => setResourceFormData({ ...resourceFormData, isPublished: e.target.value === "true" })}
+                              style={{
+                                width: "100%",
+                                padding: "0.5rem",
+                                borderRadius: "6px",
+                                border: "1px solid #cbd5e1",
+                                background: resourceFormData.isPublished ? "#ecfdf5" : "#fefce8",
+                                color: resourceFormData.isPublished ? "#065f46" : "#854d0e",
+                                fontWeight: 700,
+                                fontSize: "0.82rem"
+                              }}
+                            >
+                              <option value="true">● Published Live</option>
+                              <option value="false">○ Draft (Hidden from Public)</option>
+                            </select>
+                          </div>
+
+                          {/* Card 2: Category */}
+                          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "0.85rem" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                              <label style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", color: "#475569" }}>
+                                Category *
+                              </label>
+                              {isAddingCategory && (
+                                <button
+                                  type="button"
+                                  onClick={() => { setIsAddingCategory(false); setCustomCategory(""); }}
+                                  style={{ background: "none", border: "none", color: "#b45309", fontSize: "0.72rem", cursor: "pointer", fontWeight: 700 }}
+                                >
+                                  ← Choose list
+                                </button>
+                              )}
+                            </div>
+                            {!isAddingCategory ? (
+                              <select
+                                value={resourceFormData.category}
+                                onChange={e => {
+                                  if (e.target.value === "__NEW__") {
+                                    setIsAddingCategory(true);
+                                    setCustomCategory("");
+                                  } else {
+                                    setResourceFormData({ ...resourceFormData, category: e.target.value });
+                                  }
+                                }}
+                                className="admin-select"
+                                style={{ width: "100%", fontSize: "0.82rem" }}
+                              >
+                                <option value="Publication Ethics">Publication Ethics</option>
+                                <option value="Predatory Journals">Predatory Journals</option>
+                                <option value="Open Access">Open Access</option>
+                                <option value="AJCI Metrics">AJCI Metrics</option>
+                                <option value="Peer Review">Peer Review</option>
+                                <option value="__NEW__">+ Add New Category...</option>
+                              </select>
+                            ) : (
+                              <input
+                                type="text"
+                                required
+                                autoFocus
+                                value={customCategory}
+                                onChange={e => setCustomCategory(e.target.value)}
+                                placeholder="Type new category..."
+                                className="admin-input"
+                                style={{ width: "100%", fontSize: "0.82rem" }}
+                              />
+                            )}
+                          </div>
+
+                          {/* Card 3: URL Slug */}
+                          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "0.85rem" }}>
+                            <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", color: "#475569", marginBottom: "4px" }}>
+                              URL Slug
+                            </label>
+                            <input
+                              type="text"
+                              value={resourceFormData.slug}
+                              onChange={e => setResourceFormData({ ...resourceFormData, slug: e.target.value })}
+                              placeholder="e.g. publication-ethics"
+                              className="admin-input"
+                              style={{ width: "100%", fontSize: "0.8rem", fontFamily: "monospace" }}
+                            />
+                            <div style={{ fontSize: "0.7rem", color: "#64748b", marginTop: "4px" }}>
+                              <code>/resources/{resourceFormData.slug || "slug"}</code>
+                            </div>
+                          </div>
+
+                          {/* Card 4: Summary Excerpt */}
+                          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "0.85rem" }}>
+                            <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", color: "#475569", marginBottom: "4px" }}>
+                              Summary Excerpt
+                            </label>
+                            <textarea
+                              rows={3}
+                              value={resourceFormData.summary}
+                              onChange={e => setResourceFormData({ ...resourceFormData, summary: e.target.value })}
+                              placeholder="Brief 2-sentence summary shown on cards..."
+                              className="admin-textarea"
+                              style={{ width: "100%", fontSize: "0.8rem" }}
+                            />
+                          </div>
+
+                          {/* Card 5: Attachment File */}
+                          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "0.85rem" }}>
+                            <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", color: "#475569", marginBottom: "6px" }}>
+                              Document Attachment (.pdf, .doc, .docx)
+                            </label>
+                            {resourceFormData.fileUrl ? (
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "0.45rem 0.65rem" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "6px", overflow: "hidden" }}>
+                                  <i className="fa-solid fa-file" style={{ color: "#0f172a" }}></i>
+                                  <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#0f172a", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                                    {resourceFormData.fileName || "Document"}
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setResourceFormData(prev => ({ ...prev, fileUrl: "", fileName: "" }))}
+                                  style={{ background: "none", border: "none", color: "#dc2626", cursor: "pointer", fontSize: "0.85rem" }}
+                                  title="Remove"
+                                >
+                                  <i className="fa-solid fa-trash"></i>
+                                </button>
+                              </div>
+                            ) : (
+                              <div>
+                                <input
+                                  type="file"
+                                  accept=".pdf,.doc,.docx"
+                                  onChange={handleUploadAttachment}
+                                  disabled={uploadingAttachment}
+                                  className="admin-input"
+                                  style={{ padding: "0.35rem", fontSize: "0.75rem", width: "100%" }}
+                                />
+                                {uploadingAttachment && (
+                                  <div style={{ fontSize: "0.72rem", color: "#b45309", marginTop: "4px" }}>
+                                    <i className="fa-solid fa-spinner fa-spin"></i> Uploading...
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Card 6: Quick Markdown Reference */}
+                          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "0.85rem", fontSize: "0.72rem", color: "#475569" }}>
+                            <div style={{ fontWeight: 700, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>
+                              Formatting Guide
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px", fontFamily: "monospace" }}>
+                              <div><code>## Section</code> &rarr; Main heading</div>
+                              <div><code>### Sub-sec</code> &rarr; Sub-heading</div>
+                              <div><code>**bold**</code> &rarr; <strong>Bold</strong></div>
+                              <div><code>- item</code> &rarr; Bullet list</div>
+                              <div><code>1. item</code> &rarr; Numbered list</div>
+                              <div><code>:::card</code> &rarr; Callout card</div>
+                              <div><code>:::formula</code> &rarr; Formula box</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ========================================================= */}
           {/* TAB 4: JOURNALS DIRECTORY                                 */}
           {/* ========================================================= */}
           
@@ -1699,11 +2598,11 @@ export default function AdminPortalPage() {
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "1.25rem" }}>
                 <div>
-                  <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <i className="fa-solid fa-bullhorn" style={{ color: "#2dd4bf" }}></i>
                     Pan-African Journal Outreach & Campaign Desk
                   </h3>
-                  <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>
+                  <p style={{ fontSize: "0.8rem", color: "#475569", margin: 0 }}>
                     Manage editorial invitations across both indexed journals (claim portal & metrics) and unindexed journals (free indexing & OJS incubation).
                   </p>
                 </div>
@@ -1748,29 +2647,29 @@ export default function AdminPortalPage() {
 
               {/* Summary Cards */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginBottom: "1.25rem" }}>
-                <div style={{ background: "#0f172a", border: "1px solid #1e293b", padding: "1.2rem", borderRadius: "12px", textAlign: "center" }}>
-                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", textTransform: "uppercase", fontWeight: 700 }}>Total Leads Mapped</div>
+                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", padding: "1.2rem", borderRadius: "12px", textAlign: "center", boxShadow: "0 4px 12px -2px rgba(15, 23, 42, 0.03)" }}>
+                  <div style={{ fontSize: "0.75rem", color: "#475569", textTransform: "uppercase", fontWeight: 700 }}>Total Leads Mapped</div>
                   <div style={{ fontSize: "1.8rem", fontWeight: 800, color: "#ffffff", marginTop: "0.3rem" }}>{campaignSummary.total}</div>
                 </div>
 
-                <div style={{ background: "#0f172a", border: "1px solid #1e293b", padding: "1.2rem", borderRadius: "12px", textAlign: "center" }}>
+                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", padding: "1.2rem", borderRadius: "12px", textAlign: "center", boxShadow: "0 4px 12px -2px rgba(15, 23, 42, 0.03)" }}>
                   <div style={{ fontSize: "0.75rem", color: "#fbbf24", textTransform: "uppercase", fontWeight: 700 }}>Pending Dispatch</div>
                   <div style={{ fontSize: "1.8rem", fontWeight: 800, color: "#fbbf24", marginTop: "0.3rem" }}>{campaignSummary.pending}</div>
                 </div>
 
-                <div style={{ background: "#0f172a", border: "1px solid #1e293b", padding: "1.2rem", borderRadius: "12px", textAlign: "center" }}>
+                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", padding: "1.2rem", borderRadius: "12px", textAlign: "center", boxShadow: "0 4px 12px -2px rgba(15, 23, 42, 0.03)" }}>
                   <div style={{ fontSize: "0.75rem", color: "#38bdf8", textTransform: "uppercase", fontWeight: 700 }}>Invitations Sent</div>
                   <div style={{ fontSize: "1.8rem", fontWeight: 800, color: "#38bdf8", marginTop: "0.3rem" }}>{campaignSummary.invited}</div>
                 </div>
 
-                <div style={{ background: "#0f172a", border: "1px solid #1e293b", padding: "1.2rem", borderRadius: "12px", textAlign: "center" }}>
+                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", padding: "1.2rem", borderRadius: "12px", textAlign: "center", boxShadow: "0 4px 12px -2px rgba(15, 23, 42, 0.03)" }}>
                   <div style={{ fontSize: "0.75rem", color: "#34d399", textTransform: "uppercase", fontWeight: 700 }}>Applied for Indexing</div>
                   <div style={{ fontSize: "1.8rem", fontWeight: 800, color: "#34d399", marginTop: "0.3rem" }}>{campaignSummary.applied}</div>
                 </div>
               </div>
 
               {/* Filters */}
-              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem" }}>
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem", boxShadow: "0 4px 12px -2px rgba(15, 23, 42, 0.03)" }}>
                 <div style={{ flex: 1, minWidth: "220px" }}>
                   <input
                     type="text"
@@ -1862,15 +2761,15 @@ export default function AdminPortalPage() {
                                     />
                                   </td>
                                   <td>
-                                    <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{c.journalName}</div>
-                                    <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>{c.institutionName || c.publisherName || "Independent"}</div>
+                                    <div style={{ fontWeight: 700, color: "#0f172a" }}>{c.journalName}</div>
+                                    <div style={{ fontSize: "0.75rem", color: "#475569" }}>{c.institutionName || c.publisherName || "Independent"}</div>
                                     {c.issn && <div style={{ fontSize: "0.7rem", fontFamily: "monospace", color: "#64748b" }}>ISSN: {c.issn}</div>}
                                   </td>
                                   <td>
-                                    <span style={{ fontSize: "0.82rem", color: "#cbd5e1" }}>{c.country}</span>
+                                    <span style={{ fontSize: "0.82rem", color: "#334155" }}>{c.country}</span>
                                   </td>
                                   <td>
-                                    <div style={{ fontSize: "0.82rem", color: "#f1f5f9" }}>{c.editorName || "Editor"}</div>
+                                    <div style={{ fontSize: "0.82rem", color: "#0f172a" }}>{c.editorName || "Editor"}</div>
                                     <div style={{ fontSize: "0.75rem", color: "#38bdf8", fontFamily: "monospace" }}>{c.editorEmail}</div>
                                   </td>
                                   <td>
@@ -1937,7 +2836,7 @@ export default function AdminPortalPage() {
                 </div>
 
                 {/* Candidate Pagination Controls */}
-                <div style={{ padding: "0.85rem 1rem", borderTop: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#94a3b8" }}>
+                <div style={{ padding: "0.85rem 1rem", borderTop: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#475569" }}>
                   <div>
                     Showing Page <strong>{campaignPage}</strong> (15 per page)
                   </div>
@@ -1966,12 +2865,12 @@ export default function AdminPortalPage() {
           {activeTab === "journals" && (
             <div>
               <div style={{ marginBottom: "1rem" }}>
-                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>Journals Catalog Directory</h3>
-                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Configure indexation status, quality grades, and subscription tiers.</p>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.25rem" }}>Journals Catalog Directory</h3>
+                <p style={{ fontSize: "0.8rem", color: "#475569", margin: 0 }}>Configure indexation status, quality grades, and subscription tiers.</p>
               </div>
 
               {/* Filters */}
-              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem" }}>
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem", boxShadow: "0 4px 12px -2px rgba(15, 23, 42, 0.03)" }}>
                 <div style={{ flex: 1, minWidth: "220px" }}>
                   <input
                     type="text"
@@ -2055,7 +2954,7 @@ export default function AdminPortalPage() {
                       {pagedJournals.map(j => (
                         <tr key={j.id}>
                           <td>
-                            <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{j.name}</div>
+                            <div style={{ fontWeight: 700, color: "#0f172a" }}>{j.name}</div>
                             <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{j.country} • {j.publisherName}</div>
                           </td>
                           <td style={{ fontFamily: "monospace" }}>
@@ -2147,7 +3046,7 @@ export default function AdminPortalPage() {
 
                 {/* Pagination */}
                 {filteredJournals.length > journalPageSize && (
-                  <div style={{ padding: "0.85rem 1rem", borderTop: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#94a3b8" }}>
+                  <div style={{ padding: "0.85rem 1rem", borderTop: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#475569" }}>
                     <div>
                       Showing {(journalPage - 1) * journalPageSize + 1} to {Math.min(journalPage * journalPageSize, filteredJournals.length)} of {filteredJournals.length}
                     </div>
@@ -2182,7 +3081,7 @@ export default function AdminPortalPage() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: 0 }}>
+                    <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>
                       DOI Minting Desk
                     </h3>
                     <span 
@@ -2192,7 +3091,7 @@ export default function AdminPortalPage() {
                       {doiEnv?.isSandbox ? "Sandbox Mode (10.5072)" : "Live Production (10.5281)"}
                     </span>
                   </div>
-                  <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: "0.25rem 0 0" }}>
+                  <p style={{ fontSize: "0.8rem", color: "#475569", margin: "0.25rem 0 0" }}>
                     Automated persistent identifier minting via CERN Zenodo &amp; DataCite. Strict journal whitelist active.
                   </p>
                 </div>
@@ -2248,7 +3147,7 @@ export default function AdminPortalPage() {
                     <div style={{ display: "flex", gap: "1rem", fontSize: "0.75rem" }}>
                       <div>
                         <span style={{ color: "#64748b" }}>Total: </span>
-                        <strong style={{ color: "#f1f5f9" }}>{j.totalArticles}</strong>
+                        <strong style={{ color: "#0f172a" }}>{j.totalArticles}</strong>
                       </div>
                       <div>
                         <span style={{ color: "#64748b" }}>Minted: </span>
@@ -2336,7 +3235,7 @@ export default function AdminPortalPage() {
                     {doiBatchResults.map((r, i) => (
                       <div key={i} style={{ fontSize: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                         <i className={`fa-solid ${r.success ? "fa-circle-check" : "fa-circle-xmark"}`} style={{ color: r.success ? "#10b981" : "#ef4444" }}></i>
-                        <span style={{ color: "#f1f5f9", fontWeight: 600 }}>{r.title?.slice(0, 50)}...</span>
+                        <span style={{ color: "#0f172a", fontWeight: 600 }}>{r.title?.slice(0, 50)}...</span>
                         {r.doi && (
                           <span style={{ fontFamily: "monospace", color: "#34d399" }}>DOI: {r.doi}</span>
                         )}
@@ -2399,7 +3298,7 @@ export default function AdminPortalPage() {
                               )}
                             </td>
                             <td style={{ maxWidth: "300px" }}>
-                              <div style={{ fontWeight: 700, color: "#f1f5f9", lineHeight: 1.3 }}>
+                              <div style={{ fontWeight: 700, color: "#0f172a", lineHeight: 1.3 }}>
                                 {art.title}
                               </div>
                               <div style={{ fontSize: "0.7rem", color: "#64748b", marginTop: "3px" }}>
@@ -2409,8 +3308,8 @@ export default function AdminPortalPage() {
                             <td style={{ maxWidth: "200px" }}>
                               {art.authors && art.authors.length > 0 ? (
                                 art.authors.map((auth: any, idx: number) => (
-                                  <div key={idx} style={{ fontSize: "0.75rem", color: "#cbd5e1" }}>
-                                    <strong style={{ color: "#ffffff" }}>{auth.name}</strong>
+                                  <div key={idx} style={{ fontSize: "0.75rem", color: "#334155" }}>
+                                    <strong style={{ color: "#0f172a" }}>{auth.name}</strong>
                                     {auth.institution && <span style={{ color: "#64748b" }}> ({auth.institution})</span>}
                                   </div>
                                 ))
@@ -2463,7 +3362,7 @@ export default function AdminPortalPage() {
                             </td>
                             <td style={{ whiteSpace: "nowrap" }}>
                               {isMinted ? (
-                                <span style={{ color: "#94a3b8", fontSize: "0.8rem", fontFamily: "monospace" }}>
+                                <span style={{ color: "#475569", fontSize: "0.8rem", fontFamily: "monospace" }}>
                                   {art.officialPublishDate || (art.publishDate ? new Date(art.publishDate).toISOString().split("T")[0] : "—")}
                                 </span>
                               ) : (
@@ -2625,8 +3524,8 @@ export default function AdminPortalPage() {
           {activeTab === "moderation" && (
             <div>
               <div style={{ marginBottom: "1rem" }}>
-                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>Community Moderation Desk</h3>
-                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Review and moderate discourse topics, social feed publications, and user reviews.</p>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.25rem" }}>Community Moderation Desk</h3>
+                <p style={{ fontSize: "0.8rem", color: "#475569", margin: 0 }}>Review and moderate discourse topics, social feed publications, and user reviews.</p>
               </div>
 
               {/* Sub-tab selection */}
@@ -2697,11 +3596,11 @@ export default function AdminPortalPage() {
                         {forumTopics.map(topic => (
                           <tr key={topic.id}>
                             <td style={{ maxWidth: "280px" }}>
-                              <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{topic.title}</div>
+                              <div style={{ fontWeight: 700, color: "#0f172a" }}>{topic.title}</div>
                               <div style={{ fontSize: "0.72rem", color: "#10b981" }}>Category: {topic.category?.name}</div>
                             </td>
                             <td>
-                              <div style={{ color: "#f1f5f9" }}>{topic.author?.name}</div>
+                              <div style={{ color: "#0f172a" }}>{topic.author?.name}</div>
                               <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{topic.author?.email}</div>
                             </td>
                             <td style={{ fontFamily: "monospace" }}>
@@ -2712,7 +3611,7 @@ export default function AdminPortalPage() {
                               {topic.isLocked && <span className="admin-badge admin-badge-danger" style={{ marginRight: "4px" }}>Locked</span>}
                               {!topic.isPinned && !topic.isLocked && <span style={{ color: "#64748b", fontSize: "0.75rem" }}>Active</span>}
                             </td>
-                            <td style={{ color: "#94a3b8" }}>
+                            <td style={{ color: "#475569" }}>
                               {new Date(topic.createdAt).toLocaleDateString()}
                             </td>
                             <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
@@ -2783,13 +3682,13 @@ export default function AdminPortalPage() {
                         {posts.map(post => (
                           <tr key={post.id}>
                             <td>
-                              <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{post.author?.name}</div>
+                              <div style={{ fontWeight: 700, color: "#0f172a" }}>{post.author?.name}</div>
                               <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{post.author?.email}</div>
                             </td>
                             <td style={{ maxWidth: "340px" }}>
                               <span className="admin-badge admin-badge-info" style={{ marginRight: "6px" }}>{post.postType}</span>
-                              {post.title && <strong style={{ color: "#f1f5f9" }}>{post.title} </strong>}
-                              <p style={{ margin: "4px 0 0", color: "#cbd5e1", fontSize: "0.8rem", lineHeight: 1.4 }}>{post.content}</p>
+                              {post.title && <strong style={{ color: "#0f172a" }}>{post.title} </strong>}
+                              <p style={{ margin: "4px 0 0", color: "#334155", fontSize: "0.8rem", lineHeight: 1.4 }}>{post.content}</p>
                             </td>
                             <td>
                               {post.attachmentUrl ? (
@@ -2800,10 +3699,10 @@ export default function AdminPortalPage() {
                                 <span style={{ color: "#64748b", fontSize: "0.75rem" }}>None</span>
                               )}
                             </td>
-                            <td style={{ fontFamily: "monospace", color: "#94a3b8" }}>
+                            <td style={{ fontFamily: "monospace", color: "#475569" }}>
                               {post._count?.likes || 0} likes • {post._count?.comments || 0} comments
                             </td>
-                            <td style={{ color: "#94a3b8" }}>
+                            <td style={{ color: "#475569" }}>
                               {new Date(post.createdAt).toLocaleDateString()}
                             </td>
                             <td style={{ textAlign: "right" }}>
@@ -2857,16 +3756,16 @@ export default function AdminPortalPage() {
                         {comments.map(c => (
                           <tr key={c.id}>
                             <td>
-                              <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{c.author?.name}</div>
+                              <div style={{ fontWeight: 700, color: "#0f172a" }}>{c.author?.name}</div>
                               <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{c.author?.email}</div>
                             </td>
                             <td style={{ color: "#10b981", fontWeight: 600 }}>
                               {c.journal?.name}
                             </td>
-                            <td style={{ maxWidth: "340px", color: "#cbd5e1" }}>
+                            <td style={{ maxWidth: "340px", color: "#334155" }}>
                               {c.content}
                             </td>
-                            <td style={{ color: "#94a3b8" }}>
+                            <td style={{ color: "#475569" }}>
                               {new Date(c.createdAt).toLocaleDateString()}
                             </td>
                             <td style={{ textAlign: "right" }}>
@@ -2899,12 +3798,12 @@ export default function AdminPortalPage() {
           {activeTab === "users" && (
             <div>
               <div style={{ marginBottom: "1rem" }}>
-                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>User Directory & Permissions</h3>
-                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Inspect registered researchers and publishers; manage platform roles.</p>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.25rem" }}>User Directory & Permissions</h3>
+                <p style={{ fontSize: "0.8rem", color: "#475569", margin: 0 }}>Inspect registered researchers and publishers; manage platform roles.</p>
               </div>
 
               {/* Filters */}
-              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem" }}>
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "1rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1rem", boxShadow: "0 4px 12px -2px rgba(15, 23, 42, 0.03)" }}>
                 <div style={{ flex: 1, minWidth: "220px" }}>
                   <input
                     type="text"
@@ -2947,14 +3846,14 @@ export default function AdminPortalPage() {
                       {pagedUsers.map(u => (
                         <tr key={u.id}>
                           <td>
-                            <div style={{ fontWeight: 700, color: "#f1f5f9" }}>{u.name}</div>
+                            <div style={{ fontWeight: 700, color: "#0f172a" }}>{u.name}</div>
                             <div style={{ fontSize: "0.72rem", color: "#64748b" }}>{u.email}</div>
                             {u.orcid && <div style={{ fontSize: "0.7rem", fontFamily: "monospace", color: "#10b981" }}>ORCID: {u.orcid}</div>}
                           </td>
-                          <td style={{ color: "#cbd5e1" }}>
+                          <td style={{ color: "#334155" }}>
                             {u.institution || "—"}
                           </td>
-                          <td style={{ fontFamily: "monospace", color: "#94a3b8" }}>
+                          <td style={{ fontFamily: "monospace", color: "#475569" }}>
                             {u.totalCitations || 0} cites • h: {u.hIndex || 0}
                           </td>
                           <td>
@@ -2962,7 +3861,7 @@ export default function AdminPortalPage() {
                               {u.role}
                             </span>
                           </td>
-                          <td style={{ color: "#94a3b8" }}>
+                          <td style={{ color: "#475569" }}>
                             {new Date(u.createdAt).toLocaleDateString()}
                           </td>
                           <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
@@ -2996,7 +3895,7 @@ export default function AdminPortalPage() {
 
                 {/* Pagination */}
                 {filteredUsers.length > userPageSize && (
-                  <div style={{ padding: "0.85rem 1rem", borderTop: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#94a3b8" }}>
+                  <div style={{ padding: "0.85rem 1rem", borderTop: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#475569" }}>
                     <div>
                       Showing {(userPage - 1) * userPageSize + 1} to {Math.min(userPage * userPageSize, filteredUsers.length)} of {filteredUsers.length}
                     </div>
@@ -3028,26 +3927,26 @@ export default function AdminPortalPage() {
           {activeTab === "harvester" && (
             <div>
               <div style={{ marginBottom: "1rem" }}>
-                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>OAI-PMH Harvesting & Impact Factor Calibration</h3>
-                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Automated repository ingester and citation impact recalculation workstation.</p>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.25rem" }}>OAI-PMH Harvesting & Impact Factor Calibration</h3>
+                <p style={{ fontSize: "0.8rem", color: "#475569", margin: 0 }}>Automated repository ingester and citation impact recalculation workstation.</p>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "1.5rem" }}>
                 {/* OAI Harvester */}
-                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "16px", padding: "1.5rem" }}>
+                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 4px 12px -2px rgba(15, 23, 42, 0.03)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem" }}>
                     <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(16, 185, 129, 0.15)", color: "#10b981", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem" }}>
                       <i className="fa-solid fa-cloud-arrow-down"></i>
                     </div>
                     <div>
-                      <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#ffffff", margin: 0 }}>OAI-PMH Ingestion</h4>
-                      <p style={{ fontSize: "0.75rem", color: "#94a3b8", margin: 0 }}>Harvest metadata from OJS / DSpace endpoints.</p>
+                      <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>OAI-PMH Ingestion</h4>
+                      <p style={{ fontSize: "0.75rem", color: "#475569", margin: 0 }}>Harvest metadata from OJS / DSpace endpoints.</p>
                     </div>
                   </div>
 
                   <form onSubmit={handleRunHarvest} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
                     <div>
-                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#cbd5e1", marginBottom: "4px" }}>Target Journal</label>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Target Journal</label>
                       <select
                         value={harvestForm.journalId}
                         onChange={(e) => setHarvestForm(prev => ({ ...prev, journalId: e.target.value }))}
@@ -3060,7 +3959,7 @@ export default function AdminPortalPage() {
                     </div>
 
                     <div>
-                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#cbd5e1", marginBottom: "4px" }}>OAI-PMH Base URL</label>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>OAI-PMH Base URL</label>
                       <input
                         type="url"
                         required
@@ -3073,7 +3972,7 @@ export default function AdminPortalPage() {
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
                       <div>
-                        <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#cbd5e1", marginBottom: "4px" }}>Limit</label>
+                        <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>Limit</label>
                         <input
                           type="number"
                           min="5"
@@ -3084,7 +3983,7 @@ export default function AdminPortalPage() {
                         />
                       </div>
                       <div style={{ display: "flex", alignItems: "center", paddingTop: "1.25rem" }}>
-                        <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.75rem", color: "#cbd5e1", cursor: "pointer" }}>
+                        <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.75rem", color: "#334155", cursor: "pointer" }}>
                           <input
                             type="checkbox"
                             checked={harvestForm.autoSave}
@@ -3114,42 +4013,42 @@ export default function AdminPortalPage() {
                   </form>
 
                   {harvestResult && (
-                    <div style={{ marginTop: "1rem", padding: "0.75rem", background: "#090e1a", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: "10px", fontSize: "0.8rem" }}>
+                    <div style={{ marginTop: "1rem", padding: "0.75rem", background: "#f0fdf4", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: "10px", fontSize: "0.8rem" }}>
                       <div style={{ fontWeight: 700, color: "#34d399" }}>Harvest Completed</div>
-                      <div style={{ color: "#cbd5e1" }}>Discovered: {harvestResult.recordsCount} records</div>
-                      <div style={{ color: "#cbd5e1" }}>Saved: {harvestResult.savedCount} new articles</div>
+                      <div style={{ color: "#334155" }}>Discovered: {harvestResult.recordsCount} records</div>
+                      <div style={{ color: "#334155" }}>Saved: {harvestResult.savedCount} new articles</div>
                     </div>
                   )}
                 </div>
 
                 {/* Impact Factor Workbench */}
-                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "16px", padding: "1.5rem" }}>
+                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "1.5rem", boxShadow: "0 4px 12px -2px rgba(15, 23, 42, 0.03)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem" }}>
                     <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(168, 85, 247, 0.15)", color: "#a855f7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem" }}>
                       <i className="fa-solid fa-chart-line"></i>
                     </div>
                     <div>
-                      <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#ffffff", margin: 0 }}>AJCI Impact Factor Engine</h4>
-                      <p style={{ fontSize: "0.75rem", color: "#94a3b8", margin: 0 }}>Calculate citation velocity and quartile ranks.</p>
+                      <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>AJCI Impact Factor Engine</h4>
+                      <p style={{ fontSize: "0.75rem", color: "#475569", margin: 0 }}>Calculate citation velocity and quartile ranks.</p>
                     </div>
                   </div>
 
-                  <p style={{ fontSize: "0.8rem", color: "#cbd5e1", lineHeight: 1.5, marginBottom: "1rem" }}>
+                  <p style={{ fontSize: "0.8rem", color: "#334155", lineHeight: 1.5, marginBottom: "1rem" }}>
                     Executing this recalculation queries all verified articles published across indexed African journals, cross-references citation records, computes discipline percentiles, and updates the official ranking quartiles ($Q1$, $Q2$, $Q3$, $Q4$).
                   </p>
 
-                  <div style={{ background: "#090e1a", border: "1px solid #1e293b", borderRadius: "10px", padding: "0.85rem", fontSize: "0.78rem", display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1.25rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
+                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "0.85rem", fontSize: "0.78rem", display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1.25rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", color: "#475569" }}>
                       <span>Formula:</span>
-                      <strong style={{ color: "#f1f5f9" }}>2-Year Citation Ratio</strong>
+                      <strong style={{ color: "#0f172a" }}>2-Year Citation Ratio</strong>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", color: "#475569" }}>
                       <span>Regional Multiplier:</span>
                       <strong style={{ color: "#10b981" }}>1.15x Pan-African Weight</strong>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", color: "#475569" }}>
                       <span>Total Catalog Journals:</span>
-                      <strong style={{ color: "#f1f5f9" }}>{stats?.totalJournals || 0}</strong>
+                      <strong style={{ color: "#0f172a" }}>{stats?.totalJournals || 0}</strong>
                     </div>
                   </div>
 
@@ -3181,8 +4080,8 @@ export default function AdminPortalPage() {
           {activeTab === "payments" && (
             <div>
               <div style={{ marginBottom: "1rem" }}>
-                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#ffffff", margin: "0 0 0.25rem" }}>IntaSend Billing & Payment Ledger</h3>
-                <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Audit indexing certificate receipts and publisher subscription transactions.</p>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.25rem" }}>IntaSend Billing & Payment Ledger</h3>
+                <p style={{ fontSize: "0.8rem", color: "#475569", margin: 0 }}>Audit indexing certificate receipts and publisher subscription transactions.</p>
               </div>
 
               {/* Table */}
@@ -3206,22 +4105,22 @@ export default function AdminPortalPage() {
                           <td style={{ fontFamily: "monospace", color: "#10b981" }}>
                             {p.trackingId}
                           </td>
-                          <td style={{ color: "#f1f5f9", fontWeight: 600 }}>
+                          <td style={{ color: "#0f172a", fontWeight: 600 }}>
                             {p.journal?.name}
                           </td>
-                          <td style={{ color: "#94a3b8" }}>
+                          <td style={{ color: "#475569" }}>
                             {p.customerEmail || p.user?.email || "—"}
                           </td>
                           <td>
                             <span className="admin-badge admin-badge-neutral">{p.tier}</span>
                           </td>
-                          <td style={{ fontFamily: "monospace", fontWeight: 700, color: "#f1f5f9" }}>
+                          <td style={{ fontFamily: "monospace", fontWeight: 700, color: "#0f172a" }}>
                             {p.currency} {Number(p.amount).toLocaleString()}
                           </td>
                           <td>
                             <span className="admin-badge admin-badge-success">{p.status}</span>
                           </td>
-                          <td style={{ textAlign: "right", color: "#94a3b8" }}>
+                          <td style={{ textAlign: "right", color: "#475569" }}>
                             {new Date(p.createdAt).toLocaleDateString()}
                           </td>
                         </tr>

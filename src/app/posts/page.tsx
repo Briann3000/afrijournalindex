@@ -2091,7 +2091,7 @@ function PostsPageContent() {
               maxWidth: "1150px",
               height: "90vh",
               display: "grid",
-              gridTemplateColumns: "1fr clamp(300px, 32%, 360px)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))",
               overflow: "hidden",
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
               border: "1px solid rgba(255, 255, 255, 0.2)"

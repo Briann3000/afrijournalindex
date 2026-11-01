@@ -1,580 +1,538 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "../Header";
 import Footer from "../Footer";
 import { useLang } from "../LangContext";
 
+interface ServiceItem {
+  id: string;
+  title: string;
+  category: "University & Press" | "Scholar & Author";
+  badge: string;
+  icon: string;
+  desc: string;
+  timeline: string;
+  deliverables: string[];
+  idealFor: string;
+  requirements: string[];
+}
+
 export default function ServicesPage() {
   const { t } = useLang();
-  const sp = t?.services_page || {};
 
-  const [activePillar, setActivePillar] = useState<"all" | "institutional" | "researcher">("all");
+  const services: ServiceItem[] = [
+    {
+      id: "ojs_setup",
+      title: "University Journal Setup & Online OJS Incubation",
+      category: "University & Press",
+      badge: "Turnkey Infrastructure",
+      icon: "fa-solid fa-server",
+      desc: "Complete deployment of Open Journal Systems (OJS 3.4+) on institutional cloud servers, custom responsive academic theme branding, and complete editorial workflow configuration for African universities and presses.",
+      timeline: "2 to 3 Weeks",
+      deliverables: [
+        "Full OJS installation, database tuning & SSL domain mapping (e.g. journal.university.ac.ke)",
+        "Custom academic branding with clean responsive layout for desktop and mobile",
+        "Editorial board, author submission, and double-blind peer review pipeline configuration",
+        "Automated Crossref DOI deposit plugin integration and XML generation",
+        "Staff training workshops for Chief Editors, Section Editors, and Layout Copyeditors"
+      ],
+      idealFor: "African universities, faculty research directorates, and scientific societies launching new or digitizing print-only journals.",
+      requirements: [
+        "Domain name and institutional server credentials (or cloud hosting through our managed servers)",
+        "Journal editorial board member roster and aims/scope documentation",
+        "Author guidelines, peer review policy, and publication ethics statement"
+      ]
+    },
+    {
+      id: "indexing_ajci",
+      title: "Journal Indexing & AJCI Citation Matrix Audit",
+      category: "University & Press",
+      badge: "Continental Accreditation",
+      icon: "fa-solid fa-chart-line",
+      desc: "Evaluation and official indexing into the African Journal Citation Index (AJCI), providing 2-Year Standard AJCI scoring, 3-Year Citation Average (3-YCA), and regional citation provenance audits.",
+      timeline: "5 to 10 Business Days",
+      deliverables: [
+        "Complete 36-point editorial compliance & peer review audit",
+        "Calculation of verified annual AJCI standard scores and quartiles (Q1–Q4)",
+        "Automated OAI-PMH metadata harvesting into continental repositories",
+        "Official Indexing Certificate and embeddable quality badge for journal website"
+      ],
+      idealFor: "Active African journals seeking transparent, bias-free regional citation recognition and increased continental visibility.",
+      requirements: [
+        "Minimum 2 consecutive years of published issues",
+        "Functional journal website with persistent open-access full-text PDFs",
+        "Published publication ethics statement and active editorial board list"
+      ]
+    },
+    {
+      id: "scopus_prep",
+      title: "Accreditation Dossier: Scopus, Web of Science & DOAJ",
+      category: "University & Press",
+      badge: "Global Indexing",
+      icon: "fa-solid fa-award",
+      desc: "Specialized editorial advisory and application dossier preparation for African journals targeting admission to Scopus (CSAB), Clarivate Web of Science (ESCI), and the Directory of Open Access Journals (DOAJ Seal).",
+      timeline: "4 to 6 Weeks",
+      deliverables: [
+        "Pre-application gap analysis against Scopus Content Selection & Advisory Board criteria",
+        "Editorial board geographic diversity optimization & international referee recruitment",
+        "Reference linking, Crossref XML validation, and citation audit",
+        "Drafting and submitting the official CSAB application portfolio"
+      ],
+      idealFor: "Established African journals ready to compete on international ranking indices.",
+      requirements: [
+        "Registered ISSN with confirmed publication history of at least 3 years",
+        "English abstracts and titles for all published articles",
+        "Digital Object Identifiers (DOIs) minted on all published papers"
+      ]
+    },
+    {
+      id: "rankings_advisory",
+      title: "Institutional Research Rankings & Bibliometric Advisory",
+      category: "University & Press",
+      badge: "University Leadership",
+      icon: "fa-solid fa-ranking-star",
+      desc: "Comprehensive scientometric benchmarking for university vice-chancellors, deputy vice-chancellors of research, and directors of intellectual property across African institutions.",
+      timeline: "Custom Consultation",
+      deliverables: [
+        "Institutional publication volume, citation impact, and h-index audits",
+        "Benchmarking against top African university research consortia",
+        "Strategic roadmap to improve Times Higher Education (THE) and QS Africa rankings",
+        "Faculty publication incentives and research output optimization framework"
+      ],
+      idealFor: "University executive leadership, DVCs of Research & Innovation, and Institutional Planning Directorates.",
+      requirements: [
+        "List of faculties, departmental affiliations, and active research centers",
+        "Historical research output reports or institutional repository access"
+      ]
+    },
+    {
+      id: "afrischolar_id",
+      title: "AfriScholar Indexing & Verified ID (ASID)",
+      category: "Scholar & Author",
+      badge: "Scholar Registry",
+      icon: "fa-solid fa-id-card-clip",
+      desc: "Continental academic researcher verification linking your ORCID, published papers, institutional affiliations, and scientometrics into a single verified scholar profile.",
+      timeline: "24 to 48 Hours",
+      deliverables: [
+        "Unique continental ASID identifier and verified researcher badge",
+        "Automated citation tracking across OpenAlex, Google Scholar, and AJCI",
+        "Public researcher portfolio showcase for grant committees and fellowship applications",
+        "Instant notification when your research is cited by other African scholars"
+      ],
+      idealFor: "Postgraduate researchers, lecturers, and professors across African universities.",
+      requirements: [
+        "Active institutional email address or ORCID iD",
+        "List of published papers or Google Scholar profile URL"
+      ]
+    },
+    {
+      id: "peer_review",
+      title: "Independent Pre-Submission Peer Review & Referee Matching",
+      category: "Scholar & Author",
+      badge: "Quality Assurance",
+      icon: "fa-solid fa-user-check",
+      desc: "Connect with verified African doctoral referees and international subject editors for rigorous double-blind critique before submitting to top-tier indexed journals.",
+      timeline: "10 to 14 Business Days",
+      deliverables: [
+        "Comprehensive 4-part referee critique report",
+        "Methodological soundness, statistical validity, and literature gap analysis",
+        "Copyediting recommendations for academic clarity and syntax",
+        "Clear recommendation on target journal fit and indexing tier"
+      ],
+      idealFor: "Researchers, PhD candidates, and faculty members seeking constructive feedback prior to high-stakes journal submission.",
+      requirements: [
+        "Complete blinded manuscript (without author names or institutional identifiers)",
+        "Declared subject discipline and target journal list"
+      ]
+    },
+    {
+      id: "author_training",
+      title: "Scholarly Writing & High-Impact Publication Workshops",
+      category: "Scholar & Author",
+      badge: "Capacity Building",
+      icon: "fa-solid fa-chalkboard-user",
+      desc: "Hands-on virtual and on-campus training modules for university faculty, postgraduate students, and editorial teams on navigating international indexing, avoiding predatory publishers, and writing high-impact papers.",
+      timeline: "1 to 3 Day Sessions",
+      deliverables: [
+        "Interactive workshops on IMRaD manuscript structure and research argumentation",
+        "Hands-on guide to Scopus and WoS acceptance criteria",
+        "Training on Open Access APC waiver applications and Creative Commons licensing",
+        "Certificate of Academic Publishing Training for all attendees"
+      ],
+      idealFor: "University graduate schools, academic departments, research institutes, and university presses.",
+      requirements: [
+        "Target audience headcount and preferred format (Virtual via Zoom/Teams or In-Person)"
+      ]
+    }
+  ];
+
+  const [activeServiceId, setActiveServiceId] = useState<string>("ojs_setup");
+
+  // Sync hash with active service on load
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash.replace("#", "");
+      if (hash && services.some(s => s.id === hash)) {
+        setActiveServiceId(hash);
+      }
+    }
+  }, []);
+
+  const activeService = services.find(s => s.id === activeServiceId) || services[0];
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     institution: "",
-    serviceType: "University Journal Setup & Online OJS Incubation",
-    journalName: "",
-    details: ""
+    journalOrDept: "",
+    notes: ""
   });
-  const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const handleSelectService = (id: string) => {
+    setActiveServiceId(id);
+    setIsSubmitted(false);
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", `#${id}`);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate quick feedback, keeping state clean
     setTimeout(() => {
       setIsSubmitting(false);
-      setSubmitted(true);
+      setIsSubmitted(true);
+      setFormData({
+        name: "",
+        email: "",
+        institution: "",
+        journalOrDept: "",
+        notes: ""
+      });
     }, 600);
   };
-
-  const services = [
-    {
-      id: "ojs_setup",
-      key: "ojs_setup",
-      pillar: "institutional",
-      icon: "fa-solid fa-server",
-      color: "#0284c7",
-      defaultTitle: "University Journal Setup & Online OJS Incubation",
-      defaultBadge: "For Universities"
-    },
-    {
-      id: "indexing_ajci",
-      key: "indexing_ajci",
-      pillar: "institutional",
-      icon: "fa-solid fa-chart-line",
-      color: "#16a34a",
-      defaultTitle: "Journal Indexing & AJCI Citation Matrix",
-      defaultBadge: "Official Indexation"
-    },
-    {
-      id: "scopus_prep",
-      key: "scopus_prep",
-      pillar: "institutional",
-      icon: "fa-solid fa-award",
-      color: "#f59e0b",
-      defaultTitle: "Journal Preparation for Scopus, Web of Science & DOAJ",
-      defaultBadge: "Accreditation Advisory"
-    },
-    {
-      id: "rankings_advisory",
-      key: "rankings_advisory",
-      pillar: "institutional",
-      icon: "fa-solid fa-ranking-star",
-      color: "#6366f1",
-      defaultTitle: "Institutional & University Research Rankings",
-      defaultBadge: "Institutional Benchmarking"
-    },
-    {
-      id: "afrischolar_id",
-      key: "afrischolar_id",
-      pillar: "researcher",
-      icon: "fa-solid fa-id-card-clip",
-      color: "#8b5cf6",
-      defaultTitle: "AfriScholar Indexing & Verified Scholar ID (ASID)",
-      defaultBadge: "For Researchers"
-    },
-    {
-      id: "manuscript_review",
-      key: "manuscript_review",
-      pillar: "researcher",
-      icon: "fa-solid fa-user-check",
-      color: "#ec4899",
-      defaultTitle: "Reviewing Manuscripts Through Our Reviewer Portal",
-      defaultBadge: "Peer Review Portal"
-    },
-    {
-      id: "manuscript_prep",
-      key: "manuscript_prep",
-      pillar: "researcher",
-      icon: "fa-solid fa-pen-nib",
-      color: "#ea580c",
-      defaultTitle: "Manuscript Preparation & Technical Assistance",
-      defaultBadge: "Author Support"
-    }
-  ];
-
-  const filteredServices = services.filter(s => {
-    if (activePillar === "all") return true;
-    return s.pillar === activePillar;
-  });
 
   return (
     <div className="page-wrapper" style={{ padding: 0 }}>
       <Header activePage="services" />
 
-      <main 
-        className="container services-main-container" 
-        style={{ 
-          padding: "clamp(1.5rem, 3vw, 3rem) clamp(0.75rem, 2vw, 1.25rem) 6rem", 
-          maxWidth: "1140px", 
-          boxSizing: "border-box" 
-        }}
-      >
+      <main className="container reading-container" style={{ padding: "3rem clamp(1rem, 2vw, 1.5rem) 5rem", maxWidth: "1200px" }}>
         {/* Breadcrumb Navigation */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.5rem" }}>
           <Link href="/" style={{ color: "var(--color-primary)", textDecoration: "none" }}>{t?.nav?.home || "Home"}</Link>
           <span>/</span>
-          <Link href="/about" style={{ color: "var(--color-text-muted)", textDecoration: "none" }}>{t?.nav?.about || "About"}</Link>
-          <span>/</span>
-          <span style={{ color: "var(--color-text-main)", fontWeight: 600 }}>{sp?.hero_badge || "Services"}</span>
+          <span style={{ color: "var(--color-text-main)", fontWeight: 600 }}>{t?.nav?.services || "Services"}</span>
         </div>
 
-        {/* Hero Banner with Responsive Typography & Layout */}
-        <div 
-          className="card-surface" 
-          style={{ 
-            padding: "clamp(1.5rem, 4vw, 3rem)", 
-            borderRadius: "18px", 
-            border: "1px solid var(--color-border)", 
-            marginBottom: "2.5rem", 
-            background: "linear-gradient(180deg, var(--color-bg-card) 0%, var(--color-bg-card-subtle) 100%)" 
-          }}
-        >
-          <div style={{ maxWidth: "840px" }}>
-            <span className="badge-featured" style={{ display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "1rem" }}>
-              <i className="fa-solid fa-hand-holding-hand" style={{ color: "var(--color-primary)" }}></i>
-              {sp?.hero_badge || "AfriJournal Scholarly & Editorial Advisory"}
-            </span>
-            <h1 
-              style={{ 
-                fontSize: "clamp(1.8rem, 4vw, 2.4rem)", 
-                fontWeight: 800, 
-                margin: "0 0 1rem", 
-                color: "var(--color-navy)", 
-                lineHeight: 1.25, 
-                letterSpacing: "-0.02em" 
-              }}
-            >
-              {sp?.hero_title || "Academic Publishing, Writing & Indexation Advisory"}
-            </h1>
-            <p style={{ fontSize: "clamp(0.92rem, 2vw, 1.05rem)", color: "var(--color-text-muted)", lineHeight: 1.6, margin: "0 0 1.75rem" }}>
-              {sp?.hero_subtitle || "AfriJournal Index provides comprehensive institutional and author-level editorial advisory. From turnkey OJS setup for universities and Scopus/WoS indexation prep, to pre-submission peer review critique and manuscript polishing."}
-            </p>
+        {/* Page Header */}
+        <header style={{ marginBottom: "2.5rem", borderBottom: "1px solid var(--color-border)", paddingBottom: "1.5rem" }}>
+          <h1 style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.3rem)", fontWeight: 800, margin: "0 0 0.5rem", color: "var(--color-navy)", letterSpacing: "-0.01em" }}>
+            Academic Publishing &amp; Research Advisory Services
+          </h1>
+          <p style={{ fontSize: "0.98rem", color: "var(--color-text-muted)", maxWidth: "820px", margin: 0, lineHeight: 1.6 }}>
+            Specialized solutions for African universities, research presses, and authors—from turnkey OJS journal incubation and Crossref DOI minting to Scopus accreditation and pre-submission peer review.
+          </p>
+        </header>
 
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.85rem" }}>
-              <a href="#consultation-form" className="btn btn-primary" style={{ padding: "0.75rem 1.6rem", fontWeight: 700 }}>
-                {sp?.cta_consultation || "Request Consultation"} <i className="fa-solid fa-arrow-down" style={{ marginLeft: "6px", fontSize: "0.8rem" }}></i>
-              </a>
-              <Link href="/browse" className="btn btn-secondary" style={{ padding: "0.75rem 1.4rem", fontWeight: 700 }}>
-                {sp?.cta_explore || "Explore Directory"}
-              </Link>
+        {/* Sidebar + Adjacent Content Master-Detail Layout */}
+        <div className="services-master-grid">
+          
+          {/* LEFT SIDEBAR: SERVICES MENU */}
+          <aside style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div style={{ background: "#ffffff", padding: "1.25rem 1rem", borderRadius: "10px", border: "1px solid var(--color-border)" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", color: "var(--color-primary)", letterSpacing: "0.06em", padding: "0 0.5rem 0.6rem" }}>
+                Institutional Solutions
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                {services.filter(s => s.category === "University & Press").map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => handleSelectService(s.id)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: "0.6rem 0.75rem",
+                      borderRadius: "6px",
+                      border: "none",
+                      background: activeServiceId === s.id ? "#f1f5f9" : "transparent",
+                      color: activeServiceId === s.id ? "var(--color-navy)" : "#475569",
+                      fontWeight: activeServiceId === s.id ? 700 : 500,
+                      fontSize: "0.85rem",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      transition: "background 0.15s ease",
+                      borderLeft: activeServiceId === s.id ? "3px solid var(--color-primary)" : "3px solid transparent"
+                    }}
+                  >
+                    <i className={s.icon} style={{ width: "16px", color: activeServiceId === s.id ? "var(--color-primary)" : "#94a3b8", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.title}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", color: "var(--color-primary)", letterSpacing: "0.06em", padding: "1.25rem 0.5rem 0.6rem" }}>
+                Author &amp; Scholar Solutions
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                {services.filter(s => s.category === "Scholar & Author").map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => handleSelectService(s.id)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: "0.6rem 0.75rem",
+                      borderRadius: "6px",
+                      border: "none",
+                      background: activeServiceId === s.id ? "#f1f5f9" : "transparent",
+                      color: activeServiceId === s.id ? "var(--color-navy)" : "#475569",
+                      fontWeight: activeServiceId === s.id ? 700 : 500,
+                      fontSize: "0.85rem",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      transition: "background 0.15s ease",
+                      borderLeft: activeServiceId === s.id ? "3px solid var(--color-primary)" : "3px solid transparent"
+                    }}
+                  >
+                    <i className={s.icon} style={{ width: "16px", color: activeServiceId === s.id ? "var(--color-primary)" : "#94a3b8", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.title}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Section Header & Filter Pills */}
-        <div style={{ marginBottom: "2.5rem" }}>
-          <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
-            <h2 style={{ fontSize: "clamp(1.4rem, 3vw, 1.85rem)", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.5rem" }}>
-              {sp?.heading_title || "Seven Core Publishing & Indexing Pillars"}
-            </h2>
-            <p style={{ fontSize: "0.92rem", color: "var(--color-text-muted)", maxWidth: "680px", margin: "0 auto", lineHeight: 1.5 }}>
-              {sp?.heading_subtitle || "Specialized services tailored for African universities, academic journal editors, and individual scholars."}
-            </p>
-          </div>
+            {/* Quick Contact Info */}
+            <div style={{ background: "#f8fafc", padding: "1.25rem", borderRadius: "10px", border: "1px solid var(--color-border)" }}>
+              <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "0.35rem" }}>
+                Need Custom Advisory?
+              </div>
+              <p style={{ fontSize: "0.8rem", color: "#64748b", lineHeight: 1.5, margin: "0 0 0.75rem" }}>
+                Contact the AfriJournal editorial team directly for bespoke institutional partnerships.
+              </p>
+              <a href="mailto:afrijournalindex@gmail.com" style={{ fontSize: "0.82rem", color: "var(--color-primary)", fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                <i className="fa-solid fa-envelope"></i>
+                afrijournalindex@gmail.com
+              </a>
+            </div>
+          </aside>
 
-          {/* Interactive Filter Pills */}
-          <div 
-            style={{ 
-              display: "flex", 
-              justifyContent: "center", 
-              alignItems: "center", 
-              gap: "0.6rem", 
-              flexWrap: "wrap", 
-              marginBottom: "1.5rem" 
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setActivePillar("all")}
-              className={`btn btn-sm ${activePillar === "all" ? "btn-primary" : "btn-secondary"}`}
-              style={{ borderRadius: "20px", padding: "0.45rem 1.15rem", fontWeight: 700, fontSize: "0.85rem" }}
-            >
-              <i className="fa-solid fa-shapes" style={{ marginRight: "6px" }}></i>
-              {sp?.tab_all || "All Services"} ({services.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActivePillar("institutional")}
-              className={`btn btn-sm ${activePillar === "institutional" ? "btn-primary" : "btn-secondary"}`}
-              style={{ borderRadius: "20px", padding: "0.45rem 1.15rem", fontWeight: 700, fontSize: "0.85rem" }}
-            >
-              <i className="fa-solid fa-building-columns" style={{ marginRight: "6px" }}></i>
-              {sp?.tab_institutions || "Institutions & Publishers"} (4)
-            </button>
-            <button
-              type="button"
-              onClick={() => setActivePillar("researcher")}
-              className={`btn btn-sm ${activePillar === "researcher" ? "btn-primary" : "btn-secondary"}`}
-              style={{ borderRadius: "20px", padding: "0.45rem 1.15rem", fontWeight: 700, fontSize: "0.85rem" }}
-            >
-              <i className="fa-solid fa-user-graduate" style={{ marginRight: "6px" }}></i>
-              {sp?.tab_researchers || "Researchers & Scholars"} (3)
-            </button>
-          </div>
+          {/* ADJACENT MAIN PANEL: ACTIVE SERVICE DETAILS & FORM */}
+          <section style={{ background: "#ffffff", padding: "2rem", borderRadius: "10px", border: "1px solid var(--color-border)", display: "flex", flexDirection: "column", gap: "2rem" }}>
+            
+            {/* Service Header */}
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                <span style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", color: "var(--color-primary)", letterSpacing: "0.04em" }}>
+                  {activeService.category}
+                </span>
+                <span style={{ fontSize: "0.75rem", color: "#475569", background: "#f1f5f9", padding: "0.2rem 0.65rem", borderRadius: "4px", fontWeight: 600 }}>
+                  <i className="fa-regular fa-clock" style={{ marginRight: "4px" }}></i> Est. Timeline: {activeService.timeline}
+                </span>
+              </div>
 
-          {/* Responsive Services Grid */}
-          <div 
-            style={{ 
-              display: "grid", 
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 350px), 1fr))", 
-              gap: "1.5rem" 
-            }}
-          >
-            {filteredServices.map(svc => {
-              const svcData = sp?.services?.[svc.key] || {};
-              const title = svcData.title || svc.defaultTitle;
-              const badge = svcData.badge || svc.defaultBadge;
-              const description = svcData.description || "";
-              const features: string[] = Array.isArray(svcData.features) ? svcData.features : [];
-              const idealFor = svcData.idealFor || "";
+              <h2 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.85rem", lineHeight: 1.3 }}>
+                {activeService.title}
+              </h2>
 
-              return (
-                <div 
-                  key={svc.id} 
-                  className="card-surface" 
-                  style={{ 
-                    padding: "clamp(1.2rem, 3vw, 1.85rem)", 
-                    borderRadius: "16px", 
-                    border: "1px solid var(--color-border)", 
-                    display: "flex", 
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    transition: "transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease",
-                    boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)"
-                  }}
-                >
-                  <div>
-                    {/* Header Row: Icon & Pillar Badge */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem", gap: "0.5rem" }}>
-                      <div 
-                        style={{ 
-                          width: "48px", 
-                          height: "48px", 
-                          borderRadius: "12px", 
-                          background: `${svc.color}15`, 
-                          border: `1px solid ${svc.color}35`, 
-                          display: "flex", 
-                          alignItems: "center", 
-                          justifyContent: "center", 
-                          color: svc.color, 
-                          fontSize: "1.25rem",
-                          flexShrink: 0
+              <p style={{ fontSize: "0.98rem", color: "#334155", lineHeight: 1.7, margin: 0 }}>
+                {activeService.desc}
+              </p>
+            </div>
+
+            {/* Target Audience & Deliverables */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+              <div>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "0.6rem" }}>
+                  Key Deliverables &amp; Scope of Work
+                </h3>
+                <ul style={{ paddingLeft: "1.25rem", margin: 0, display: "flex", flexDirection: "column", gap: "0.45rem", fontSize: "0.92rem", color: "#334155", lineHeight: 1.65 }}>
+                  {activeService.deliverables.map((d, idx) => (
+                    <li key={idx}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "0.4rem" }}>
+                  Ideal For
+                </h3>
+                <p style={{ margin: 0, fontSize: "0.92rem", color: "#475569", lineHeight: 1.6 }}>
+                  {activeService.idealFor}
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "0.5rem" }}>
+                  Requirements to Initiate
+                </h3>
+                <ul style={{ paddingLeft: "1.25rem", margin: 0, display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.9rem", color: "#475569" }}>
+                  {activeService.requirements.map((req, idx) => (
+                    <li key={idx}>{req}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* In-Panel Request / Consultation Form */}
+            <div style={{ marginTop: "1rem", paddingTop: "1.5rem", borderTop: "1px solid var(--color-border)" }}>
+              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.4rem" }}>
+                Request Consultation for this Service
+              </h3>
+              <p style={{ fontSize: "0.88rem", color: "var(--color-text-muted)", margin: "0 0 1.25rem" }}>
+                Submit your project specifications. An AfriJournal senior publishing advisor will review your requirements and reach out within 24 business hours.
+              </p>
+
+              {isSubmitted ? (
+                <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "1.25rem", borderRadius: "8px", color: "#166534" }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.25rem" }}>
+                    <i className="fa-solid fa-circle-check" style={{ marginRight: "6px" }}></i>
+                    Inquiry Received Successfully
+                  </div>
+                  <p style={{ fontSize: "0.85rem", margin: 0, lineHeight: 1.5 }}>
+                    Thank you, your request regarding <strong>{activeService.title}</strong> has been logged. Our advisory desk will contact you at your institutional email.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem" }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "4px" }}>
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={e => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="Prof. / Dr. / Author Name"
+                        style={{
+                          width: "100%",
+                          padding: "0.55rem 0.75rem",
+                          borderRadius: "6px",
+                          border: "1px solid var(--color-border)",
+                          fontSize: "0.9rem",
+                          outline: "none"
                         }}
-                      >
-                        <i className={svc.icon}></i>
-                      </div>
-                      <span 
-                        style={{ 
-                          fontSize: "0.72rem", 
-                          fontWeight: 700, 
-                          padding: "0.25rem 0.65rem", 
-                          borderRadius: "20px", 
-                          background: "var(--color-bg-card-subtle)", 
-                          border: "1px solid var(--color-border)", 
-                          color: "var(--color-text-muted)",
-                          whiteSpace: "nowrap"
-                        }}
-                      >
-                        {badge}
-                      </span>
+                      />
                     </div>
 
-                    {/* Title & Description */}
-                    <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--color-text-main)", margin: "0 0 0.5rem", lineHeight: 1.35 }}>
-                      {title}
-                    </h3>
-                    <p style={{ fontSize: "0.88rem", color: "var(--color-text-muted)", lineHeight: 1.55, margin: "0 0 1.2rem" }}>
-                      {description}
-                    </p>
-
-                    {/* Deliverables Bullet List */}
-                    {features.length > 0 && (
-                      <div style={{ marginBottom: "1.25rem" }}>
-                        <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--color-navy)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.5rem" }}>
-                          {sp?.deliver_heading || "What We Deliver:"}
-                        </div>
-                        <ul style={{ margin: 0, paddingLeft: "1.1rem", fontSize: "0.82rem", color: "var(--color-text-body)", lineHeight: 1.55 }}>
-                          {features.map((feat, idx) => (
-                            <li key={idx} style={{ marginBottom: "0.35rem" }}>{feat}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "4px" }}>
+                        Institutional Email *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={formData.email}
+                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="name@university.ac.ke"
+                        style={{
+                          width: "100%",
+                          padding: "0.55rem 0.75rem",
+                          borderRadius: "6px",
+                          border: "1px solid var(--color-border)",
+                          fontSize: "0.9rem",
+                          outline: "none"
+                        }}
+                      />
+                    </div>
                   </div>
 
-                  {/* Card Bottom Row: Target Audience & Selection Button */}
-                  <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: "1rem", marginTop: "0.8rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.6rem" }}>
-                    <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", flex: 1, minWidth: "160px" }}>
-                      <strong style={{ color: "var(--color-text-main)" }}>{sp?.ideal_for || "Ideal for:"}</strong> {idealFor}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem" }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "4px" }}>
+                        University / Institution *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.institution}
+                        onChange={e => setFormData({ ...formData, institution: e.target.value })}
+                        placeholder="e.g. University of Nairobi, Makerere, UCT"
+                        style={{
+                          width: "100%",
+                          padding: "0.55rem 0.75rem",
+                          borderRadius: "6px",
+                          border: "1px solid var(--color-border)",
+                          fontSize: "0.9rem",
+                          outline: "none"
+                        }}
+                      />
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, serviceType: title }));
-                        const el = document.getElementById("consultation-form");
-                        if (el) el.scrollIntoView({ behavior: "smooth" });
+
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "4px" }}>
+                        Journal Title / Department
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.journalOrDept}
+                        onChange={e => setFormData({ ...formData, journalOrDept: e.target.value })}
+                        placeholder="e.g. African Journal of Social Sciences"
+                        style={{
+                          width: "100%",
+                          padding: "0.55rem 0.75rem",
+                          borderRadius: "6px",
+                          border: "1px solid var(--color-border)",
+                          fontSize: "0.9rem",
+                          outline: "none"
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "4px" }}>
+                      Project Scope &amp; Specific Requirements
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={formData.notes}
+                      onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                      placeholder="Describe your current status, timeline, or key objectives..."
+                      style={{
+                        width: "100%",
+                        padding: "0.55rem 0.75rem",
+                        borderRadius: "6px",
+                        border: "1px solid var(--color-border)",
+                        fontSize: "0.9rem",
+                        outline: "none",
+                        fontFamily: "inherit"
                       }}
-                      className="btn btn-secondary btn-sm"
-                      style={{ fontSize: "0.78rem", padding: "0.4rem 0.8rem", fontWeight: 700, whiteSpace: "nowrap" }}
+                    />
+                  </div>
+
+                  <div>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      style={{
+                        padding: "0.6rem 1.5rem",
+                        background: "var(--color-primary)",
+                        color: "#ffffff",
+                        border: "none",
+                        borderRadius: "6px",
+                        fontSize: "0.88rem",
+                        fontWeight: 700,
+                        cursor: isSubmitting ? "wait" : "pointer"
+                      }}
                     >
-                      {sp?.select_service || "Select Service"} <i className="fa-solid fa-arrow-down" style={{ marginLeft: "4px", fontSize: "0.7rem" }}></i>
+                      {isSubmitting ? "Transmitting Request..." : `Submit Request for ${activeService.title}`}
                     </button>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Institutional Partnership Callout Banner */}
-        <div 
-          style={{ 
-            background: "rgba(245, 158, 11, 0.06)", 
-            border: "1px solid rgba(245, 158, 11, 0.25)", 
-            borderRadius: "16px", 
-            padding: "clamp(1.2rem, 3vw, 2rem)", 
-            marginBottom: "3rem", 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "space-between", 
-            gap: "1.5rem", 
-            flexWrap: "wrap" 
-          }}
-        >
-          <div style={{ flex: 1, minWidth: "260px" }}>
-            <h3 style={{ fontSize: "clamp(1.1rem, 2.5vw, 1.25rem)", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.4rem" }}>
-              <i className="fa-solid fa-graduation-cap" style={{ marginRight: "8px", color: "var(--color-primary)" }}></i>
-              {sp?.callout_title || "Are You an African University Directorate or Journal Editor?"}
-            </h3>
-            <p style={{ fontSize: "0.88rem", color: "var(--color-text-muted)", margin: 0, lineHeight: 1.55 }}>
-              {sp?.callout_desc || "AfriJournal Index partners with university presses, research directorates, and scientific societies to launch online peer-reviewed journals, deploy standard OJS systems, and assemble formal Scopus & Web of Science application dossiers."}
-            </p>
-          </div>
-          <a 
-            href="mailto:admin@afrijournalindexing.org?subject=University%20Journal%20Setup%20%26%20Indexing%20Consultation"
-            className="btn btn-primary"
-            style={{ whiteSpace: "nowrap", padding: "0.7rem 1.5rem", fontWeight: 700, fontSize: "0.88rem" }}
-          >
-            <i className="fa-solid fa-envelope" style={{ marginRight: "6px" }}></i> 
-            {sp?.callout_btn || "Contact Advisory Board"}
-          </a>
-        </div>
-
-        {/* Comprehensive Consultation Request Form */}
-        <div 
-          id="consultation-form" 
-          className="card-surface" 
-          style={{ 
-            padding: "clamp(1.5rem, 4vw, 2.5rem)", 
-            borderRadius: "18px", 
-            border: "1px solid var(--color-border)", 
-            maxWidth: "840px", 
-            margin: "0 auto" 
-          }}
-        >
-          <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
-            <span className="badge-featured" style={{ marginBottom: "0.5rem" }}>
-              <i className="fa-solid fa-file-signature"></i> {sp?.form_badge || "Consultation Request"}
-            </span>
-            <h2 style={{ fontSize: "clamp(1.35rem, 3vw, 1.65rem)", fontWeight: 800, color: "var(--color-navy)", margin: "0 0 0.3rem" }}>
-              {sp?.form_title || "Request Institutional or Author Consultation"}
-            </h2>
-            <p style={{ fontSize: "0.88rem", color: "var(--color-text-muted)", margin: 0 }}>
-              {sp?.form_subtitle || "Our academic and technical specialists will review your requirements and respond within 24–48 hours."}
-            </p>
-          </div>
-
-          {submitted ? (
-            <div style={{ textAlign: "center", padding: "2.5rem 1rem" }}>
-              <div 
-                style={{ 
-                  width: "64px", 
-                  height: "64px", 
-                  borderRadius: "50%", 
-                  background: "rgba(22, 163, 74, 0.15)", 
-                  color: "#16a34a", 
-                  display: "flex", 
-                  alignItems: "center", 
-                  justifyContent: "center", 
-                  fontSize: "1.8rem", 
-                  margin: "0 auto 1.25rem" 
-                }}
-              >
-                <i className="fa-solid fa-check"></i>
-              </div>
-              <h3 style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--color-text-main)", marginBottom: "0.5rem" }}>
-                {sp?.form_success_title || "Consultation Request Received"}
-              </h3>
-              <p style={{ fontSize: "0.9rem", color: "var(--color-text-muted)", maxWidth: "520px", margin: "0 auto 1.5rem", lineHeight: 1.6 }}>
-                {sp?.form_success_desc 
-                  ? sp.form_success_desc.replace("{name}", formData.name).replace("{serviceType}", formData.serviceType).replace("{email}", formData.email)
-                  : `Thank you, ${formData.name}. An AfriJournal editorial advisor has received your request regarding ${formData.serviceType} and will reach out to ${formData.email} shortly.`}
-              </p>
-              <div style={{ display: "flex", justifyContent: "center", gap: "1rem", flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  onClick={() => { setSubmitted(false); }}
-                  className="btn btn-secondary btn-sm"
-                  style={{ padding: "0.6rem 1.2rem", fontWeight: 700 }}
-                >
-                  {sp?.form_submit_another || "Submit Another Request"}
-                </button>
-                <Link href="/posts" className="btn btn-primary btn-sm" style={{ padding: "0.6rem 1.2rem", fontWeight: 700 }}>
-                  {sp?.form_view_drafts || "Go to Posts & Drafts"}
-                </Link>
-              </div>
+                </form>
+              )}
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-              {/* Row 1: Full Name & Email */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "1rem" }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "4px" }}>
-                    {sp?.label_name || "Your Full Name *"}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder={sp?.placeholder_name || "Prof. / Dr. / Researcher Name"}
-                    className="form-input"
-                    style={{ width: "100%", padding: "0.65rem 0.85rem", fontSize: "0.9rem", borderRadius: "8px", boxSizing: "border-box" }}
-                  />
-                </div>
 
-                <div>
-                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "4px" }}>
-                    {sp?.label_email || "Academic Email Address *"}
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder={sp?.placeholder_email || "e.g. author@university.ac"}
-                    className="form-input"
-                    style={{ width: "100%", padding: "0.65rem 0.85rem", fontSize: "0.9rem", borderRadius: "8px", boxSizing: "border-box" }}
-                  />
-                </div>
-              </div>
-
-              {/* Row 2: Institution & Service Track */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "1rem" }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "4px" }}>
-                    {sp?.label_institution || "University / Academic Institution *"}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.institution}
-                    onChange={(e) => setFormData(prev => ({ ...prev, institution: e.target.value }))}
-                    placeholder={sp?.placeholder_institution || "e.g. University of Nairobi / Makerere University"}
-                    className="form-input"
-                    style={{ width: "100%", padding: "0.65rem 0.85rem", fontSize: "0.9rem", borderRadius: "8px", boxSizing: "border-box" }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "4px" }}>
-                    {sp?.label_service || "Service Track Requested *"}
-                  </label>
-                  <select
-                    value={formData.serviceType}
-                    onChange={(e) => setFormData(prev => ({ ...prev, serviceType: e.target.value }))}
-                    className="form-input"
-                    style={{ width: "100%", padding: "0.65rem 0.85rem", fontSize: "0.88rem", borderRadius: "8px", boxSizing: "border-box" }}
-                  >
-                    <optgroup label={sp?.pillar_institutional || "Institutional & Publisher Track"}>
-                      <option value="University Journal Setup & Online OJS Incubation">
-                        {sp?.services?.ojs_setup?.title || "University Journal Setup & Online OJS Incubation"}
-                      </option>
-                      <option value="Journal Indexing & AJCI Citation Matrix">
-                        {sp?.services?.indexing_ajci?.title || "Journal Indexing & AJCI Citation Matrix"}
-                      </option>
-                      <option value="Journal Preparation for Scopus, Web of Science & DOAJ">
-                        {sp?.services?.scopus_prep?.title || "Journal Preparation for Scopus, Web of Science & DOAJ"}
-                      </option>
-                      <option value="Institutional & University Research Rankings">
-                        {sp?.services?.rankings_advisory?.title || "Institutional & University Research Rankings"}
-                      </option>
-                    </optgroup>
-                    <optgroup label={sp?.pillar_researcher || "Researcher & Author Track"}>
-                      <option value="AfriScholar Indexing & Verified Scholar ID (ASID)">
-                        {sp?.services?.afrischolar_id?.title || "AfriScholar Indexing & Verified Scholar ID (ASID)"}
-                      </option>
-                      <option value="Reviewing Manuscripts Through Our Reviewer Portal">
-                        {sp?.services?.manuscript_review?.title || "Reviewing Manuscripts Through Our Reviewer Portal"}
-                      </option>
-                      <option value="Manuscript Preparation & Technical Assistance">
-                        {sp?.services?.manuscript_prep?.title || "Manuscript Preparation & Technical Assistance"}
-                      </option>
-                    </optgroup>
-                  </select>
-                </div>
-              </div>
-
-              {/* Row 3: Journal Title (Optional) */}
-              <div>
-                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "4px" }}>
-                  {sp?.label_journal_name || "Journal Title or Proposed Subject (If Applicable)"}
-                </label>
-                <input
-                  type="text"
-                  value={formData.journalName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, journalName: e.target.value }))}
-                  placeholder={sp?.placeholder_journal || "e.g. African Journal of Sustainable Development"}
-                  className="form-input"
-                  style={{ width: "100%", padding: "0.65rem 0.85rem", fontSize: "0.9rem", borderRadius: "8px", boxSizing: "border-box" }}
-                />
-              </div>
-
-              {/* Row 4: Requirements & Details */}
-              <div>
-                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-main)", marginBottom: "4px" }}>
-                  {sp?.label_details || "Project Requirements & Specific Objectives *"}
-                </label>
-                <textarea
-                  required
-                  rows={4}
-                  value={formData.details}
-                  onChange={(e) => setFormData(prev => ({ ...prev, details: e.target.value }))}
-                  placeholder={sp?.placeholder_details || "Describe your journal, manuscript, or institutional project needs..."}
-                  className="form-input"
-                  style={{ width: "100%", padding: "0.65rem 0.85rem", fontSize: "0.9rem", borderRadius: "8px", boxSizing: "border-box", fontFamily: "inherit" }}
-                />
-              </div>
-
-              {/* Submit Button */}
-              <div style={{ textAlign: "right", marginTop: "0.5rem" }}>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="btn btn-primary"
-                  style={{ padding: "0.75rem 2rem", fontSize: "0.92rem", fontWeight: 700 }}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: "6px" }}></i>
-                      {sp?.btn_submitting || "Submitting Request..."}
-                    </>
-                  ) : (
-                    <>
-                      <i className="fa-solid fa-paper-plane" style={{ marginRight: "6px" }}></i>
-                      {sp?.btn_submit || "Submit Consultation Request"}
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          )}
+          </section>
         </div>
       </main>
 
