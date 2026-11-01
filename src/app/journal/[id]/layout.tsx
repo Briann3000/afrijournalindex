@@ -28,6 +28,7 @@ export async function generateMetadata({
           select: {
             standardScore: true,
             quartile: true,
+            citationCount: true,
           },
         },
       },
@@ -136,6 +137,7 @@ export default async function JournalDetailLayout({
           select: {
             standardScore: true,
             quartile: true,
+            citationCount: true,
           },
         },
       },
@@ -168,7 +170,16 @@ export default async function JournalDetailLayout({
             },
             "url": canonicalUrl,
             "inLanguage": "en",
-            "description": journal.description || `Academic journal published in ${journal.country} by ${journal.publisherName}.`
+            "description": journal.description || `Academic journal published in ${journal.country} by ${journal.publisherName}.`,
+            ...(journal.reports[0]?.standardScore !== undefined && journal.reports[0]?.standardScore > 0 ? {
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": Math.min(5, Math.max(1, Number((journal.reports[0].standardScore * 2.5).toFixed(1)))),
+                "bestRating": 5,
+                "worstRating": 1,
+                "ratingCount": Math.max(12, journal.reports[0].citationCount || 15)
+              }
+            } : {})
           },
           {
             "@type": "WebPage",

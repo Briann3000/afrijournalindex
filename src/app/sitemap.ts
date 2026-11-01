@@ -1,5 +1,7 @@
 import { MetadataRoute } from "next";
 import { prisma } from "../lib/db";
+import { ALL_AFRICAN_COUNTRIES } from "./data/african-countries";
+import { slugify, TOP_DISCIPLINE_SLUGS } from "./data/seo-slugs";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://afrijournalindexing.org";
@@ -98,6 +100,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
+  // Country programmatic hubs (54 African Nations)
+  const countryRoutes: MetadataRoute.Sitemap = ALL_AFRICAN_COUNTRIES.map((c) => ({
+    url: `${baseUrl}/browse/${slugify(c.name)}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.88,
+  }));
+
+  // Discipline programmatic hubs
+  const disciplineRoutes: MetadataRoute.Sitemap = Object.keys(TOP_DISCIPLINE_SLUGS).map((slug) => ({
+    url: `${baseUrl}/rankings/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.88,
+  }));
+
   try {
     // Fetch all indexed journals from the database
     const journals = await prisma.journal.findMany({
@@ -117,8 +135,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     }));
 
-    return [...staticRoutes, ...journalRoutes];
+    return [...staticRoutes, ...countryRoutes, ...disciplineRoutes, ...journalRoutes];
   } catch {
-    return staticRoutes;
+    return [...staticRoutes, ...countryRoutes, ...disciplineRoutes];
   }
 }
