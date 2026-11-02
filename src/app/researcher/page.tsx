@@ -2304,8 +2304,12 @@ function ResearcherProfileContent() {
                     <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginRight: "2px" }}>
                       {t.researcher_page?.scholarly_networks || "Scholarly Profiles:"}
                     </span>
-                    {profile.googleScholarUrl && (
+                    {profile.googleScholarUrl ? (
                       <a href={formatUrl(profile.googleScholarUrl)} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "0.22rem 0.6rem", borderRadius: "6px", fontSize: "0.76rem", fontWeight: 600, textDecoration: "none", background: "var(--color-bg-card-subtle)", color: "#2563eb", border: "1px solid rgba(37, 99, 235, 0.25)" }}>
+                        <i className="fa-brands fa-google"></i> Google Scholar
+                      </a>
+                    ) : (
+                      <a href={`https://scholar.google.com/scholar?q=author:%22${encodeURIComponent(profile.name || "")}%22`} target="_blank" rel="noopener noreferrer" title={`Search ${profile.name || "scholar"} publications on Google Scholar`} style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "0.22rem 0.6rem", borderRadius: "6px", fontSize: "0.76rem", fontWeight: 600, textDecoration: "none", background: "var(--color-bg-card-subtle)", color: "#2563eb", border: "1px solid rgba(37, 99, 235, 0.25)" }}>
                         <i className="fa-brands fa-google"></i> Google Scholar
                       </a>
                     )}

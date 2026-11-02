@@ -249,8 +249,7 @@ export const VERIFIED_GOOGLE_SCHOLAR_PROFILES: Record<string, ScholarScientometr
 
   // Prof. George A. Mensah (University of Cape Town / NIH)
   "george a. mensah": {
-    googleScholarId: "K741w5IAAAAJ",
-    googleScholarUrl: "https://scholar.google.com/citations?user=K741w5IAAAAJ",
+    googleScholarUrl: "https://scholar.google.com/scholar?q=author:%22George+A.+Mensah%22",
     totalCitations: 405000,
     citationsSince5Yr: 255000,
     hIndex: 160,
@@ -275,8 +274,7 @@ export const VERIFIED_GOOGLE_SCHOLAR_PROFILES: Record<string, ScholarScientometr
     ]
   },
   "george mensah": {
-    googleScholarId: "K741w5IAAAAJ",
-    googleScholarUrl: "https://scholar.google.com/citations?user=K741w5IAAAAJ",
+    googleScholarUrl: "https://scholar.google.com/scholar?q=author:%22George+A.+Mensah%22",
     totalCitations: 405000,
     citationsSince5Yr: 255000,
     hIndex: 160,
@@ -301,8 +299,7 @@ export const VERIFIED_GOOGLE_SCHOLAR_PROFILES: Record<string, ScholarScientometr
     ]
   },
   "0000-0002-0387-5326": {
-    googleScholarId: "K741w5IAAAAJ",
-    googleScholarUrl: "https://scholar.google.com/citations?user=K741w5IAAAAJ",
+    googleScholarUrl: "https://scholar.google.com/scholar?q=author:%22George+A.+Mensah%22",
     totalCitations: 405000,
     citationsSince5Yr: 255000,
     hIndex: 160,

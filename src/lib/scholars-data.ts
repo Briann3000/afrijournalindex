@@ -39,8 +39,31 @@ export async function getInitialScholars(limit = 15): Promise<InitialScholarsDat
       where: { role: "RESEARCHER" }
     });
 
+    const mappedScholars = scholars.map(s => {
+      // Parse interests from bio if encoded as [Interests: ...]
+      let parsedInterests: string[] = [];
+      const match = s.bio?.match(/\[Interests:\s*([^\]]+)\]/i);
+      if (match && match[1]) {
+        parsedInterests = match[1].split(",").map((t: string) => t.trim()).filter(Boolean);
+      }
+
+      // Parse broad discipline from bio if encoded as [Discipline: ...]
+      let disc = "Health Sciences";
+      const discMatch = s.bio?.match(/\[Discipline:\s*([^\]]+)\]/i);
+      if (discMatch && discMatch[1]) {
+        disc = discMatch[1].trim();
+      }
+
+      return {
+        ...s,
+        researchInterests: parsedInterests,
+        broadDiscipline: disc,
+        articlesCount: Math.max(1, Math.round((s.hIndex || 1) * 2.5))
+      };
+    });
+
     return {
-      scholars,
+      scholars: mappedScholars,
       totalCount
     };
   } catch (err) {

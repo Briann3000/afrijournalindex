@@ -703,13 +703,15 @@ function ScholarsDirectoryContent({
                   <tbody>
                     {scholars.map((scholar: any, idx: number) => {
                       const rowNumber = (pagination.page - 1) * pagination.limit + idx + 1;
-                      const scholarSlug = scholar.email?.split("@")[0] || scholar.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-                      const initials = scholar.name
+                      const scholarName = scholar.name || "Scholar";
+                      const scholarSlug = scholar.name ? scholar.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") : (scholar.email?.split("@")[0] || scholar.id);
+                      const initials = scholarName
                         .split(" ")
+                        .filter(Boolean)
                         .map((n: string) => n[0])
                         .slice(0, 2)
                         .join("")
-                        .toUpperCase();
+                        .toUpperCase() || "S";
 
                       const isFollowed = followedIds.includes(scholar.id);
 
@@ -798,7 +800,7 @@ function ScholarsDirectoryContent({
                                   </span>
 
                                   {/* Specific Research Interests */}
-                                  {scholar.researchInterests.slice(0, 2).map((tag: string) => {
+                                  {(scholar.researchInterests || []).slice(0, 2).map((tag: string) => {
                                     if (tag === scholar.broadDiscipline) return null;
                                     return (
                                       <button
@@ -853,7 +855,7 @@ function ScholarsDirectoryContent({
                           {/* Column 3: Citations */}
                           <td style={{ padding: "1rem", textAlign: "right" }}>
                             <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--color-primary)", display: "block" }}>
-                              {scholar.totalCitations.toLocaleString()}
+                              {(scholar.totalCitations ?? 0).toLocaleString()}
                             </span>
                           </td>
 
@@ -868,19 +870,19 @@ function ScholarsDirectoryContent({
                                 borderRadius: "6px", 
                                 fontWeight: 800, 
                                 fontSize: "0.85rem",
-                                background: scholar.hIndex >= 20 ? "rgba(22, 163, 74, 0.12)" : "rgba(2, 132, 199, 0.1)",
-                                color: scholar.hIndex >= 20 ? "#16a34a" : "var(--color-primary)",
-                                border: `1px solid ${scholar.hIndex >= 20 ? "rgba(22, 163, 74, 0.3)" : "rgba(2, 132, 199, 0.25)"}`
+                                background: (scholar.hIndex ?? 0) >= 20 ? "rgba(22, 163, 74, 0.12)" : "rgba(2, 132, 199, 0.1)",
+                                color: (scholar.hIndex ?? 0) >= 20 ? "#16a34a" : "var(--color-primary)",
+                                border: `1px solid ${(scholar.hIndex ?? 0) >= 20 ? "rgba(22, 163, 74, 0.3)" : "rgba(2, 132, 199, 0.25)"}`
                               }}
                             >
-                              h-{scholar.hIndex}
+                              h-{scholar.hIndex ?? 0}
                             </span>
                           </td>
 
                           {/* Column 5: Articles Count */}
                           <td style={{ padding: "1rem", textAlign: "center" }}>
                             <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--color-text-main)" }}>
-                              {scholar.articlesCount}
+                              {scholar.articlesCount ?? 0}
                             </span>
                           </td>
 
@@ -942,13 +944,15 @@ function ScholarsDirectoryContent({
               <div className="scholars-mobile-cards" style={{ display: "none", flexDirection: "column", gap: "0.75rem", padding: "0.75rem" }}>
                 {scholars.map((scholar: any, idx: number) => {
                   const rowNumber = (pagination.page - 1) * pagination.limit + idx + 1;
-                  const scholarSlug = scholar.email?.split("@")[0] || scholar.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-                  const initials = scholar.name
+                  const scholarName = scholar.name || "Scholar";
+                  const scholarSlug = scholar.name ? scholar.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") : (scholar.email?.split("@")[0] || scholar.id);
+                  const initials = scholarName
                     .split(" ")
+                    .filter(Boolean)
                     .map((n: string) => n[0])
                     .slice(0, 2)
                     .join("")
-                    .toUpperCase();
+                    .toUpperCase() || "S";
                   const isFollowed = followedIds.includes(scholar.id);
 
                   return (
@@ -1022,19 +1026,19 @@ function ScholarsDirectoryContent({
                             borderRadius: "5px", 
                             fontWeight: 800, 
                             fontSize: "0.78rem",
-                            background: scholar.hIndex >= 20 ? "rgba(22, 163, 74, 0.12)" : "rgba(2, 132, 199, 0.1)",
-                            color: scholar.hIndex >= 20 ? "#16a34a" : "var(--color-primary)",
-                            border: `1px solid ${scholar.hIndex >= 20 ? "rgba(22, 163, 74, 0.3)" : "rgba(2, 132, 199, 0.25)"}`,
+                            background: (scholar.hIndex ?? 0) >= 20 ? "rgba(22, 163, 74, 0.12)" : "rgba(2, 132, 199, 0.1)",
+                            color: (scholar.hIndex ?? 0) >= 20 ? "#16a34a" : "var(--color-primary)",
+                            border: `1px solid ${(scholar.hIndex ?? 0) >= 20 ? "rgba(22, 163, 74, 0.3)" : "rgba(2, 132, 199, 0.25)"}`,
                             flexShrink: 0
                           }}
                         >
-                          h-{scholar.hIndex}
+                          h-{scholar.hIndex ?? 0}
                         </span>
                       </div>
 
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "0.5rem", borderTop: "1px solid var(--color-border)", fontSize: "0.78rem" }}>
                         <div>
-                          <strong style={{ color: "var(--color-primary)", fontSize: "0.9rem" }}>{scholar.totalCitations.toLocaleString()}</strong> citations • <strong>{scholar.articlesCount}</strong> works (articles &amp; books)
+                          <strong style={{ color: "var(--color-primary)", fontSize: "0.9rem" }}>{(scholar.totalCitations ?? 0).toLocaleString()}</strong> citations • <strong>{scholar.articlesCount ?? 0}</strong> works (articles &amp; books)
                         </div>
                         <div style={{ display: "flex", gap: "6px" }}>
                           <button

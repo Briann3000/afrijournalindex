@@ -248,6 +248,52 @@ export async function GET(request: Request) {
       });
     }
 
+    // If still not found, split slug into significant name tokens (length > 1) to match names
+    // with middle initials, abbreviations, or punctuation (e.g. "anthony-m-wanjohi" matching "Anthony M. Wanjohi")
+    if (!user) {
+      const rawTokens = cleanId
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter(Boolean);
+      const significantTokens = rawTokens.filter(t => t.length > 1);
+      const tokensToUse = significantTokens.length > 0 ? significantTokens : rawTokens;
+
+      if (tokensToUse.length > 0) {
+        user = await prisma.user.findFirst({
+          where: {
+            AND: tokensToUse.map(token => ({
+              name: { contains: token }
+            }))
+          },
+          orderBy: { totalCitations: "desc" },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            orcid: true,
+            role: true,
+            institution: true,
+            department: true,
+            bio: true,
+            totalCitations: true,
+            hIndex: true,
+            i10Index: true,
+            citations5Yr: true,
+            hIndex5Yr: true,
+            i10Index5Yr: true,
+            googleScholarId: true,
+            googleScholarUrl: true,
+            openAlexId: true,
+            isClaimed: true,
+            metricsSource: true,
+            lastMetricsSyncAt: true,
+            cvPdfUrl: true,
+            dossierData: true
+          }
+        });
+      }
+    }
+
     if (!user) {
       return NextResponse.json({ success: false, error: "Scholar profile not found." }, { status: 404 });
     }
@@ -777,13 +823,18 @@ export async function GET(request: Request) {
       }
     }
 
-    const rawScholarUrl = user.googleScholarUrl || dossier.externalLinks?.googleScholar || null;
-    const isValidScholarProfile = rawScholarUrl && rawScholarUrl.includes("citations?user=");
-    const scholarUrlFallback = `https://scholar.google.com/scholar?q=${encodeURIComponent(user.name)}`;
+    const rawScholarUrl = verifiedScholar?.googleScholarUrl || user.googleScholarUrl || dossier.externalLinks?.googleScholar || null;
+    const authorSearchUrl = `https://scholar.google.com/scholar?q=author:%22${encodeURIComponent(user.name.replace(/['"]/g, ""))}%22`;
+    
+    // If scholar has a live personal profile ID (like Wanjohi's 35w1t_gAAAAJ), use that;
+    // otherwise route to guaranteed author search URL
+    const resolvedGoogleScholarUrl = (rawScholarUrl && rawScholarUrl.includes("citations?user="))
+      ? rawScholarUrl
+      : (rawScholarUrl || authorSearchUrl);
 
     const consolidatedLinks = {
-      googleScholar: isValidScholarProfile ? rawScholarUrl : (rawScholarUrl || scholarUrlFallback),
-      googleScholarSearchFallback: scholarUrlFallback,
+      googleScholar: resolvedGoogleScholarUrl,
+      googleScholarSearchFallback: authorSearchUrl,
       orcid: user.orcid ? `https://orcid.org/${user.orcid.replace(/https?:\/\/orcid\.org\//i, "")}` : (dossier.externalLinks?.orcid || null),
       amazonAuthor: dossier.externalLinks?.amazonAuthor || null,
       academia: dossier.externalLinks?.academia || null,
@@ -832,7 +883,7 @@ export async function GET(request: Request) {
           orcid: user.orcid,
           institution: user.institution || "Affiliation Unspecified",
           department: department || user.department || undefined,
-          googleScholarUrl: verifiedScholar?.googleScholarUrl || user.googleScholarUrl,
+          googleScholarUrl: resolvedGoogleScholarUrl,
           country: instResolved.country,
           originCountry: instResolved.originCountry,
           isAfrican: instResolved.isAfrican,
@@ -969,7 +1020,16 @@ export async function PATCH(request: Request) {
       updateData.department = body.department ? body.department.trim() : null;
     }
     if (body.googleScholarUrl !== undefined) {
-      updateData.googleScholarUrl = body.googleScholarUrl ? body.googleScholarUrl.trim() : null;
+      const gsUrl = body.googleScholarUrl ? body.googleScholarUrl.trim() : null;
+      updateData.googleScholarUrl = gsUrl;
+      if (gsUrl) {
+        const userMatch = gsUrl.match(/[?&]user=([a-zA-Z0-9_-]+)/);
+        if (userMatch && userMatch[1]) {
+          updateData.googleScholarId = userMatch[1];
+        }
+      } else {
+        updateData.googleScholarId = null;
+      }
     }
     if (body.cvPdfUrl !== undefined) {
       updateData.cvPdfUrl = body.cvPdfUrl ? body.cvPdfUrl.trim() : null;

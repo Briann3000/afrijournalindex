@@ -111,66 +111,91 @@ export async function getJournalDetail(id: string): Promise<JournalDetail | null
   if (!id) return null;
 
   const rawQuery = decodeURIComponent(id).trim();
+  const nameWithSpaces = rawQuery.replace(/[-_]+/g, " ");
   // Strip hyphens for flexible ISSN comparisons e.g. "23120134" or "2312-0134"
   const cleanDigits = rawQuery.replace(/[^0-9xX]/g, "");
   const hyphenatedIssn = cleanDigits.length === 8 ? `${cleanDigits.slice(0, 4)}-${cleanDigits.slice(4)}` : null;
 
+  const journalInclude = {
+    reports: {
+      orderBy: {
+        year: "desc" as const
+      }
+    },
+    articles: {
+      orderBy: {
+        publishDate: "desc" as const
+      },
+      include: {
+        citedBy: {
+          include: {
+            citingArticle: {
+              include: {
+                journal: {
+                  select: {
+                    id: true,
+                    name: true,
+                    country: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    comments: {
+      orderBy: {
+        createdAt: "desc" as const
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            institution: true,
+            role: true
+          }
+        }
+      }
+    }
+  };
+
   try {
-    const journal = await prisma.journal.findFirst({
+    let journal = await prisma.journal.findFirst({
       where: {
         OR: [
           { id: rawQuery },
           { issn: rawQuery },
           { eissn: rawQuery },
           ...(hyphenatedIssn ? [{ issn: hyphenatedIssn }, { eissn: hyphenatedIssn }] : []),
+          { name: { equals: nameWithSpaces } },
+          { name: { contains: nameWithSpaces } },
           { name: { contains: rawQuery } }
         ]
       },
-      include: {
-        reports: {
-          orderBy: {
-            year: "desc"
-          }
-        },
-        articles: {
-          orderBy: {
-            publishDate: "desc"
-          },
-          include: {
-            citedBy: {
-              include: {
-                citingArticle: {
-                  include: {
-                    journal: {
-                      select: {
-                        id: true,
-                        name: true,
-                        country: true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        comments: {
-          orderBy: {
-            createdAt: "desc"
-          },
-          include: {
-            author: {
-              select: {
-                id: true,
-                name: true,
-                institution: true,
-                role: true
-              }
-            }
-          }
-        }
-      }
+      include: journalInclude
     });
+
+    if (!journal) {
+      const rawTokens = rawQuery
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter(Boolean);
+      const significantTokens = rawTokens.filter(t => t.length > 2);
+      const tokensToUse = significantTokens.length > 0 ? significantTokens : rawTokens;
+
+      if (tokensToUse.length > 0) {
+        journal = await prisma.journal.findFirst({
+          where: {
+            AND: tokensToUse.map(token => ({
+              name: { contains: token }
+            }))
+          },
+          include: journalInclude
+        });
+      }
+    }
 
     if (!journal) {
       return null;
