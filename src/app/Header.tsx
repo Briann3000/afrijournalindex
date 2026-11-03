@@ -508,6 +508,10 @@ export default function Header({ activePage }: HeaderProps) {
                   <i className="fa-solid fa-circle-info" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.about}</span>
                 </a>
+                <a href="/methodology" className="nav-dropdown-item">
+                  <i className="fa-solid fa-scale-balanced" style={{ color: "#f59e0b", width: "20px" }}></i>
+                  <span>{t.footer?.methodology || "Methodology"}</span>
+                </a>
                 <a href="/faq" className="nav-dropdown-item">
                   <i className="fa-solid fa-circle-question" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{t.nav.faq}</span>

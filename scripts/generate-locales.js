@@ -378,14 +378,63 @@ const en = {
     email_title: "Email Inquiries",
     phone_title: "Telephone Support"
   },
-  methodology_page: {
-    desc: "How we calculate standard citation impact factors and regional multipliers for African journals.",
-    formula_title: "African Journal Impact Factor (AJIF)",
-    formula_desc: "The African Journal Impact Factor (AJIF) is computed annually by tracking peer-reviewed articles and counting citations registered within the AfriJournal directory.",
-    formula_num: "Citations in 2025 to articles published in 2023-2024",
-    formula_den: "Total citable items published in 2023-2024",
-    regional_formula_title: "Regional Weighted Impact Multiplier",
-    regional_formula_desc: "The regional score incorporates open access accessibility and cross-institutional African citations to reward scholarship that drives continental development.",
+    methodology_page: {
+    badge: "Bibliometric Standards & Operational Protocol",
+    desc: "Transparent, reproducible, and auditable calculation guidelines for African scholarly journal citation metrics.",
+    principles_title: "Guiding Principles & Scientific Integrity",
+    principle_transparency: "Transparency: Open counting rules, reporting windows, and public operational documentation.",
+    principle_traceability: "1-to-1 Traceability: Every counted citation maps between verifiable citing and target records.",
+    principle_consistency: "Consistency: Universal eligibility, deduplication, and matching standards across all journals.",
+    principle_reproducibility: "Reproducibility: Full audit retention enabling third-party reconstruction of scores.",
+    principle_context: "Contextual Interpretation: Adherence to DORA; journal scores are not direct proxies for article quality.",
+    principle_integrity: "Scientific Integrity: Strict elimination of citation cartels, coerced citations, and fabricated references.",
+
+    formula_title: "2-Year AJCI Citation Score",
+    formula_desc: "The 2-Year AJCI Citation Score expresses the average number of verified citations received in an evaluation year by eligible articles published in the two preceding calendar years.",
+    formula_equation: "2-Year AJCI Citation Score =",
+    formula_num: "Verified Citations in Year Y to Articles Published in Y−1 & Y−2 (C)",
+    formula_den: "Total Peer-Reviewed Citable Articles Published in Y−1 & Y−2 (P)",
+    formula_notes: "Computed as C ÷ P and reported to three decimal places (0.000). If P = 0, the metric is reported as 'Not calculable — no eligible articles'. Formal version-of-record publication dates are strictly used.",
+
+    formula_3yca_title: "3-Year Citation Average (3-YCA)",
+    formula_3yca_desc: "To prevent artificial underscoring of journals with bi-annual cadences or longer review cycles, AJCI also reports a 3-year citation average across a 36-month cohort window.",
+    formula_3yca_num: "Citations in Evaluation Year Y to Articles Published in Y−1, Y−2 & Y−3",
+    formula_3yca_den: "Total Citable Articles Published in Y−1, Y−2 & Y−3",
+
+    denominator_title: "Denominator Rules & Eligible Citable Items (P)",
+    denominator_desc: "The denominator comprises substantive contributions that have undergone stated editorial peer review and form part of the permanent scholarly record.",
+    denominator_eligible_title: "Eligible Citable Publications",
+    denominator_eligible_desc: "Original research articles, peer-reviewed review articles (including systematic and scoping reviews), and substantive peer-reviewed research notes.",
+    denominator_excluded_title: "Strictly Excluded Document Types",
+    denominator_excluded_desc: "Editorials, calls for papers, book reviews, errata, retractions, expressions of concern, news items, contents pages, and duplicate versions.",
+
+    numerator_title: "Numerator Rules & Ingested Citing Sources (C)",
+    numerator_desc: "A citation is eligible when published in a verifiable scholarly publication with traceable bibliographic metadata and exact reference linkage.",
+    numerator_core_title: "Core Verified Sources",
+    numerator_core_desc: "Peer-reviewed journal articles, review papers, scholarly conference proceedings, and academic books/monographs from identifiable publishers.",
+    numerator_grey_title: "Supplementary Grey Literature",
+    numerator_grey_desc: "Theses, dissertations, preprints, and working papers are cataloged separately as supplementary evidence and are never conflated into the core AJCI score.",
+
+    self_citation_title: "Journal Self-Citations & AJCI External Citation Score",
+    self_citation_desc: "Self-citations (citations originating within the same journal) are retained for transparency but isolated to prevent artificial score inflation.",
+    self_citation_rate_label: "Journal Self-Citation Rate (%) =",
+    self_citation_rate_formula: "(Journal Self-Citations ÷ Total Verified Citations) × 100",
+    external_score_label: "AJCI External Citation Score =",
+    external_score_formula: "Verified External Citations (Excluding Self-Citations) ÷ Total Citable Articles (P)",
+
+    audit_title: "Citation Verification & 9-Stage Audit Lifecycle",
+    audit_desc: "Every citation counted by AJCI is audited against an exacting matching standard: exact DOI resolution or complete title agreement plus at least two bibliographic fields (author, journal, volume, page range). Fuzzy title similarity alone is rejected.",
+    audit_retention: "AJI retains audit logs, resolution notes, and calculation workbooks for a minimum of 5 years to guarantee full reproducibility.",
+
+    standards_title: "Statutory & International Standards Alignment",
+    standards_nacosti_title: "NACOSTI National Guidelines (Kenya)",
+    standards_nacosti_desc: "Formulated to align with the National Commission for Science, Technology and Innovation (NACOSTI) 2021 guidelines for journal accreditation, fulfilling statutory criteria for university faculty evaluations, academic promotions, and university research benchmarking.",
+    standards_dora_title: "DORA & Responsible Research Assessment",
+    standards_dora_desc: "In accordance with the San Francisco Declaration on Research Assessment (DORA), AJCI scores reflect journal-level citation activity and must not be used as a singular proxy for individual paper quality or author competence.",
+
+    dividend_title: "The Continental Citation Dividend & Data Provenance",
+    dividend_desc: "Historically, legacy subscription-based indexing databases have underrepresented African research by restricting coverage primarily to closed, Northern-hemisphere periodicals. AfriJournal Index resolves this structural gap by ingesting open citation networks from verified international authorities.",
+
     criteria_title: "Automated Evaluation Criteria",
     criteria_1: "Metadata Consistency: Verified active ISSN/eISSN status with official registries.",
     criteria_2: "Open Peer-Review: Verified adherence to transparent editorial peer-review workflows.",
@@ -931,14 +980,63 @@ const fr = {
     email_title: "Demandes par Courriel",
     phone_title: "Assistance Téléphonique"
   },
-  methodology_page: {
-    desc: "Comment nous calculons les facteurs d'impact standard et les multiplicateurs régionaux pour les revues africaines.",
-    formula_title: "Facteur d'Impact des Revues Africaines (AJIF)",
-    formula_desc: "L'AJIF est calculé chaque année en recensant les articles à comité de lecture et en comptabilisant les citations dans l'annuaire AfriJournal.",
-    formula_num: "Citations en 2025 vers les articles publiés en 2023-2024",
-    formula_den: "Total des articles citables publiés en 2023-2024",
-    regional_formula_title: "Multiplicateur d'Impact Régional Pondéré",
-    regional_formula_desc: "Le score régional intègre l'accessibilité en libre accès et les citations interinstitutionnelles africaines pour valoriser la recherche utile au continent.",
+    methodology_page: {
+    badge: "Normes Bibliométriques & Protocole Opérationnel",
+    desc: "Directives de calcul transparentes, reproductibles et vérifiables pour les métriques de citations des revues scientifiques africaines.",
+    principles_title: "Principes Directeurs & Intégrité Scientifique",
+    principle_transparency: "Transparence : Règles de calcul ouvertes, fenêtres de publication documentées et traçabilité publique.",
+    principle_traceability: "Traçabilité 1-à-1 : Chaque citation comptabilisée relie une publication citante vérifiable à un article cible éligible.",
+    principle_consistency: "Cohérence : Critères universels d'éligibilité, de déduplication et de mise en correspondance pour toutes les revues.",
+    principle_reproducibility: "Reproductibilité : Conservation intégrale des pistes d'audit permettant la reconstruction indépendante des scores.",
+    principle_context: "Interprétation Contextuelle : Conformité à la DORA ; les scores de revues ne préjugent pas de la qualité d'articles individuels.",
+    principle_integrity: "Intégrité Scientifique : Élimination stricte des cartels de citation, des citations forcées et des références falsifiées.",
+
+    formula_title: "Score de Citation AJCI sur 2 Ans",
+    formula_desc: "Le Score de Citation AJCI sur 2 ans exprime le nombre moyen de citations vérifiées reçues au cours d'une année d'évaluation par les articles éligibles publiés au cours des deux années civiles précédentes.",
+    formula_equation: "Score de Citation AJCI sur 2 Ans =",
+    formula_num: "Citations Vérifiées en Année Y aux Articles Publiés en Y−1 & Y−2 (C)",
+    formula_den: "Total des Articles Citables avec Examen par les Pairs en Y−1 & Y−2 (P)",
+    formula_notes: "Calculé selon C ÷ P et arrondi à 3 décimales (0,000). Si P = 0, la mention 'Non calculable — aucun article éligible' est attribuée. La date formelle de publication de la version de référence fait foi.",
+
+    formula_3yca_title: "Moyenne de Citation sur 3 Ans (3-YCA)",
+    formula_3yca_desc: "Pour éviter de pénaliser les revues à parution semestrielle ou à cycles d'évaluation longs, l'AJCI publie également une moyenne de citation sur une cohorte étendue de 36 mois.",
+    formula_3yca_num: "Citations en Année d'Évaluation Y aux Articles Publiés en Y−1, Y−2 & Y−3",
+    formula_3yca_den: "Total des Articles Citables Publiés en Y−1, Y−2 & Y−3",
+
+    denominator_title: "Règles du Dénominateur & Documents Citables Éligibles (P)",
+    denominator_desc: "Le dénominateur comprend les contributions scientifiques substantielles ayant suivi un processus formel d'évaluation par les pairs.",
+    denominator_eligible_title: "Publications Citables Éligibles",
+    denominator_eligible_desc: "Articles de recherche originaux, articles de synthèse évalués par les pairs (revues systématiques et exploratoires) et notes de recherche évaluées.",
+    denominator_excluded_title: "Types de Documents Strictement Exclus",
+    denominator_excluded_desc: "Éditoriaux, appels à communications, recensions d'ouvrages, errata, rétractations, avis éditoriaux, sommaires et versions dupliquées.",
+
+    numerator_title: "Règles du Numérateur & Sources Citantes Intégrées (C)",
+    numerator_desc: "Une citation est comptabilisée lorsqu'elle provient d'une publication scientifique vérifiable avec des métadonnées bibliographiques fiables.",
+    numerator_core_title: "Sources Principales Vérifiées",
+    numerator_core_desc: "Articles de revues évaluées par les pairs, actes de colloques scientifiques et ouvrages ou chapitres académiques publiés par des éditeurs identifiables.",
+    numerator_grey_title: "Littérature Grise Supplémentaire",
+    numerator_grey_desc: "Les thèses, mémoires, prépublications et documents de travail sont recensés séparément à titre indicatif et ne sont jamais intégrés au score AJCI de base.",
+
+    self_citation_title: "Autocitations de la Revue & Score de Citation Externe AJCI",
+    self_citation_desc: "Les autocitations (citations issues de la même revue) sont conservées par transparence mais isolées afin de prévenir toute distorsion artificielle des scores.",
+    self_citation_rate_label: "Taux d'Autocitation (%) =",
+    self_citation_rate_formula: "(Autocitations de la Revue ÷ Total des Citations Vérifiées) × 100",
+    external_score_label: "Score de Citation Externe AJCI =",
+    external_score_formula: "Citations Externes Vérifiées (Hors Autocitations) ÷ Total des Articles Citables (P)",
+
+    audit_title: "Vérification des Citations & Cycle d'Audit en 9 Étapes",
+    audit_desc: "Chaque citation fait l'objet d'un appariement univoque (DOI exact ou concordance stricte du titre + au moins deux métadonnées : auteur, revue, volume, page). Les rapprochements approximatifs sont rejetés.",
+    audit_retention: "L'AJI conserve les registres d'audit, les notes de décision et les calculs pendant au moins 5 ans pour garantir une reproductibilité totale.",
+
+    standards_title: "Harmonisation avec les Normes Nationales & Internationales",
+    standards_nacosti_title: "Directives Nationales de la NACOSTI (Kenya)",
+    standards_nacosti_desc: "Élaboré en conformité avec les directives 2021 de la Commission Nationale pour la Science, la Technologie et l'Innovation (NACOSTI) pour l'accréditation des revues, répondant aux exigences statutaires de promotion académique universitaire.",
+    standards_dora_title: "DORA & Évaluation Responsable de la Recherche",
+    standards_dora_desc: "Pleinement conforme à la Déclaration de San Francisco sur l'évaluation de la recherche (DORA). Les scores AJCI mesurent l'activité d'une revue et ne doivent pas servir d'unique indicateur pour évaluer un article ou un auteur.",
+
+    dividend_title: "Le Dividende de Citation Continental & Provenance des Données",
+    dividend_desc: "Les bases payantes traditionnelles ont longtemps sous-représenté la recherche africaine. AfriJournal Index comble cette lacune structurelle en intégrant les réseaux de citations ouverts (Crossref, DOAJ, OpenAlex, OAI-PMH).",
+
     criteria_title: "Critères d'Évaluation Automatisés",
     criteria_1: "Cohérence des Métadonnées : Statut ISSN/eISSN vérifié auprès des registres officiels.",
     criteria_2: "Évaluation par les Pairs : Respect avéré de processus de relecture transparents.",
@@ -1421,19 +1519,68 @@ const sw = {
     email_title: "Mawasiliano ya Barua Pepe",
     phone_title: "Msaada wa Simu"
   },
-  methodology_page: {
-    desc: "Jinsi tunavyokokotoa viwango vya kawaida vya athari za nukuu na vizidishi vya kikanda vya majarida ya Kiafrika.",
-    formula_title: "Kipimo cha Athari cha Majarida ya Kiafrika (AJIF)",
-    formula_desc: "Kipimo cha AJIF huhesabiwa kila mwaka kwa kufuatilia makala yaliyopitiwa na wanazuoni na kuhesabu nukuu zilizosajiliwa ndani ya orodha ya AfriJournal.",
-    formula_num: "Nukuu za mwaka 2025 kwa makala yaliyochapishwa mnamo 2023-2024",
-    formula_den: "Jumla ya makala yanayoweza kunukuliwa yaliyochapishwa mnamo 2023-2024",
-    regional_formula_title: "Kizidishi cha Athari cha Kikanda",
-    regional_formula_desc: "Alama ya kikanda inajumuisha upatikanaji wa wazi na nukuu za ndani ya Afrika ili kuthamini tafiti zinazosaidia maendeleo ya bara.",
+    methodology_page: {
+    badge: "Viwango vya Bibliometriki & Mwongozo Rasmi",
+    desc: "Miongozo ya uwazi, inayoweza kurudiwa na kuthibitishwa kwa ajili ya ukokotoaji wa alama za nukuu za majarida ya kitaaluma ya Afrika.",
+    principles_title: "Misingi Mikuu & Uadilifu wa Kisayansi",
+    principle_transparency: "Uwazi: Kanuni za wazi za kuhesabu, vipindi vya taarifa, na kumbukumbu rasmi za umma.",
+    principle_traceability: "Ufuatiliaji wa Moja kwa Moja: Kila nukuu inayowekwa inaunganisha chapisho linalonukuu na makala lengwa.",
+    principle_consistency: "Uthabiti: Vigezo vya pamoja vya uhalali, uondoaji nakala, na ulinganishaji kwa majarida yote.",
+    principle_reproducibility: "Uwezo wa Kurudiwa: Uhifadhi wa kina wa ukaguzi unaoruhusu ukokotoaji upya wa alama bila utata.",
+    principle_context: "Tafsiri ya Kimuktadha: Kuzingatia azimio la DORA; alama za jarida si kielelezo cha moja kwa moja cha ubora wa makala moja.",
+    principle_integrity: "Uadilifu wa Kisayansi: Kutokomeza kabisa vikundi vya nukuu bandia, nukuu za kulazimishwa, na marejeleo yasiyo sahihi.",
+
+    formula_title: "Alama ya Nukuu ya AJCI ya Miaka 2",
+    formula_desc: "Alama ya Nukuu ya AJCI ya Miaka 2 huonyesha wastani wa nukuu zilizothibitishwa zilizopatikana katika mwaka wa tathmini kwa makala yaliyochapishwa katika miaka miwili ya nyuma.",
+    formula_equation: "Alama ya Nukuu ya AJCI (Miaka 2) =",
+    formula_num: "Nukuu Zilizothibitishwa katika Mwaka Y kwa Makala ya Mwaka Y−1 & Y−2 (C)",
+    formula_den: "Jumla ya Makala Yaliyopitiwa na Wanazuoni katika Mwaka Y−1 & Y−2 (P)",
+    formula_notes: "Hukokotolewa kama C ÷ P na kutolewa kwa sehemu tatu za desimali (0.000). Ikiwa P = 0, ripoti huonyesha 'Haiwezi kukokotolewa — hakuna makala'. Tarehe rasmi ya toleo la kumbukumbu hutumiwa pekee.",
+
+    formula_3yca_title: "Wastani wa Nukuu wa Miaka 3 (3-YCA)",
+    formula_3yca_desc: "Kuepuka kuadhibu majarida yanayochapishwa mara mbili kwa mwaka au yenye vipindi virefu vya mapitio, AJCI pia hutoa wastani wa nukuu wa miaka 3 kwa miezi 36.",
+    formula_3yca_num: "Nukuu katika Mwaka Y kwa Makala Yaliyochapishwa katika Y−1, Y−2 & Y−3",
+    formula_3yca_den: "Jumla ya Makala Yaliyochapishwa katika Y−1, Y−2 & Y−3",
+
+    denominator_title: "Sheria za Kielezi cha Chini & Makala Yanayostahili (P)",
+    denominator_desc: "Kielezi cha chini kinajumuisha michango thabiti ya kitaaluma iliyopitia mapitio rasmi ya wanazuoni.",
+    denominator_eligible_title: "Machapisho Yanayostahili Kunukuliwa",
+    denominator_eligible_desc: "Makala asilia ya utafiti, makala ya tathmini yaliyopitiwa na wanazuoni, na muhtasari wa kitaaluma uliopitiwa.",
+    denominator_excluded_title: "Aina za Nyaraka Zisizojumuishwa",
+    denominator_excluded_desc: "Tahiri, miito ya karatasi, mapitio ya vitabu, masahihisho, kufutwa kwa makala, matangazo ya wachapishaji, na nakala zilizojirudia.",
+
+    numerator_title: "Sheria za Kielezi cha Juu & Vyanzo vya Nukuu (C)",
+    numerator_desc: "Nukuu inastahili inapotoka kwenye chapisho la kitaaluma linaloweza kuthibitishwa lenye taarifa sahihi za kibibliografia.",
+    numerator_core_title: "Vyanzo Vikuu Vilivyothibitishwa",
+    numerator_core_desc: "Makala ya majarida yaliyopitiwa na wanazuoni, kumbukumbu za mikutano ya kitaaluma, na vitabu au sura za kitaaluma kutoka kwa wachapishaji wanaotambulika.",
+    numerator_grey_title: "Fasihi ya Ziada (Grey Literature)",
+    numerator_grey_desc: "Tasnifu, ripoti, na maandishi ya awali huorodheshwa kando kama ushahidi wa ziada na hayachanganywi na alama kuu ya AJCI.",
+
+    self_citation_title: "Kujinukuu kwa Jarida & Alama ya Nukuu za Nje ya AJCI",
+    self_citation_desc: "Nukuu za ndani ya jarida hutunzwa kwa uwazi lakini hutengwa ili kuzuia upotoshaji wa alama halisi.",
+    self_citation_rate_label: "Kiwango cha Kujinukuu (%) =",
+    self_citation_rate_formula: "(Nukuu za Ndani ya Jarida ÷ Jumla ya Nukuu Zilizothibitishwa) × 100",
+    external_score_label: "Alama ya Nukuu za Nje ya AJCI =",
+    external_score_formula: "Nukuu za Nje Zilizothibitishwa (Bila Kujinukuu) ÷ Jumla ya Makala (P)",
+
+    audit_title: "Uthibitishaji wa Nukuu & Mzunguko wa Ukaguzi wa Hatua 9",
+    audit_desc: "Kila nukuu inakaguliwa kwa vigezo thabiti vya DOI au uwiano kamili wa jina la makala pamoja na taarifa mbili za kibibliografia. Ulinganifu wa kukisia hukataliwa.",
+    audit_retention: "AJI huhifadhi kumbukumbu za ukaguzi, maelezo ya maamuzi, na lahajedwali za hesabu kwa angalau miaka 5.",
+
+    standards_title: "Upatanisho na Viwango vya Kitaifa & Kimataifa",
+    standards_nacosti_title: "Miongozo ya Kitaifa ya NACOSTI (Kenya)",
+    standards_nacosti_desc: "Imeundwa kuendana na miongozo ya 2021 ya Tume ya Kitaifa ya Sayansi, Teknolojia na Ubunifu (NACOSTI) ya ithibati ya majarida, ikitimiza vigezo vya kisheria vya tathmini na upandishwaji vyeo vya wahadhiri wa vyuo vikuu.",
+    standards_dora_title: "DORA & Tathmini ya Uwajibikaji ya Tafiti",
+    standards_dora_desc: "Inazingatia kikamilifu Azimio la San Francisco juu ya Tathmini ya Utafiti (DORA). Alama za AJCI hupima shughuli za jarida na zisitumike kama kigezo pekee cha ubora wa makala au mwanazuoni mmoja mmoja.",
+
+    dividend_title: "Gawio la Nukuu za Bara & Asili ya Data",
+    dividend_desc: "Hapo awali, hifadhidata za kimataifa zenye malipo zilipuuza utafiti wa Kiafrika. AfriJournal Index hutatua pengo hili kwa kukusanya mtandao wazi wa nukuu kutoka mamlaka zilizothibitishwa.",
+
     criteria_title: "Vigezo vya Tathmini ya Kiotomatiki",
     criteria_1: "Uthabiti wa Taarifa: Hali thabiti ya ISSN/eISSN iliyothibitishwa katika sajili rasmi.",
     criteria_2: "Mapitio ya Wanazuoni Wazi: Kufuata mifumo iliyo wazi ya ukaguzi wa kitaaluma.",
-    criteria_3: "Uthabiti wa Uchapishaji: Jarida lazima lichapishe angalau matoleo mawili kwa mwaka bila kuruka mwaka.",
-    criteria_4: "Usalama wa Tovuti: Uthibitisho wa usimbaji fiche wa HTTPS na tovuti hai ya jarida."
+    criteria_3: "Rasilimali ya Uchapishaji: Kuchapisha angalau matoleo mawili kwa mwaka bila mapumziko.",
+    criteria_4: "Usalama wa Tovuti: Uthibitisho wa usimbaji wa HTTPS na tovuti inayofanya kazi."
   },
   faq_page: [
     {
@@ -1911,19 +2058,68 @@ const pt = {
     email_title: "Consultas por E-mail",
     phone_title: "Apoio Telefónico"
   },
-  methodology_page: {
-    desc: "Como calculamos os fatores de impacto padrão e multiplicadores regionais para revistas africanas.",
-    formula_title: "Fator de Impacto de Revistas Africanas (AJIF)",
-    formula_desc: "O AJIF é calculado anualmente através do acompanhamento de artigos com revisão por pares e contagem de citações registadas no diretório.",
-    formula_num: "Citações em 2025 a artigos publicados em 2023-2024",
-    formula_den: "Total de artigos citáveis publicados em 2023-2024",
-    regional_formula_title: "Multiplicador de Impacto Regional Ponderado",
-    regional_formula_desc: "A pontuação regional incorpora o acesso aberto e citações interinstitucionais africanas para valorizar investigações que promovem o desenvolvimento do continente.",
+    methodology_page: {
+    badge: "Normas Bibliométricas & Protocolo Operacional",
+    desc: "Diretrizes de cálculo transparentes, reproduzíveis e verificáveis para métricas de citação de revistas científicas africanas.",
+    principles_title: "Princípios Orientadores & Integridade Científica",
+    principle_transparency: "Transparência: Regras de contagem abertas, períodos de reporte documentados e documentação operacional pública.",
+    principle_traceability: "Rastreabilidade 1-para-1: Cada citação contabilizada mapeia uma publicação citante verificável a um artigo elegível.",
+    principle_consistency: "Consistência: Critérios universais de elegibilidade, desduplicação e correspondência para todas as revistas.",
+    principle_reproducibility: "Reprodutibilidade: Retenção integral de registos de auditoria permitindo a reconstrução independente das pontuações.",
+    principle_context: "Interpretação Contextual: Adesão à DORA; pontuações de revistas não representam qualidade direta de artigos individuais.",
+    principle_integrity: "Integridade Científica: Eliminação rigorosa de cartéis de citação, citações coercivas e referências fabricadas.",
+
+    formula_title: "Pontuação de Citação AJCI de 2 Anos",
+    formula_desc: "A Pontuação de Citação AJCI de 2 Anos expressa a média de citações verificadas recebidas num ano de avaliação por artigos elegíveis publicados nos dois anos civis anteriores.",
+    formula_equation: "Pontuação de Citação AJCI (2 Anos) =",
+    formula_num: "Citações Verificadas no Ano Y a Artigos Publicados em Y−1 & Y−2 (C)",
+    formula_den: "Total de Artigos Citáveis com Revisão por Pares em Y−1 & Y−2 (P)",
+    formula_notes: "Calculado como C ÷ P e reportado com três casas decimais (0,000). Se P = 0, é reportado como 'Não calculável — sem artigos elegíveis'. Aplica-se a data formal de publicação da versão de registo.",
+
+    formula_3yca_title: "Média de Citação de 3 Anos (3-YCA)",
+    formula_3yca_desc: "Para evitar penalizar revistas com periodicidade semestral ou ciclos de avaliação mais longos, a AJCI também publica uma média de citação de 3 anos abrangendo uma coorte de 36 meses.",
+    formula_3yca_num: "Citações no Ano de Avaliação Y a Artigos Publicados em Y−1, Y−2 & Y−3",
+    formula_3yca_den: "Total de Artigos Citáveis Publicados em Y−1, Y−2 & Y−3",
+
+    denominator_title: "Regras do Denominador & Documentos Citáveis Elegíveis (P)",
+    denominator_desc: "O denominador inclui contribuições científicas substantivas sujeitas a revisão por pares editorial declarada.",
+    denominator_eligible_title: "Publicações Citáveis Elegíveis",
+    denominator_eligible_desc: "Artigos de investigação originais, artigos de revisão com revisão por pares e notas científicas substantivas.",
+    denominator_excluded_title: "Tipos de Documentos Estritamente Excluídos",
+    denominator_excluded_desc: "Editoriais, chamadas de trabalhos, recensões, erratas, retratações, avisos de editores, índices e versões duplicadas.",
+
+    numerator_title: "Regras do Numerador & Fontes Citantes Ingeridas (C)",
+    numerator_desc: "Uma citação é elegível quando publicada numa obra académica verificável com metadados bibliográficos rastreáveis.",
+    numerator_core_title: "Fontes Principais Verificadas",
+    numerator_core_desc: "Artigos de revistas avaliadas por pares, atas de conferências académicas e livros ou capítulos académicos com editoras identificáveis.",
+    numerator_grey_title: "Literatura Cinzenta Suplementar",
+    numerator_grey_desc: "Teses, dissertações, preprints e documentos de trabalho são catalogados separadamente como evidência suplementar e nunca são integrados na pontuação principal da AJCI.",
+
+    self_citation_title: "Autocitações da Revista & Pontuação de Citação Externa AJCI",
+    self_citation_desc: "Autocitações (citações provenientes da mesma revista) são retidas por transparência, mas isoladas para evitar distorção artificial.",
+    self_citation_rate_label: "Taxa de Autocitação (%) =",
+    self_citation_rate_formula: "(Autocitações da Revista ÷ Total de Citações Verificadas) × 100",
+    external_score_label: "Pontuação de Citação Externa AJCI =",
+    external_score_formula: "Citações Externas Verificadas (Excluindo Autocitações) ÷ Total de Artigos Citáveis (P)",
+
+    audit_title: "Verificação de Citações & Ciclo de Auditoria em 9 Etapas",
+    audit_desc: "Cada citação é auditada contra um padrão rigoroso: correspondência exata de DOI ou concordância estrita do título mais dois campos bibliográficos adicionais. A aproximação difusa é rejeitada.",
+    audit_retention: "A AJI retém registos de auditoria, notas de decisão e folhas de cálculo por um período mínimo de 5 anos.",
+
+    standards_title: "Alinhamento com Normas Nacionais & Internacionais",
+    standards_nacosti_title: "Diretrizes Nacionais da NACOSTI (Quénia)",
+    standards_nacosti_desc: "Concebido em conformidade com as diretrizes de 2021 da Comissão Nacional de Ciência, Tecnologia e Inovação (NACOSTI) para acreditação de periódicos, assegurando conformidade estatutária para avaliação docente e promoções universitárias.",
+    standards_dora_title: "DORA & Avaliação Responsável da Investigação",
+    standards_dora_desc: "Totalmente em conformidade com a Declaração de São Francisco sobre Avaliação da Investigação (DORA). As pontuações AJCI medem a atividade da revista e não devem ser usadas como medida única de qualidade individual.",
+
+    dividend_title: "O Dividendo de Citação Continental & Proveniência de Dados",
+    dividend_desc: "Historicamente, bases de dados pagas sub-representaram a investigação africana. O AfriJournal Index resolve esta lacuna estrutural ingerindo redes de citações abertas de autoridades internacionais verificadas.",
+
     criteria_title: "Critérios de Avaliação Automatizados",
     criteria_1: "Consistência de Metadados: Estado ISSN/eISSN ativo e validado em registos oficiais.",
     criteria_2: "Revisão por Pares: Adesão comprovada a fluxos editoriais transparentes.",
-    criteria_3: "Regularidade de Publicação: Pelo menos dois números anuais sem anos em falta.",
-    criteria_4: "Segurança do Domínio: Encriptação HTTPS e página web ativa e funcional."
+    criteria_3: "Regularidade de Publicação: Pelo menos dois números por ano sem interrupções.",
+    criteria_4: "Segurança do Domínio: Encriptação HTTPS e sítio web ativo da revista."
   },
   faq_page: [
     {
@@ -2401,19 +2597,68 @@ const ar = {
     email_title: "الاستفسارات عبر البريد",
     phone_title: "الدعم الهاتفي"
   },
-  methodology_page: {
-    desc: "كيف نحسب معاملات تأثير الاستشهاد والمضاعفات الإقليمية للمجلات الإفريقية.",
-    formula_title: "معامل تأثير المجلات الإفريقية (AJIF)",
-    formula_desc: "يتم احتساب AJIF سنوياً من خلال تتبع المقالات المحكمة وإحصاء الاستشهادات المسجلة داخل دليل AfriJournal.",
-    formula_num: "الاستشهادات في عام 2025 للأبحاث المنشورة في 2023-2024",
-    formula_den: "إجمالي الأبحاث القابلة للاستشهاد المنشورة في 2023-2024",
-    regional_formula_title: "مضاعف التأثير الإقليمي الموزون",
-    regional_formula_desc: "يدمج المقياس الإقليمي معايير الوصول الحر والاستشهادات الإفريقية البينية لمكافأة الأبحاث التي تخدم تنمية القارة.",
+    methodology_page: {
+    badge: "المعايير الببليومترية والبروتوكول التشغيلي",
+    desc: "إرشادات حسابية شفافة وقابلة لإعادة الإنتاج والتحقق لمقاييس الاقتباسات للمجلات الأكاديمية الأفريقية.",
+    principles_title: "المبادئ التوجيهية والنزاهة العلمية",
+    principle_transparency: "الشفافية: قواعد احتساب مفتوحة وفترات تقرير موثقة ووثائق تشغيلية عامة.",
+    principle_traceability: "تتبع دقيق 1 إلى 1: كل استشهاد يحتسب يربط بشكل موثق بين المرجع المستشهد والمقال الهدف.",
+    principle_consistency: "الاتساق: معايير عالمية موحدة للأهلية وإلغاء التكرار والمطابقة لجميع المجلات.",
+    principle_reproducibility: "قابلية إعادة الإنتاج: الاحتفاظ الكامل بسجلات التدقيق لتمكين إعادة حساب النتائج بشكل مستقل.",
+    principle_context: "التفسير السياقي: الالتزام بإعلان DORA؛ مقاييس المجلات ليست مقياساً لجودة الأوراق الفردية.",
+    principle_integrity: "النزاهة العلمية: الاستبعاد الصارم لتكتلات الاستشهاد والاستشهادات القسرية والمراجع المصطنعة.",
+
+    formula_title: "معامل استشهاد AJCI لعامين",
+    formula_desc: "يعبر معامل استشهاد AJCI لعامين عن متوسط عدد الاستشهادات المؤكدة التي تلقتها المقالات المؤهلة المنشورة في العامين السابقين خلال سنة التقييم.",
+    formula_equation: "معامل استشهاد AJCI (لعامين) =",
+    formula_num: "الاستشهادات المؤكدة في سنة التقييم للمقالات المنشورة في العامين السابقين (C)",
+    formula_den: "إجمالي المقالات المحكمة القابلة للاستشهاد المنشورة في العامين السابقين (P)",
+    formula_notes: "يحسب كحاصل قسمة C ÷ P ويعرض بثلاث خانات عشرية (0.000). وإذا كان P = 0 يُدون 'غير قابل للحساب'. يتم الاعتماد حصراً على تاريخ نشر النسخة المعتمدة.",
+
+    formula_3yca_title: "متوسط الاستشهاد لثلاث سنوات (3-YCA)",
+    formula_3yca_desc: "لتجنب التقليل من شأن المجلات ذات الصدور نصف السنوي، يقدم AJCI أيضاً متوسط استشهاد يمتد لـ 36 شهراً.",
+    formula_3yca_num: "الاستشهادات في سنة التقييم للمقالات المنشورة في آخر 3 سنوات",
+    formula_3yca_den: "إجمالي المقالات المنشورة في آخر 3 سنوات",
+
+    denominator_title: "قواعد المقام والمقالات المؤهلة للاستشهاد (P)",
+    denominator_desc: "يشمل المقام المساهمات العلمية الجوهرية التي خضعت لتحكيم الأقران المعلن وتشكل جزءاً من السجل الأكاديمي الدائم.",
+    denominator_eligible_title: "المنشورات المؤهلة للاستشهاد",
+    denominator_eligible_desc: "المقالات البحثية الأصلية، والمراجعات المنهجية المحكمة، والملاحظات البحثية الأكاديمية.",
+    denominator_excluded_title: "أنواع الوثائق المستبعدة بصرامة",
+    denominator_excluded_desc: "الافتتاحيات، والدعوات لنشر الأوراق، ومراجعات الكتب، والتصويبات، وسحب المقالات، وفهارس المحتويات والنسخ المكررة.",
+
+    numerator_title: "قواعد البسط ومصادر الاستشهاد المعتمدة (C)",
+    numerator_desc: "يكون الاستشهاد مؤهلاً عند وروده في منشور أكاديمي موثوق به مع بيانات ببليومترية يمكن تتبعها.",
+    numerator_core_title: "المصادر الأساسية المعتمدة",
+    numerator_core_desc: "مقالات المجلات المحكمة، ووقائع المؤتمرات الأكاديمية، والكتب وفصول الكتب الصادرة عن دور نشر معتمدة.",
+    numerator_grey_title: "الأدبيات التكميلية (الرمادية)",
+    numerator_grey_desc: "تسجل الأطروحات والمسودات والأوراق البحثية الأولية بشكل منفصل كأدلة تكميلية ولا تدمج أبداً في معامل AJCI الأساسي.",
+
+    self_citation_title: "الاستشهادات الذاتية للمجلة ومعدل الاستشهاد الخارجي AJCI",
+    self_citation_desc: "يتم رصد الاستشهادات الذاتية للمجلة بشفافية وعزلها لمنع تضخيم النتائج بشكل مصطنع.",
+    self_citation_rate_label: "نسبة الاستشهاد الذاتي للمجلة (%) =",
+    self_citation_rate_formula: "(الاستشهادات الذاتية للمجلة ÷ إجمالي الاستشهادات المؤكدة) × 100",
+    external_score_label: "معامل الاستشهاد الخارجي AJCI =",
+    external_score_formula: "الاستشهادات الخارجية المؤكدة (بدون الذاتية) ÷ إجمالي المقالات القابلة للاستشهاد (P)",
+
+    audit_title: "التحقق من الاستشهادات ودورة التدقيق ذات الـ 9 مراحل",
+    audit_desc: "يتم تدقيق كل استشهاد وفق معايير مطابقة صارمة: المطابقة التامة لمعرف DOI أو تطابق العنوان بالكامل مع حقلي بيانات على الأقل. وترفض المطابقات التقريبية.",
+    audit_retention: "يحتفظ AJI بسجلات التدقيق ودفاتر العمل الحسابية لمدة لا تقل عن 5 سنوات لضمان إعادة الإنتاج التامة.",
+
+    standards_title: "التوافق مع المعايير الوطنية والدولية",
+    standards_nacosti_title: "إرشادات NACOSTI الوطنية (كينيا)",
+    standards_nacosti_desc: "مصمم ليتوافق مع إرشادات اللجنة الوطنية للعلوم والتكنولوجيا والابتكار (NACOSTI) لعام 2021 لاعتماد المجلات، مما يلبي المتطلبات القانونية لترقيات أعضاء هيئة التدريس الجامعي.",
+    standards_dora_title: "إعلان DORA والتقييم المسؤول للأبحاث",
+    standards_dora_desc: "متوافق تماماً مع إعلان سان فرانسيسكو لتقييم البحوث (DORA). تعكس مقاييس AJCI نشاط المجلة ولا يجوز استخدامها كبديل لتقييم جودة الأوراق أو الباحثين الأفراد.",
+
+    dividend_title: "عائد الاستشهاد القاري ومصادر البيانات المفتوحة",
+    dividend_desc: "تاريخياً، أغفلت قواعد البيانات المدفوعة البحوث الأفريقية. يعالج AfriJournal Index هذه الفجوة الهيكلية من خلال استيعاب شبكات الاستشهاد المفتوحة والمعتمدة دولياً.",
+
     criteria_title: "معايير التقييم الآلية",
-    criteria_1: "اتساق البيانات الوصفية: التحقق من سريان الرقم المعياري ISSN/eISSN في السجلات الرسمية.",
-    criteria_2: "التحكيم العلمي الشفاف: التحقق من وجود سياسات تحكيم واضحة للمجلة.",
-    criteria_3: "انتظام النشر: نشر عددين على الأقل سنوياً دون انقطاع.",
-    criteria_4: "أمان النطاق: تفعيل بروتوكول التشفير HTTPS ووجود موقع إلكتروني فعال."
+    criteria_1: "اتساق البيانات الوصفية: التحقق من صلاحية ISSN/eISSN مع السجلات الرسمية.",
+    criteria_2: "تحكيم الأقران المفتوح: الالتزام المثبت بإجراءات تحكيم تحريرية شفافة.",
+    criteria_3: "انتظام النشر: إصدار عددين على الأقل سنوياً دون انقطاع.",
+    criteria_4: "أمان النطاق: التحقق من تشفير HTTPS وموقع نشط للمجلة."
   },
   faq_page: [
     {
