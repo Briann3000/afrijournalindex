@@ -6115,7 +6115,7 @@ function ResearcherProfileContent() {
                     <div style={{ marginBottom: "1.5rem" }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
                         <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "6px" }}>
-                          <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#d97706" }}></i>
+                          <i className="fa-solid fa-book-open" style={{ color: "#d97706" }}></i>
                           Suggested Publications from OpenAlex Registry ({suggestedWorks.length})
                         </div>
                         <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>

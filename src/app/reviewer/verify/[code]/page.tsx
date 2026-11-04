@@ -83,7 +83,7 @@ export default function CertificateVerifyPage() {
         <div className="no-print" style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.5rem" }}>
           <Link href="/" style={{ color: "var(--color-primary)", textDecoration: "none" }}>Home</Link>
           <span>/</span>
-          <Link href="/reviewer" style={{ color: "var(--color-text-muted)", textDecoration: "none" }}>Reviewer Desk</Link>
+          <Link href="/reviewer" style={{ color: "var(--color-text-muted)", textDecoration: "none" }}>Peer Review Portal</Link>
           <span>/</span>
           <span style={{ color: "var(--color-text-main)", fontWeight: 600 }}>Certificate Verification</span>
         </div>
@@ -98,7 +98,7 @@ export default function CertificateVerifyPage() {
             <i className="fa-solid fa-triangle-exclamation" style={{ fontSize: "2.5rem", color: "#dc2626", marginBottom: "1rem" }}></i>
             <h2 style={{ fontSize: "1.35rem", color: "var(--color-text-main)", marginBottom: "0.5rem" }}>Verification Record Not Found</h2>
             <p style={{ color: "var(--color-text-body)", fontSize: "0.9rem", marginBottom: "1.5rem" }}>{error}</p>
-            <Link href="/reviewer" className="btn btn-primary btn-sm">Return to Reviewer Desk</Link>
+            <Link href="/reviewer" className="btn btn-primary btn-sm">Return to Peer Review Portal</Link>
           </div>
         ) : cert && (
           <div>

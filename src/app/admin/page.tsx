@@ -3112,7 +3112,7 @@ export default function AdminPortalPage() {
                     }}
                     className="admin-btn admin-btn-primary admin-btn-sm"
                   >
-                    <i className={`fa-solid ${doiBatchProcessing ? "fa-spinner fa-spin" : "fa-wand-magic-sparkles"}`}></i>
+                    <i className={`fa-solid ${doiBatchProcessing ? "fa-spinner fa-spin" : "fa-stamp"}`}></i>
                     {doiBatchProcessing ? "Minting Batch..." : "Mint Page Pending (Max 10)"}
                   </button>
                 </div>

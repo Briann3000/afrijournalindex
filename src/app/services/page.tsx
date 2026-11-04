@@ -259,15 +259,14 @@ export default function ServicesPage() {
                       gap: "10px",
                       padding: "0.6rem 0.75rem",
                       borderRadius: "6px",
-                      border: "none",
-                      background: activeServiceId === s.id ? "#f1f5f9" : "transparent",
-                      color: activeServiceId === s.id ? "var(--color-navy)" : "#475569",
+                      border: activeServiceId === s.id ? "1px solid rgba(2, 132, 199, 0.3)" : "1px solid transparent",
+                      background: activeServiceId === s.id ? "rgba(2, 132, 199, 0.08)" : "transparent",
+                      color: activeServiceId === s.id ? "var(--color-primary)" : "#475569",
                       fontWeight: activeServiceId === s.id ? 700 : 500,
                       fontSize: "0.85rem",
                       cursor: "pointer",
                       textAlign: "left",
-                      transition: "background 0.15s ease",
-                      borderLeft: activeServiceId === s.id ? "3px solid var(--color-primary)" : "3px solid transparent"
+                      transition: "all 0.15s ease"
                     }}
                   >
                     <i className={s.icon} style={{ width: "16px", color: activeServiceId === s.id ? "var(--color-primary)" : "#94a3b8", fontSize: "0.85rem", textAlign: "center" }}></i>
@@ -291,15 +290,14 @@ export default function ServicesPage() {
                       gap: "10px",
                       padding: "0.6rem 0.75rem",
                       borderRadius: "6px",
-                      border: "none",
-                      background: activeServiceId === s.id ? "#f1f5f9" : "transparent",
-                      color: activeServiceId === s.id ? "var(--color-navy)" : "#475569",
+                      border: activeServiceId === s.id ? "1px solid rgba(2, 132, 199, 0.3)" : "1px solid transparent",
+                      background: activeServiceId === s.id ? "rgba(2, 132, 199, 0.08)" : "transparent",
+                      color: activeServiceId === s.id ? "var(--color-primary)" : "#475569",
                       fontWeight: activeServiceId === s.id ? 700 : 500,
                       fontSize: "0.85rem",
                       cursor: "pointer",
                       textAlign: "left",
-                      transition: "background 0.15s ease",
-                      borderLeft: activeServiceId === s.id ? "3px solid var(--color-primary)" : "3px solid transparent"
+                      transition: "all 0.15s ease"
                     }}
                   >
                     <i className={s.icon} style={{ width: "16px", color: activeServiceId === s.id ? "var(--color-primary)" : "#94a3b8", fontSize: "0.85rem", textAlign: "center" }}></i>

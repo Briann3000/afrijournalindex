@@ -327,12 +327,12 @@ export default function ResourceContentRenderer({ content }: ResourceContentRend
               key={elemKey++}
               style={{
                 margin: "1rem 0",
-                padding: "0.6rem 1rem",
-                borderLeft: "3px solid #cbd5e1",
+                padding: "0.75rem 1rem",
+                border: "1px solid #e2e8f0",
                 background: "#f8fafc",
                 color: "#475569",
                 fontStyle: "italic",
-                borderRadius: "0 6px 6px 0",
+                borderRadius: "6px",
                 lineHeight: 1.65,
                 fontSize: "0.95rem",
                 fontWeight: 400

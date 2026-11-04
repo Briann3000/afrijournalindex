@@ -5,7 +5,7 @@
     "browse": "Browse Directory",
     "submit": "Submit Journal",
     "pricing": "Pricing",
-    "rankings": "Rankings & Quartiles",
+    "rankings": "Rankings",
     "institution": "Institutional Console",
     "researcher": "Researcher Profile",
     "about": "About Us",
@@ -122,7 +122,7 @@
     "tagline": "Empowering African Scholarly Discovery."
   },
   "rankings_page": {
-    "title": "AJIF Journal Rankings & Quartiles",
+    "title": "AJCI Journal Rankings",
     "subtitle": "Real-time leaderboard of African research journals classified into subject quartiles (Q1–Q4) and ranked by verified AJIF impact indicators.",
     "filter_country": "Filter by Country",
     "all_countries": "All African Countries",

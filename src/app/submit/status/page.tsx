@@ -223,7 +223,7 @@ function StatusContent() {
 
       <main className="container" style={{ padding: "3.5rem 1rem 6rem", maxWidth: "900px" }}>
         {/* Banner Card */}
-        <div className="card-surface" style={{ padding: "2rem", marginBottom: "2rem", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderLeft: submission.status === "ACCEPTED" ? "6px solid #059669" : submission.status === "REJECTED" ? "6px solid #dc2626" : "6px solid #d97706" }}>
+        <div className="card-surface" style={{ padding: "2rem", marginBottom: "2rem", borderRadius: "16px", background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1.5rem" }}>
             <div>
               <span className="badge badge-slate" style={{ marginBottom: "0.5rem", display: "inline-block" }}>

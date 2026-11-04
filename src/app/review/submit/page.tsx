@@ -73,6 +73,9 @@ function UnifiedReviewerPortalContent() {
   const [selectedReviewers, setSelectedReviewers] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [testOnSameAccount, setTestOnSameAccount] = useState(false);
+  const [isAnonymized, setIsAnonymized] = useState(false);
+  const [showInvitePreview, setShowInvitePreview] = useState(false);
+  const [mobileTab, setMobileTab] = useState<"form" | "reviewers">("form");
   const PAGE_SIZE = 5;
 
   // Submission State
@@ -136,6 +139,12 @@ function UnifiedReviewerPortalContent() {
 
       if (data.candidates && data.candidates.length > 0) {
         setExpandedIds({ [data.candidates[0].id]: true });
+        // Auto-switch mobile view so mobile users instantly see the discovered referees
+        setMobileTab("reviewers");
+        setTimeout(() => {
+          const el = document.getElementById("reviewer-matchmaker-column");
+          if (el) el.scrollIntoView({ behavior: "smooth" });
+        }, 120);
       }
     } catch (err: any) {
       setError(err.message || "Could not retrieve reviewer matches.");
@@ -270,6 +279,11 @@ Source: AfriJournal Index Reviewer Portal`;
       return;
     }
 
+    if (!isAnonymized) {
+      setError("Please confirm that all author names and institutional affiliations have been sanitized from the manuscript file for double-blind integrity.");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -312,9 +326,40 @@ Source: AfriJournal Index Reviewer Portal`;
         <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.25rem" }}>
           <Link href="/" style={{ color: "var(--color-primary)", textDecoration: "none" }}>Home</Link>
           <span>/</span>
-          <Link href="/services" style={{ color: "var(--color-text-muted)", textDecoration: "none" }}>Services</Link>
+          <Link href="/reviewer" style={{ color: "var(--color-text-muted)", textDecoration: "none" }}>Peer Review Portal</Link>
           <span>/</span>
-          <span style={{ color: "var(--color-text-main)", fontWeight: 600 }}>Reviewer Portal</span>
+          <span style={{ color: "var(--color-text-main)", fontWeight: 600 }}>Lodge Manuscript &amp; Match Referees</span>
+        </div>
+
+        {/* Elevated Sticky Cross-Navigation Bridge */}
+        <div className="review-sticky-bridge" style={{
+          position: "sticky",
+          top: "70px",
+          zIndex: 40,
+          background: "var(--color-bg-card)",
+          border: "1px solid var(--color-border)",
+          borderRadius: "10px",
+          padding: "0.85rem 1.25rem",
+          marginBottom: "1.5rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "10px",
+          boxShadow: "0 4px 14px rgba(0, 0, 0, 0.05)",
+          backdropFilter: "blur(8px)"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <i className="fa-solid fa-scale-balanced" style={{ color: "var(--color-primary)", fontSize: "1.2rem" }}></i>
+            <div>
+              <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--color-text-main)" }}>Invited referee or checking review tasks?</span>
+              <span style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", marginLeft: "6px" }}>Accept invitations, conduct evaluations, and download certificates in your workspace.</span>
+            </div>
+          </div>
+          <Link href="/reviewer" className="btn btn-secondary btn-sm" style={{ fontWeight: 700, fontSize: "0.82rem", display: "inline-flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
+            <span>Go to Peer Review Portal</span>
+            <i className="fa-solid fa-arrow-right"></i>
+          </Link>
         </div>
 
         {/* Clean Header Banner */}
@@ -323,7 +368,7 @@ Source: AfriJournal Index Reviewer Portal`;
             <div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "var(--color-primary-light)", color: "var(--color-primary)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.78rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "0.5rem" }}>
                 <i className="fa-solid fa-file-shield"></i>
-                Unified Academic Reviewer Portal &amp; Matchmaker
+                African Scholarly Peer Review Intake
               </div>
               <h1 style={{ fontSize: "1.85rem", fontWeight: 800, color: "var(--color-text-main)", margin: "0 0 0.4rem", lineHeight: 1.25 }}>
                 Manuscript Peer Review Lodging &amp; Reviewer Matching
@@ -371,11 +416,71 @@ Source: AfriJournal Index Reviewer Portal`;
           </div>
         )}
 
+        {/* Mobile Tab Control for Responsive Switching (< 992px) */}
+        <div className="review-mobile-tab-bar" style={{ display: "none", marginBottom: "1.25rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "10px", padding: "4px", gap: "6px" }}>
+          <button
+            type="button"
+            onClick={() => setMobileTab("form")}
+            style={{
+              flex: 1,
+              padding: "0.6rem 0.75rem",
+              borderRadius: "8px",
+              border: "none",
+              background: mobileTab === "form" ? "var(--color-primary)" : "transparent",
+              color: mobileTab === "form" ? "#ffffff" : "var(--color-text-muted)",
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px"
+            }}
+          >
+            <i className="fa-solid fa-file-lines"></i>
+            <span>1. Manuscript Details</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileTab("reviewers")}
+            style={{
+              flex: 1,
+              padding: "0.6rem 0.75rem",
+              borderRadius: "8px",
+              border: "none",
+              background: mobileTab === "reviewers" ? "var(--color-primary)" : "transparent",
+              color: mobileTab === "reviewers" ? "#ffffff" : "var(--color-text-muted)",
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px"
+            }}
+          >
+            <i className="fa-solid fa-users-viewfinder"></i>
+            <span>2. Matched Referees</span>
+            {candidates.length > 0 && (
+              <span style={{
+                background: mobileTab === "reviewers" ? "rgba(255, 255, 255, 0.25)" : "var(--color-primary-light)",
+                color: mobileTab === "reviewers" ? "#ffffff" : "var(--color-primary)",
+                padding: "1px 6px",
+                borderRadius: "10px",
+                fontSize: "0.72rem",
+                fontWeight: 800
+              }}>
+                {candidates.length}
+              </span>
+            )}
+          </button>
+        </div>
+
         {/* Unified Split-Screen Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(340px, 460px) 1fr", gap: "2rem", alignItems: "start" }}>
+        <div className="review-submit-grid" style={{ display: "grid", gridTemplateColumns: "minmax(340px, 460px) 1fr", gap: "2rem", alignItems: "start" }}>
           
           {/* ================= LEFT COLUMN: INTAKE & LODGING FORM ================= */}
-          <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "14px", padding: "1.4rem", boxShadow: "0 4px 16px rgba(0, 0, 0, 0.04)" }}>
+          <div className={`review-col-form ${mobileTab !== "form" ? "mobile-hidden" : ""}`} style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "14px", padding: "1.4rem", boxShadow: "0 4px 16px rgba(0, 0, 0, 0.04)" }}>
             <h2 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--color-text-main)", margin: "0 0 1rem", display: "flex", alignItems: "center", gap: "8px" }}>
               <i className="fa-solid fa-file-lines" style={{ color: "var(--color-primary)" }}></i>
               <span>1. Manuscript Intake</span>
@@ -432,26 +537,74 @@ Source: AfriJournal Index Reviewer Portal`;
                   style={{ width: "100%", padding: "0.55rem 0.75rem", background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", borderRadius: "6px", color: "var(--color-text-main)", fontSize: "0.84rem", outline: "none", boxSizing: "border-box", lineHeight: 1.45 }}
                 />
 
-                {/* Match Reviewers Trigger */}
+              </div>
+
+              {/* Step 2: Match Reviewers Trigger Card (Highlighted & Prominent) */}
+              <div style={{ marginBottom: "1.25rem", padding: "1rem", background: candidates.length > 0 ? "rgba(16, 185, 129, 0.06)" : "var(--color-primary-light)", border: `1.5px solid ${candidates.length > 0 ? "#10b981" : "var(--color-primary)"}`, borderRadius: "10px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem", flexWrap: "wrap", gap: "6px" }}>
+                  <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <i className="fa-solid fa-magnifying-glass-chart" style={{ color: "var(--color-primary)" }}></i>
+                    <span>Match Specialist Referees <span style={{ color: "#ef4444" }}>*</span></span>
+                  </span>
+                  <span style={{ fontSize: "0.74rem", fontWeight: 700, padding: "2px 8px", borderRadius: "12px", background: candidates.length > 0 ? "#ecfdf5" : "rgba(180, 83, 9, 0.15)", color: candidates.length > 0 ? "#059669" : "var(--color-primary)", border: `1px solid ${candidates.length > 0 ? "#a7f3d0" : "rgba(180, 83, 9, 0.3)"}` }}>
+                    {candidates.length > 0 ? `✔ ${candidates.length} Matched (${selectedReviewers.length} in Queue)` : "Mandatory Step *"}
+                  </span>
+                </div>
+                <p style={{ margin: "0 0 0.65rem", fontSize: "0.78rem", color: "var(--color-text-muted)", lineHeight: 1.45 }}>
+                  Extract subject concepts from your title and abstract to locate active African scholars publishing peer-reviewed research in your discipline.
+                </p>
                 <button
                   type="button"
                   onClick={handleSearchReviewers}
                   disabled={searchingReviewers || (!title.trim() && !abstract.trim())}
-                  className="btn btn-secondary btn-sm"
-                  style={{ width: "100%", marginTop: "0.45rem", padding: "0.4rem", fontSize: "0.8rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                  className="btn btn-primary btn-sm"
+                  style={{ width: "100%", padding: "0.6rem 1rem", fontSize: "0.86rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: "0 2px 6px rgba(180, 83, 9, 0.25)" }}
                 >
                   {searchingReviewers ? (
                     <>
                       <i className="fa-solid fa-spinner fa-spin"></i>
-                      <span>Searching Active African Specialists...</span>
+                      <span>Querying African Scholar Database...</span>
                     </>
                   ) : (
                     <>
-                      <i className="fa-solid fa-magnifying-glass" style={{ color: "var(--color-primary)" }}></i>
-                      <span>Match Reviewers from Title &amp; Abstract</span>
+                      <i className="fa-solid fa-users-viewfinder"></i>
+                      <span>{candidates.length > 0 ? "Re-Extract & Refresh Referees *" : "Extract Concepts & Match Referees *"}</span>
                     </>
                   )}
                 </button>
+
+                {candidates.length > 0 && (
+                  <div className="mobile-only-jump" style={{ display: "none", marginTop: "0.6rem" }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileTab("reviewers");
+                        setTimeout(() => {
+                          const el = document.getElementById("reviewer-matchmaker-column");
+                          if (el) el.scrollIntoView({ behavior: "smooth" });
+                        }, 50);
+                      }}
+                      style={{
+                        width: "100%",
+                        padding: "0.5rem 0.75rem",
+                        background: "var(--color-primary-light)",
+                        border: "1px solid var(--color-primary)",
+                        color: "var(--color-primary)",
+                        borderRadius: "6px",
+                        fontSize: "0.82rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px"
+                      }}
+                    >
+                      <i className="fa-solid fa-users-viewfinder"></i>
+                      <span>View {candidates.length} Matched Reviewers &rarr;</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Document Upload */}
@@ -555,6 +708,22 @@ Source: AfriJournal Index Reviewer Portal`;
                 </label>
               </div>
 
+              {/* Double-Blind Anonymization Certification Checkbox */}
+              <div style={{ marginBottom: "1rem", padding: "0.75rem 0.85rem", background: isAnonymized ? "#ecfdf5" : "var(--color-bg-card-subtle)", border: `1px solid ${isAnonymized ? "#a7f3d0" : "var(--color-border)"}`, borderRadius: "8px" }}>
+                <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", cursor: "pointer", fontSize: "0.82rem", lineHeight: 1.45, color: "var(--color-text-main)" }}>
+                  <input
+                    type="checkbox"
+                    checked={isAnonymized}
+                    onChange={(e) => setIsAnonymized(e.target.checked)}
+                    required
+                    style={{ width: "16px", height: "16px", marginTop: "2px", accentColor: "var(--color-primary)" }}
+                  />
+                  <span>
+                    <strong>Double-Blind Anonymization Check:</strong> I confirm that all author names, institutional affiliations, contact emails, and acknowledging headers have been removed from the manuscript file to uphold strict double-blind peer review. <span style={{ color: "#ef4444" }}>*</span>
+                  </span>
+                </label>
+              </div>
+
               {/* Submit Action */}
               {!fileUrl && (
                 <div style={{ fontSize: "0.76rem", color: "var(--color-primary)", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "6px" }}>
@@ -585,7 +754,32 @@ Source: AfriJournal Index Reviewer Portal`;
           </div>
 
           {/* ================= RIGHT COLUMN: REVIEWER MATCHMAKER ================= */}
-          <div>
+          <div id="reviewer-matchmaker-column" className={`review-col-reviewers ${mobileTab !== "reviewers" ? "mobile-hidden" : ""}`}>
+            {/* Mobile Return Button */}
+            <div className="mobile-only-return" style={{ display: "none", marginBottom: "1rem" }}>
+              <button
+                type="button"
+                onClick={() => setMobileTab("form")}
+                style={{
+                  width: "100%",
+                  padding: "0.6rem 0.85rem",
+                  background: "var(--color-bg-card-subtle)",
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-text-main)",
+                  borderRadius: "8px",
+                  fontSize: "0.84rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px"
+                }}
+              >
+                <i className="fa-solid fa-arrow-left"></i>
+                <span>Back to Manuscript Intake Form {selectedReviewers.length > 0 ? `(${selectedReviewers.length} Reviewers Selected)` : ""}</span>
+              </button>
+            </div>
             {/* Selected Queue Status Bar */}
             <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "14px", padding: "1.25rem 1.5rem", marginBottom: "1.5rem", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", marginBottom: selectedReviewers.length > 0 ? "0.75rem" : 0 }}>
@@ -599,9 +793,20 @@ Source: AfriJournal Index Reviewer Portal`;
                   </div>
                 </div>
 
-                <span style={{ fontSize: "0.8rem", padding: "3px 10px", borderRadius: "20px", background: selectedReviewers.length > 0 ? "var(--color-primary-light)" : "var(--color-bg-card-subtle)", color: selectedReviewers.length > 0 ? "var(--color-primary)" : "var(--color-text-muted)", fontWeight: 700 }}>
-                  {selectedReviewers.length > 0 ? `${selectedReviewers.length} Selected Candidates` : "Autonomous Smart-Match Active"}
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowInvitePreview(true)}
+                    className="btn btn-secondary btn-sm"
+                    style={{ fontSize: "0.78rem", padding: "4px 10px", display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 700 }}
+                  >
+                    <i className="fa-solid fa-envelope-open-text" style={{ color: "var(--color-primary)" }}></i>
+                    <span>Preview Invitation Letter</span>
+                  </button>
+                  <span style={{ fontSize: "0.8rem", padding: "3px 10px", borderRadius: "20px", background: selectedReviewers.length > 0 ? "var(--color-primary-light)" : "var(--color-bg-card-subtle)", color: selectedReviewers.length > 0 ? "var(--color-primary)" : "var(--color-text-muted)", fontWeight: 700 }}>
+                    {selectedReviewers.length > 0 ? `${selectedReviewers.length} Selected Candidates` : "Auto-Queue Match Active"}
+                  </span>
+                </div>
               </div>
 
               {selectedReviewers.length > 0 && (
@@ -812,6 +1017,111 @@ Source: AfriJournal Index Reviewer Portal`;
           </div>
 
         </div>
+
+        {/* ================= INVITATION EMAIL PREVIEW MODAL ================= */}
+        {showInvitePreview && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0, 0, 0, 0.65)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+            <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "14px", width: "100%", maxWidth: "660px", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)", boxSizing: "border-box" }}>
+              
+              {/* Modal Header */}
+              <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <i className="fa-solid fa-envelope-open-text" style={{ color: "var(--color-primary)" }}></i>
+                  <span style={{ fontWeight: 800, fontSize: "1.05rem", color: "var(--color-text-main)" }}>Dispatched Referee Invitation (Preview)</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowInvitePreview(false)}
+                  style={{ background: "none", border: "none", fontSize: "1.2rem", color: "var(--color-text-muted)", cursor: "pointer", padding: "4px" }}
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              {/* Modal Content - Exact Email Layout */}
+              <div style={{ padding: "1.75rem 1.5rem", fontSize: "0.9rem", lineHeight: 1.6, color: "var(--color-text-body)" }}>
+                <div style={{ background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", borderRadius: "8px", padding: "0.75rem 1rem", marginBottom: "1.25rem", fontSize: "0.82rem" }}>
+                  <div><strong>From:</strong> AfriJournal Index Peer Review Registry &lt;peer-review@afrijournalindex.org&gt;</div>
+                  <div><strong>Subject:</strong> [Peer Review Invitation] &quot;{(title || "Untitled Manuscript").slice(0, 60)}...&quot; - AfriJournal Index</div>
+                  <div><strong>Protocol:</strong> Double-Blind Sequential Cascade (48-Hour Acceptance Window)</div>
+                </div>
+
+                <div style={{ border: "1px solid #e2e8f0", borderRadius: "10px", padding: "1.75rem", background: "#ffffff", color: "#1e293b", fontFamily: "Arial, sans-serif" }}>
+                  <div style={{ borderBottom: "2px solid #b45309", paddingBottom: "10px", marginBottom: "16px" }}>
+                    <h3 style={{ color: "#0f172a", margin: 0, fontSize: "1.2rem" }}>AfriJournal Index Peer Review Registry</h3>
+                    <div style={{ fontSize: "12px", color: "#64748b" }}>Double-Blind Academic Referee Invitation</div>
+                  </div>
+
+                  <p style={{ margin: "0 0 12px" }}>Dear <strong>{selectedReviewers[0]?.name || "[Invited Specialist Referee]"}</strong>,</p>
+
+                  <p style={{ margin: "0 0 14px", fontSize: "13.5px" }}>
+                    Because of your recognized scholarship and peer-reviewed contributions in <strong>{discipline}</strong>, you have been invited to conduct a standardized double-blind evaluation for a manuscript titled:
+                  </p>
+
+                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", padding: "12px 16px", margin: "16px 0", borderRadius: "6px" }}>
+                    <strong style={{ color: "#0f172a", fontSize: "14px" }}>&quot;{title || "Manuscript Title Goes Here"}&quot;</strong>
+                    <div style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>Field: {discipline}</div>
+                  </div>
+
+                  <p style={{ fontSize: "13px", margin: "0 0 14px" }}>
+                    <strong>Response Deadline:</strong> In accordance with the AfriJournal sequential cascading protocol, please accept or decline this invitation within <strong>48 hours</strong>.
+                  </p>
+
+                  <div style={{ margin: "20px 0" }}>
+                    <span style={{ background: "#b45309", color: "#ffffff", padding: "10px 20px", borderRadius: "6px", fontWeight: "bold", fontSize: "13px", display: "inline-block" }}>
+                      Respond via Secure 1-Click Referee Link &rarr;
+                    </span>
+                  </div>
+
+                  <p style={{ fontSize: "12px", color: "#64748b", borderTop: "1px solid #e2e8f0", paddingTop: "12px", margin: 0 }}>
+                    Upon completion, you will receive an official verifiable <strong>AfriJournal Peer Review Certificate</strong> with CPD credentials and permanent recognition in your scholar profile dossier.
+                  </p>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid var(--color-border)", background: "var(--color-bg-card-subtle)", display: "flex", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowInvitePreview(false)}
+                  className="btn btn-secondary btn-sm"
+                  style={{ padding: "0.45rem 1.25rem", fontSize: "0.85rem", fontWeight: 700 }}
+                >
+                  Close Preview
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        <style jsx>{`
+          @media (max-width: 991px) {
+            .review-submit-grid {
+              grid-template-columns: 1fr !important;
+              gap: 1.25rem !important;
+            }
+            .review-mobile-tab-bar {
+              display: flex !important;
+            }
+            .mobile-hidden {
+              display: none !important;
+            }
+            .mobile-only-jump, .mobile-only-return {
+              display: block !important;
+            }
+            .review-sticky-bridge {
+              top: 66px !important;
+              padding: 0.65rem 0.85rem !important;
+            }
+          }
+          @media (max-width: 576px) {
+            .review-sticky-bridge {
+              top: 62px !important;
+              padding: 0.55rem 0.75rem !important;
+            }
+          }
+        `}</style>
       </main>
 
       <Footer />

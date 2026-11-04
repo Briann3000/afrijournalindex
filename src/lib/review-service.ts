@@ -182,7 +182,7 @@ export async function triggerNextCandidate(
 
     // Send Formal Academic Review Invitation Email
     const siteUrl = baseUrl || process.env.NEXTAUTH_URL || "https://afrijournalindex.org";
-    const inviteActionUrl = `${siteUrl}/reviewer`;
+    const inviteActionUrl = `${siteUrl}/reviewer/invite/${token}`;
     
     if (reviewerUser.email && !reviewerUser.email.includes("@afrijournalindex.org")) {
       sendEmail({
@@ -199,7 +199,7 @@ export async function triggerNextCandidate(
             
             <p>Because of your recognized scholarship and peer-reviewed contributions in <strong>${request.discipline}</strong>, you have been invited to conduct a standardized double-blind evaluation for a manuscript titled:</p>
             
-            <div style="background: #f8fafc; border-left: 4px solid #b45309; padding: 14px 18px; margin: 20px 0; border-radius: 4px;">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px 18px; margin: 20px 0; border-radius: 6px;">
               <strong style="color: #0f172a; font-size: 15px;">"${request.title}"</strong>
               <div style="font-size: 13px; color: #64748b; margin-top: 6px;">Field: ${request.discipline}</div>
             </div>
@@ -208,7 +208,7 @@ export async function triggerNextCandidate(
             
             <div style="margin: 25px 0;">
               <a href="${inviteActionUrl}" style="background: #b45309; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
-                Respond in Reviewer Workspace &rarr;
+                Respond via Secure Referee Invitation Link &rarr;
               </a>
             </div>
             

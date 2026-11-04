@@ -1537,8 +1537,7 @@ export default function JournalClientView({
                         padding: "1.25rem 1.5rem", 
                         background: "var(--color-bg-card)", 
                         border: "1px solid var(--color-border)",
-                        borderLeft: "4px solid var(--color-primary)", 
-                        borderRadius: "0 var(--border-radius-sm) var(--border-radius-sm) 0" 
+                        borderRadius: "var(--border-radius-sm)" 
                       }}
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.85rem", flexWrap: "wrap", gap: "0.5rem" }}>

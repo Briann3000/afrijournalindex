@@ -47,7 +47,7 @@ export function generateInvitationEmail(params: EmailTemplateParams, lang: "en" 
             We are writing to confirm that <strong>${params.journalName}</strong> (${params.country}) is officially cataloged and indexed in the continental <strong>AfriJournal Citation Index (AJCI)</strong>.
           </p>
 
-          <div style="background: #f0fdf4; border-left: 4px solid #16a34a; padding: 14px 18px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 14px 18px; margin: 20px 0; border-radius: 8px;">
             <p style="margin: 0; font-size: 14px; font-weight: 700; color: #14532d;">Live Features for Your Journal:</p>
             <ul style="margin: 8px 0 0; padding-left: 20px; font-size: 13px; color: #166534; line-height: 1.6;">
               <li><strong>Continental Citation Engine:</strong> Real-time citation graphs and mathematical 2-Year AJCI calculations.</li>
@@ -147,7 +147,7 @@ export function generateInvitationEmail(params: EmailTemplateParams, lang: "en" 
           We are pleased to invite <strong>${params.journalName}</strong> (published in <strong>${params.country}</strong>) to apply for official listing and indexing in the <strong>AfriJournal Citation Index (AJCI)</strong>.
         </p>
 
-        <div style="background: #f8fafc; border-left: 4px solid #2563eb; padding: 14px 18px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px 18px; margin: 20px 0; border-radius: 8px;">
           <p style="margin: 0; font-size: 14px; font-weight: 700; color: #0f172a;">Why Index with AfriJournal?</p>
           <ul style="margin: 8px 0 0; padding-left: 20px; font-size: 13px; color: #475569; line-height: 1.6;">
             <li><strong>100% Free Core Indexing:</strong> Listing, metadata ingestion, and mathematical 2-Year AJCI calculation carry zero fee.</li>

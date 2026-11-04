@@ -43,7 +43,7 @@ export default function ReviewerDashboardPage() {
           router.push("/login?redirect=/reviewer");
           return;
         }
-        throw new Error(result.error || "Failed to load reviewer desk.");
+        throw new Error(result.error || "Failed to load peer review portal.");
       }
 
       setData(result.data);
@@ -112,7 +112,7 @@ export default function ReviewerDashboardPage() {
         <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "1.5rem" }}>
           <Link href="/" style={{ color: "var(--color-primary)", textDecoration: "none" }}>Home</Link>
           <span>/</span>
-          <span style={{ color: "var(--color-text-main)", fontWeight: 600 }}>Reviewer Desk</span>
+          <span style={{ color: "var(--color-text-main)", fontWeight: 600 }}>Peer Review Portal</span>
         </div>
 
         {/* Hero Header */}
@@ -120,10 +120,10 @@ export default function ReviewerDashboardPage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
             <div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "var(--color-primary-light)", border: "1px solid rgba(180, 83, 9, 0.25)", color: "var(--color-primary)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.78rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "0.75rem" }}>
-                <i className="fa-solid fa-graduation-cap"></i> Verified Peer Review Desk
+                <i className="fa-solid fa-graduation-cap"></i> Verified Peer Review Portal
               </div>
               <h1 style={{ fontSize: "1.85rem", fontWeight: 800, color: "var(--color-text-main)", marginBottom: "0.5rem" }}>
-                African Scholarly Peer Review Desk
+                African Scholarly Peer Review Portal
               </h1>
               <p style={{ color: "var(--color-text-muted)", fontSize: "0.95rem", lineHeight: 1.6, maxWidth: "750px", margin: 0 }}>
                 Manage double-blind referee invitations, conduct rubric-standard evaluations, track lodged manuscripts, and access accredited peer review credentials.
@@ -205,12 +205,12 @@ export default function ReviewerDashboardPage() {
         {loading ? (
           <div style={{ textAlign: "center", padding: "4rem 1rem", background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "14px" }}>
             <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)", marginBottom: "1rem" }}></i>
-            <div style={{ color: "var(--color-text-muted)", fontSize: "0.95rem" }}>Loading your reviewer desk records...</div>
+            <div style={{ color: "var(--color-text-muted)", fontSize: "0.95rem" }}>Loading your peer review records...</div>
           </div>
         ) : error ? (
           <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "2rem", textAlign: "center" }}>
             <i className="fa-solid fa-circle-exclamation" style={{ fontSize: "2.5rem", color: "#dc2626", marginBottom: "1rem" }}></i>
-            <h2 style={{ fontSize: "1.3rem", color: "var(--color-text-main)", marginBottom: "0.5rem" }}>Error Loading Desk</h2>
+            <h2 style={{ fontSize: "1.3rem", color: "var(--color-text-main)", marginBottom: "0.5rem" }}>Error Loading Peer Review Portal</h2>
             <p style={{ color: "var(--color-text-body)", fontSize: "0.9rem", marginBottom: "1.5rem" }}>{error}</p>
             <button onClick={fetchDashboardData} className="btn btn-primary btn-sm">Try Again</button>
           </div>

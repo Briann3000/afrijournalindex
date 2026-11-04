@@ -1078,7 +1078,7 @@ function InstitutionContent() {
                           }}
                           title="Synchronize institutional crest, domain and metadata from official website"
                         >
-                          <i className={`fa-solid ${mappingWebsiteLoading ? "fa-spinner fa-spin" : "fa-wand-magic-sparkles"}`}></i>
+                          <i className={`fa-solid ${mappingWebsiteLoading ? "fa-spinner fa-spin" : "fa-globe"}`}></i>
                           {mappingWebsiteLoading ? t.institution_page.mapping_website : t.institution_page.auto_map_btn}
                         </button>
                       )}

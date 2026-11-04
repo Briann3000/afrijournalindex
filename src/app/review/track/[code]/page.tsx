@@ -15,6 +15,15 @@ export default function ReviewTrackPage() {
   const [reviewData, setReviewData] = useState<any>(null);
   const [copiedUrl, setCopiedUrl] = useState(false);
 
+  // Invitation letter & revision modals
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showRevisionModal, setShowRevisionModal] = useState(false);
+  const [revisionFileUrl, setRevisionFileUrl] = useState("");
+  const [rebuttalNotes, setRebuttalNotes] = useState("");
+  const [uploadingRevision, setUploadingRevision] = useState(false);
+  const [submittingRevision, setSubmittingRevision] = useState(false);
+  const [revisionMessage, setRevisionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   useEffect(() => {
     async function fetchTracking() {
       if (!code) return;
@@ -37,6 +46,83 @@ export default function ReviewTrackPage() {
 
   const printDossier = () => {
     window.print();
+  };
+
+  const handleRevisionFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 25 * 1024 * 1024) {
+      setRevisionMessage({ type: "error", text: "File exceeds maximum size limit of 25MB." });
+      return;
+    }
+
+    setUploadingRevision(true);
+    setRevisionMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "revisions");
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to upload revised manuscript.");
+      }
+
+      setRevisionFileUrl(data.url || data.fileUrl);
+      setRevisionMessage({ type: "success", text: `Revised manuscript "${file.name}" uploaded successfully.` });
+    } catch (err: any) {
+      setRevisionMessage({ type: "error", text: err.message || "Failed to upload file." });
+    } finally {
+      setUploadingRevision(false);
+    }
+  };
+
+  const handleRevisionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!revisionFileUrl) {
+      setRevisionMessage({ type: "error", text: "Please upload your revised manuscript document." });
+      return;
+    }
+
+    if (!rebuttalNotes.trim() || rebuttalNotes.trim().length < 20) {
+      setRevisionMessage({ type: "error", text: "Please provide a detailed author response / rebuttal letter addressing reviewer feedback (min 20 characters)." });
+      return;
+    }
+
+    setSubmittingRevision(true);
+    setRevisionMessage(null);
+
+    try {
+      const res = await fetch(`/api/review/track/${code}/revision`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          revisedFileUrl: revisionFileUrl,
+          rebuttalNotes: rebuttalNotes.trim()
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to submit revision.");
+      }
+
+      setRevisionMessage({ type: "success", text: "Revision and author rebuttal successfully recorded and notified to the peer review desk." });
+      setTimeout(() => {
+        setShowRevisionModal(false);
+      }, 2000);
+    } catch (err: any) {
+      setRevisionMessage({ type: "error", text: err.message || "Could not submit revision." });
+    } finally {
+      setSubmittingRevision(false);
+    }
   };
 
   const getRecommendationBadge = (rec: string) => {
@@ -140,6 +226,14 @@ export default function ReviewTrackPage() {
                         ? `${reviewData.currentStage?.countdownHours ?? 48}h response window` 
                         : "Reviewer accepted"}
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowInviteModal(true)}
+                      style={{ background: "none", border: "none", padding: 0, color: "var(--color-primary)", fontSize: "0.72rem", fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "3px", marginTop: "2px" }}
+                    >
+                      <i className="fa-solid fa-envelope-open-text"></i>
+                      <span>View Dispatched Invitation</span>
+                    </button>
                   </div>
                 </div>
 
@@ -208,8 +302,21 @@ export default function ReviewTrackPage() {
                           {badge.label}
                         </div>
                       </div>
-                      <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
-                        Completed on {new Date(reviewData.evaluationReport.completedAt).toLocaleDateString()}
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                        <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
+                          Completed on {new Date(reviewData.evaluationReport.completedAt).toLocaleDateString()}
+                        </div>
+                        {["MINOR_REVISION", "MAJOR_REVISION"].includes(reviewData.evaluationReport.overallRecommendation) && (
+                          <button
+                            type="button"
+                            onClick={() => setShowRevisionModal(true)}
+                            className="btn btn-primary btn-sm"
+                            style={{ fontSize: "0.82rem", padding: "0.4rem 1rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "6px" }}
+                          >
+                            <i className="fa-solid fa-file-arrow-up"></i>
+                            <span>Submit Revised Manuscript &amp; Rebuttal</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -317,6 +424,170 @@ export default function ReviewTrackPage() {
                     <i className={`fa-solid ${copiedUrl ? "fa-check" : "fa-copy"}`}></i>
                     <span>{copiedUrl ? "Copied!" : "Copy Link"}</span>
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* ================= INVITATION LETTER MODAL ================= */}
+            {showInviteModal && (
+              <div style={{ position: "fixed", inset: 0, background: "rgba(0, 0, 0, 0.65)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+                <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "14px", width: "100%", maxWidth: "660px", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)", boxSizing: "border-box" }}>
+                  <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <i className="fa-solid fa-envelope-open-text" style={{ color: "var(--color-primary)" }}></i>
+                      <span style={{ fontWeight: 800, fontSize: "1.05rem", color: "var(--color-text-main)" }}>Dispatched Referee Invitation</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowInviteModal(false)}
+                      style={{ background: "none", border: "none", fontSize: "1.2rem", color: "var(--color-text-muted)", cursor: "pointer", padding: "4px" }}
+                    >
+                      <i className="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+
+                  <div style={{ padding: "1.5rem", fontSize: "0.9rem", color: "var(--color-text-body)", lineHeight: 1.6 }}>
+                    <div style={{ background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", borderRadius: "8px", padding: "0.75rem 1rem", marginBottom: "1.25rem", fontSize: "0.82rem" }}>
+                      <div><strong>Subject:</strong> [Peer Review Invitation] &quot;{reviewData.title.slice(0, 60)}...&quot; - AfriJournal Index</div>
+                      <div><strong>Protocol:</strong> Double-Blind Sequential Cascade (48-Hour Response Limit)</div>
+                      <div><strong>Referee Status:</strong> {reviewData.status === "AWAITING_REVIEWER" ? `Pending Response (${reviewData.currentStage?.countdownHours ?? 48}h remaining)` : "Accepted"}</div>
+                    </div>
+
+                    <div style={{ border: "1px solid #e2e8f0", borderRadius: "10px", padding: "1.5rem", background: "#ffffff", color: "#1e293b", fontFamily: "Arial, sans-serif" }}>
+                      <div style={{ borderBottom: "2px solid #b45309", paddingBottom: "8px", marginBottom: "14px" }}>
+                        <strong style={{ color: "#0f172a", fontSize: "1.1rem" }}>AfriJournal Index Peer Review Registry</strong>
+                        <div style={{ fontSize: "12px", color: "#64748b" }}>Double-Blind Academic Referee Invitation</div>
+                      </div>
+
+                      <p style={{ margin: "0 0 10px" }}>Dear Colleague,</p>
+                      <p style={{ margin: "0 0 12px", fontSize: "13.5px" }}>
+                        Because of your recognized scholarship and peer-reviewed contributions in <strong>{reviewData.discipline}</strong>, you have been invited to conduct a standardized double-blind evaluation for a manuscript titled:
+                      </p>
+
+                      <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", padding: "10px 14px", margin: "14px 0", borderRadius: "6px" }}>
+                        <strong style={{ color: "#0f172a", fontSize: "14px" }}>&quot;{reviewData.title}&quot;</strong>
+                        <div style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>Discipline: {reviewData.discipline}</div>
+                      </div>
+
+                      <p style={{ fontSize: "13px", margin: "0 0 12px" }}>
+                        <strong>Response Window:</strong> In accordance with the AfriJournal sequential cascading protocol, please accept or decline this invitation within <strong>48 hours</strong>.
+                      </p>
+
+                      <p style={{ fontSize: "12px", color: "#64748b", borderTop: "1px solid #e2e8f0", paddingTop: "12px", margin: 0 }}>
+                        Upon completion, you will receive an official verifiable <strong>AfriJournal Peer Review Certificate</strong> with CPD credentials and recognition in your scholar profile dossier.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ padding: "0.85rem 1.5rem", borderTop: "1px solid var(--color-border)", background: "var(--color-bg-card-subtle)", display: "flex", justifyContent: "flex-end" }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowInviteModal(false)}
+                      className="btn btn-secondary btn-sm"
+                      style={{ padding: "0.4rem 1.25rem", fontSize: "0.85rem" }}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ================= AUTHOR REVISION RESUBMISSION MODAL ================= */}
+            {showRevisionModal && (
+              <div style={{ position: "fixed", inset: 0, background: "rgba(0, 0, 0, 0.65)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+                <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "14px", width: "100%", maxWidth: "620px", maxHeight: "90vh", overflowY: "auto", padding: "2rem", boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)", boxSizing: "border-box" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                    <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--color-text-main)", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                      <i className="fa-solid fa-file-arrow-up" style={{ color: "var(--color-primary)" }}></i>
+                      <span>Submit Revised Manuscript &amp; Rebuttal</span>
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowRevisionModal(false)}
+                      style={{ background: "none", border: "none", fontSize: "1.2rem", color: "var(--color-text-muted)", cursor: "pointer", padding: "4px" }}
+                    >
+                      <i className="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+
+                  <p style={{ color: "var(--color-text-muted)", fontSize: "0.86rem", lineHeight: 1.5, margin: "0 0 1.25rem" }}>
+                    Upload your revised manuscript (PDF or Word) addressing the reviewer&apos;s actionable revisions, accompanied by a point-by-point response letter.
+                  </p>
+
+                  {revisionMessage && (
+                    <div style={{
+                      background: revisionMessage.type === "success" ? "#ecfdf5" : "#fef2f2",
+                      border: `1px solid ${revisionMessage.type === "success" ? "#a7f3d0" : "#fecaca"}`,
+                      borderRadius: "8px",
+                      padding: "0.85rem 1rem",
+                      color: revisionMessage.type === "success" ? "#065f46" : "#b91c1c",
+                      fontSize: "0.86rem",
+                      marginBottom: "1rem"
+                    }}>
+                      {revisionMessage.text}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleRevisionSubmit}>
+                    {/* File Upload Slot */}
+                    <div style={{ marginBottom: "1.25rem" }}>
+                      <label style={{ display: "block", color: "var(--color-text-main)", fontWeight: 700, fontSize: "0.84rem", marginBottom: "0.35rem" }}>
+                        Revised Manuscript Document (.PDF, .DOCX) <span style={{ color: "#ef4444" }}>*</span>
+                      </label>
+                      <input
+                        type="file"
+                        accept=".pdf,.docx,.doc"
+                        onChange={handleRevisionFileUpload}
+                        style={{ width: "100%", padding: "0.55rem", background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", borderRadius: "6px", fontSize: "0.82rem", color: "var(--color-text-main)" }}
+                      />
+                      {uploadingRevision && (
+                        <div style={{ fontSize: "0.78rem", color: "var(--color-primary)", marginTop: "4px" }}>
+                          <i className="fa-solid fa-spinner fa-spin"></i> Uploading revised manuscript file...
+                        </div>
+                      )}
+                      {revisionFileUrl && (
+                        <div style={{ fontSize: "0.78rem", color: "#059669", marginTop: "4px", fontWeight: 700 }}>
+                          <i className="fa-solid fa-circle-check"></i> Document attached and ready
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Point-by-Point Author Rebuttal Letter */}
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      <label style={{ display: "block", color: "var(--color-text-main)", fontWeight: 700, fontSize: "0.84rem", marginBottom: "0.35rem" }}>
+                        Author Point-by-Point Rebuttal / Response Letter <span style={{ color: "#ef4444" }}>*</span>
+                      </label>
+                      <textarea
+                        rows={5}
+                        value={rebuttalNotes}
+                        onChange={(e) => setRebuttalNotes(e.target.value)}
+                        placeholder="Detail how each actionable revision was addressed (e.g. 'Revision 1: Added empirical sampling explanation in Section 3.2. Revision 2: Expanded literature review with contemporary African sources...')"
+                        required
+                        style={{ width: "100%", padding: "0.65rem 0.85rem", background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", borderRadius: "6px", color: "var(--color-text-main)", fontSize: "0.85rem", outline: "none", boxSizing: "border-box", lineHeight: 1.5 }}
+                      />
+                    </div>
+
+                    {/* Submit Actions */}
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowRevisionModal(false)}
+                        className="btn btn-secondary btn-sm"
+                        style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={submittingRevision || uploadingRevision || !revisionFileUrl}
+                        className="btn btn-primary btn-sm"
+                        style={{ padding: "0.5rem 1.25rem", fontSize: "0.85rem", fontWeight: 700 }}
+                      >
+                        {submittingRevision ? "Recording Revision..." : "Submit Revised Manuscript"}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
             )}
