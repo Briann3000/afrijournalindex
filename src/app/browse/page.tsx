@@ -72,16 +72,8 @@ function getDisciplines(name: string, description: string): string[] {
   return Array.from(new Set(disciplines));
 }
 
-type SortField = "name" | "country" | "score" | "frequency" | "quartile";
+type SortField = "name" | "country" | "score" | "frequency";
 type SortOrder = "asc" | "desc";
-
-const quartileColors: Record<string, { bg: string; text: string; border: string }> = {
-  Q1: { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" },
-  Q2: { bg: "#ecfdf5", text: "#047857", border: "#a7f3d0" },
-  Q3: { bg: "#fffbeb", text: "#b45309", border: "#fde68a" },
-  Q4: { bg: "#f1f5f9", text: "#475569", border: "#cbd5e1" },
-  Unrated: { bg: "#f8fafc", text: "#64748b", border: "#e2e8f0" }
-};
 
 function normalizeDiscipline(raw: string): string {
   if (!raw) return "";
@@ -114,7 +106,6 @@ function BrowseContent() {
   const [search, setSearch] = useState<string>(urlQuery);
   const [countryFilter, setCountryFilter] = useState<string>(urlCountry);
   const [disciplineFilter, setDisciplineFilter] = useState<string>(urlDiscipline);
-  const [quartileFilter, setQuartileFilter] = useState<string>("");
   const [indexBodyFilter, setIndexBodyFilter] = useState<string>("");
   const [sortField, setSortField] = useState<SortField>("score");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
@@ -262,13 +253,12 @@ function BrowseContent() {
           j.primaryDiscipline.toLowerCase().includes(disciplineFilter.toLowerCase()) ||
           disciplineFilter.toLowerCase().includes(j.primaryDiscipline.toLowerCase())
         ));
-      const matchesQuartile = quartileFilter === "" || j.quartile === quartileFilter;
       const matchesIndexBody = indexBodyFilter === "" ||
         (indexBodyFilter === "scopus" && j.isScopusIndexed) ||
         (indexBodyFilter === "wos" && j.isWosIndexed) ||
         (indexBodyFilter === "both" && j.isScopusIndexed && j.isWosIndexed);
 
-      return matchesSearch && matchesCountry && matchesDiscipline && matchesQuartile && matchesIndexBody;
+      return matchesSearch && matchesCountry && matchesDiscipline && matchesIndexBody;
     });
 
     filtered.sort((a, b) => {
@@ -281,16 +271,13 @@ function BrowseContent() {
         comparison = a.frequency.localeCompare(b.frequency);
       } else if (sortField === "score") {
         comparison = (a.score ?? 0) - (b.score ?? 0);
-      } else if (sortField === "quartile") {
-        const qOrder: Record<string, number> = { Q1: 4, Q2: 3, Q3: 2, Q4: 1 };
-        comparison = (qOrder[a.quartile || "Q4"] || 0) - (qOrder[b.quartile || "Q4"] || 0);
       }
 
       return sortOrder === "asc" ? comparison : -comparison;
     });
 
     return filtered;
-  }, [journals, search, countryFilter, disciplineFilter, quartileFilter, indexBodyFilter, sortField, sortOrder]);
+  }, [journals, search, countryFilter, disciplineFilter, indexBodyFilter, sortField, sortOrder]);
 
   const totalPages = Math.ceil(processedJournals.length / pageSize) || 1;
   const paginatedJournals = useMemo(() => {
@@ -300,7 +287,7 @@ function BrowseContent() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, countryFilter, disciplineFilter, quartileFilter, indexBodyFilter, pageSize]);
+  }, [search, countryFilter, disciplineFilter, indexBodyFilter, pageSize]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -311,20 +298,19 @@ function BrowseContent() {
     }
   };
 
-  const hasActiveFilters = search !== "" || countryFilter !== "" || disciplineFilter !== "" || quartileFilter !== "" || indexBodyFilter !== "";
+  const hasActiveFilters = search !== "" || countryFilter !== "" || disciplineFilter !== "" || indexBodyFilter !== "";
 
   const handleClearFilters = () => {
     setSearch("");
     setArticleSearch("");
     setCountryFilter("");
     setDisciplineFilter("");
-    setQuartileFilter("");
     setIndexBodyFilter("");
     router.replace("/browse");
   };
 
   const exportCSV = () => {
-    const headers = ["#", "Journal Name", "ISSN", "Publisher", "Country", "Disciplines", "Quartile", "AJCI Score", "Frequency", "Website"];
+    const headers = ["#", "Journal Name", "ISSN", "Publisher", "Country", "Disciplines", "AJCI Score", "Frequency", "Website"];
     const rows = processedJournals.map((j, idx) => [
       idx + 1,
       `"${j.name.replace(/"/g, '""')}"`,
@@ -332,7 +318,6 @@ function BrowseContent() {
       `"${j.publisher.replace(/"/g, '""')}"`,
       `"${j.country}"`,
       `"${j.disciplines.join("; ")}"`,
-      `"${j.quartile || "N/A"}"`,
       `"${(j.score ?? 0).toFixed(3)}"`,
       `"${j.frequency}"`,
       `"${j.link}"`
@@ -488,21 +473,7 @@ function BrowseContent() {
                 </select>
               </div>
 
-              {/* Quartile Select */}
-              <div>
-                <select 
-                  value={quartileFilter}
-                  onChange={(e) => setQuartileFilter(e.target.value)}
-                  className="form-select"
-                  style={{ fontSize: "0.9rem" }}
-                >
-                  <option value="">All Quartiles</option>
-                  <option value="Q1">Q1 (Top Tier)</option>
-                  <option value="Q2">Q2 (High Impact)</option>
-                  <option value="Q3">Q3 (Moderate)</option>
-                  <option value="Q4">Q4 (Emerging)</option>
-                </select>
-              </div>
+
 
               {/* Global Indexing Filter */}
               <div>
@@ -554,7 +525,7 @@ function BrowseContent() {
           </div>
 
           {/* Structured High-Contrast Academic Table */}
-          <div className="table-wrapper" style={{ border: "1px solid var(--color-border)", borderRadius: "10px", overflow: "hidden", background: "var(--color-bg-card)" }}>
+          <div className="table-wrapper" style={{ border: "1px solid var(--color-border)", borderRadius: "10px", overflowX: "auto", WebkitOverflowScrolling: "touch", background: "var(--color-bg-card)" }}>
             {loadingJournals ? (
               <div style={{ textAlign: "center", padding: "4rem 2rem", color: "var(--color-text-muted)" }}>
                 <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)" }}></i>
@@ -574,7 +545,7 @@ function BrowseContent() {
                 </button>
               </div>
             ) : (
-              <table className="academic-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table className="academic-table" style={{ width: "100%", minWidth: "750px", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: "var(--color-bg-card-subtle)", borderBottom: "2px solid var(--color-border)" }}>
                     <th style={{ width: "45px", textAlign: "center", padding: "0.95rem 0.5rem", color: "var(--color-text-muted)", fontSize: "0.82rem" }}>#</th>
@@ -591,10 +562,7 @@ function BrowseContent() {
                         <i className="fa-solid fa-sort" style={{ opacity: 0.35, fontSize: "0.75rem" }}></i>
                       </span>
                     </th>
-                    <th onClick={() => handleSort("quartile")} style={{ width: "9%", textAlign: "center", cursor: "pointer", userSelect: "none", padding: "0.95rem 0.8rem" }}>
-                      Tier
-                    </th>
-                    <th onClick={() => handleSort("score")} style={{ width: "10%", textAlign: "right", cursor: "pointer", userSelect: "none", padding: "0.95rem 1rem" }}>
+                    <th onClick={() => handleSort("score")} style={{ width: "12%", textAlign: "right", cursor: "pointer", userSelect: "none", padding: "0.95rem 1rem" }}>
                       AJCI Score
                     </th>
                     <th style={{ width: "13%", textAlign: "right", padding: "0.95rem 1.2rem" }}>Actions</th>
@@ -602,8 +570,6 @@ function BrowseContent() {
                 </thead>
                 <tbody>
                   {paginatedJournals.map((journal, index) => {
-                    const q = journal.quartile || "Q2";
-                    const qStyle = quartileColors[q] || quartileColors["Q2"];
                     const rowNum = (currentPage - 1) * pageSize + index + 1;
 
                     return (
@@ -664,11 +630,6 @@ function BrowseContent() {
                         <td style={{ padding: "0.9rem 1rem" }}>
                           <span className="badge badge-slate" style={{ fontSize: "0.78rem", fontWeight: 600 }}>
                             {journal.country}
-                          </span>
-                        </td>
-                        <td style={{ textAlign: "center", padding: "0.9rem 0.8rem" }}>
-                          <span style={{ display: "inline-block", padding: "0.22rem 0.6rem", borderRadius: "6px", background: qStyle.bg, color: qStyle.text, border: `1px solid ${qStyle.border}`, fontSize: "0.76rem", fontWeight: 700 }}>
-                            {q}
                           </span>
                         </td>
                         <td style={{ textAlign: "right", padding: "0.9rem 1rem", fontWeight: 800, color: "var(--color-primary)", fontSize: "0.95rem" }}>

@@ -86,8 +86,7 @@ function PostsPageContent() {
   // Dedicated Hidden File Input Refs for Type Whitelist Matching
   const docInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const audioInputRef = useRef<HTMLInputElement>(null);
-
+  
   // Document Reader State (Split-screen viewer)
   const [activeReaderPost, setActiveReaderPost] = useState<PostItem | null>(null);
   const [citationFormat, setCitationFormat] = useState<"APA" | "HARVARD" | "CHICAGO" | "MLA">("APA");
@@ -259,8 +258,6 @@ function PostsPageContent() {
       docInputRef.current?.click();
     } else if (type === "IMAGE") {
       imageInputRef.current?.click();
-    } else if (type === "AUDIO") {
-      audioInputRef.current?.click();
     }
   };
 
@@ -604,14 +601,6 @@ function PostsPageContent() {
         style={{ display: "none" }}
         onChange={e => handleFileChange(e, "IMAGE")}
       />
-      <input
-        ref={audioInputRef}
-        type="file"
-        accept="audio/mpeg,audio/wav,audio/x-m4a,audio/ogg,.mp3,.wav,.m4a,.ogg"
-        style={{ display: "none" }}
-        onChange={e => handleFileChange(e, "AUDIO")}
-      />
-
       <main className="posts-container-main" style={{ flex: 1, padding: "1.5rem 1rem", maxWidth: "1240px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
         
         {/* Mobile Twitter/X-Style Top Quick Bar - Visible only on mobile */}
@@ -987,78 +976,7 @@ function PostsPageContent() {
                   </button>
                 </div>
               </div>
-
-              {/* 3 Dedicated Media Trigger Buttons */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", marginTop: "1rem", paddingTop: "0.85rem", borderTop: "1px solid var(--color-border)" }}>
-                <button
-                  type="button"
-                  onClick={() => handleTriggerUpload("DOCUMENT")}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: "0.45rem",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    color: "#dc2626",
-                    fontWeight: 700,
-                    fontSize: "0.85rem"
-                  }}
-                >
-                  <i className="fa-solid fa-file-pdf"></i>
-                  <span>Document (PDF)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleTriggerUpload("IMAGE")}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: "0.45rem",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    color: "#0284c7",
-                    fontWeight: 700,
-                    fontSize: "0.85rem"
-                  }}
-                >
-                  <i className="fa-solid fa-image"></i>
-                  <span>Photo / Figure</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleTriggerUpload("AUDIO")}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: "0.45rem",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    color: "#16a34a",
-                    fontWeight: 700,
-                    fontSize: "0.85rem"
-                  }}
-                >
-                  <i className="fa-solid fa-microphone-lines"></i>
-                  <span>Audio Recording</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Active Tag Filter Indicator */}
+            </div>{/* Active Tag Filter Indicator */}
             {selectedTag && (
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(212, 160, 74, 0.12)", border: "1px solid rgba(212, 160, 74, 0.3)", borderRadius: "10px", padding: "0.6rem 1rem", fontSize: "0.85rem" }}>
                 <span>Showing posts tagged <strong>#{selectedTag}</strong></span>
@@ -1628,30 +1546,6 @@ function PostsPageContent() {
                             alt={post.attachmentName || "Research figure"} 
                             style={{ width: "100%", maxHeight: "420px", objectFit: "contain" }}
                           />
-                        </div>
-                      )}
-
-                      {/* 3. AUDIO RECORDING ATTACHMENT */}
-                      {post.attachmentUrl && post.attachmentType === "AUDIO" && (
-                        <div 
-                          style={{ 
-                            background: "var(--color-bg-card-subtle)", 
-                            borderRadius: "12px", 
-                            border: "1px solid var(--color-border)", 
-                            padding: "0.9rem 1.1rem", 
-                            marginBottom: "1rem" 
-                          }}
-                        >
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "0.6rem" }}>
-                            <i className="fa-solid fa-microphone-lines" style={{ color: "#16a34a", fontSize: "1.1rem" }}></i>
-                            <span style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--color-text-main)" }}>
-                              {post.attachmentName || "Scholar Oral Recording / Field Note"}
-                            </span>
-                          </div>
-                          <audio controls style={{ width: "100%", outline: "none" }}>
-                            <source src={post.attachmentUrl} />
-                            Your browser does not support the audio element.
-                          </audio>
                         </div>
                       )}
 
@@ -2935,14 +2829,6 @@ function PostsPageContent() {
                     style={{ background: "none", border: "1px solid var(--color-border)", padding: "0.35rem 0.7rem", borderRadius: "6px", cursor: "pointer", color: "#0284c7", fontSize: "0.85rem" }}
                   >
                     <i className="fa-solid fa-image"></i>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => audioInputRef.current?.click()}
-                    title="Attach Audio Clip"
-                    style={{ background: "none", border: "1px solid var(--color-border)", padding: "0.35rem 0.7rem", borderRadius: "6px", cursor: "pointer", color: "#16a34a", fontSize: "0.85rem" }}
-                  >
-                    <i className="fa-solid fa-microphone-lines"></i>
                   </button>
                   <button
                     type="button"

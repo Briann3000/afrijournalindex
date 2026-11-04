@@ -94,13 +94,6 @@ export default function RankingsPage() {
     setCurrentPage(1);
   }, [countryFilter, disciplineFilter]);
 
-  const quartileStyles: Record<string, { bg: string; text: string; border: string }> = {
-    Q1: { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" },
-    Q2: { bg: "#ecfdf5", text: "#047857", border: "#a7f3d0" },
-    Q3: { bg: "#fffbeb", text: "#b45309", border: "#fde68a" },
-    Q4: { bg: "#f1f5f9", text: "#475569", border: "#cbd5e1" }
-  };
-
   return (
     <div className="page-wrapper" style={{ padding: 0 }}>
       <Header activePage="rankings" />
@@ -214,7 +207,6 @@ export default function RankingsPage() {
                     </span>
                   </th>
                   <th style={{ padding: "1rem" }}>{t.rankings_page.col_discipline}</th>
-                  <th style={{ textAlign: "center", width: "90px", padding: "1rem" }}>{t.rankings_page.col_quartile}</th>
                   <th 
                     onClick={() => handleSort("score")}
                     style={{ textAlign: "right", width: "110px", padding: "1rem", cursor: "pointer", userSelect: "none" }}
@@ -272,8 +264,6 @@ export default function RankingsPage() {
               <tbody>
                 {paginatedRankings.map((journal, idx) => {
                   const globalIdx = startIndex + idx;
-                  const q = journal.quartile || "Q2";
-                  const qColor = quartileStyles[q] || quartileStyles["Q2"];
 
                   return (
                     <tr key={journal.id} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.2s" }} className="hover-row">
@@ -299,19 +289,6 @@ export default function RankingsPage() {
                       <td style={{ padding: "1rem" }}>
                         <span className="journal-tag">
                           {journal.primaryDiscipline || "Multidisciplinary"}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: "center", padding: "1rem" }}>
-                        <span style={{
-                          padding: "0.3rem 0.65rem",
-                          borderRadius: "6px",
-                          background: qColor.bg,
-                          color: qColor.text,
-                          border: `1px solid ${qColor.border}`,
-                          fontSize: "0.8rem",
-                          fontWeight: 700
-                        }}>
-                          {q}
                         </span>
                       </td>
                       <td style={{ textAlign: "right", fontWeight: 700, color: "var(--color-primary)", fontSize: "0.98rem", padding: "1rem" }}>

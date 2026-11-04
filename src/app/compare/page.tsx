@@ -215,8 +215,6 @@ function CompareContent() {
       ["Country", ...journals.map(j => `"${j.country}"`)],
       ["Publisher", ...journals.map(j => `"${j.publisherName.replace(/"/g, '""')}"`)],
       ["ISSN", ...journals.map(j => `"${j.issn || j.eissn || "N/A"}"`)],
-      ["Quality Grade", ...journals.map(j => `"${j.qualityGrade || "Unrated"}"`)],
-      ["Quartile", ...journals.map(j => `"${j.quartile}"`)],
       ["Primary Discipline", ...journals.map(j => `"${j.primaryDiscipline}"`)],
       ["Discipline Rank", ...journals.map(j => j.disciplineRank ? `"#${j.disciplineRank} of ${j.totalInDiscipline || "-"}"` : '"N/A"')],
       ["2-Year Impact Factor", ...journals.map(j => j.latestReport ? j.latestReport.standardScore.toFixed(3) : "0.000")],
@@ -237,14 +235,6 @@ function CompareContent() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
-
-  const quartileStyles: Record<string, { bg: string; text: string; border: string }> = {
-    Q1: { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" },
-    Q2: { bg: "#ecfdf5", text: "#047857", border: "#a7f3d0" },
-    Q3: { bg: "#fffbeb", text: "#b45309", border: "#fde68a" },
-    Q4: { bg: "#fef2f2", text: "#b91c1c", border: "#fecaca" },
-    Unrated: { bg: "#f1f5f9", text: "#64748b", border: "#e2e8f0" }
   };
 
   // Collect all unique report years across the compared journals
@@ -363,11 +353,6 @@ function CompareContent() {
                       {journal.issn && (
                         <span style={{ fontSize: "0.75rem", padding: "0.15rem 0.5rem", background: "var(--color-bg-alt)", borderRadius: "4px", color: "var(--color-text-body)" }}>
                           ISSN: {journal.issn}
-                        </span>
-                      )}
-                      {journal.qualityGrade && (
-                        <span style={{ fontSize: "0.75rem", fontWeight: 700, padding: "0.15rem 0.5rem", background: "var(--color-primary-light)", color: "var(--color-primary)", borderRadius: "4px" }}>
-                          Grade {journal.qualityGrade}
                         </span>
                       )}
                     </div>
@@ -552,34 +537,6 @@ function CompareContent() {
                     ))}
                   </tr>
 
-                  {/* Quartile */}
-                  <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
-                    <td style={{ padding: "1rem 1.5rem", fontWeight: 600, fontSize: "0.875rem", color: "var(--color-text-main)" }}>
-                      Quartile Ranking
-                    </td>
-                    {journals.map((j) => {
-                      const qStyle = quartileStyles[j.quartile] || quartileStyles.Unrated;
-                      return (
-                        <td key={j.id} style={{ padding: "1rem 1.5rem" }}>
-                          <span
-                            style={{
-                              display: "inline-block",
-                              padding: "0.25rem 0.65rem",
-                              borderRadius: "4px",
-                              fontWeight: 700,
-                              fontSize: "0.85rem",
-                              background: qStyle.bg,
-                              color: qStyle.text,
-                              border: `1px solid ${qStyle.border}`
-                            }}
-                          >
-                            {j.quartile}
-                          </span>
-                        </td>
-                      );
-                    })}
-                  </tr>
-
                   {/* Discipline & Discipline Rank */}
                   <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
                     <td style={{ padding: "1rem 1.5rem", fontWeight: 600, fontSize: "0.875rem", color: "var(--color-text-main)" }}>
@@ -591,29 +548,6 @@ function CompareContent() {
                         <div style={{ fontSize: "0.785rem", color: "var(--color-text-muted)", marginTop: "2px" }}>
                           {j.disciplineRank ? `Rank #${j.disciplineRank} of ${j.totalInDiscipline || "-"}` : "Rank unassigned"}
                         </div>
-                      </td>
-                    ))}
-                  </tr>
-
-                  {/* Quality Grade */}
-                  <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
-                    <td style={{ padding: "1rem 1.5rem", fontWeight: 600, fontSize: "0.875rem", color: "var(--color-text-main)" }}>
-                      Editorial Quality Grade
-                    </td>
-                    {journals.map((j) => (
-                      <td key={j.id} style={{ padding: "1rem 1.5rem" }}>
-                        <span
-                          style={{
-                            fontWeight: 700,
-                            padding: "0.25rem 0.5rem",
-                            borderRadius: "4px",
-                            background: "var(--color-primary-light)",
-                            color: "var(--color-primary)",
-                            fontSize: "0.85rem"
-                          }}
-                        >
-                          Grade {j.qualityGrade || "Pending"}
-                        </span>
                       </td>
                     ))}
                   </tr>

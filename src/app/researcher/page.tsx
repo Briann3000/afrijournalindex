@@ -2218,6 +2218,12 @@ function ResearcherProfileContent() {
                     </span>
                   )}
 
+                  {(data.metrics?.verifiedReviewCount > 0 || (data.verifiedReviews && data.verifiedReviews.length > 0)) && (
+                    <span style={{ background: "rgba(180, 83, 9, 0.12)", color: "var(--color-primary)", border: "1px solid rgba(180, 83, 9, 0.3)", padding: "0.2rem 0.65rem", borderRadius: "4px", fontSize: "0.78rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                      <i className="fa-solid fa-certificate"></i> Verified Peer Reviewer ({data.metrics?.verifiedReviewCount || data.verifiedReviews.length})
+                    </span>
+                  )}
+
                   {profile.orcid ? (
                     <a 
                       href={`https://orcid.org/${profile.orcid}`} 
@@ -3026,8 +3032,8 @@ function ResearcherProfileContent() {
             </button>
           )}
 
-          {/* 4. Editorial & Journals */}
-          {((data.journals?.length || 0) + (data.submissions?.length || 0) > 0 || isOwner) && (
+          {/* 4. Editorial & Peer Review */}
+          {((data.journals?.length || 0) + (data.submissions?.length || 0) + (data.verifiedReviews?.length || 0) > 0 || isOwner) && (
             <button
               type="button"
               onClick={() => setActiveTab("editorial")}
@@ -3049,7 +3055,7 @@ function ResearcherProfileContent() {
               }}
             >
               <i className="fa-solid fa-feather-pointed"></i>
-              <span>{t.researcher_page?.tab_editorial || "Editorial"} ({(data.journals?.length || 0) + (data.submissions?.length || 0)})</span>
+              <span>Editorial &amp; Peer Review ({(data.journals?.length || 0) + (data.submissions?.length || 0) + (data.verifiedReviews?.length || 0)})</span>
             </button>
           )}
 
@@ -4271,6 +4277,62 @@ function ResearcherProfileContent() {
               </a>
             </div>
           </div>
+
+          {/* Section: Verified Double-Blind Peer Review Evaluations */}
+          {data.verifiedReviews && data.verifiedReviews.length > 0 && (
+            <div className="card-surface" style={{ padding: "2rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)", boxShadow: "0 2px 10px rgba(0,0,0,0.03)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "1rem" }}>
+                <div>
+                  <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--color-text-main)", margin: 0, display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <i className="fa-solid fa-award" style={{ color: "var(--color-primary)" }}></i>
+                    Verified Peer Review Contributions ({data.verifiedReviews.length})
+                  </h2>
+                  <p style={{ margin: "4px 0 0", fontSize: "0.84rem", color: "var(--color-text-muted)" }}>
+                    Officially audited double-blind evaluations adhering to COPE academic publishing standards.
+                  </p>
+                </div>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(180, 83, 9, 0.1)", border: "1px solid rgba(180, 83, 9, 0.3)", color: "var(--color-primary)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.78rem", fontWeight: 700 }}>
+                  <i className="fa-solid fa-certificate"></i> CPD Recognized Referee
+                </div>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                {data.verifiedReviews.map((rev: any) => (
+                  <div key={rev.id} style={{ padding: "1.25rem", borderRadius: "10px", border: "1px solid var(--color-border)", background: "var(--color-bg-card-subtle)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "0.35rem" }}>
+                        <span style={{ fontSize: "0.75rem", background: "#ecfdf5", color: "#065f46", border: "1px solid #a7f3d0", padding: "2px 8px", borderRadius: "4px", fontWeight: 700 }}>
+                          Verified Double-Blind
+                        </span>
+                        <span style={{ fontSize: "0.84rem", fontWeight: 700, color: "var(--color-primary)" }}>
+                          {rev.discipline}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--color-text-main)" }}>
+                        Manuscript Ref: <span style={{ fontFamily: "monospace", color: "var(--color-text-main)" }}>{rev.trackingCode}</span>
+                      </div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "2px" }}>
+                        Completed on {new Date(rev.completedAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
+                      </div>
+                    </div>
+
+                    {rev.certificateVerificationId && (
+                      <a
+                        href={`/reviewer/verify/${rev.certificateVerificationId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: "0.82rem", padding: "0.45rem 1.1rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "6px", textDecoration: "none" }}
+                      >
+                        <i className="fa-solid fa-stamp" style={{ color: "var(--color-primary)" }}></i>
+                        <span>Audit Certificate ({rev.certificateVerificationId})</span>
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Section 1: Verified Indexed Journals */}
           {data.journals && data.journals.length > 0 && (

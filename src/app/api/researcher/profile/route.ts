@@ -705,6 +705,35 @@ export async function GET(request: Request) {
       orderBy: { createdAt: "desc" }
     });
 
+    // Fetch verified peer reviews conducted by this scholar
+    const userReviews = await prisma.manuscriptReviewAssignment.findMany({
+      where: {
+        reviewerId: user.id,
+        status: "SUBMITTED"
+      },
+      include: {
+        reviewRequest: {
+          select: {
+            title: true,
+            discipline: true,
+            trackingCode: true,
+            createdAt: true
+          }
+        }
+      },
+      orderBy: { completedAt: "desc" }
+    });
+
+    const verifiedReviews = userReviews.map(r => ({
+      id: r.id,
+      discipline: r.reviewRequest.discipline,
+      trackingCode: r.reviewRequest.trackingCode,
+      overallRecommendation: r.overallRecommendation,
+      completedAt: r.completedAt,
+      certificateVerificationId: r.certificateVerificationId,
+      certificateIssued: r.certificateIssued
+    }));
+
     const journals = userJournals.map(j => {
       const latestReport = j.reports[0];
       return {
@@ -928,11 +957,13 @@ export async function GET(request: Request) {
           quartileRatio: articles.length > 0 ? "100% Peer-Reviewed" : "0% Indexed",
           regionalPercentile: articles.length > 0 ? "Indexed Scholar" : "New Scholar Profile",
           managedJournalsCount: journals.length,
-          pendingSubmissionsCount: submissions.filter(s => s.status === "PENDING" || s.status === "UNDER_REVIEW").length
+          pendingSubmissionsCount: submissions.filter(s => s.status === "PENDING" || s.status === "UNDER_REVIEW").length,
+          verifiedReviewCount: verifiedReviews.length
         },
         articles,
         journals,
         submissions,
+        verifiedReviews,
         coAuthors
       }
     });

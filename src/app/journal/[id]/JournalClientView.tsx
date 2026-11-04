@@ -118,7 +118,6 @@ export default function JournalClientView({
       const { generateInstitutionalDossier } = await import("../../../lib/dossier-pdf");
       generateInstitutionalDossier({
         ...journal,
-        quartile: computedQuartile,
         disciplineRank: computedRank,
         totalInDiscipline: journal.totalInDiscipline || 20,
         latestReport: journal.latestReport ? {
@@ -551,14 +550,6 @@ export default function JournalClientView({
     ? `[![Indexed in AfriJournal Index](https://afrijournalindexing.org/api/badge/${journal.issn || journal.id}.svg)](https://afrijournalindexing.org/journal/${journal.id})`
     : "";
 
-  const quartileColors: Record<string, { bg: string; text: string; border: string }> = {
-    Q1: { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" },
-    Q2: { bg: "#f0fdf4", text: "#15803d", border: "#bbf7d0" },
-    Q3: { bg: "#fef3c7", text: "#b45309", border: "#fde68a" },
-    Q4: { bg: "#f1f5f9", text: "#475569", border: "#cbd5e1" },
-    Unrated: { bg: "#f8fafc", text: "#64748b", border: "#e2e8f0" }
-  };
-
   const articlesList = journal?.articles || [];
   const currentYear = new Date().getFullYear();
   const evaluationArticles = articlesList;
@@ -582,30 +573,8 @@ export default function JournalClientView({
     ? computedAJCI.toFixed(3) 
     : "—";
 
-  // Harmonized Quartile from journal or computed score
-  const computedQuartile: "Q1" | "Q2" | "Q3" | "Q4" | "Unrated" = useMemo(() => {
-    const reportQuartile = (journal?.latestReport as any)?.quartile;
-    if (reportQuartile && ["Q1", "Q2", "Q3", "Q4"].includes(reportQuartile)) {
-      return reportQuartile as "Q1" | "Q2" | "Q3" | "Q4";
-    }
-    if (journal?.quartile && ["Q1", "Q2", "Q3", "Q4"].includes(journal.quartile as any)) {
-      return journal.quartile as "Q1" | "Q2" | "Q3" | "Q4";
-    }
-    if (totalCitableCount === 0 || computedAJCI <= 0) return "Unrated";
-    if (computedAJCI >= 0.500) return "Q1";
-    if (computedAJCI >= 0.250) return "Q2";
-    if (computedAJCI >= 0.080) return "Q3";
-    return "Q4";
-  }, [totalCitableCount, computedAJCI, journal?.quartile, (journal?.latestReport as any)?.quartile]);
-
-
-
   // Discipline Rank strictly from Database SSOT (no artificial heuristics)
   const computedRank = journal?.disciplineRank || (journal as any)?.latestReport?.disciplineRank || "—";
-
-
-  const currentQuartile = computedQuartile;
-  const qStyle = quartileColors[currentQuartile] || quartileColors["Unrated"];
 
   return (
     <div className="page-wrapper">
@@ -691,22 +660,6 @@ export default function JournalClientView({
                       {journal.isIndexed ? (jp.indexed_badge || "Verified Indexed Journal") : (jp.unindexed_badge || "Pending Evaluation")}
                     </span>
 
-                    {/* Subject Quartile Badge (Q1-Q4) */}
-                    <span 
-                      style={{ 
-                        padding: "0.25rem 0.75rem", 
-                        borderRadius: "20px", 
-                        backgroundColor: qStyle.bg, 
-                        color: qStyle.text, 
-                        border: `1px solid ${qStyle.border}`,
-                        fontSize: "0.85rem",
-                        fontWeight: 800,
-                        letterSpacing: "0.5px"
-                      }}
-                    >
-                      {computedQuartile} Category Quartile
-                    </span>
-
                     {journal.isScopusIndexed && (
                       <span className="journal-tag" style={{ backgroundColor: "#fef3c7", color: "#92400e", border: "1px solid #fde68a", fontWeight: 700 }}>
                         <i className="fa-solid fa-earth-americas" style={{ marginRight: "0.3rem" }}></i> Scopus Indexed
@@ -777,6 +730,13 @@ export default function JournalClientView({
                       </div>
                     ) : null}
                   </div>
+
+                  {/* Aims, Scope & Editorial Description */}
+                  {journal.description && (
+                    <div style={{ marginTop: "1rem", paddingTop: "0.9rem", borderTop: "1px solid var(--color-border)", fontSize: "0.88rem", color: "var(--color-text-body)", lineHeight: "1.7" }}>
+                      <p style={{ margin: 0 }}>{journal.description}</p>
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", minWidth: "200px" }}>
@@ -932,15 +892,15 @@ export default function JournalClientView({
                   </button>
                 )}
 
-                {/* AfriJournal Quality Grade Audit */}
+                {/* AfriJournal Verification Audit */}
                 {journal.isIndexed && (
                   <button 
                     type="button" 
                     onClick={() => setShowProvenanceModal(true)} 
                     style={{ background: "var(--color-bg-card)", padding: "0.2rem 0.55rem", borderRadius: "6px", border: "1px solid var(--color-border)", color: "var(--color-text-body)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px", cursor: "pointer" }}
-                    title="AfriJournal Peer Quality Standard Evaluation"
+                    title="AfriJournal Standards Audit"
                   >
-                    <i className="fa-solid fa-certificate" style={{ color: "var(--color-primary)" }}></i> AfriJournal {journal.qualityGrade ? `Grade ${journal.qualityGrade}` : "Audited"}
+                    <i className="fa-solid fa-certificate" style={{ color: "var(--color-primary)" }}></i> AfriJournal Verified
                   </button>
                 )}
 
@@ -1142,11 +1102,11 @@ export default function JournalClientView({
                     </div>
                   </div>
 
-                  {/* Quartile Gap Insight */}
+                  {/* Discipline Standing Insight */}
                   <div style={{ marginTop: "1rem", padding: "0.8rem 1rem", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", fontSize: "0.82rem", color: "#166534", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.6rem" }}>
                     <div>
                       <i className="fa-solid fa-lightbulb" style={{ marginRight: "0.4rem" }}></i>
-                      <span><strong>Quartile Standing:</strong> Ranked <strong>#{computedRank} of {journal.totalInDiscipline || 20}</strong> in {journal.primaryDiscipline || "discipline"} ({computedQuartile}).</span>
+                      <span><strong>Discipline Standing:</strong> Ranked <strong>#{computedRank} of {journal.totalInDiscipline || 20}</strong> in {journal.primaryDiscipline || "discipline"}.</span>
                     </div>
                     <button 
                       onClick={handleDownloadDossier}
@@ -1159,316 +1119,9 @@ export default function JournalClientView({
                   </div>
                 </div>
               )}
-
-              {/* Anti-Predatory & Open-Access Integrity Audit Section */}
-              <div style={{ padding: "1.5rem", background: "var(--color-bg-card-subtle)", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
-                  <div>
-                    <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <i className="fa-solid fa-shield-halved" style={{ color: "var(--color-primary)" }}></i>
-                      Anti-Predatory & Open-Access Integrity Audit
-                    </span>
-                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                      Automated 6-point verification standard adhering to DOAJ & Scopus screening protocols
-                    </span>
-                  </div>
-                  <span style={{ fontSize: "0.8rem", padding: "0.25rem 0.75rem", background: "#dcfce7", color: "#15803d", border: "1px solid #bbf7d0", borderRadius: "20px", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                    <i className="fa-solid fa-check-double"></i>
-                    {journal.integrityScore || "Verified Compliant"}
-                  </span>
-                </div>
-
-                {/* 6-Point Compliance Grid */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.8rem" }}>
-                  <div style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card)", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                    <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", fontSize: "0.9rem" }}></i>
-                    <div style={{ fontSize: "0.8rem" }}>
-                      <span style={{ color: "var(--color-text-main)", fontWeight: 600, display: "block" }}>ISSN Active Registry</span>
-                      <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>International center verified</span>
-                    </div>
-                  </div>
-
-                  <div style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card)", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                    <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", fontSize: "0.9rem" }}></i>
-                    <div style={{ fontSize: "0.8rem" }}>
-                      <span style={{ color: "var(--color-text-main)", fontWeight: 600, display: "block" }}>Open Access Mandate</span>
-                      <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>CC-BY / Unrestricted full-text</span>
-                    </div>
-                  </div>
-
-                  <div style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card)", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                    <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", fontSize: "0.9rem" }}></i>
-                    <div style={{ fontSize: "0.8rem" }}>
-                      <span style={{ color: "var(--color-text-main)", fontWeight: 600, display: "block" }}>Editorial Governance</span>
-                      <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>Faculty institutional affiliation</span>
-                    </div>
-                  </div>
-
-                  <div style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card)", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                    <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", fontSize: "0.9rem" }}></i>
-                    <div style={{ fontSize: "0.8rem" }}>
-                      <span style={{ color: "var(--color-text-main)", fontWeight: 600, display: "block" }}>DOI & CrossRef Index</span>
-                      <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>Persistent digital resolution</span>
-                    </div>
-                  </div>
-
-                  <div style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card)", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                    <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", fontSize: "0.9rem" }}></i>
-                    <div style={{ fontSize: "0.8rem" }}>
-                      <span style={{ color: "var(--color-text-main)", fontWeight: 600, display: "block" }}>Citation Firewall</span>
-                      <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>Self-citations &lt; 20% capped</span>
-                    </div>
-                  </div>
-
-                  <div style={{ padding: "0.75rem 1rem", background: "var(--color-bg-card)", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                    <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", fontSize: "0.9rem" }}></i>
-                    <div style={{ fontSize: "0.8rem" }}>
-                      <span style={{ color: "var(--color-text-main)", fontWeight: 600, display: "block" }}>Cadence Regularity</span>
-                      <span style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>Regular issue publication cycle</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Self-Citation Breakdown Bar */}
-                <div style={{ paddingTop: "0.5rem" }}>
-                  <div style={{ display: "flex", height: "8px", borderRadius: "4px", overflow: "hidden", background: "#e2e8f0", marginBottom: "0.6rem" }}>
-                    <div style={{ width: `${journal.integrityReport?.externalCitationRate ?? journal.externalCitationRate ?? 95}%`, background: "var(--color-primary)", height: "100%" }} title="External Citations"></div>
-                    <div style={{ width: `${journal.integrityReport?.selfCitationRate ?? journal.selfCitationRate ?? 5}%`, background: "#94a3b8", height: "100%" }} title="Journal Self-Citations"></div>
-                  </div>
-
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                    <span>External Journal Citations: <strong style={{ color: "var(--color-text-main)" }}>{journal.integrityReport?.externalCitationRate ?? journal.externalCitationRate ?? 95}%</strong></span>
-                    <span>Self-Citation Rate: <strong style={{ color: "var(--color-text-main)" }}>{journal.integrityReport?.selfCitationRate ?? journal.selfCitationRate ?? 5}%</strong> (Audit Threshold: &lt; 25%)</span>
-                  </div>
-                </div>
-
-                {/* Citation Provenance Breakdown: Regional African vs Global Footprint (Institutional Tier Feature) */}
-                {journal.citationOrigin && (
-                  <div style={{ position: "relative", overflow: "hidden", borderRadius: "8px", marginTop: "0.5rem" }}>
-                    <div style={{ 
-                      background: "var(--color-bg-card)", 
-                      padding: "1.2rem", 
-                      borderRadius: "8px", 
-                      border: "1px solid var(--color-border)",
-                      filter: (!journal.certificatePaid && journal.activeTier !== "Premium") ? "blur(2.5px)" : "none",
-                      pointerEvents: (!journal.certificatePaid && journal.activeTier !== "Premium") ? "none" : "auto",
-                      userSelect: (!journal.certificatePaid && journal.activeTier !== "Premium") ? "none" : "auto"
-                    }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem", flexWrap: "wrap", gap: "0.5rem" }}>
-                        <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                          <i className="fa-solid fa-earth-africa" style={{ color: "var(--color-primary)" }}></i>
-                          Citation Provenance &amp; Regional Footprint
-                        </span>
-                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
-                          Total Citations Analyzed: <strong style={{ color: "var(--color-text-main)" }}>{journal.citationOrigin.total}</strong>
-                        </span>
-                      </div>
-
-                      <div style={{ display: "flex", height: "10px", borderRadius: "5px", overflow: "hidden", background: "var(--color-bg-card-subtle)", marginBottom: "0.75rem" }}>
-                        <div style={{ width: `${journal.citationOrigin.regionalPercentage}%`, background: "#0d9488", height: "100%" }}></div>
-                        <div style={{ width: `${journal.citationOrigin.globalPercentage}%`, background: "#3b82f6", height: "100%" }}></div>
-                      </div>
-
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", marginBottom: "0.8rem" }}>
-                        <span style={{ color: "#0f766e", fontWeight: 600 }}>
-                          Pan-African Citations: {journal.citationOrigin.regionalPercentage}% ({journal.citationOrigin.regionalCount})
-                        </span>
-                        <span style={{ color: "#1d4ed8", fontWeight: 600 }}>
-                          Global Citations: {journal.citationOrigin.globalPercentage}% ({journal.citationOrigin.globalCount})
-                        </span>
-                      </div>
-
-                      {journal.citationOrigin.topCitingCountries.length > 0 && (
-                        <div style={{ borderTop: "1px dashed #e2e8f0", paddingTop: "0.6rem", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.4rem", fontSize: "0.78rem" }}>
-                          <span style={{ color: "var(--color-text-muted)", fontWeight: 600 }}>Top Citing Geographies:</span>
-                          {journal.citationOrigin.topCitingCountries.map(c => (
-                            <span key={c.country} style={{ background: "var(--color-bg-card-subtle)", padding: "0.15rem 0.5rem", borderRadius: "4px", border: "1px solid var(--color-border)", color: "var(--color-text-body)" }}>
-                              {c.country} ({c.count})
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Paywall Overlay for Free Journals */}
-                    {!journal.certificatePaid && journal.activeTier !== "Basic" && journal.activeTier !== "Premium" && (
-                      <div style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: "rgba(18, 18, 23, 0.88)",
-                        backdropFilter: "blur(4px)",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: "1rem",
-                        textAlign: "center",
-                        borderRadius: "8px"
-                      }}>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: "rgba(212, 160, 74, 0.15)", border: "1px solid rgba(212, 160, 74, 0.35)", color: "var(--color-primary)", padding: "0.3rem 0.75rem", borderRadius: "20px", fontSize: "0.78rem", fontWeight: 700, marginBottom: "0.4rem" }}>
-                          <i className="fa-solid fa-lock"></i>
-                          <span>Evaluation Suite Feature</span>
-                        </div>
-                        <p style={{ margin: "0 0 0.6rem", fontSize: "0.82rem", color: "var(--color-text-body)", maxWidth: "420px" }}>
-                          Pan-African author distribution maps and citation cartel defense audits are unlocked with an official evaluation package.
-                        </p>
-                        <a 
-                          href={`/pricing?journalId=${journal.id}&tier=Basic`}
-                          className="btn btn-primary btn-sm"
-                          style={{ fontSize: "0.78rem", padding: "0.4rem 1rem" }}
-                        >
-                          Unlock Full Citation Dossier ($99)
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Cartel Defense & Integrity Diagnosis (Visible if paid, or summary if free) */}
-                {journal.integrityReport && (
-                  <div style={{ background: journal.integrityReport.cartelRisk === "Low" ? "rgba(62, 142, 98, 0.12)" : "rgba(212, 160, 74, 0.12)", border: `1px solid ${journal.integrityReport.cartelRisk === "Low" ? "rgba(62, 142, 98, 0.3)" : "rgba(212, 160, 74, 0.3)"}`, borderRadius: "8px", padding: "1rem", fontSize: "0.82rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
-                      <span style={{ fontWeight: 700, color: journal.integrityReport.cartelRisk === "Low" ? "#4ade80" : "var(--color-primary)", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                        <i className={`fa-solid ${journal.integrityReport.cartelRisk === "Low" ? "fa-shield-halved" : "fa-triangle-exclamation"}`}></i>
-                        Citation Cartel Defense &amp; Coercive Citation Audit
-                      </span>
-                      <span style={{ fontWeight: 700, textTransform: "uppercase", fontSize: "0.75rem", background: "var(--color-bg-card)", color: "var(--color-text-main)", padding: "0.15rem 0.5rem", borderRadius: "4px", border: "1px solid var(--color-border)" }}>
-                        Risk Level: {journal.integrityReport.cartelRisk}
-                      </span>
-                    </div>
-                    <p style={{ margin: 0, color: "var(--color-text-body)", lineHeight: "1.4" }}>
-                      {journal.integrityReport.recommendation}
-                    </p>
-                  </div>
-                )}
-              </div>
             </div>
 
-            {/* 2B. Citation Distribution Profile (Scientometric Granularity) */}
-            <div className="glass-card" style={{ padding: "2.5rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "1.5rem" }}>
-                <div>
-                  <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text-main)", margin: "0 0 0.3rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                    <i className="fa-solid fa-chart-column" style={{ color: "var(--color-primary)" }}></i>
-                    Citation Distribution Profile
-                  </h2>
-                  <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", margin: 0 }}>
-                    Granular citation skew analysis across {journal.articles.length} verified peer-reviewed articles cataloged in the indexing repository.
-                  </p>
-                </div>
-                <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                  <span style={{ fontSize: "0.75rem", padding: "0.25rem 0.65rem", background: "var(--color-bg-card-subtle)", border: "1px solid var(--color-border)", borderRadius: "20px", color: "var(--color-text-muted)", fontWeight: 600 }}>
-                    CC BY 4.0 Verified
-                  </span>
-                </div>
-              </div>
 
-              {journal.citationDistribution ? (
-                <div>
-                  {/* Segmented Horizontal Stacked Bar */}
-                  <div style={{ height: "16px", width: "100%", background: "#e2e8f0", borderRadius: "8px", overflow: "hidden", display: "flex", marginBottom: "1.5rem" }}>
-                    {journal.citationDistribution.zero.percentage > 0 && (
-                      <div 
-                        style={{ width: `${journal.citationDistribution.zero.percentage}%`, background: "#94a3b8" }} 
-                        title={`Uncited (0 citations): ${journal.citationDistribution.zero.percentage}% (${journal.citationDistribution.zero.count} articles)`}
-                      />
-                    )}
-                    {journal.citationDistribution.one.percentage > 0 && (
-                      <div 
-                        style={{ width: `${journal.citationDistribution.one.percentage}%`, background: "#38bdf8" }} 
-                        title={`1 citation: ${journal.citationDistribution.one.percentage}% (${journal.citationDistribution.one.count} articles)`}
-                      />
-                    )}
-                    {journal.citationDistribution.twoToNine.percentage > 0 && (
-                      <div 
-                        style={{ width: `${journal.citationDistribution.twoToNine.percentage}%`, background: "#3b82f6" }} 
-                        title={`2 to 9 citations: ${journal.citationDistribution.twoToNine.percentage}% (${journal.citationDistribution.twoToNine.count} articles)`}
-                      />
-                    )}
-                    {journal.citationDistribution.tenPlus.percentage > 0 && (
-                      <div 
-                        style={{ width: `${journal.citationDistribution.tenPlus.percentage}%`, background: "var(--color-primary)" }} 
-                        title={`10+ citations: ${journal.citationDistribution.tenPlus.percentage}% (${journal.citationDistribution.tenPlus.count} articles)`}
-                      />
-                    )}
-                  </div>
-
-                  {/* Distribution Metric Cards */}
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1.25rem" }}>
-                    <div style={{ background: "var(--color-bg-card-subtle)", padding: "1rem 1.25rem", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.35rem" }}>
-                        <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#94a3b8", display: "inline-block" }}></span>
-                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>0 Citations (Uncited)</span>
-                      </div>
-                      <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--color-text-main)", letterSpacing: "-0.02em" }}>
-                        {journal.citationDistribution.zero.percentage}%
-                      </div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "2px" }}>
-                        {journal.citationDistribution.zero.count} of {journal.citationDistribution.total} articles
-                      </div>
-                    </div>
-
-                    <div style={{ background: "var(--color-bg-card-subtle)", padding: "1rem 1.25rem", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.35rem" }}>
-                        <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#38bdf8", display: "inline-block" }}></span>
-                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>1 Citation</span>
-                      </div>
-                      <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--color-text-main)", letterSpacing: "-0.02em" }}>
-                        {journal.citationDistribution.one.percentage}%
-                      </div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "2px" }}>
-                        {journal.citationDistribution.one.count} of {journal.citationDistribution.total} articles
-                      </div>
-                    </div>
-
-                    <div style={{ background: "var(--color-bg-card-subtle)", padding: "1rem 1.25rem", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.35rem" }}>
-                        <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#3b82f6", display: "inline-block" }}></span>
-                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>2 to 9 Citations</span>
-                      </div>
-                      <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--color-text-main)", letterSpacing: "-0.02em" }}>
-                        {journal.citationDistribution.twoToNine.percentage}%
-                      </div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "2px" }}>
-                        {journal.citationDistribution.twoToNine.count} of {journal.citationDistribution.total} articles
-                      </div>
-                    </div>
-
-                    <div style={{ background: "var(--color-bg-card-subtle)", padding: "1rem 1.25rem", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.35rem" }}>
-                        <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--color-primary)", display: "inline-block" }}></span>
-                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>10+ Citations (High Impact)</span>
-                      </div>
-                      <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--color-primary)", letterSpacing: "-0.02em" }}>
-                        {journal.citationDistribution.tenPlus.percentage}%
-                      </div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: "2px" }}>
-                        {journal.citationDistribution.tenPlus.count} of {journal.citationDistribution.total} articles
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Distribution Analytical Insight */}
-                  <div style={{ fontSize: "0.825rem", color: "var(--color-text-body)", background: "var(--color-bg-card-subtle)", padding: "0.85rem 1.2rem", borderRadius: "8px", border: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                    <i className="fa-solid fa-circle-info" style={{ color: "var(--color-primary)", flexShrink: 0 }}></i>
-                    <div>
-                      <strong>Citation Skew Insight: </strong>
-                      {journal.citationDistribution.zero.percentage < 50
-                        ? `Approximately ${(100 - journal.citationDistribution.zero.percentage).toFixed(1)}% of articles in this journal have generated verifiable peer-reviewed citations, indicating healthy scholarly uptake across the research community.`
-                        : `${journal.citationDistribution.zero.percentage}% of cataloged articles currently have zero recorded citations, a characteristic typical for emerging journals or localized humanities and policy documentation.`
-                      }
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", margin: 0 }}>
-                  Citation distribution profile is computed once peer-reviewed articles are indexed.
-                </p>
-              )}
-            </div>
 
             {/* 2C. Historical Scientometrics Trajectory & Open Data Exports */}
             {journal.historicalReports && journal.historicalReports.length > 0 && (
@@ -1611,16 +1264,7 @@ export default function JournalClientView({
               </div>
             </div>
 
-            {/* 4. Scope & Editorial Card */}
-            <div className="glass-card" style={{ padding: "2.5rem" }}>
-              <h2 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "1rem", color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                <i className="fa-solid fa-align-left" style={{ color: "var(--color-primary)" }}></i>
-                {jp.scope_title || "Scope & Editorial Focus"}
-              </h2>
-              <p style={{ color: "var(--color-text-muted)", lineHeight: "1.8", fontSize: "0.95rem", margin: 0 }}>
-                {journal.description || "No specific scope statement cataloged for this journal."}
-              </p>
-            </div>
+
 
             {/* 5. Indexed Articles & CrossRef DOIs */}
             <div className="glass-card" style={{ padding: "2.5rem" }}>
@@ -1802,30 +1446,6 @@ export default function JournalClientView({
                               >
                                 <i className="fa-solid fa-globe" style={{ fontSize: "0.75rem", color: "var(--color-primary)" }}></i>
                                 <span>Website</span>
-                                <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.65rem", opacity: 0.7 }}></i>
-                              </a>
-                            ) : null}
-
-                            {/* 3. Direct PDF Download (Rendered ONLY IF article has direct pdfUrl) */}
-                            {article.pdfUrl ? (
-                              <a 
-                                href={article.pdfUrl} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className="btn btn-secondary btn-sm"
-                                style={{ 
-                                  display: "inline-flex", 
-                                  alignItems: "center", 
-                                  gap: "0.4rem", 
-                                  fontSize: "0.8rem",
-                                  background: "rgba(59, 130, 246, 0.08)",
-                                  borderColor: "rgba(59, 130, 246, 0.3)",
-                                  color: "#2563eb"
-                                }}
-                                title="Open or download official PDF document"
-                              >
-                                <i className="fa-solid fa-file-pdf" style={{ fontSize: "0.8rem" }}></i>
-                                <span>View PDF</span>
                                 <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.65rem", opacity: 0.7 }}></i>
                               </a>
                             ) : null}
@@ -2118,11 +1738,11 @@ export default function JournalClientView({
                   <div style={{ fontSize: "0.65rem", color: "var(--color-text-muted)" }}>3-Yr Average</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Quartile</div>
-                  <div style={{ fontSize: "1.25rem", fontWeight: 800, color: qStyle.text, marginTop: "0.15rem" }}>
-                    {currentQuartile}
+                  <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Discipline Rank</div>
+                  <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--color-primary)", marginTop: "0.15rem" }}>
+                    #{computedRank}
                   </div>
-                  <div style={{ fontSize: "0.65rem", color: "var(--color-text-muted)" }}>{journal.primaryDiscipline || "Category"}</div>
+                  <div style={{ fontSize: "0.65rem", color: "var(--color-text-muted)" }}>{journal.primaryDiscipline || "Discipline"}</div>
                 </div>
                 <div>
                   <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Regional RRQ</div>
@@ -2672,7 +2292,7 @@ export default function JournalClientView({
                     AfriJournal Quality Standards Audit
                   </div>
                   <div style={{ color: "var(--color-text-body)", fontSize: "0.8rem" }}>
-                    Audited under AfriJournal continental screening protocols: Quality Grade <strong>{journal.qualityGrade || "A"}</strong>, publication frequency: {journal.frequency}, published by {journal.publisherName} ({journal.country}).
+                    Audited under AfriJournal continental screening protocols: Status <strong>Verified Indexed</strong>, publication frequency: {journal.frequency}, published by {journal.publisherName} ({journal.country}).
                   </div>
                 </div>
 

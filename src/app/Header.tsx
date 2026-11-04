@@ -212,11 +212,11 @@ export default function Header({ activePage }: HeaderProps) {
                 </a>
                 <a href="/review/submit" className="nav-dropdown-item">
                   <i className="fa-solid fa-user-check" style={{ color: "#f59e0b", width: "20px" }}></i>
-                  <span>Reviewer Finder</span>
+                  <span>Lodge for Review</span>
                 </a>
                 <a href="/reviewer" className="nav-dropdown-item">
-                  <i className="fa-solid fa-list-check" style={{ color: "#f59e0b", width: "20px" }}></i>
-                  <span>Reviewer Desk</span>
+                  <i className="fa-solid fa-scale-balanced" style={{ color: "#f59e0b", width: "20px" }}></i>
+                  <span>Peer Review Portal</span>
                 </a>
                 <a href="/submit" className="nav-dropdown-item">
                   <i className="fa-solid fa-cloud-arrow-up" style={{ color: "#f59e0b", width: "20px" }}></i>
@@ -717,8 +717,8 @@ export default function Header({ activePage }: HeaderProps) {
                       className="nav-dropdown-item"
                       style={{ padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "10px", color: "#f1f5f9", textDecoration: "none", fontSize: "0.84rem", borderRadius: "6px", cursor: "pointer" }}
                     >
-                      <i className="fa-solid fa-list-check" style={{ color: "var(--color-primary)", width: "16px" }}></i>
-                      <span>Reviewer Workspace</span>
+                      <i className="fa-solid fa-scale-balanced" style={{ color: "var(--color-primary)", width: "16px" }}></i>
+                      <span>Peer Review Portal</span>
                     </a>
 
                     {user.role === "ADMIN" && (
@@ -957,15 +957,15 @@ export default function Header({ activePage }: HeaderProps) {
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
                     <i className="fa-solid fa-user-check" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
-                    <span>Reviewer Finder</span>
+                    <span>Lodge for Review</span>
                   </Link>
                   <Link 
                     href="/reviewer" 
                     onClick={() => setIsMobileMenuOpen(false)} 
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
-                    <i className="fa-solid fa-list-check" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
-                    <span>Reviewer Desk</span>
+                    <i className="fa-solid fa-scale-balanced" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Peer Review Portal</span>
                   </Link>
                   <Link 
                     href="/submit" 
@@ -1433,7 +1433,7 @@ export default function Header({ activePage }: HeaderProps) {
                     className="btn btn-secondary" 
                     style={{ width: "100%", justifyContent: "center", background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}
                   >
-                    <i className="fa-solid fa-list-check" style={{ color: "var(--color-primary)" }}></i> Reviewer Workspace
+                    <i className="fa-solid fa-scale-balanced" style={{ color: "var(--color-primary)" }}></i> Peer Review Portal
                   </Link>
                   <button 
                     onClick={async () => {
