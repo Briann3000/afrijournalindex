@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
 import { hashPassword, createSessionToken } from "../../../../lib/auth";
 import { normalizeOrcid } from "../../../../lib/orcid";
+import { generateAfriScholarId } from "../../../../lib/afrischolar-id";
 
 export const dynamic = "force-dynamic";
 
@@ -53,12 +54,21 @@ export async function POST(request: Request) {
       }
     }
 
+    // Generate unique AfriScholar ID
+    let afriScholarId = generateAfriScholarId();
+    let existingAsid = await prisma.user.findUnique({ where: { afriScholarId } });
+    while (existingAsid) {
+      afriScholarId = generateAfriScholarId();
+      existingAsid = await prisma.user.findUnique({ where: { afriScholarId } });
+    }
+
     // Create scholar user
     const newUser = await prisma.user.create({
       data: {
         name: cleanName,
         email: cleanEmail,
         passwordHash,
+        afriScholarId,
         institution: institution ? institution.trim() : null,
         department: department ? department.trim() : null,
         googleScholarUrl: cleanScholarUrl,
@@ -75,9 +85,10 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message: "Congratulations! Your Afri Scholar profile has been registered and indexed successfully.",
-      scholarId: newUser.id,
+      scholarId: newUser.afriScholarId || newUser.id,
       scholar: {
         id: newUser.id,
+        afriScholarId: newUser.afriScholarId,
         name: newUser.name,
         email: newUser.email,
         institution: newUser.institution,

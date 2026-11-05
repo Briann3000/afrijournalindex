@@ -6,7 +6,38 @@ console.error = (...args) => originalError(`[${new Date().toISOString()}]`, ...a
 
 const { createServer } = require('http');
 const { parse } = require('url');
+const fs = require('fs');
+const path = require('path');
 const next = require('next');
+
+// Auto-heal directory permissions on Linux/cPanel so manual chmod is never required
+function autoHealPermissions(dir) {
+  try {
+    if (!fs.existsSync(dir)) return;
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        try { fs.chmodSync(fullPath, 0o755); } catch (_) {}
+        autoHealPermissions(fullPath);
+      } else if (entry.isFile()) {
+        try { fs.chmodSync(fullPath, 0o644); } catch (_) {}
+      }
+    }
+  } catch (_) {}
+}
+
+if (process.platform !== 'win32') {
+  try {
+    const nextDir = path.join(__dirname, '.next');
+    if (fs.existsSync(nextDir)) {
+      try { fs.chmodSync(nextDir, 0o755); } catch (_) {}
+      autoHealPermissions(nextDir);
+    }
+  } catch (permErr) {
+    console.warn('Notice: Auto-heal permissions pass skipped:', permErr.message);
+  }
+}
 
 const dev = false;
 // On cPanel Passenger, process.env.PORT can be a string socket or a numeric port

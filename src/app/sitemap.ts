@@ -135,7 +135,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     }));
 
-    return [...staticRoutes, ...countryRoutes, ...disciplineRoutes, ...journalRoutes];
+    // Fetch all scholars with an AfriScholar ID
+    const scholars = await prisma.user.findMany({
+      where: {
+        afriScholarId: { not: null },
+      },
+      select: {
+        afriScholarId: true,
+        updatedAt: true,
+      },
+      take: 5000,
+    });
+
+    const scholarRoutes: MetadataRoute.Sitemap = scholars.map((s) => ({
+      url: `${baseUrl}/scholar/${s.afriScholarId}`,
+      lastModified: s.updatedAt || new Date(),
+      changeFrequency: "weekly",
+      priority: 0.85,
+    }));
+
+    return [...staticRoutes, ...countryRoutes, ...disciplineRoutes, ...journalRoutes, ...scholarRoutes];
   } catch {
     return [...staticRoutes, ...countryRoutes, ...disciplineRoutes];
   }

@@ -28,6 +28,7 @@ model User {
   passwordHash  String      @db.VarChar(255)
   name          String      @db.VarChar(255)
   role          Role        @default(RESEARCHER)
+  afriScholarId String?     @unique @db.VarChar(30)
   orcid         String?     @unique @db.VarChar(191)
   institution   String?     @db.VarChar(255)
   department    String?     @db.VarChar(255)

@@ -704,7 +704,8 @@ function ScholarsDirectoryContent({
                     {scholars.map((scholar: any, idx: number) => {
                       const rowNumber = (pagination.page - 1) * pagination.limit + idx + 1;
                       const scholarName = scholar.name || "Scholar";
-                      const scholarSlug = scholar.name ? scholar.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") : (scholar.email?.split("@")[0] || scholar.id);
+                      const scholarSlug = scholar.afriScholarId || (scholar.name ? scholar.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") : (scholar.email?.split("@")[0] || scholar.id));
+                      const scholarProfileUrl = scholar.afriScholarId ? `/scholar/${encodeURIComponent(scholar.afriScholarId)}` : `/researcher?id=${encodeURIComponent(scholarSlug)}`;
                       const initials = scholarName
                         .split(" ")
                         .filter(Boolean)
@@ -764,19 +765,40 @@ function ScholarsDirectoryContent({
                                 {initials}
                               </div>
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <a 
-                                  href={`/researcher?id=${scholarSlug}`}
-                                  style={{ 
-                                    color: "var(--color-text-main)", 
-                                    fontWeight: 700, 
-                                    fontSize: "0.98rem", 
-                                    textDecoration: "none",
-                                    display: "inline-block",
-                                    marginBottom: "2px"
-                                  }}
-                                >
-                                  {scholar.name}
-                                </a>
+                                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginBottom: "2px" }}>
+                                  <a 
+                                    href={scholarProfileUrl}
+                                    style={{ 
+                                      color: "var(--color-text-main)", 
+                                      fontWeight: 700, 
+                                      fontSize: "0.98rem", 
+                                      textDecoration: "none",
+                                      display: "inline-block"
+                                    }}
+                                  >
+                                    {scholar.name}
+                                  </a>
+                                  {scholar.afriScholarId && (
+                                    <span 
+                                      style={{ 
+                                        display: "inline-flex", 
+                                        alignItems: "center", 
+                                        gap: "4px", 
+                                        fontSize: "0.68rem", 
+                                        color: "var(--color-text-muted)", 
+                                        fontFamily: "monospace",
+                                        background: "var(--color-bg-card-subtle)",
+                                        border: "1px solid var(--color-border)",
+                                        padding: "0.08rem 0.35rem",
+                                        borderRadius: "3px"
+                                      }}
+                                      title="AfriScholar ID"
+                                    >
+                                      <span style={{ color: "var(--color-primary)", fontWeight: 800 }}>ASID</span>
+                                      <span>{scholar.afriScholarId.replace(/^ASID-/, "")}</span>
+                                    </span>
+                                  )}
+                                </div>
 
                                 {scholar.isVerified && (
                                   <div style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
@@ -924,7 +946,7 @@ function ScholarsDirectoryContent({
                               </button>
 
                               <a
-                                href={`/researcher?id=${scholarSlug}`}
+                                href={scholarProfileUrl}
                                 className="btn btn-secondary btn-sm"
                                 style={{ padding: "0.35rem 0.65rem", fontSize: "0.78rem" }}
                                 title="View Scholar Profile"
@@ -945,7 +967,8 @@ function ScholarsDirectoryContent({
                 {scholars.map((scholar: any, idx: number) => {
                   const rowNumber = (pagination.page - 1) * pagination.limit + idx + 1;
                   const scholarName = scholar.name || "Scholar";
-                  const scholarSlug = scholar.name ? scholar.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") : (scholar.email?.split("@")[0] || scholar.id);
+                  const scholarSlug = scholar.afriScholarId || (scholar.name ? scholar.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") : (scholar.email?.split("@")[0] || scholar.id));
+                  const scholarProfileUrl = scholar.afriScholarId ? `/scholar/${encodeURIComponent(scholar.afriScholarId)}` : `/researcher?id=${encodeURIComponent(scholarSlug)}`;
                   const initials = scholarName
                     .split(" ")
                     .filter(Boolean)
@@ -1000,7 +1023,7 @@ function ScholarsDirectoryContent({
                           </div>
                           <div style={{ minWidth: 0 }}>
                             <a 
-                              href={`/researcher?id=${scholarSlug}`}
+                              href={scholarProfileUrl}
                               style={{ 
                                 color: "var(--color-text-main)", 
                                 fontWeight: 700, 
@@ -1050,7 +1073,7 @@ function ScholarsDirectoryContent({
                             {isFollowed ? "Following" : "Follow"}
                           </button>
                           <a
-                            href={`/researcher?id=${scholarSlug}`}
+                            href={scholarProfileUrl}
                             className="btn btn-secondary btn-sm"
                             style={{ fontSize: "0.72rem", padding: "0.25rem 0.55rem" }}
                           >

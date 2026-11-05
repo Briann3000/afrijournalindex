@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { prisma } from "../../../../lib/db";
 import { verifySessionToken, verifyPassword, hashPassword } from "../../../../lib/auth";
 import { normalizeOrcid, verifyOrcidWithRegistry } from "../../../../lib/orcid";
+import { normalizeAfriScholarId } from "../../../../lib/afrischolar-id";
 import { ALL_AFRICAN_COUNTRIES } from "../../../data/african-countries";
 import { getScholarScientometrics, getAuthenticPublicationVenue } from "../../../../lib/scholar-metrics";
 
@@ -169,14 +170,17 @@ export async function GET(request: Request) {
     }
 
     const cleanId = decodeURIComponent(id).trim();
+    const normalizedAsid = normalizeAfriScholarId(cleanId);
 
     const nameQuery = cleanId.replace(/[-_]+/g, " ");
 
-    // Support flexible short ID: exact UUID, full email, email prefix (e.g. "wanjohi" matching "wanjohi@kenpro.org"), slugified name ("anthony-wanjohi"), or ORCID
-    // Prefer exact unique matches first (UUID, email, email prefix, ORCID, exact full name) to prevent partial substring collision between distinct scholars
+    // Support flexible short ID: AfriScholar ID, exact UUID, full email, email prefix, ORCID, or exact name
+    // Prefer exact unique matches first (ASID, UUID, email, email prefix, ORCID, exact full name) to prevent partial substring collision between distinct scholars
     let user = await prisma.user.findFirst({
       where: {
         OR: [
+          ...(normalizedAsid ? [{ afriScholarId: normalizedAsid }] : []),
+          { afriScholarId: cleanId },
           { id: cleanId },
           { email: cleanId.toLowerCase() },
           { email: { startsWith: `${cleanId.toLowerCase()}@` } },
@@ -187,6 +191,7 @@ export async function GET(request: Request) {
       },
       select: {
         id: true,
+        afriScholarId: true,
         email: true,
         name: true,
         orcid: true,
@@ -223,6 +228,7 @@ export async function GET(request: Request) {
         orderBy: { totalCitations: "desc" },
         select: {
           id: true,
+          afriScholarId: true,
           email: true,
           name: true,
           orcid: true,
@@ -268,6 +274,7 @@ export async function GET(request: Request) {
           orderBy: { totalCitations: "desc" },
           select: {
             id: true,
+            afriScholarId: true,
             email: true,
             name: true,
             orcid: true,
@@ -521,7 +528,7 @@ export async function GET(request: Request) {
           : (user.name.toLowerCase().includes("mensah") ? "A5014290409" : null);
 
         if (authorOaId) {
-          const fetchUrl = `https://api.openalex.org/works?filter=author.id:${authorOaId}&sort=cited_by_count:desc&per-page=25&api_key=eP5PAl4g8tOWuRjhyo7hMY`;
+          const fetchUrl = `https://api.openalex.org/works?filter=author.id:${authorOaId}&sort=cited_by_count:desc&per-page=25&select=id,title,doi,publication_year,primary_location,cited_by_count&api_key=eP5PAl4g8tOWuRjhyo7hMY`;
 
           const oaWorksRes = await fetch(fetchUrl, {
             headers: { 'User-Agent': 'AfriJournalIndexBot/2.0 (mailto:admin@afrijournalindexing.org)' },
@@ -907,6 +914,7 @@ export async function GET(request: Request) {
       data: {
         profile: {
           id: user.id,
+          afriScholarId: user.afriScholarId,
           name: user.name,
           email: user.email,
           orcid: user.orcid,
@@ -1114,6 +1122,7 @@ export async function PATCH(request: Request) {
       data: updateData,
       select: {
         id: true,
+        afriScholarId: true,
         email: true,
         name: true,
         orcid: true,

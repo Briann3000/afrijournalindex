@@ -349,6 +349,7 @@ export async function GET(request: Request) {
       },
       select: {
         id: true,
+        afriScholarId: true,
         name: true,
         email: true,
         orcid: true,
@@ -533,6 +534,7 @@ export async function GET(request: Request) {
 
       return {
         id: u.id,
+        afriScholarId: u.afriScholarId,
         name: u.name,
         email: u.email,
         orcid: u.orcid,

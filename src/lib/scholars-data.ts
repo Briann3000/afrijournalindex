@@ -19,6 +19,7 @@ export async function getInitialScholars(limit = 15): Promise<InitialScholarsDat
       },
       select: {
         id: true,
+        afriScholarId: true,
         name: true,
         orcid: true,
         institution: true,
