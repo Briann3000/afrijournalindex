@@ -350,7 +350,7 @@ export default function Home() {
                               {j.name}
                             </span>
                             <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", flexShrink: 0 }}>
-                              {j.country} • Grade {j.qualityGrade}
+                              {j.country} • Verified Index
                             </span>
                           </Link>
                         ))}
@@ -532,8 +532,8 @@ export default function Home() {
                           <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", fontWeight: 700, marginTop: "4px" }}>3-Yr Citation Avg</div>
                         </div>
                         <div>
-                          <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#16a34a", lineHeight: 1.1 }}>Grade {heroJournal.qualityGrade}</div>
-                          <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", fontWeight: 700, marginTop: "4px" }}>{heroJournal.quartile} Quartile</div>
+                          <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#16a34a", lineHeight: 1.1 }}>{(heroJournal.citationCount || 0).toLocaleString()}</div>
+                          <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", fontWeight: 700, marginTop: "4px" }}>Verified Citations</div>
                         </div>
                       </div>
                     </div>
@@ -654,8 +654,7 @@ export default function Home() {
                     <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", width: "70px" }}>Rank</th>
                     <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>Journal Title &amp; Publisher</th>
                     <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>Country</th>
-                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>Quartile</th>
-                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>Grade</th>
+                    <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>Status</th>
                     <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>AJCI Score</th>
                     <th style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)", textAlign: "center" }}>Citations</th>
                   </tr>
@@ -663,7 +662,7 @@ export default function Home() {
                 <tbody>
                   {loadingTopJournals ? (
                     <tr>
-                      <td colSpan={7} style={{ textAlign: "center", padding: "3rem", color: "var(--color-text-muted)" }}>
+                      <td colSpan={6} style={{ textAlign: "center", padding: "3rem", color: "var(--color-text-muted)" }}>
                         <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: "0.5rem" }}></i> Loading top African journals...
                       </td>
                     </tr>
@@ -686,13 +685,8 @@ export default function Home() {
                           {j.country}
                         </td>
                         <td style={{ padding: "1rem 1.25rem", textAlign: "center" }}>
-                          <span style={{ background: "#eff6ff", color: "#1d4ed8", padding: "0.2rem 0.55rem", borderRadius: "6px", fontWeight: 700, fontSize: "0.8rem" }}>
-                            {j.quartile || "Q1"}
-                          </span>
-                        </td>
-                        <td style={{ padding: "1rem 1.25rem", textAlign: "center" }}>
-                          <span style={{ fontWeight: 800, color: "#16a34a" }}>
-                            {j.qualityGrade || "A"}
+                          <span style={{ background: "#ecfdf5", color: "#065f46", border: "1px solid #a7f3d0", padding: "0.2rem 0.55rem", borderRadius: "6px", fontWeight: 700, fontSize: "0.78rem", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                            <i className="fa-solid fa-circle-check" style={{ fontSize: "0.7rem" }}></i> Verified
                           </span>
                         </td>
                         <td style={{ padding: "1rem 1.25rem", textAlign: "center", fontWeight: 700, color: "var(--color-primary)" }}>
@@ -705,7 +699,7 @@ export default function Home() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7} style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-muted)" }}>
+                      <td colSpan={6} style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-muted)" }}>
                         No indexed journals found in current rankings.
                       </td>
                     </tr>

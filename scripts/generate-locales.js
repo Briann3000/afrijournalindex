@@ -13,7 +13,7 @@ const en = {
     submit: "Submit Journal",
     pricing: "Pricing",
     rankings: "Rankings",
-    institution: "Institutional Console",
+    institution: "Institutional Rankings",
     researcher: "Researcher Profile",
     about: "About Us",
     contact: "Contact Support",
@@ -38,7 +38,7 @@ const en = {
     search_btn: "Search Index",
     cta_submit: "Index Your Journal (Free)",
     cta_explore: "Explore Directory",
-    cta_institution: "Institutional Console",
+    cta_institution: "Institutional Rankings",
     card_title: "Featured Metrics: ARJESS",
     card_if: "AfriJournal IF (AJIF)",
     card_grade: "Quality Grade",
@@ -76,7 +76,7 @@ const en = {
     citations: "Citations",
     h_index: "h-Index",
     view_all: "View Full Leaderboard",
-    view_console: "Open Institutional Console"
+    view_console: "Open Institutional Rankings"
   },
   valprop: {
     title: "Empowering the African Knowledge Economy",
@@ -176,7 +176,7 @@ const en = {
     close_modal: "Close"
   },
   institution_page: {
-    title: "Institutional Research Console",
+    title: "Institutional Research Rankings",
     subtitle: "Comprehensive university benchmarking, research output analytics, and faculty citation performance across Africa.",
     tab_leaderboard: "University Rankings",
     tab_profile: "Institution Profile",
@@ -195,7 +195,7 @@ const en = {
     col_hindex: "h-Index",
     col_top_discipline: "Lead Field",
     col_action: "Analytics",
-    view_details: "View Console",
+    view_details: "View Rankings",
     departments_heading: "Departmental Performance Breakdown",
     affiliated_journals: "Affiliated University Press Journals",
     no_results: "No institutional records found matching criteria.",
@@ -615,7 +615,7 @@ const fr = {
     submit: "Soumettre une Revue",
     pricing: "Tarifs",
     rankings: "Classements",
-    institution: "Console Institutionnelle",
+    institution: "Classements Institutionnels",
     researcher: "Profil Chercheur",
     about: "À Propos",
     contact: "Contact & Support",
@@ -640,7 +640,7 @@ const fr = {
     search_btn: "Rechercher",
     cta_submit: "Indexer Votre Revue (Gratuit)",
     cta_explore: "Explorer l'Annuaire",
-    cta_institution: "Console Institutionnelle",
+    cta_institution: "Classements Institutionnels",
     card_title: "Métriques en Vedette: ARJESS",
     card_if: "AfriJournal IF (AJIF)",
     card_grade: "Note de Qualité",
@@ -678,7 +678,7 @@ const fr = {
     citations: "Citations",
     h_index: "Indice h",
     view_all: "Voir le Classement Complet",
-    view_console: "Ouvrir la Console Institutionnelle"
+    view_console: "Ouvrir les Classements Institutionnels"
   },
   valprop: {
     title: "Renforcer l'Économie du Savoir Africain",
@@ -778,7 +778,7 @@ const fr = {
     close_modal: "Fermer"
   },
   institution_page: {
-    title: "Console de Recherche Institutionnelle",
+    title: "Classements de Recherche Institutionnelle",
     subtitle: "Évaluation comparative des universités, analyse de la production scientifique et performance des citations des professeurs en Afrique.",
     tab_leaderboard: "Classement Universitaire",
     tab_profile: "Profil Institutionnel",
@@ -797,7 +797,7 @@ const fr = {
     col_hindex: "Indice h",
     col_top_discipline: "Discipline Clé",
     col_action: "Analytique",
-    view_details: "Ouvrir Console",
+    view_details: "Voir les Classements",
     departments_heading: "Performance par Département",
     affiliated_journals: "Revues Affiliées à l'Université",
     no_results: "Aucun dossier institutionnel correspondant aux critères.",
@@ -1154,7 +1154,7 @@ const sw = {
     submit: "Wasilisha Jarida",
     pricing: "Gharama & Ripoti",
     rankings: "Viwango",
-    institution: "Dashibodi ya Chuo",
+    institution: "Nafasi za Vyuo Vikuu",
     researcher: "Wasifu wa Mtafiti",
     about: "Kuhusu Sisi",
     contact: "Wasiliana Nasi",
@@ -1179,7 +1179,7 @@ const sw = {
     search_btn: "Tafuta",
     cta_submit: "Orodhesha Jarida Lako (Bure)",
     cta_explore: "Vinjari Majarida",
-    cta_institution: "Dashibodi ya Taasisi",
+    cta_institution: "Nafasi za Vyuo Vikuu",
     card_title: "Vipimo Vilivyoangaziwa: ARJESS",
     card_if: "Kipimo cha Athari (AJIF)",
     card_grade: "Daraja la Ubora",
@@ -1217,7 +1217,7 @@ const sw = {
     citations: "Nukuu",
     h_index: "Kielezo cha h",
     view_all: "Tazama Orodha Kamili",
-    view_console: "Fungua Dashibodi ya Chuo"
+    view_console: "Fungua Nafasi za Vyuo Vikuu"
   },
   valprop: {
     title: "Kuwezesha Uchumi wa Maarifa wa Kiafrika",
@@ -1317,7 +1317,7 @@ const sw = {
     close_modal: "Funga"
   },
   institution_page: {
-    title: "Dashibodi ya Utafiti ya Taasisi",
+    title: "Nafasi za Utafiti za Vyuo Vikuu",
     subtitle: "Ulinganisho wa vyuo vikuu, uchambuzi wa matokeo ya utafiti, na utendaji wa nukuu za wahadhiri kote barani Afrika.",
     tab_leaderboard: "Viwango vya Vyuo Vikuu",
     tab_profile: "Wasifu wa Chuo",
@@ -1336,7 +1336,7 @@ const sw = {
     col_hindex: "Kielezo cha h",
     col_top_discipline: "Taaluma Kuu",
     col_action: "Uchambuzi",
-    view_details: "Fungua Dashibodi",
+    view_details: "Tazama Nafasi",
     departments_heading: "Matokeo kwa Idara",
     affiliated_journals: "Majarida Yanayomilikiwa na Chuo",
     no_results: "Hakuna kumbukumbu za kitaasisi zilizopatikana.",
@@ -1693,7 +1693,7 @@ const pt = {
     submit: "Submeter Revista",
     pricing: "Preços & Relatórios",
     rankings: "Classificações",
-    institution: "Consola Institucional",
+    institution: "Rankings Institucionais",
     researcher: "Perfil do Investigador",
     about: "Sobre Nós",
     contact: "Contacto & Suporte",
@@ -1718,7 +1718,7 @@ const pt = {
     search_btn: "Pesquisar",
     cta_submit: "Indexar Revista (Grátis)",
     cta_explore: "Explorar Diretório",
-    cta_institution: "Consola Institucional",
+    cta_institution: "Rankings Institucionais",
     card_title: "Métricas em Destaque: ARJESS",
     card_if: "AfriJournal IF (AJIF)",
     card_grade: "Grau de Qualidade",
@@ -1756,7 +1756,7 @@ const pt = {
     citations: "Citações",
     h_index: "Índice h",
     view_all: "Ver Classificação Completa",
-    view_console: "Abrir Consola Institucional"
+    view_console: "Abrir Rankings Institucionais"
   },
   valprop: {
     title: "Capacitar a Economia do Conhecimento Africano",
@@ -1856,7 +1856,7 @@ const pt = {
     close_modal: "Fechar"
   },
   institution_page: {
-    title: "Consola de Investigação Institucional",
+    title: "Rankings de Pesquisa Institucional",
     subtitle: "Benchmarking universitário abrangente, análise de produção científica e desempenho de citações docentes em África.",
     tab_leaderboard: "Classificação Universitária",
     tab_profile: "Perfil Institucional",
@@ -1875,7 +1875,7 @@ const pt = {
     col_hindex: "Índice h",
     col_top_discipline: "Área Principal",
     col_action: "Analítica",
-    view_details: "Abrir Consola",
+    view_details: "Ver Rankings",
     departments_heading: "Desempenho por Departamento",
     affiliated_journals: "Revistas Filiadas à Universidade",
     no_results: "Nenhum registo institucional encontrado com os critérios.",
@@ -2232,7 +2232,7 @@ const ar = {
     submit: "تقديم مجلة",
     pricing: "الأسعار والتقارير",
     rankings: "التصنيفات",
-    institution: "لوحة تحكم الجامعات",
+    institution: "التصنيفات المؤسسية",
     researcher: "الملف الأكاديمي للباحث",
     about: "من نحن",
     contact: "الاتصال والدعم",
@@ -2257,7 +2257,7 @@ const ar = {
     search_btn: "بحث في الفهرس",
     cta_submit: "فهرس مجلتك (مجاناً)",
     cta_explore: "استكشف الدليل",
-    cta_institution: "لوحة تحكم الجامعات",
+    cta_institution: "التصنيفات المؤسسية",
     card_title: "المقاييس المميزة: ARJESS",
     card_if: "معامل تأثير إفريقي (AJIF)",
     card_grade: "درجة الجودة",
@@ -2295,7 +2295,7 @@ const ar = {
     citations: "الاستشهادات",
     h_index: "مؤشر هيرش (h-Index)",
     view_all: "عرض جدول الترتيب كاملاً",
-    view_console: "فتح لوحة تحكم المؤسسات"
+    view_console: "فتح التصنيفات المؤسسية"
   },
   valprop: {
     title: "تمكين اقتصاد المعرفة الإفريقي",
@@ -2395,7 +2395,7 @@ const ar = {
     close_modal: "إغلاق"
   },
   institution_page: {
-    title: "لوحة تحكم الأبحاث الجامعية والمؤسسية",
+    title: "تصنيفات البحث المؤسسي",
     subtitle: "مقارنة معيارية شاملة للجامعات، وتحليل الإنتاج البحثي، ومقاييس استشهادات أعضاء هيئة التدريس في إفريقيا.",
     tab_leaderboard: "تصنيف الجامعات",
     tab_profile: "الملف المؤسسي",
@@ -2414,7 +2414,7 @@ const ar = {
     col_hindex: "مؤشر h",
     col_top_discipline: "التخصص الأبرز",
     col_action: "التحليلات",
-    view_details: "فتح لوحة التحكم",
+    view_details: "عرض التصنيفات",
     departments_heading: "الإنتاج العلمي حسب الكليات والأقسام",
     affiliated_journals: "المجلات العلمية الصادرة عن الجامعة",
     no_results: "لم يتم العثور على سجلات تطابق معايير البحث.",

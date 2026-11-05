@@ -47,7 +47,7 @@ export async function generateMetadata({
     const quartile = report?.quartile ? ` (${report.quartile})` : "";
 
     const title = `${journal.name} — Indexed in AfriJournal Indexing | AJCI Metrics & Profile`;
-    const description = `Official indexing record and citation metrics for ${journal.name} (ISSN: ${issnStr}), published by ${journal.publisherName} in ${journal.country}. Officially indexed in AfriJournal Indexing with verified 2-Year AJCI Citation Score: ${score}${quartile}, Quality Grade: ${journal.qualityGrade || "Verified"}.`;
+    const description = `Official indexing record and citation metrics for ${journal.name} (ISSN: ${issnStr}), published by ${journal.publisherName} in ${journal.country}. Officially indexed in AfriJournal Indexing with verified 2-Year AJCI Citation Score: ${score}.`;
 
     const metaOther: Record<string, string> = {
       "citation_journal_title": journal.name,
@@ -195,7 +195,7 @@ export default async function JournalDetailLayout({
             "about": {
               "@id": `${canonicalUrl}#periodical`
             },
-            "description": `Official indexing record confirming that ${journal.name} is indexed by AfriJournal Indexing with verified 2-Year AJCI citation score: ${journal.reports[0]?.standardScore?.toFixed(3) || "Evaluated"}. Quality Grade: ${journal.qualityGrade || "Verified"}.`
+            "description": `Official indexing record confirming that ${journal.name} is indexed by AfriJournal Indexing with verified 2-Year AJCI citation score: ${journal.reports[0]?.standardScore?.toFixed(3) || "Evaluated"}.`
           },
           {
             "@type": "BreadcrumbList",

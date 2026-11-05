@@ -9,6 +9,7 @@ export interface ZenodoCreator {
   name: string; // "FamilyName, GivenName" or "FullName"
   affiliation?: string;
   orcid?: string;
+  afriScholarId?: string;
 }
 
 export interface ZenodoArticleMetadata {
@@ -147,6 +148,22 @@ export class ZenodoClient {
         }))
       : [{ name: "AfriJournal Author, Unspecified", affiliation: meta.journal_title }];
 
+    const relatedIdentifiers: Array<{ identifier: string; relation: string; scheme: string; resource_type?: string }> = [];
+
+    // Map creator AfriScholar IDs to DataCite Related Identifiers
+    if (meta.creators) {
+      for (const c of meta.creators) {
+        if (c.afriScholarId) {
+          relatedIdentifiers.push({
+            identifier: `https://afrijournalindexing.org/scholar/${c.afriScholarId}`,
+            relation: "isReferencedBy",
+            scheme: "url",
+            resource_type: "other"
+          });
+        }
+      }
+    }
+
     const payload: any = {
       metadata: {
         title: meta.title,
@@ -161,6 +178,10 @@ export class ZenodoClient {
         journal_title: meta.journal_title
       }
     };
+
+    if (relatedIdentifiers.length > 0) {
+      payload.metadata.related_identifiers = relatedIdentifiers;
+    }
 
     if (meta.journal_volume) payload.metadata.journal_volume = meta.journal_volume;
     if (meta.journal_issue) payload.metadata.journal_issue = meta.journal_issue;

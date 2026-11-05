@@ -1,6 +1,9 @@
 import { prisma } from "./db";
 import { getDisciplines } from "./metrics";
 import { ALL_AFRICAN_COUNTRIES } from "../app/data/african-countries";
+import verifiedScopusIssns from "./verified-scopus-issns.json";
+
+const scopusIssnSet = new Set((verifiedScopusIssns as string[]).map(s => s.toUpperCase()));
 
 export interface JournalDetail {
   id: string;
@@ -373,7 +376,11 @@ export async function getJournalDetail(id: string): Promise<JournalDetail | null
       frequency: journal.frequency,
       websiteUrl: journal.websiteUrl || "",
       isIndexed: journal.isIndexed,
-      isScopusIndexed: Boolean((journal as any).isScopusIndexed),
+      isScopusIndexed: Boolean(
+        (journal as any).isScopusIndexed ||
+        (cleanDigits && scopusIssnSet.has(cleanDigits.toUpperCase())) ||
+        (journal.eissn && scopusIssnSet.has(journal.eissn.replace(/[^0-9X]/gi, "").toUpperCase()))
+      ),
       isWosIndexed: Boolean((journal as any).isWosIndexed),
       certificatePaid: journal.certificatePaid ?? false,
       activeTier: journal.activeTier || (journal.certificatePaid ? "BASIC" : "FREE"),

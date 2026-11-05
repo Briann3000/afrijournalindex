@@ -6,7 +6,7 @@
     "submit": "Submeter Revista",
     "pricing": "Preços & Relatórios",
     "rankings": "Classificações",
-    "institution": "Consola Institucional",
+    "institution": "Rankings Institucionais",
     "researcher": "Perfil do Investigador",
     "about": "Sobre Nós",
     "contact": "Contacto & Suporte",
@@ -31,7 +31,7 @@
     "search_btn": "Pesquisar",
     "cta_submit": "Indexar Revista (Grátis)",
     "cta_explore": "Explorar Diretório",
-    "cta_institution": "Consola Institucional",
+    "cta_institution": "Rankings Institucionais",
     "card_title": "Métricas em Destaque: ARJESS",
     "card_if": "AfriJournal IF (AJIF)",
     "card_grade": "Grau de Qualidade",
@@ -69,7 +69,7 @@
     "citations": "Citações",
     "h_index": "Índice h",
     "view_all": "Ver Classificação Completa",
-    "view_console": "Abrir Consola Institucional"
+    "view_console": "Abrir Rankings Institucionais"
   },
   "valprop": {
     "title": "Capacitar a Economia do Conhecimento Africano",
@@ -169,7 +169,7 @@
     "close_modal": "Fechar"
   },
   "institution_page": {
-    "title": "Consola de Investigação Institucional",
+    "title": "Rankings de Pesquisa Institucional",
     "subtitle": "Benchmarking universitário abrangente, análise de produção científica e desempenho de citações docentes em África.",
     "tab_leaderboard": "Classificação Universitária",
     "tab_profile": "Perfil Institucional",
@@ -188,7 +188,7 @@
     "col_hindex": "Índice h",
     "col_top_discipline": "Área Principal",
     "col_action": "Analítica",
-    "view_details": "Abrir Consola",
+    "view_details": "Ver Rankings",
     "departments_heading": "Desempenho por Departamento",
     "affiliated_journals": "Revistas Filiadas à Universidade",
     "no_results": "Nenhum registo institucional encontrado com os critérios.",

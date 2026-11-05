@@ -108,12 +108,6 @@ export default async function ArticlePage({
               <i className="fa-solid fa-file-lines" style={{ marginRight: "4px" }}></i> Peer-Reviewed Article
             </span>
 
-            {report?.quartile && (
-              <span className="journal-tag" style={{ background: "#eff6ff", color: "#1d4ed8", fontWeight: 700 }}>
-                {report.quartile} Journal
-              </span>
-            )}
-
             <span style={{ fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
               <i className="fa-regular fa-calendar" style={{ marginRight: "4px" }}></i> {pubDateStr}
             </span>
@@ -310,6 +304,16 @@ export default async function ArticlePage({
                 Crossref Record
               </a>
             )}
+
+            <a
+              href={`/api/v1/article/${article.id}/crossref`}
+              download={`${article.id.slice(0, 8)}_crossref.xml`}
+              className="btn btn-outline-secondary btn-sm"
+              title="Download Crossref Schema 5.3.1 Deposit XML with author ASID & ORCID metadata"
+            >
+              <i className="fa-solid fa-code" style={{ marginRight: "6px" }}></i>
+              Crossref XML
+            </a>
           </div>
         </article>
 

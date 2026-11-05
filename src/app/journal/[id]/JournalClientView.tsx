@@ -5,6 +5,9 @@ import { JournalDetail } from "../../../lib/journal-detail";
 import Header from "../../Header";
 import Footer from "../../Footer";
 import { useLang } from "../../LangContext";
+import verifiedScopusIssns from "../../../lib/verified-scopus-issns.json";
+
+const scopusSet = new Set((verifiedScopusIssns as string[]).map(s => s.toUpperCase()));
 // Dynamic lazy-load of dossier PDF generator to prevent heavy initial module parse
 
 export default function JournalClientView({
@@ -18,6 +21,15 @@ export default function JournalClientView({
   const jp = t.journal_page;
 
   const [journal, setJournal] = useState<JournalDetail | null>(initialJournal);
+
+  const cleanIssn = (journal?.issn || "").replace(/[^0-9X]/gi, "").toUpperCase();
+  const cleanEissn = (journal?.eissn || "").replace(/[^0-9X]/gi, "").toUpperCase();
+  const isScopus = Boolean(
+    journal?.isScopusIndexed ||
+    (cleanIssn && scopusSet.has(cleanIssn)) ||
+    (cleanEissn && scopusSet.has(cleanEissn))
+  );
+
   const [loading, setLoading] = useState<boolean>(!initialJournal);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<any | null>(null);
@@ -652,63 +664,63 @@ export default function JournalClientView({
 
             {/* 1. Hero & Verified Metadata Card */}
             <div className="glass-card" style={{ padding: "2.5rem" }}>
-              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "1.5rem", marginBottom: "1.5rem" }}>
-                <div style={{ flex: 1, minWidth: "300px" }}>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem", marginBottom: "1rem", alignItems: "center" }}>
-                    <span className="journal-tag" style={{ backgroundColor: "var(--color-primary-light)", color: "var(--color-primary)", border: "1px solid #bfdbfe", fontWeight: 700 }}>
-                      <i className="fa-solid fa-certificate" style={{ marginRight: "0.3rem" }}></i>
-                      {journal.isIndexed ? (jp.indexed_badge || "Verified Indexed Journal") : (jp.unindexed_badge || "Pending Evaluation")}
-                    </span>
+                  <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "1.5rem", marginBottom: "1.5rem" }}>
+                    <div style={{ flex: 1, minWidth: "300px" }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem", marginBottom: "1rem", alignItems: "center" }}>
+                        <span className="journal-tag" style={{ backgroundColor: "var(--color-primary-light)", color: "var(--color-primary)", border: "1px solid #bfdbfe", fontWeight: 700 }}>
+                          <i className="fa-solid fa-certificate" style={{ marginRight: "0.3rem" }}></i>
+                          {journal.isIndexed ? (jp.indexed_badge || "Verified Indexed Journal") : (jp.unindexed_badge || "Pending Evaluation")}
+                        </span>
 
-                    {journal.isScopusIndexed && (
-                      <span className="journal-tag" style={{ backgroundColor: "#fef3c7", color: "#92400e", border: "1px solid #fde68a", fontWeight: 700 }}>
-                        <i className="fa-solid fa-earth-americas" style={{ marginRight: "0.3rem" }}></i> Scopus Indexed
-                      </span>
-                    )}
+                        {isScopus && (
+                          <span className="journal-tag" style={{ backgroundColor: "#fef3c7", color: "#92400e", border: "1px solid #fde68a", fontWeight: 700 }}>
+                            <i className="fa-solid fa-earth-americas" style={{ marginRight: "0.3rem" }}></i> Scopus Indexed
+                          </span>
+                        )}
 
-                    {journal.isWosIndexed && (
-                      <span className="journal-tag" style={{ backgroundColor: "#ede9fe", color: "#5b21b6", border: "1px solid #ddd6fe", fontWeight: 700 }}>
-                        <i className="fa-solid fa-award" style={{ marginRight: "0.3rem" }}></i> Web of Science (WoS)
-                      </span>
-                    )}
+                        {journal.isWosIndexed && (
+                          <span className="journal-tag" style={{ backgroundColor: "#ede9fe", color: "#5b21b6", border: "1px solid #ddd6fe", fontWeight: 700 }}>
+                            <i className="fa-solid fa-award" style={{ marginRight: "0.3rem" }}></i> Web of Science (WoS)
+                          </span>
+                        )}
 
-                    {journal.primaryDiscipline && (
-                      <span className="journal-tag" style={{ backgroundColor: "var(--color-bg-alt)", color: "var(--color-text-body)", border: "1px solid var(--color-border)" }}>
-                        {journal.primaryDiscipline}
-                      </span>
-                    )}
+                        {journal.primaryDiscipline && (
+                          <span className="journal-tag" style={{ backgroundColor: "var(--color-bg-alt)", color: "var(--color-text-body)", border: "1px solid var(--color-border)" }}>
+                            {journal.primaryDiscipline}
+                          </span>
+                        )}
 
-                    <span className="journal-tag" style={{ backgroundColor: "var(--color-bg-alt)", color: "var(--color-text-muted)", border: "1px solid var(--color-border)" }}>
-                      <i className="fa-solid fa-location-dot" style={{ marginRight: "0.3rem" }}></i> {journal.country}
-                    </span>
-                  </div>
-
-                  <h1 style={{ fontSize: "2.1rem", fontWeight: 800, lineHeight: "1.3", margin: "0 0 1rem", color: "var(--color-text-main)", letterSpacing: "-0.02em" }}>
-                    {journal.name}
-                  </h1>
-
-                  {!journal.isScopusIndexed && !journal.isWosIndexed && (
-                    <div style={{
-                      marginBottom: "1.25rem",
-                      padding: "0.85rem 1.15rem",
-                      borderRadius: "8px",
-                      backgroundColor: "rgba(59, 130, 246, 0.06)",
-                      border: "1px solid rgba(59, 130, 246, 0.2)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "1rem",
-                      flexWrap: "wrap"
-                    }}>
-                      <div style={{ fontSize: "0.85rem", color: "var(--color-text-main)", lineHeight: 1.5, flex: 1, minWidth: "240px" }}>
-                        <i className="fa-solid fa-circle-info" style={{ color: "#3b82f6", marginRight: "0.5rem" }}></i>
-                        <strong>Global Indexation Pathway:</strong> Looking to index this journal with Scopus or Web of Science? Our editorial desk provides compliance reviews, peer-review audits, and application readiness support.
+                        <span className="journal-tag" style={{ backgroundColor: "var(--color-bg-alt)", color: "var(--color-text-muted)", border: "1px solid var(--color-border)" }}>
+                          <i className="fa-solid fa-location-dot" style={{ marginRight: "0.3rem" }}></i> {journal.country}
+                        </span>
                       </div>
-                      <a href="/services" className="btn btn-secondary btn-sm" style={{ whiteSpace: "nowrap", fontSize: "0.8rem", padding: "0.35rem 0.75rem" }}>
-                        Explore Services <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.7rem", marginLeft: "4px" }}></i>
-                      </a>
-                    </div>
-                  )}
+
+                      <h1 style={{ fontSize: "2.1rem", fontWeight: 800, lineHeight: "1.3", margin: "0 0 1rem", color: "var(--color-text-main)", letterSpacing: "-0.02em" }}>
+                        {journal.name}
+                      </h1>
+
+                      {!isScopus && !journal.isWosIndexed && (
+                        <div style={{
+                          marginBottom: "1.25rem",
+                          padding: "0.85rem 1.15rem",
+                          borderRadius: "8px",
+                          backgroundColor: "rgba(59, 130, 246, 0.06)",
+                          border: "1px solid rgba(59, 130, 246, 0.2)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: "1rem",
+                          flexWrap: "wrap"
+                        }}>
+                          <div style={{ fontSize: "0.85rem", color: "var(--color-text-main)", lineHeight: 1.5, flex: 1, minWidth: "240px" }}>
+                            <i className="fa-solid fa-circle-info" style={{ color: "#3b82f6", marginRight: "0.5rem" }}></i>
+                            <strong>Global Indexation Pathway:</strong> Looking to index this journal with Scopus or Web of Science? Our editorial desk provides compliance reviews, peer-review audits, and application readiness support.
+                          </div>
+                          <a href="/services" className="btn btn-secondary btn-sm" style={{ whiteSpace: "nowrap", fontSize: "0.8rem", padding: "0.35rem 0.75rem" }}>
+                            Explore Services <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.7rem", marginLeft: "4px" }}></i>
+                          </a>
+                        </div>
+                      )}
 
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.8rem", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
                     <div>

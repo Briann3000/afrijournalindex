@@ -132,13 +132,8 @@ export default async function CountryBrowsePage({
                   <div style={{ flex: 1, minWidth: "280px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.4rem" }}>
                       <span className="journal-tag" style={{ background: "var(--color-primary-light)", color: "var(--color-primary)", fontWeight: 700, fontSize: "0.75rem" }}>
-                        Grade {j.qualityGrade || "Verified"}
+                        <i className="fa-solid fa-circle-check" style={{ marginRight: "3px" }}></i> Verified Indexed
                       </span>
-                      {report?.quartile && (
-                        <span className="journal-tag" style={{ background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, fontSize: "0.75rem" }}>
-                          {report.quartile}
-                        </span>
-                      )}
                       <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
                         {issnDisplay}
                       </span>

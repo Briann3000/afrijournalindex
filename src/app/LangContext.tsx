@@ -23,7 +23,7 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function loadTranslations() {
       try {
-        const res = await fetch(`/locales/${lang}.json`);
+        const res = await fetch(`/locales/${lang}.json?v=20261105b`);
         if (!res.ok) throw new Error("Translation not found");
         const data = await res.json();
         setTranslations(data);

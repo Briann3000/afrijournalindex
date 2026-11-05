@@ -1218,18 +1218,6 @@ function InstitutionContent() {
                               <a href={`/journal/${j.id}`} className="academic-link" style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "1.05rem" }}>
                                 {j.name}
                               </a>
-                              {j.qualityGrade && (
-                                <span style={{
-                                  background: j.qualityGrade.startsWith("A") ? "rgba(13, 148, 136, 0.12)" : "rgba(2, 132, 199, 0.1)",
-                                  color: j.qualityGrade.startsWith("A") ? "#0d9488" : "#0284c7",
-                                  padding: "0.15rem 0.5rem",
-                                  borderRadius: "6px",
-                                  fontWeight: 800,
-                                  fontSize: "0.75rem"
-                                }}>
-                                  Tier {j.qualityGrade}
-                                </span>
-                              )}
                               {j.isIndexed && (
                                 <span style={{ background: "rgba(22, 163, 74, 0.12)", color: "#16a34a", padding: "0.15rem 0.5rem", borderRadius: "6px", fontWeight: 700, fontSize: "0.72rem" }}>
                                   <i className="fa-solid fa-check"></i> Indexed

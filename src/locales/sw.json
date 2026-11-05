@@ -6,7 +6,7 @@
     "submit": "Wasilisha Jarida",
     "pricing": "Gharama & Ripoti",
     "rankings": "Viwango",
-    "institution": "Dashibodi ya Chuo",
+    "institution": "Nafasi za Vyuo Vikuu",
     "researcher": "Wasifu wa Mtafiti",
     "about": "Kuhusu Sisi",
     "contact": "Wasiliana Nasi",
@@ -31,7 +31,7 @@
     "search_btn": "Tafuta",
     "cta_submit": "Orodhesha Jarida Lako (Bure)",
     "cta_explore": "Vinjari Majarida",
-    "cta_institution": "Dashibodi ya Taasisi",
+    "cta_institution": "Nafasi za Vyuo Vikuu",
     "card_title": "Vipimo Vilivyoangaziwa: ARJESS",
     "card_if": "Kipimo cha Athari (AJIF)",
     "card_grade": "Daraja la Ubora",
@@ -69,7 +69,7 @@
     "citations": "Nukuu",
     "h_index": "Kielezo cha h",
     "view_all": "Tazama Orodha Kamili",
-    "view_console": "Fungua Dashibodi ya Chuo"
+    "view_console": "Fungua Nafasi za Vyuo Vikuu"
   },
   "valprop": {
     "title": "Kuwezesha Uchumi wa Maarifa wa Kiafrika",
@@ -169,7 +169,7 @@
     "close_modal": "Funga"
   },
   "institution_page": {
-    "title": "Dashibodi ya Utafiti ya Taasisi",
+    "title": "Nafasi za Utafiti za Vyuo Vikuu",
     "subtitle": "Ulinganisho wa vyuo vikuu, uchambuzi wa matokeo ya utafiti, na utendaji wa nukuu za wahadhiri kote barani Afrika.",
     "tab_leaderboard": "Viwango vya Vyuo Vikuu",
     "tab_profile": "Wasifu wa Chuo",
@@ -188,7 +188,7 @@
     "col_hindex": "Kielezo cha h",
     "col_top_discipline": "Taaluma Kuu",
     "col_action": "Uchambuzi",
-    "view_details": "Fungua Dashibodi",
+    "view_details": "Tazama Nafasi",
     "departments_heading": "Matokeo kwa Idara",
     "affiliated_journals": "Majarida Yanayomilikiwa na Chuo",
     "no_results": "Hakuna kumbukumbu za kitaasisi zilizopatikana.",

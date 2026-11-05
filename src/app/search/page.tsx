@@ -494,22 +494,6 @@ function SearchPageContent() {
                             <span>Published {article.year}</span>
                           </>
                         )}
-                        {article.journal?.qualityGrade && (
-                          <>
-                            <span>•</span>
-                            <span style={{ 
-                              fontSize: "0.7rem", 
-                              fontWeight: 700, 
-                              padding: "1px 5px", 
-                              borderRadius: "4px", 
-                              background: "rgba(245, 158, 11, 0.1)", 
-                              color: "#d97706",
-                              border: "1px solid rgba(245, 158, 11, 0.25)" 
-                            }}>
-                              Grade {article.journal.qualityGrade}
-                            </span>
-                          </>
-                        )}
                       </div>
 
                       {/* Abstract snippet */}
@@ -593,17 +577,6 @@ function SearchPageContent() {
                         <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.95rem" }}>
                           {journal.name}
                         </div>
-                        <span style={{ 
-                          fontSize: "0.72rem", 
-                          fontWeight: 700, 
-                          padding: "2px 6px", 
-                          borderRadius: "4px", 
-                          background: "rgba(245, 158, 11, 0.1)", 
-                          color: "#d97706",
-                          border: "1px solid rgba(245, 158, 11, 0.25)" 
-                        }}>
-                          Grade {journal.qualityGrade}
-                        </span>
                       </div>
                       <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
                         {journal.publisherName || "African Academic Publisher"} • {journal.country}

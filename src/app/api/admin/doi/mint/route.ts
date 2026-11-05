@@ -243,6 +243,7 @@ export async function POST(request: Request) {
                 id: true,
                 name: true,
                 institution: true,
+                afriScholarId: true,
                 orcid: true
               }
             }
@@ -305,7 +306,7 @@ export async function POST(request: Request) {
       }
 
       // 4. Assemble authors / creators
-      let creators: Array<{ name: string; affiliation?: string; orcid?: string }> = [];
+      let creators: Array<{ name: string; affiliation?: string; orcid?: string; afriScholarId?: string }> = [];
 
       if (body.overrideAuthors && Array.isArray(body.overrideAuthors) && body.overrideAuthors.length > 0 && articles.length === 1) {
         creators = body.overrideAuthors;
@@ -313,7 +314,8 @@ export async function POST(request: Request) {
         creators = art.claims.map((c: any) => ({
           name: c.user?.name || "Author",
           affiliation: c.user?.institution || art.journal?.name || "Academic Institution",
-          orcid: c.user?.orcid || undefined
+          orcid: c.user?.orcid || undefined,
+          afriScholarId: c.user?.afriScholarId || undefined
         }));
       }
 

@@ -860,13 +860,14 @@ export async function GET(request: Request) {
     }
 
     const rawScholarUrl = verifiedScholar?.googleScholarUrl || user.googleScholarUrl || dossier.externalLinks?.googleScholar || null;
-    const authorSearchUrl = `https://scholar.google.com/scholar?q=author:%22${encodeURIComponent(user.name.replace(/['"]/g, ""))}%22`;
+    const cleanAuthorSearchName = user.name.replace(/[^a-zA-Z0-9\s]/g, " ").trim().replace(/\s+/g, "+");
+    const authorSearchUrl = `https://scholar.google.com/scholar?q=${cleanAuthorSearchName}`;
     
     // If scholar has a live personal profile ID (like Wanjohi's 35w1t_gAAAAJ), use that;
     // otherwise route to guaranteed author search URL
-    const resolvedGoogleScholarUrl = (rawScholarUrl && rawScholarUrl.includes("citations?user="))
+    const resolvedGoogleScholarUrl = (rawScholarUrl && rawScholarUrl.includes("citations?user=") && !rawScholarUrl.includes("zV47-k4AAAAJ") && !rawScholarUrl.includes("maurice_amutabi"))
       ? rawScholarUrl
-      : (rawScholarUrl || authorSearchUrl);
+      : (rawScholarUrl && !rawScholarUrl.includes("citations?user=") ? rawScholarUrl : authorSearchUrl);
 
     const consolidatedLinks = {
       googleScholar: resolvedGoogleScholarUrl,

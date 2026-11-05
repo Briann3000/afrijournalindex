@@ -5,8 +5,8 @@
  */
 
 export interface ScholarScientometrics {
-  googleScholarId?: string;
-  googleScholarUrl?: string;
+  googleScholarId?: string | null;
+  googleScholarUrl?: string | null;
   totalCitations: number;
   citationsSince5Yr: number;
   hIndex: number;
@@ -326,8 +326,8 @@ export const VERIFIED_GOOGLE_SCHOLAR_PROFILES: Record<string, ScholarScientometr
 
   // Prof. Maurice Nyamanga Amutabi (Technical University of Kenya)
   "maurice nyamanga amutabi": {
-    googleScholarId: "maurice_amutabi",
-    googleScholarUrl: "https://scholar.google.com/citations?user=maurice_amutabi",
+    googleScholarId: null,
+    googleScholarUrl: "https://scholar.google.com/scholar?q=Maurice+Amutabi",
     totalCitations: 2860,
     citationsSince5Yr: 1420,
     hIndex: 24,
@@ -352,8 +352,8 @@ export const VERIFIED_GOOGLE_SCHOLAR_PROFILES: Record<string, ScholarScientometr
     ]
   },
   "maurice amutabi": {
-    googleScholarId: "maurice_amutabi",
-    googleScholarUrl: "https://scholar.google.com/citations?user=maurice_amutabi",
+    googleScholarId: null,
+    googleScholarUrl: "https://scholar.google.com/scholar?q=Maurice+Amutabi",
     totalCitations: 2860,
     citationsSince5Yr: 1420,
     hIndex: 24,
@@ -805,8 +805,8 @@ export const VERIFIED_GOOGLE_SCHOLAR_PROFILES: Record<string, ScholarScientometr
 
   // Prof. André Pascal Kengne (SAMRC / University of Cape Town)
   "andré pascal kengne": {
-    googleScholarId: "zV47-k4AAAAJ",
-    googleScholarUrl: "https://scholar.google.com/citations?user=zV47-k4AAAAJ",
+    googleScholarId: null,
+    googleScholarUrl: "https://scholar.google.com/scholar?q=Andre+Pascal+Kengne",
     totalCitations: 132400,
     citationsSince5Yr: 82000,
     hIndex: 105,
@@ -829,8 +829,8 @@ export const VERIFIED_GOOGLE_SCHOLAR_PROFILES: Record<string, ScholarScientometr
     ]
   },
   "andre pascal kengne": {
-    googleScholarId: "zV47-k4AAAAJ",
-    googleScholarUrl: "https://scholar.google.com/citations?user=zV47-k4AAAAJ",
+    googleScholarId: null,
+    googleScholarUrl: "https://scholar.google.com/scholar?q=Andre+Pascal+Kengne",
     totalCitations: 132400,
     citationsSince5Yr: 82000,
     hIndex: 105,
@@ -853,8 +853,8 @@ export const VERIFIED_GOOGLE_SCHOLAR_PROFILES: Record<string, ScholarScientometr
     ]
   },
   "0000-0002-5183-131X": {
-    googleScholarId: "zV47-k4AAAAJ",
-    googleScholarUrl: "https://scholar.google.com/citations?user=zV47-k4AAAAJ",
+    googleScholarId: null,
+    googleScholarUrl: "https://scholar.google.com/scholar?q=Andre+Pascal+Kengne",
     totalCitations: 132400,
     citationsSince5Yr: 82000,
     hIndex: 105,

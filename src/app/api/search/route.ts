@@ -25,6 +25,100 @@ export async function GET(request: Request) {
 
     const tokens = tokenizeQuery(q);
     const cleanQ = q.replace(/^["']|["']$/g, "").trim();
+    const upperCleanQ = cleanQ.toUpperCase();
+    const isDirectAsidQuery = upperCleanQ.startsWith("ASID-") || /^ASID/i.test(upperCleanQ);
+
+    // ==========================================
+    // 0. High-Priority Direct ASID Interceptor
+    // ==========================================
+    if (isDirectAsidQuery) {
+      const exactScholar = await prisma.user.findFirst({
+        where: {
+          afriScholarId: upperCleanQ
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          afriScholarId: true,
+          orcid: true,
+          institution: true,
+          department: true,
+          bio: true,
+          isClaimed: true,
+          totalCitations: true,
+          hIndex: true,
+          i10Index: true,
+          claims: {
+            where: { status: "VERIFIED" },
+            select: {
+              article: {
+                select: {
+                  id: true,
+                  title: true,
+                  doi: true,
+                  publishDate: true,
+                  citationCount: true,
+                  journal: {
+                    select: {
+                      id: true,
+                      name: true,
+                      country: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (exactScholar && exactScholar.afriScholarId) {
+        const scholarArticles = (exactScholar.claims || []).map(c => c.article).filter(Boolean);
+        const formattedScholarItem = {
+          id: exactScholar.id,
+          name: exactScholar.name,
+          email: exactScholar.email,
+          afriScholarId: exactScholar.afriScholarId,
+          institution: exactScholar.institution || "African University",
+          broadDiscipline: exactScholar.department || "Academic Research",
+          articlesCount: scholarArticles.length,
+          totalCitations: exactScholar.totalCitations || 0,
+          hIndex: exactScholar.hIndex || 0,
+          orcid: exactScholar.orcid,
+          isClaimed: exactScholar.isClaimed,
+          isExactAsid: true,
+          score: 100000
+        };
+
+        const mappedArticles = scholarArticles.map(a => ({
+          id: a.id,
+          title: a.title,
+          doi: a.doi,
+          abstract: null,
+          url: null,
+          pdfUrl: null,
+          publishDate: a.publishDate ? a.publishDate.toISOString() : null,
+          year: a.publishDate ? new Date(a.publishDate).getFullYear() : null,
+          citationCount: a.citationCount || 0,
+          journal: a.journal,
+          isMatch: true,
+          score: 1000
+        }));
+
+        return NextResponse.json({
+          success: true,
+          query: q,
+          directAsidMatch: true,
+          journals: [],
+          scholars: [formattedScholarItem],
+          articles: mappedArticles,
+          totalJournals: 0,
+          totalScholars: 1,
+          totalArticles: mappedArticles.length
+        });
+      }
+    }
 
     // ==========================================
     // 1. Search Journals (Multi-Word & Fuzzy)

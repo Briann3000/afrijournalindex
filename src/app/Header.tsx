@@ -266,7 +266,7 @@ export default function Header({ activePage }: HeaderProps) {
                 </a>
                 <a href="/institution" className="nav-dropdown-item">
                   <i className="fa-solid fa-building-columns" style={{ color: "#f59e0b", width: "20px" }}></i>
-                  <span>{t?.nav?.institution || "Institutional Rankings"}</span>
+                  <span>{(t?.nav?.institution && t?.nav?.institution !== "Institutional Console") ? t.nav.institution : "Institutional Rankings"}</span>
                 </a>
               </div>
             )}
@@ -1036,7 +1036,7 @@ export default function Header({ activePage }: HeaderProps) {
                     style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
                   >
                     <i className="fa-solid fa-building-columns" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
-                    <span>{t?.nav?.institution || "Institutional Rankings"}</span>
+                    <span>{(t?.nav?.institution && t?.nav?.institution !== "Institutional Console") ? t.nav.institution : "Institutional Rankings"}</span>
                   </Link>
                 </div>
               )}

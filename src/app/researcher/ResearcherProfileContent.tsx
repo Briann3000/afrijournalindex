@@ -2413,7 +2413,7 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
                         <i className="fa-brands fa-google"></i> Google Scholar
                       </a>
                     ) : (
-                      <a href={`https://scholar.google.com/scholar?q=author:%22${encodeURIComponent(profile.name || "")}%22`} target="_blank" rel="noopener noreferrer" title={`Search ${profile.name || "scholar"} publications on Google Scholar`} style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "0.22rem 0.6rem", borderRadius: "6px", fontSize: "0.76rem", fontWeight: 600, textDecoration: "none", background: "var(--color-bg-card-subtle)", color: "#2563eb", border: "1px solid rgba(37, 99, 235, 0.25)" }}>
+                      <a href={`https://scholar.google.com/scholar?q=${encodeURIComponent((profile.name || "scholar").replace(/[^a-zA-Z0-9\s]/g, " ").trim())}`} target="_blank" rel="noopener noreferrer" title={`Search ${profile.name || "scholar"} publications on Google Scholar`} style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "0.22rem 0.6rem", borderRadius: "6px", fontSize: "0.76rem", fontWeight: 600, textDecoration: "none", background: "var(--color-bg-card-subtle)", color: "#2563eb", border: "1px solid rgba(37, 99, 235, 0.25)" }}>
                         <i className="fa-brands fa-google"></i> Google Scholar
                       </a>
                     )}
@@ -4463,11 +4463,6 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
                           <span style={{ background: "#ecfdf5", color: "#065f46", border: "1px solid #a7f3d0", padding: "0.15rem 0.55rem", borderRadius: "4px", fontSize: "0.75rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "4px" }}>
                             <i className="fa-solid fa-circle-check"></i> Verified Indexed
                           </span>
-                          {j.qualityGrade && (
-                            <span style={{ background: "#eff6ff", color: "#1e40af", border: "1px solid #bfdbfe", padding: "0.15rem 0.55rem", borderRadius: "4px", fontSize: "0.75rem", fontWeight: 700 }}>
-                              Grade {j.qualityGrade}
-                            </span>
-                          )}
                           <span style={{ color: "var(--color-text-muted)", fontSize: "0.8rem", fontWeight: 600 }}>
                             {j.country}
                           </span>
