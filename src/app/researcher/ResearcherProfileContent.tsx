@@ -3,6 +3,7 @@
 import React, { useEffect, useState, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { jsPDF } from "jspdf";
+import QRCode from "qrcode";
 import { useLang } from "../LangContext";
 import Header from "../Header";
 import Footer from "../Footer";
@@ -1102,7 +1103,7 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
   };
 
   // True Comprehensive Academic Portfolio Document Download (Authoritative Dossier for Appointments, Promotions & Grants)
-  const handleExportCV = () => {
+  const handleExportCV = async () => {
     if (!data) return;
     const { profile, metrics, articles } = data;
     const books = dossierState.books || [];
@@ -1110,6 +1111,18 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
     const innovations = dossierState.innovations || [];
     const media = dossierState.media || [];
     const memberships = dossierState.memberships || [];
+
+    const asid = profile.afriScholarId || `ASID-${profile.id.slice(0, 8).toUpperCase()}`;
+    const canonicalUrl = profile.afriScholarId
+      ? `https://afrijournalindexing.org/scholar/${profile.afriScholarId}`
+      : `https://afrijournalindexing.org/researcher?id=${profile.id}`;
+
+    let qrDataUrl: string | null = null;
+    try {
+      qrDataUrl = await QRCode.toDataURL(canonicalUrl, { margin: 1, width: 140, errorCorrectionLevel: "M" });
+    } catch (e) {
+      console.warn("Failed to generate QR code for CV:", e);
+    }
 
     try {
       const doc = new jsPDF({
@@ -1272,6 +1285,20 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
       // ==========================================
       // PAGE 1: HEADER & IDENTITY BANNER
       // ==========================================
+      // QR Code for Instant Verification (Top Right)
+      if (qrDataUrl) {
+        doc.setFillColor(255, 255, 255);
+        doc.setDrawColor(lineColor[0], lineColor[1], lineColor[2]);
+        doc.roundedRect(171, y - 2, 24, 24, 1, 1, "FD");
+        doc.addImage(qrDataUrl, "PNG", 172, y - 1, 22, 22);
+        doc.link(171, y - 2, 24, 24, { url: canonicalUrl });
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(4.5);
+        doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
+        doc.text("SCAN TO VERIFY ASID", 183, y + 25, { align: "center" });
+      }
+
       doc.setFont("helvetica", "bold");
       doc.setFontSize(7.5);
       doc.setTextColor(accentBrand[0], accentBrand[1], accentBrand[2]);
@@ -1282,7 +1309,7 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
       doc.setFont("helvetica", "bold");
       doc.setFontSize(18);
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text((profile.name || "Academic Scholar").toUpperCase(), 15, y);
+      doc.text((profile.name || "Academic Scholar").toUpperCase(), 15, y, { maxWidth: 152 });
       y += 5.5;
 
       // Subtitle / Designation
@@ -1290,8 +1317,15 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
       doc.setFontSize(9);
       doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
       const subtitle = `${profile.academicRank || "Academic Scholar"}  •  ${profile.department || "Scholar"}  •  ${profile.institution || "African Academic Institution"}, ${profile.country || "Africa"}`;
-      doc.text(subtitle, 15, y);
+      doc.text(subtitle, 15, y, { maxWidth: 152 });
       y += 5;
+
+      // Accreditation / Sovereign Identifier note
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7);
+      doc.setTextColor(accentGreen[0], accentGreen[1], accentGreen[2]);
+      doc.text(`SOVEREIGN DIGITAL IDENTIFIER: ${asid}  •  PERMANENT SCHOLAR RECORD`, 15, y);
+      y += 4.5;
 
       // Contact & Profile Matrix Box (Header Table)
       doc.setFillColor(cardBg[0], cardBg[1], cardBg[2]);
@@ -1311,7 +1345,7 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
       doc.text("SCHOLAR ID:", 90, y + 4.5);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(accentGreen[0], accentGreen[1], accentGreen[2]);
-      doc.text(`ASID-${profile.id.slice(0, 8).toUpperCase()}`, 110, y + 4.5);
+      doc.text(asid, 110, y + 4.5);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
@@ -1326,8 +1360,8 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
       doc.text("SCHOLAR PROFILE:", 18, y + 8.8);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(accentBrand[0], accentBrand[1], accentBrand[2]);
-      doc.text(`https://afrijournal.org/researcher?id=${profile.id}`, 46, y + 8.8);
-      doc.link(46, y + 6, 80, 4, { url: `https://afrijournal.org/researcher?id=${profile.id}` });
+      doc.text(canonicalUrl, 46, y + 8.8);
+      doc.link(46, y + 6, 85, 4, { url: canonicalUrl });
 
       if (extLinks.amazonAuthor) {
         doc.setFont("helvetica", "bold");
@@ -1740,10 +1774,16 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
       alert("No publications linked to export.");
       return;
     }
+    const asid = data.profile?.afriScholarId;
+    const orcid = data.profile?.orcid;
+    const scholarUrl = asid 
+      ? `https://afrijournalindexing.org/scholar/${asid}`
+      : `https://afrijournalindexing.org/researcher?id=${data.profile?.id}`;
+
     const bibEntries = data.articles.map((art: any) => {
       const authorLastName = (data.profile.name || "author").split(" ").pop()?.toLowerCase() || "author";
       const key = `${authorLastName}${art.publishedYear || 2024}_${art.id.slice(0, 5)}`;
-      return `@article{${key},\n  author = {${data.profile.name}},\n  title = {${art.title}},\n  journal = {${art.journalName || "AfriJournal Index"}},\n  year = {${art.publishedYear || 2024}}${art.doi ? `,\n  doi = {${art.doi}}` : ""}\n}`;
+      return `@article{${key},\n  author = {${data.profile.name}},\n  title = {${art.title}},\n  journal = {${art.journalName || "AfriJournal Index"}},\n  year = {${art.publishedYear || 2024}}${art.doi ? `,\n  doi = {${art.doi}}` : ""}${asid ? `,\n  afrischolarid = {${asid}}` : ""}${orcid ? `,\n  orcid = {${orcid}}` : ""},\n  url = {${scholarUrl}}\n}`;
     }).join("\n\n");
 
     const blob = new Blob([bibEntries], { type: "text/plain;charset=utf-8" });

@@ -20,7 +20,8 @@ export async function GET(
           select: {
             name: true,
             institution: true,
-            orcid: true
+            orcid: true,
+            afriScholarId: true
           }
         },
         reviewRequest: {
@@ -42,6 +43,7 @@ export async function GET(
         verificationId: assignment.certificateVerificationId,
         reviewerName: assignment.reviewer.name,
         reviewerInstitution: assignment.reviewer.institution || "African Academic Institution",
+        reviewerAfriScholarId: assignment.reviewer.afriScholarId,
         orcid: assignment.reviewer.orcid,
         discipline: assignment.reviewRequest.discipline,
         trackingCode: assignment.reviewRequest.trackingCode,

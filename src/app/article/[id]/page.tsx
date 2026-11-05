@@ -34,6 +34,21 @@ export default async function ArticlePage({
           },
         },
       },
+      claims: {
+        where: { status: "VERIFIED" },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              afriScholarId: true,
+              orcid: true,
+              institution: true,
+              department: true
+            }
+          }
+        }
+      },
       citedBy: {
         take: 10,
         include: {
@@ -108,6 +123,106 @@ export default async function ArticlePage({
           <h1 style={{ fontSize: "1.85rem", fontWeight: 800, lineHeight: 1.35, color: "var(--color-text-main)", margin: "0 0 1.25rem" }}>
             {article.title}
           </h1>
+
+          {/* Author Bylines / Sovereign ASID Badges */}
+          <div style={{ marginBottom: "1.25rem" }}>
+            {article.claims && article.claims.length > 0 ? (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center" }}>
+                <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
+                  <i className="fa-solid fa-users" style={{ marginRight: "4px" }}></i> Authors:
+                </span>
+                {article.claims.map((claim, idx) => {
+                  const author = claim.user;
+                  const authorLink = author.afriScholarId 
+                    ? `/scholar/${author.afriScholarId}` 
+                    : `/researcher?id=${author.id}`;
+
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        background: "var(--color-bg-alt)",
+                        border: "1px solid var(--color-border)",
+                        padding: "0.3rem 0.75rem",
+                        borderRadius: "20px",
+                        fontSize: "0.88rem"
+                      }}
+                    >
+                      <Link
+                        href={authorLink}
+                        style={{
+                          fontWeight: 700,
+                          color: "var(--color-text-main)",
+                          textDecoration: "none"
+                        }}
+                      >
+                        {author.name}
+                      </Link>
+
+                      {author.afriScholarId && (
+                        <Link
+                          href={`/scholar/${author.afriScholarId}`}
+                          title={`AfriScholar ID: ${author.afriScholarId} (Verified Sovereign Digital Identifier)`}
+                          style={{
+                            fontFamily: "monospace",
+                            fontSize: "0.72rem",
+                            fontWeight: 700,
+                            color: "#166534",
+                            background: "rgba(22, 163, 74, 0.12)",
+                            padding: "1px 6px",
+                            borderRadius: "4px",
+                            textDecoration: "none"
+                          }}
+                        >
+                          {author.afriScholarId}
+                        </Link>
+                      )}
+
+                      {author.orcid && (
+                        <a
+                          href={author.orcid.startsWith("http") ? author.orcid : `https://orcid.org/${author.orcid}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          title={`ORCID: ${author.orcid}`}
+                          style={{
+                            fontSize: "0.72rem",
+                            fontWeight: 700,
+                            color: "#a3e635",
+                            background: "#4d7c0f",
+                            padding: "1px 5px",
+                            borderRadius: "4px",
+                            textDecoration: "none"
+                          }}
+                        >
+                          ID
+                        </a>
+                      )}
+
+                      {author.institution && (
+                        <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+                          ({author.institution})
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "6px" }}>
+                <i className="fa-regular fa-id-badge" style={{ color: "var(--color-primary)" }}></i>
+                <span>Are you an author of this work?</span>
+                <Link
+                  href="/researcher"
+                  style={{ color: "var(--color-primary)", fontWeight: 700, textDecoration: "underline" }}
+                >
+                  Link to your sovereign AfriScholar profile
+                </Link>
+              </div>
+            )}
+          </div>
 
           {/* Publishing Venue Metadata */}
           <div

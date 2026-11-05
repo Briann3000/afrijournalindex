@@ -17,6 +17,7 @@ function SearchPageContent() {
   const [searchTerm, setSearchTerm] = useState<string>(query);
   const [loading, setLoading] = useState<boolean>(true);
   const [results, setResults] = useState<{
+    directAsidMatch?: boolean;
     journals: any[];
     scholars: any[];
     articles: any[];
@@ -24,6 +25,7 @@ function SearchPageContent() {
     totalScholars: number;
     totalArticles: number;
   }>({
+    directAsidMatch: false,
     journals: [],
     scholars: [],
     articles: [],
@@ -52,6 +54,7 @@ function SearchPageContent() {
         const json = await res.json();
         if (json.success) {
           const fetchedResults = {
+            directAsidMatch: Boolean(json.directAsidMatch),
             journals: json.journals || [],
             scholars: json.scholars || [],
             articles: json.articles || [],
@@ -336,6 +339,62 @@ function SearchPageContent() {
               </div>
             )}
             
+            {/* Direct ASID Verified Match Banner */}
+            {results.directAsidMatch && results.scholars?.[0] && (
+              <div
+                style={{
+                  background: "rgba(22, 163, 74, 0.08)",
+                  border: "1.5px solid #16a34a",
+                  borderRadius: "14px",
+                  padding: "1.25rem 1.5rem",
+                  marginBottom: "2rem",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: "1rem"
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                  <div
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      borderRadius: "50%",
+                      background: "#16a34a",
+                      color: "#ffffff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "1.4rem",
+                      flexShrink: 0
+                    }}
+                  >
+                    <i className="fa-solid fa-id-badge"></i>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "0.78rem", fontWeight: 800, textTransform: "uppercase", color: "#166534", letterSpacing: "1px" }}>
+                      Direct AfriScholar ID Verified Match
+                    </div>
+                    <div style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-text-main)", margin: "2px 0" }}>
+                      {results.scholars[0].name}
+                    </div>
+                    <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                      {results.scholars[0].institution} • <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#166534" }}>{results.scholars[0].afriScholarId}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <a
+                  href={`/scholar/${results.scholars[0].afriScholarId}`}
+                  className="btn btn-primary"
+                  style={{ background: "#16a34a", borderColor: "#16a34a", padding: "0.6rem 1.25rem", fontWeight: 700 }}
+                >
+                  Open Sovereign Profile <i className="fa-solid fa-arrow-right" style={{ marginLeft: "6px" }}></i>
+                </a>
+              </div>
+            )}
+
             {/* 1. ARTICLES SECTION */}
             {(activeTab === "all" || activeTab === "articles") && results.articles.length > 0 && (
               <div>
@@ -577,15 +636,17 @@ function SearchPageContent() {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1rem" }}>
                   {results.scholars.map(scholar => {
                     const scholarSlug = scholar.email?.split("@")[0] || scholar.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                    const scholarHref = scholar.afriScholarId ? `/scholar/${scholar.afriScholarId}` : `/researcher?id=${scholarSlug}`;
+
                     return (
                       <a
                         key={scholar.id}
-                        href={`/researcher?id=${scholarSlug}`}
+                        href={scholarHref}
                         className="card-surface"
                         style={{
                           padding: "1.2rem",
                           borderRadius: "12px",
-                          border: "1px solid var(--color-border)",
+                          border: scholar.isExactAsid ? "1.5px solid #16a34a" : "1px solid var(--color-border)",
                           textDecoration: "none",
                           color: "inherit",
                           display: "flex",
@@ -612,8 +673,23 @@ function SearchPageContent() {
                         {scholar.name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.95rem" }}>
-                          {scholar.name}
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                          <span style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.95rem" }}>
+                            {scholar.name}
+                          </span>
+                          {scholar.afriScholarId && (
+                            <span style={{
+                              fontFamily: "monospace",
+                              fontSize: "0.72rem",
+                              fontWeight: 700,
+                              color: "#166534",
+                              background: "rgba(22, 163, 74, 0.12)",
+                              padding: "1px 6px",
+                              borderRadius: "4px"
+                            }}>
+                              {scholar.afriScholarId}
+                            </span>
+                          )}
                         </div>
                         <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", margin: "2px 0 6px" }}>
                           {scholar.institution}

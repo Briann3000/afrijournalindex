@@ -1376,6 +1376,7 @@ function InstitutionContent() {
                                   .join("")
                                   .toUpperCase();
                                 const isFollowed = followedFacultyIds.includes(f.id);
+                                const scholarHref = f.afriScholarId ? `/scholar/${f.afriScholarId}` : `/researcher?id=${f.id}`;
 
                                 return (
                                   <tr key={f.id} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 0.15s ease" }}>
@@ -1403,13 +1404,23 @@ function InstitutionContent() {
 
                                         <div>
                                           <a 
-                                            href={`/researcher?id=${f.id}`}
+                                            href={scholarHref}
                                             style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "0.92rem", display: "inline-block" }}
                                           >
                                             {f.name}
                                           </a>
 
                                           <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", marginTop: "2px", flexWrap: "wrap" }}>
+                                            {f.afriScholarId && (
+                                              <a
+                                                href={`/scholar/${f.afriScholarId}`}
+                                                title={`AfriScholar ID: ${f.afriScholarId}`}
+                                                style={{ fontSize: "0.72rem", background: "rgba(22, 163, 74, 0.12)", color: "#166534", padding: "0.1rem 0.45rem", borderRadius: "4px", fontWeight: 700, fontFamily: "monospace", textDecoration: "none" }}
+                                              >
+                                                {f.afriScholarId}
+                                              </a>
+                                            )}
+
                                             {f.discipline && f.discipline !== "Unspecified" && (
                                               <span style={{ fontSize: "0.72rem", background: "rgba(2, 132, 199, 0.08)", color: "var(--color-primary)", padding: "0.1rem 0.45rem", borderRadius: "4px", fontWeight: 600 }}>
                                                 {f.discipline}
@@ -1475,7 +1486,7 @@ function InstitutionContent() {
                                         </button>
 
                                         <a
-                                          href={`/researcher?id=${f.id}`}
+                                          href={scholarHref}
                                           className="btn btn-secondary btn-sm"
                                           style={{ padding: "0.25rem 0.55rem", fontSize: "0.75rem" }}
                                           title="View Scholar Profile"

@@ -172,11 +172,49 @@ export default function CertificateVerifyPage() {
                 <div style={{ fontSize: "1.05rem", color: "var(--color-primary)", fontWeight: 700 }}>
                   {cert.reviewerInstitution}
                 </div>
-                {cert.orcid && (
-                  <div style={{ fontSize: "0.85rem", color: "#64748b", marginTop: "6px" }}>
-                    ORCID: <span style={{ fontFamily: "monospace", color: "#0284c7" }}>{cert.orcid}</span>
-                  </div>
-                )}
+
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", flexWrap: "wrap", marginTop: "8px" }}>
+                  {cert.reviewerAfriScholarId && (
+                    <div style={{ fontSize: "0.85rem", color: "#64748b", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                      <span>AfriScholar ID:</span>
+                      <Link
+                        href={`/scholar/${cert.reviewerAfriScholarId}`}
+                        style={{
+                          fontFamily: "monospace",
+                          fontWeight: 700,
+                          color: "var(--color-primary)",
+                          background: "rgba(2, 132, 199, 0.08)",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          textDecoration: "none"
+                        }}
+                      >
+                        {cert.reviewerAfriScholarId}
+                      </Link>
+                    </div>
+                  )}
+
+                  {cert.orcid && (
+                    <div style={{ fontSize: "0.85rem", color: "#64748b", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                      <span>ORCID:</span>
+                      <a
+                        href={cert.orcid.startsWith("http") ? cert.orcid : `https://orcid.org/${cert.orcid}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          fontFamily: "monospace",
+                          color: "#16a34a",
+                          background: "rgba(22, 163, 74, 0.08)",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          textDecoration: "none"
+                        }}
+                      >
+                        {cert.orcid}
+                      </a>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Citation & Evaluation Statement */}
@@ -189,13 +227,22 @@ export default function CertificateVerifyPage() {
               </div>
 
               {/* Security & Verification Metadata Grid */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.5rem", borderTop: "1px solid #e2e8f0", paddingTop: "1.75rem", marginBottom: "2.5rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: cert.reviewerAfriScholarId ? "repeat(4, 1fr)" : "repeat(3, 1fr)", gap: "1.25rem", borderTop: "1px solid #e2e8f0", paddingTop: "1.75rem", marginBottom: "2.5rem" }}>
                 <div>
                   <div style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.5px" }}>Verification Hash</div>
                   <div style={{ fontSize: "0.92rem", fontWeight: 800, color: "var(--color-primary)", fontFamily: "monospace", marginTop: "3px" }}>
                     {cert.verificationId}
                   </div>
                 </div>
+
+                {cert.reviewerAfriScholarId && (
+                  <div>
+                    <div style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.5px" }}>Scholar Sovereign ID</div>
+                    <div style={{ fontSize: "0.88rem", fontWeight: 800, color: "#166534", fontFamily: "monospace", marginTop: "3px" }}>
+                      {cert.reviewerAfriScholarId}
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <div style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.5px" }}>Completion Date</div>

@@ -93,13 +93,17 @@ export async function GET(request: Request) {
       { name: { contains: cleanQ } },
       { institution: { contains: cleanQ } },
       { bio: { contains: cleanQ } },
-      { orcid: { contains: cleanQ } }
+      { orcid: { contains: cleanQ } },
+      { afriScholarId: { contains: cleanQ.toUpperCase() } }
     ];
 
     for (const t of tokens) {
       if (t.length > 1) {
         scholarCandidateOrs.push({ name: { contains: t } });
         scholarCandidateOrs.push({ institution: { contains: t } });
+        if (t.toUpperCase().startsWith("ASID")) {
+          scholarCandidateOrs.push({ afriScholarId: { contains: t.toUpperCase() } });
+        }
       }
     }
 
@@ -112,6 +116,7 @@ export async function GET(request: Request) {
               { totalCitations: { gt: 0 } },
               { openAlexId: { not: null } },
               { orcid: { not: null } },
+              { afriScholarId: { not: null } },
               { claims: { some: { status: "VERIFIED" } } }
             ]
           },
@@ -129,6 +134,7 @@ export async function GET(request: Request) {
         id: true,
         name: true,
         email: true,
+        afriScholarId: true,
         orcid: true,
         institution: true,
         department: true,
@@ -164,8 +170,16 @@ export async function GET(request: Request) {
     const minScholarScore = tokens.length > 1 ? tokens.length * 140 : 80;
 
     for (const u of matchingUsers) {
-      const isMatch = matchesQueryFuzzy(q, [u.name, u.institution, u.department, u.bio, u.orcid]);
-      const score = calculateFuzzyScore(q, u.name, u.institution || "");
+      const isExactAsid = Boolean(u.afriScholarId && cleanQ.toUpperCase() === u.afriScholarId.toUpperCase());
+      const isPartialAsid = Boolean(u.afriScholarId && u.afriScholarId.toUpperCase().includes(cleanQ.toUpperCase()));
+      const isMatch = isExactAsid || isPartialAsid || matchesQueryFuzzy(q, [u.name, u.institution, u.department, u.bio, u.orcid, u.afriScholarId]);
+      let score = calculateFuzzyScore(q, u.name, u.institution || "");
+
+      if (isExactAsid) {
+        score = 100000;
+      } else if (isPartialAsid) {
+        score = Math.max(score, 5000);
+      }
 
       if (!isMatch && score < minScholarScore) continue;
 
@@ -243,6 +257,8 @@ export async function GET(request: Request) {
       const scholarItem = {
         id: u.id,
         name: u.name,
+        email: u.email,
+        afriScholarId: u.afriScholarId,
         institution: u.institution || "African University",
         broadDiscipline,
         articlesCount,
@@ -250,16 +266,19 @@ export async function GET(request: Request) {
         hIndex,
         orcid: u.orcid,
         isClaimed: u.isClaimed,
+        isExactAsid,
         score
       };
 
-      // Deduplication key: Prefer exact unique identifier (id, orcid, or openAlexId)
+      // Deduplication key: Prefer exact unique identifier (afriScholarId, orcid, or openAlexId)
       // Do NOT merge distinct scholars with different institutional affiliations or different names
       const normName = normalizeSearchText(u.name).replace(/\b(prof|dr|mr|mrs|ms)\b/g, "").trim();
       const normInst = normalizeSearchText(u.institution || "").slice(0, 15);
-      const dedupKey = u.orcid 
-        ? `orcid:${u.orcid}` 
-        : (u.openAlexId ? `oa:${u.openAlexId.replace(/https?:\/\/openalex\.org\//i, "")}` : `name:${normName}_inst:${normInst}_id:${u.id}`);
+      const dedupKey = u.afriScholarId
+        ? `asid:${u.afriScholarId}`
+        : (u.orcid 
+          ? `orcid:${u.orcid}` 
+          : (u.openAlexId ? `oa:${u.openAlexId.replace(/https?:\/\/openalex\.org\//i, "")}` : `name:${normName}_inst:${normInst}_id:${u.id}`));
 
       if (!dedupScholarMap.has(dedupKey)) {
         dedupScholarMap.set(dedupKey, scholarItem);
@@ -359,9 +378,12 @@ export async function GET(request: Request) {
       .filter(a => a.isMatch || a.score > 30)
       .sort((a, b) => b.score - a.score || b.citationCount - a.citationCount);
 
+    const hasDirectAsidMatch = formattedScholars.length > 0 && Boolean(formattedScholars[0].isExactAsid);
+
     return NextResponse.json({
       success: true,
       query: q,
+      directAsidMatch: hasDirectAsidMatch,
       journals: scoredJournals.slice(0, 8),
       scholars: formattedScholars.slice(0, 12),
       articles: formattedArticles.slice(0, 20),
