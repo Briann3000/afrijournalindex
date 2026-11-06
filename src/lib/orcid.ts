@@ -24,7 +24,7 @@ export async function verifyOrcidWithRegistry(orcid: string) {
       signal: controller.signal,
       headers: {
         "Accept": "application/json",
-        "User-Agent": "AfriJournalIndex/1.0 (mailto:indexing@afrijournal.org)"
+        "User-Agent": "AfriJournalIndex/1.0 (mailto:afrijournalindex@gmail.com)"
       }
     });
     clearTimeout(timeout);
@@ -66,5 +66,92 @@ export async function verifyOrcidWithRegistry(orcid: string) {
       exists: null, 
       error: "Network timeout connecting to ORCID public registry. Please verify connection and retry." 
     };
+  }
+}
+
+export interface OrcidWorkItem {
+  id: string;
+  title: string;
+  journalName?: string;
+  publishedYear?: number;
+  doi?: string;
+  url?: string;
+  type?: string;
+  source: string;
+}
+
+/**
+ * Fetches authenticated scholarly works directly from the official ORCID Public API.
+ * Sourced live from pub.orcid.org/v3.0/{orcid}/works
+ */
+export async function fetchOrcidWorks(orcid: string): Promise<OrcidWorkItem[]> {
+  const cleanOrcid = normalizeOrcid(orcid);
+  if (!cleanOrcid) return [];
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(`https://pub.orcid.org/v3.0/${encodeURIComponent(cleanOrcid)}/works`, {
+      signal: controller.signal,
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "AfriJournalIndex/1.0 (mailto:afrijournalindex@gmail.com)"
+      }
+    });
+    clearTimeout(timeout);
+
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    const group = data?.group;
+    if (!Array.isArray(group)) return [];
+
+    const works: OrcidWorkItem[] = [];
+
+    for (const g of group) {
+      const summaries = g["work-summary"];
+      if (!Array.isArray(summaries) || summaries.length === 0) continue;
+      const ws = summaries[0];
+
+      const title = ws?.title?.title?.value || "";
+      if (!title) continue;
+
+      const journalName = ws?.["journal-title"]?.value || "";
+      const year = parseInt(ws?.["publication-date"]?.year?.value, 10) || undefined;
+      const type = ws?.type || "journal-article";
+
+      // Extract DOI or External ID
+      let doi: string | undefined;
+      let extUrl: string | undefined = ws?.url?.value || undefined;
+
+      const externalIds = ws?.["external-ids"]?.["external-id"];
+      if (Array.isArray(externalIds)) {
+        for (const ext of externalIds) {
+          const extType = String(ext["external-id-type"]).toLowerCase();
+          const extVal = ext["external-id-value"];
+          if (extType === "doi" && extVal) {
+            doi = extVal.replace(/^https?:\/\/doi\.org\//i, "").trim();
+            if (!extUrl) extUrl = `https://doi.org/${doi}`;
+            break;
+          }
+        }
+      }
+
+      works.push({
+        id: `orcid-${ws?.["put-code"] || Math.random().toString(36).slice(2, 9)}`,
+        title,
+        journalName,
+        publishedYear: year,
+        doi,
+        url: extUrl,
+        type: type.replace(/_/g, " "),
+        source: "ORCID Registry"
+      });
+    }
+
+    return works;
+  } catch (e) {
+    console.warn(`Failed to fetch works for ORCID ${orcid}:`, e);
+    return [];
   }
 }

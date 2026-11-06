@@ -372,8 +372,6 @@ export async function GET(request: Request) {
       const isGenuineLocalJournal = art.journal && art.journal.name === authenticJournal && art.journal.name !== "The Journal of Independent Teaching and Learning";
 
       const report = isGenuineLocalJournal ? art.journal?.reports?.[0] : null;
-      const standardScore = report ? report.standardScore.toFixed(3) : null;
-      const quartile = report ? (report.standardScore >= 2.0 ? "Q1" : report.standardScore >= 1.0 ? "Q2" : "Q3") : null;
       const pubDate = new Date(art.publishDate);
       const articleCitations = Math.max(art.citationCount || 0, art.citedBy.length);
 
@@ -382,12 +380,12 @@ export async function GET(request: Request) {
         title: art.title,
         doi: art.doi,
         publishDate: art.publishDate,
-        publishedYear: !isNaN(pubDate.getFullYear()) ? pubDate.getFullYear() : 2024,
+        publishedYear: !isNaN(pubDate.getFullYear()) ? pubDate.getFullYear() : undefined,
         journalId: isGenuineLocalJournal ? art.journal?.id : undefined,
-        journalName: authenticJournal,
-        journalGrade: isGenuineLocalJournal ? (art.journal?.qualityGrade || "A") : null,
-        journalScore: standardScore,
-        journalQuartile: quartile,
+        journalName: authenticJournal || undefined,
+        journalGrade: null,
+        journalScore: null,
+        journalQuartile: null,
         citationsCount: articleCitations,
         claimRole: c.role,
         claimStatus: c.status
@@ -424,139 +422,54 @@ export async function GET(request: Request) {
     // Compute citation metrics with verified scientometrics taking precedence
     const citationCounts = articles.map(art => art.citationsCount).sort((a, b) => b - a);
 
-    // If scholar currently has 0 claimed articles in DB (e.g. newly indexed / local environment), attach verified publications
-    // Strictly match Anthony M. Wanjohi (KENPRO) by email, ORCID, or exact name — never match other scholars with surname Wanjohi (e.g. James Wanjohi Muthomi)
-    if (articles.length === 0 && (user.email === "wanjohi@kenpro.org" || user.orcid === "0000-0002-6980-0298" || (user.name.toLowerCase().includes("anthony") && user.name.toLowerCase().includes("wanjohi")))) {
-      try {
-        const authenticArticles = [
-          {
-            id: "wanjohi-art-1",
-            title: "Social Research Methods Series: Proposal Writing Guide",
-            doi: "10.5281/zenodo.wanjohi.proposal.2014",
-            publishedYear: 2014,
-            journalName: "Peer-Reviewed Scholarly Publication",
-            journalGrade: "A",
-            journalScore: "2.458",
-            journalQuartile: "Q1",
-            citationsCount: 9,
-            claimRole: "Author",
-            claimStatus: "VERIFIED"
-          },
-          {
-            id: "wanjohi-art-2",
-            title: "Sustainability of Community Based Projects in Developing Countries: A Study of Sustainability Issues facing Community Based Projects in Rural Areas of Mbeere District in Kenya",
-            doi: "10.5281/zenodo.wanjohi.mbeere.2010",
-            publishedYear: 2010,
-            journalName: "Peer-Reviewed Scholarly Journal",
-            journalGrade: "A",
-            journalScore: "2.100",
-            journalQuartile: "Q1",
-            citationsCount: 6,
-            claimRole: "Author",
-            claimStatus: "VERIFIED"
-          },
-          {
-            id: "wanjohi-art-3",
-            title: "Social and Cultural Factors Influencing Teenage Pregnancies Among Secondary School Students in Gucha District of Kenya",
-            doi: "10.5281/zenodo.wanjohi.gucha.2010",
-            publishedYear: 2010,
-            journalName: "Peer-Reviewed Scholarly Journal",
-            journalGrade: "A",
-            journalScore: "1.950",
-            journalQuartile: "Q2",
-            citationsCount: 2,
-            claimRole: "Author",
-            claimStatus: "VERIFIED"
-          },
-          {
-            id: "wanjohi-art-4",
-            title: "The Plight of Youth in the 21st Century: Key Issues and Interventions in a Developing Economy’s Perspective",
-            doi: "10.5281/zenodo.wanjohi.youth.2012",
-            publishedYear: 2012,
-            journalName: "African Research Journal of Education and Social Sciences (ARJESS)",
-            journalGrade: "A",
-            journalScore: "2.458",
-            journalQuartile: "Q1",
-            citationsCount: 2,
-            claimRole: "Author / Editor-in-Chief",
-            claimStatus: "VERIFIED"
-          },
-          {
-            id: "wanjohi-art-5",
-            title: "Environmental, Social, Economic, and Political Sustainability in Sub-Saharan Africa",
-            doi: "10.1007/978-3-031-82857-7_3",
-            publishedYear: 2024,
-            journalName: "The Palgrave Handbook of Practical Sustainability (Springer Nature)",
-            journalGrade: "A+",
-            journalScore: "3.850",
-            journalQuartile: "Q1",
-            citationsCount: 2,
-            claimRole: "Author",
-            claimStatus: "VERIFIED"
-          }
-        ];
+    // Fetch authentic publications from OpenAlex if user has an openAlexId or is a verified scholar
+    // STRICT AUTHENTICITY SAFEGUARD: Only fetch by verified author.id — NO synthetic arrays or fake scores
+    const authorOaId = user.openAlexId 
+      ? user.openAlexId.replace(/https?:\/\/openalex\.org\//i, "").replace("https://openalex.org/", "").trim()
+      : null;
 
-        authenticArticles.forEach(a => {
-          articles.push({
-            id: a.id,
-            title: a.title,
-            doi: a.doi,
-            publishDate: new Date(`${a.publishedYear}-01-01`),
-            publishedYear: a.publishedYear,
-            journalId: undefined,
-            journalName: a.journalName,
-            journalGrade: a.journalGrade,
-            journalScore: a.journalScore,
-            journalQuartile: a.journalQuartile,
-            citationsCount: a.citationsCount,
-            claimRole: a.claimRole,
-            claimStatus: a.claimStatus
-          });
+    if (authorOaId && articles.length < 50) {
+      try {
+        const fetchUrl = `https://api.openalex.org/works?filter=author.id:${authorOaId}&sort=cited_by_count:desc&per-page=50&select=id,title,doi,publication_year,primary_location,cited_by_count&api_key=eP5PAl4g8tOWuRjhyo7hMY`;
+
+        const oaWorksRes = await fetch(fetchUrl, {
+          headers: { 'User-Agent': 'AfriJournalIndex/1.0 (mailto:afrijournalindex@gmail.com)' },
+          next: { revalidate: 86400 }
         });
-      } catch (errAttach) {
-        console.error("Error attaching verified publications:", errAttach);
-      }
-    }
 
-    // If scholar has few locally claimed articles but significant external citations (e.g. Mensah and top scholars),
-    // fetch their authentic top publications from OpenAlex Knowledge Graph so their profile shows their genuine body of work.
-    // STRICT AUTHENTICITY SAFEGUARD: Only fetch by verified author.id (NEVER by fuzzy free-text search) to avoid cross-attributing unrelated works!
-    if (articles.length < 10 && (user.openAlexId || user.totalCitations > 25000 || user.name.toLowerCase().includes("mensah"))) {
-      try {
-        const authorOaId = user.openAlexId 
-          ? user.openAlexId.replace(/https?:\/\/openalex\.org\//i, "").replace("https://openalex.org/", "").trim()
-          : (user.name.toLowerCase().includes("mensah") ? "A5014290409" : null);
+        if (oaWorksRes.ok) {
+          const oaWorksData = await oaWorksRes.json();
+          const results = oaWorksData.results || [];
+          results.forEach((w: any) => {
+            const venue = w.primary_location?.source?.display_name || undefined;
+            const wTitle = (w.title || "").trim();
+            if (!wTitle) return;
 
-        if (authorOaId) {
-          const fetchUrl = `https://api.openalex.org/works?filter=author.id:${authorOaId}&sort=cited_by_count:desc&per-page=25&select=id,title,doi,publication_year,primary_location,cited_by_count&api_key=eP5PAl4g8tOWuRjhyo7hMY`;
+            // Strict deduplication against existing claimed articles
+            const cleanDoi = w.doi ? w.doi.replace(/https?:\/\/doi\.org\//, '').trim() : null;
+            const alreadyExists = articles.some(existing => {
+              if (cleanDoi && existing.doi && existing.doi.toLowerCase() === cleanDoi.toLowerCase()) return true;
+              return existing.title.toLowerCase().trim() === wTitle.toLowerCase();
+            });
 
-          const oaWorksRes = await fetch(fetchUrl, {
-            headers: { 'User-Agent': 'AfriJournalIndexBot/2.0 (mailto:admin@afrijournalindexing.org)' },
-            next: { revalidate: 86400 }
-          });
-
-          if (oaWorksRes.ok) {
-            const oaWorksData = await oaWorksRes.json();
-            const results = oaWorksData.results || [];
-            results.forEach((w: any) => {
-              const venue = w.primary_location?.source?.display_name || "International Peer-Reviewed Journal";
+            if (!alreadyExists) {
               articles.push({
                 id: `oa-${w.id ? w.id.replace(/https?:\/\/openalex\.org\//, '') : Math.random()}`,
-                title: w.title || "Scholarly Publication",
-                doi: w.doi ? w.doi.replace(/https?:\/\/doi\.org\//, '') : null,
+                title: wTitle,
+                doi: cleanDoi,
                 publishDate: new Date(`${w.publication_year || 2020}-01-01`),
-                publishedYear: w.publication_year || 2020,
+                publishedYear: w.publication_year || undefined,
                 journalId: undefined,
                 journalName: venue,
-                journalGrade: "A+",
-                journalScore: "4.850",
-                journalQuartile: "Q1",
+                journalGrade: null,
+                journalScore: null,
+                journalQuartile: null,
                 citationsCount: w.cited_by_count || 0,
-                claimRole: "Co-Author / Investigator",
+                claimRole: "Author / Co-Author",
                 claimStatus: "VERIFIED"
               });
-            });
-          }
+            }
+          });
         }
       } catch (errOa) {
         console.error("Error fetching authentic OpenAlex works:", errOa);

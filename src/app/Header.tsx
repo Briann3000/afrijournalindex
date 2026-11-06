@@ -30,6 +30,8 @@ export default function Header({ activePage }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [mobileSearchQuery, setMobileSearchQuery] = useState<string>("");
+  const [liveResults, setLiveResults] = useState<{ scholars?: any[]; articles?: any[]; journals?: any[] } | null>(null);
+  const [isLiveSearching, setIsLiveSearching] = useState<boolean>(false);
 
   const navRef = useRef<HTMLDivElement>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
@@ -82,6 +84,33 @@ export default function Header({ activePage }: HeaderProps) {
       searchInputRef.current.focus();
     }
   }, [isSearchOpen]);
+
+  // Live search debounced fetch
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!q || q.length < 2) {
+      setLiveResults(null);
+      setIsLiveSearching(false);
+      return;
+    }
+
+    setIsLiveSearching(true);
+    const handler = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=4`);
+        if (res.ok) {
+          const data = await res.json();
+          setLiveResults(data);
+        }
+      } catch (err) {
+        console.error("Header live search error:", err);
+      } finally {
+        setIsLiveSearching(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -568,7 +597,7 @@ export default function Header({ activePage }: HeaderProps) {
                   borderRadius: "10px", 
                   padding: "4px 8px 4px 10px",
                   boxShadow: "0 12px 30px rgba(0, 0, 0, 0.75)",
-                  width: "280px",
+                  width: "320px",
                   maxWidth: "calc(100vw - 32px)",
                   zIndex: 1050
                 }}
@@ -613,6 +642,123 @@ export default function Header({ activePage }: HeaderProps) {
                 >
                   <i className="fa-solid fa-xmark"></i>
                 </button>
+
+                {/* Instant Live Results Popup */}
+                {liveResults && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 6px)",
+                      left: 0,
+                      right: 0,
+                      background: "#181820",
+                      border: "1px solid rgba(255, 255, 255, 0.12)",
+                      borderRadius: "8px",
+                      boxShadow: "0 12px 30px rgba(0, 0, 0, 0.8)",
+                      maxHeight: "320px",
+                      overflowY: "auto",
+                      padding: "0.5rem 0",
+                      zIndex: 1100
+                    }}
+                  >
+                    {/* Scholars */}
+                    {liveResults.scholars && liveResults.scholars.length > 0 && (
+                      <div style={{ padding: "0.3rem 0" }}>
+                        <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", padding: "0.2rem 0.8rem" }}>
+                          Scholars
+                        </div>
+                        {liveResults.scholars.slice(0, 3).map((s: any) => (
+                          <a
+                            key={s.id}
+                            href={s.afriScholarId ? `/scholar/${encodeURIComponent(s.afriScholarId)}` : `/researcher?id=${s.id}`}
+                            onClick={() => setIsSearchOpen(false)}
+                            style={{
+                              display: "block",
+                              padding: "0.4rem 0.8rem",
+                              color: "#f8fafc",
+                              fontSize: "0.8rem",
+                              textDecoration: "none",
+                              borderBottom: "1px solid rgba(255,255,255,0.04)"
+                            }}
+                          >
+                            <div style={{ fontWeight: 600 }}>{s.name}</div>
+                            <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>{s.institution || "African Scholar"}</div>
+                          </a>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Journals */}
+                    {liveResults.journals && liveResults.journals.length > 0 && (
+                      <div style={{ padding: "0.3rem 0" }}>
+                        <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", padding: "0.2rem 0.8rem" }}>
+                          Journals
+                        </div>
+                        {liveResults.journals.slice(0, 3).map((j: any) => (
+                          <a
+                            key={j.id}
+                            href={`/journal/${j.id}`}
+                            onClick={() => setIsSearchOpen(false)}
+                            style={{
+                              display: "block",
+                              padding: "0.4rem 0.8rem",
+                              color: "#f8fafc",
+                              fontSize: "0.8rem",
+                              textDecoration: "none",
+                              borderBottom: "1px solid rgba(255,255,255,0.04)"
+                            }}
+                          >
+                            <div style={{ fontWeight: 600 }}>{j.title}</div>
+                            <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>{j.publisher || j.country}</div>
+                          </a>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Articles */}
+                    {liveResults.articles && liveResults.articles.length > 0 && (
+                      <div style={{ padding: "0.3rem 0" }}>
+                        <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", padding: "0.2rem 0.8rem" }}>
+                          Articles
+                        </div>
+                        {liveResults.articles.slice(0, 3).map((a: any) => (
+                          <a
+                            key={a.id}
+                            href={`/article/${a.id}`}
+                            onClick={() => setIsSearchOpen(false)}
+                            style={{
+                              display: "block",
+                              padding: "0.4rem 0.8rem",
+                              color: "#f8fafc",
+                              fontSize: "0.8rem",
+                              textDecoration: "none",
+                              borderBottom: "1px solid rgba(255,255,255,0.04)"
+                            }}
+                          >
+                            <div style={{ fontWeight: 600 }}>{a.title}</div>
+                            <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>{a.journalTitle || a.publishedYear}</div>
+                          </a>
+                        ))}
+                      </div>
+                    )}
+
+                    <div style={{ padding: "0.4rem 0.8rem", borderTop: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
+                      <button
+                        type="submit"
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#f59e0b",
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                          cursor: "pointer"
+                        }}
+                      >
+                        View all results for &quot;{searchQuery}&quot; →
+                      </button>
+                    </div>
+                  </div>
+                )}
               </form>
             )}
           </div>

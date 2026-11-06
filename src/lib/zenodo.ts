@@ -23,9 +23,11 @@ export interface ZenodoArticleMetadata {
   journal_pages?: string;
   journal_issn?: string;
   keywords?: string[];
-  community_slug?: string; // e.g. "arjess" or "afrijournal-index"
+  community_slug?: string; // e.g. "afrijournal" or "arjess"
   access_right?: "open" | "closed" | "embargoed" | "restricted";
   license?: string; // e.g. "cc-by-4.0"
+  canonical_url?: string; // Official original paper URL on journal website
+  copyright_holder?: string; // e.g. "The Author(s)" or journal name
 }
 
 export interface ZenodoDepositionResult {
@@ -164,12 +166,42 @@ export class ZenodoClient {
       }
     }
 
+    // Link original article landing page on journal website
+    if (meta.canonical_url) {
+      relatedIdentifiers.push({
+        identifier: meta.canonical_url,
+        relation: "isIdenticalTo",
+        scheme: "url"
+      });
+    }
+
+    // Link Journal ISSN as isPartOf relation for indexing aggregators
+    if (meta.journal_issn) {
+      relatedIdentifiers.push({
+        identifier: meta.journal_issn,
+        relation: "isPartOf",
+        scheme: "issn"
+      });
+    }
+
+    // Format professional description with visible Abstract and Copyright & Licensing notice
+    const pubYear = meta.publication_date ? meta.publication_date.split("-")[0] : new Date().getFullYear().toString();
+    const copyrightOwner = meta.copyright_holder || "The Author(s)";
+    const cleanAbstract = meta.description
+      ? meta.description.trim()
+      : `<p>Research article published in <strong>${meta.journal_title}</strong>.</p>`;
+
+    // Ensure description has an explicit header if not already formatted
+    const formattedDescription = cleanAbstract.toLowerCase().includes("<h3") || cleanAbstract.toLowerCase().includes("<strong>abstract")
+      ? cleanAbstract
+      : `<h3>Abstract</h3>\n${cleanAbstract}\n<hr/>\n<p><strong>Copyright &amp; Licensing:</strong> &copy; ${pubYear} ${copyrightOwner}. Published by <em>${meta.journal_title}</em>. Distributed under the terms of the Creative Commons Attribution 4.0 International License (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).</p>`;
+
     const payload: any = {
       metadata: {
         title: meta.title,
         upload_type: "publication",
         publication_type: "article",
-        description: meta.description || `<p>Research article published in <strong>${meta.journal_title}</strong>.</p>`,
+        description: formattedDescription,
         publication_date: meta.publication_date,
         creators,
         access_right: meta.access_right || "open",

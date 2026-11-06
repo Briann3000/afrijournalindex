@@ -55,3 +55,9 @@ db-dump.json
 /public/uploads/*
 !/public/uploads/.gitkeep
 
+# Temporary generator scripts & progress cache
+scripts/dist/
+scripts/data/harvest_journal_20y_progress.json
+scripts/sync-amutabi-ids.js
+scripts/harvest-journals-20years.js
+

@@ -2302,11 +2302,12 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
                         onClick={(e) => {
                           e.stopPropagation();
                           if (typeof navigator !== "undefined" && navigator.clipboard) {
-                            navigator.clipboard.writeText(profile.afriScholarId);
-                            showToast("AfriScholar ID copied to clipboard!");
+                            const fullAsidUrl = `https://afrijournalindexing.org/scholar/${profile.afriScholarId}`;
+                            navigator.clipboard.writeText(fullAsidUrl);
+                            showToast("AfriScholar profile URL copied to clipboard!");
                           }
                         }}
-                        title="Copy AfriScholar ID"
+                        title="Copy full AfriScholar profile URL"
                         style={{
                           background: "none",
                           border: "none",
@@ -3076,32 +3077,7 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
             <span>Articles &amp; Books ({(data.articles?.length || 0) + (dossierState.books?.length || 0)})</span>
           </button>
 
-          {/* 2. Books & Monographs */}
-          {(dossierState.books.length > 0 || isOwner) && (
-            <button
-              type="button"
-              onClick={() => setActiveTab("books")}
-              style={{
-                padding: "0.75rem clamp(0.85rem, 2vw, 1.4rem)",
-                background: "none",
-                border: "none",
-                borderBottom: activeTab === "books" ? "2px solid var(--color-primary)" : "2px solid transparent",
-                marginBottom: "-2px",
-                fontWeight: 700,
-                fontSize: "clamp(0.82rem, 1.8vw, 0.95rem)",
-                color: activeTab === "books" ? "var(--color-primary)" : "var(--color-text-muted)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                whiteSpace: "nowrap",
-                flexShrink: 0
-              }}
-            >
-              <i className="fa-solid fa-book"></i>
-              <span>{t.researcher_page?.tab_books || "Books"} ({dossierState.books.length})</span>
-            </button>
-          )}
+
 
           {/* 3. Consultancies & Advisory */}
           {(dossierState.consultancies.length > 0 || isOwner) && (
@@ -3540,29 +3516,25 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
 
                       {/* Journal Details */}
                       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem", alignItems: "center", fontSize: "0.82rem", color: "var(--color-text-muted)", marginBottom: "0.6rem" }}>
-                        <span>
-                          Published in{" "}
-                          <a 
-                            href={art.journalId ? `/journal/${art.journalId}` : "#"} 
-                            style={{ color: "var(--color-primary)", fontWeight: 700, textDecoration: "none" }}
-                          >
-                            {art.journalName}
-                          </a>
-                        </span>
-                        <span>•</span>
-                        <span>{art.publishedYear || 2024}</span>
-                        
-                        {art.journalQuartile && (
-                          <span style={{ background: "var(--color-bg-card-subtle)", color: "var(--color-text-body)", border: "1px solid var(--color-border)", padding: "0.15rem 0.45rem", borderRadius: "4px", fontWeight: 700, fontSize: "0.75rem" }}>
-                            {art.journalQuartile}
+                        {art.journalName && (
+                          <span>
+                            Published in{" "}
+                            {art.journalId ? (
+                              <a 
+                                href={`/journal/${art.journalId}`} 
+                                style={{ color: "var(--color-primary)", fontWeight: 700, textDecoration: "none" }}
+                              >
+                                {art.journalName}
+                              </a>
+                            ) : (
+                              <span style={{ fontWeight: 600, color: "var(--color-text-body)" }}>
+                                {art.journalName}
+                              </span>
+                            )}
                           </span>
                         )}
-
-                        {art.journalScore && (
-                          <span style={{ background: "var(--color-bg-card-subtle)", color: "var(--color-text-body)", border: "1px solid var(--color-border)", padding: "0.15rem 0.45rem", borderRadius: "4px", fontWeight: 700, fontSize: "0.75rem" }}>
-                            AJCI {art.journalScore}
-                          </span>
-                        )}
+                        {art.journalName && art.publishedYear && <span>•</span>}
+                        {art.publishedYear && <span>{art.publishedYear}</span>}
                       </div>
 
                       {/* Metadata & DOI */}

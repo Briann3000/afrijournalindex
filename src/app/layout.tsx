@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { LangProvider } from "./LangContext";
 import CookieConsent from "../components/CookieConsent";
-import WhatsAppSupport from "../components/WhatsAppSupport";
+import AIAssistantWidget from "../components/AIAssistantWidget";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -139,7 +139,7 @@ export default function RootLayout({
         <LangProvider>
           {children}
           <CookieConsent />
-          <WhatsAppSupport />
+          <AIAssistantWidget />
         </LangProvider>
         {/* Non-blocking FontAwesome loader (zero render-blocking delay) */}
         <Script
