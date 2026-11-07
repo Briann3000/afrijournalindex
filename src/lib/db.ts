@@ -43,14 +43,9 @@ function getDbConfig() {
 }
 
 export const pool = globalForPrisma.pool ?? mariadb.createPool(getDbConfig());
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.pool = pool;
-}
+globalForPrisma.pool = pool;
 
 const adapter = new PrismaMariaDb(pool as any);
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+globalForPrisma.prisma = prisma;

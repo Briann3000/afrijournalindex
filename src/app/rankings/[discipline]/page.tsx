@@ -105,7 +105,6 @@ export default async function DisciplineRankingsPage({
                 <tr style={{ background: "var(--color-bg-alt)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-muted)", fontWeight: 700 }}>
                   <th style={{ padding: "1rem 1.2rem", width: "70px" }}>Rank</th>
                   <th style={{ padding: "1rem 1.2rem" }}>Journal & Country</th>
-                  <th style={{ padding: "1rem 1.2rem" }}>Quartile</th>
                   <th style={{ padding: "1rem 1.2rem", textAlign: "right" }}>AJCI Score</th>
                   <th style={{ padding: "1rem 1.2rem", textAlign: "center" }}>Action</th>
                 </tr>
@@ -113,22 +112,14 @@ export default async function DisciplineRankingsPage({
               <tbody>
                 {sortedJournals.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
+                    <td colSpan={4} style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
                       No indexed journals currently categorized under {disciplineName}.
                     </td>
                   </tr>
                 ) : (
                   sortedJournals.map((j, index) => {
                     const report = j.reports[0];
-                    const score = report ? report.standardScore.toFixed(3) : "—";
-                    const quartile = report?.quartile || "Q3";
-                    const quartileColors: Record<string, { bg: string; color: string }> = {
-                      Q1: { bg: "#eff6ff", color: "#1d4ed8" },
-                      Q2: { bg: "#f0fdf4", color: "#15803d" },
-                      Q3: { bg: "#fef3c7", color: "#b45309" },
-                      Q4: { bg: "#f1f5f9", color: "#475569" },
-                    };
-                    const qStyle = quartileColors[quartile] || quartileColors["Q3"];
+                    const score = report && report.standardScore > 0 ? report.standardScore.toFixed(3) : "—";
 
                     return (
                       <tr
@@ -146,11 +137,6 @@ export default async function DisciplineRankingsPage({
                           <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", marginTop: "2px" }}>
                             {j.country} • {j.publisherName}
                           </div>
-                        </td>
-                        <td style={{ padding: "1rem 1.2rem" }}>
-                          <span style={{ padding: "0.25rem 0.6rem", borderRadius: "6px", background: qStyle.bg, color: qStyle.color, fontWeight: 700, fontSize: "0.8rem" }}>
-                            {quartile}
-                          </span>
                         </td>
                         <td style={{ padding: "1rem 1.2rem", textAlign: "right", fontWeight: 800, color: "var(--color-primary)", fontSize: "1.05rem" }}>
                           {score}

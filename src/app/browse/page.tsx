@@ -17,9 +17,7 @@ interface Journal {
   frequency: string;
   disciplines: string[];
   primaryDiscipline: string;
-  quartile?: "Q1" | "Q2" | "Q3" | "Q4";
-  score?: number;
-  qualityGrade?: string;
+  score?: number | null;
   isIndexed?: boolean;
   isScopusIndexed?: boolean;
   isWosIndexed?: boolean;
@@ -135,31 +133,20 @@ function BrowseContent() {
     }
   }, [urlCountry, urlDiscipline, urlTab, urlQuery]);
 
-  // Load Journals
+  // Load Journals with fast single-query endpoint and automatic retry
   useEffect(() => {
-    async function loadJournals() {
+    let isMounted = true;
+    async function loadJournals(retries = 2) {
       setLoadingJournals(true);
       try {
-        const [listRes, rankRes] = await Promise.all([
-          fetch("/api/journals/list"),
-          fetch("/api/journals/rankings")
-        ]);
-
+        const listRes = await fetch("/api/journals/list");
+        if (!listRes.ok) throw new Error(`HTTP ${listRes.status}`);
         const listData = await listRes.json();
-        const rankData = await rankRes.json();
-
-        const rankingMap = new Map<string, any>();
-        if (rankData.success && Array.isArray(rankData.rankings)) {
-          rankData.rankings.forEach((r: any) => {
-            rankingMap.set(r.id, r);
-            if (r.name) rankingMap.set(r.name.toLowerCase().trim(), r);
-          });
-        }
 
         if (listData.success && Array.isArray(listData.journals) && listData.journals.length > 0) {
           const dbJournals: Journal[] = listData.journals.map((j: any) => {
-            const rankInfo = rankingMap.get(j.id) || rankingMap.get(j.name?.toLowerCase()?.trim());
             const discs = getDisciplines(j.name, j.description || "");
+            const parsedScore = j.score !== null && j.score !== undefined && Number(j.score) > 0 ? Number(j.score) : null;
 
             return {
               id: j.id,
@@ -171,9 +158,7 @@ function BrowseContent() {
               frequency: j.frequency || "Quarterly",
               disciplines: discs,
               primaryDiscipline: discs[0] || "Multidisciplinary",
-              quartile: rankInfo?.quartile || (j.qualityGrade === "A+" ? "Q1" : j.qualityGrade === "A" ? "Q2" : "Q3"),
-              score: rankInfo?.score !== undefined ? rankInfo.score : (j.qualityGrade === "A+" ? 3.10 : j.qualityGrade === "A" ? 2.15 : 1.10),
-              qualityGrade: j.qualityGrade || "A",
+              score: parsedScore,
               isIndexed: j.isIndexed ?? true,
               isScopusIndexed: Boolean(j.isScopusIndexed),
               isWosIndexed: Boolean(j.isWosIndexed),
@@ -181,15 +166,20 @@ function BrowseContent() {
             };
           });
 
-          setJournals(dbJournals);
+          if (isMounted) setJournals(dbJournals);
         }
       } catch (err) {
         console.error("Failed to load journals:", err);
+        if (retries > 0 && isMounted) {
+          setTimeout(() => loadJournals(retries - 1), 1200);
+          return;
+        }
       } finally {
-        setLoadingJournals(false);
+        if (isMounted) setLoadingJournals(false);
       }
     }
     loadJournals();
+    return () => { isMounted = false; };
   }, []);
 
   // Fetch Articles on search, sort, filter or page change
@@ -382,7 +372,7 @@ function BrowseContent() {
           }}
         >
           <i className="fa-solid fa-book-bookmark"></i>
-          Journals Directory ({journals.length > 0 ? journals.length : "1,680+"})
+          Journals Directory ({journals.length > 0 ? journals.length : "1,900+"})
         </button>
 
         <button
@@ -403,7 +393,7 @@ function BrowseContent() {
           }}
         >
           <i className="fa-solid fa-newspaper"></i>
-          Articles &amp; Abstracts ({articleTotal > 0 ? `${articleTotal} Results` : "20,000+ Papers"})
+          Articles &amp; Abstracts ({articleTotal > 0 ? `${articleTotal.toLocaleString()} Results` : "745,000+ Papers"})
         </button>
       </div>
 
@@ -633,7 +623,11 @@ function BrowseContent() {
                           </span>
                         </td>
                         <td style={{ textAlign: "right", padding: "0.9rem 1rem", fontWeight: 800, color: "var(--color-primary)", fontSize: "0.95rem" }}>
-                          {(journal.score ?? 0).toFixed(3)}
+                          {journal.score !== null && journal.score !== undefined && journal.score > 0 ? (
+                            journal.score.toFixed(3)
+                          ) : (
+                            <span style={{ color: "var(--color-text-muted)", fontWeight: 500, fontSize: "0.85rem" }}>—</span>
+                          )}
                         </td>
                         <td style={{ textAlign: "right", padding: "0.9rem 1.2rem" }}>
                           <div style={{ display: "inline-flex", gap: "0.4rem", alignItems: "center", justifyContent: "flex-end" }}>

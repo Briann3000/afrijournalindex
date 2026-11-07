@@ -297,6 +297,10 @@ export default function Header({ activePage }: HeaderProps) {
                   <i className="fa-solid fa-building-columns" style={{ color: "#f59e0b", width: "20px" }}></i>
                   <span>{(t?.nav?.institution && t?.nav?.institution !== "Institutional Console") ? t.nav.institution : "Institutional Rankings"}</span>
                 </a>
+                <a href="/where-africa-publishes" className="nav-dropdown-item">
+                  <i className="fa-solid fa-earth-africa" style={{ color: "#f59e0b", width: "20px" }}></i>
+                  <span>Where Africa Publishes</span>
+                </a>
               </div>
             )}
           </div>
@@ -1183,6 +1187,14 @@ export default function Header({ activePage }: HeaderProps) {
                   >
                     <i className="fa-solid fa-building-columns" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
                     <span>{(t?.nav?.institution && t?.nav?.institution !== "Institutional Console") ? t.nav.institution : "Institutional Rankings"}</span>
+                  </Link>
+                  <Link 
+                    href="/where-africa-publishes" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ color: "#cbd5e1", fontSize: "0.95rem", padding: "0.4rem 0", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-earth-africa" style={{ color: "#f59e0b", width: "18px", fontSize: "0.85rem", textAlign: "center" }}></i>
+                    <span>Where Africa Publishes</span>
                   </Link>
                 </div>
               )}

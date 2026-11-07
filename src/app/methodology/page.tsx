@@ -435,7 +435,7 @@ export default function Methodology() {
                   <i className="fa-solid fa-network-wired" style={{ color: "#2563eb" }}></i> OpenAlex &amp; OAI-PMH
                 </strong>
                 <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-                  Continental repository harvesting across 1,600+ African universities, capturing authentic institutional citations.
+                  Continental repository harvesting across 1,900+ African scholarly venues, capturing authentic institutional citations.
                 </span>
               </div>
             </div>

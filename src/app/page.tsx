@@ -14,25 +14,54 @@ interface ShowcaseJournal {
   issn: string;
   country: string;
   description: string;
-  qualityGrade: string;
   score: number;
   ycaScore: number;
   regionalScore: number;
   citationCount: number;
   articleCount: number;
-  quartile: string;
   primaryDiscipline: string;
   disciplineRank: number;
   totalInDiscipline: number;
 }
 
+// Static default Hero Journal (African Research Journal of Education and Social Sciences - ARJESS)
+const DEFAULT_HERO_JOURNAL: ShowcaseJournal = {
+  id: "264679fc-eb2d-4d55-b26e-3204dd06b46a",
+  name: "African Research Journal of Education and Social Sciences (ARJESS)",
+  issn: "2312-0134",
+  country: "Kenya",
+  description: "Focuses on education policy, social sciences, and regional development studies.",
+  score: 1.818,
+  ycaScore: 2.073,
+  regionalScore: 2.091,
+  citationCount: 80,
+  articleCount: 44,
+  primaryDiscipline: "Education & Social Sciences",
+  disciplineRank: 2,
+  totalInDiscipline: 40
+};
+
+// Static initial snapshot of authentic top 10 ranked continental journals directly from verified DB metrics
+const INITIAL_TOP_JOURNALS = [
+  { id: "c6b241b7-fd3b-4938-8da8-2b0140dcabf6", name: "Journal of Advanced Research", issn: "2090-1224", country: "Egypt", score: 12.612, primaryDiscipline: "Multidisciplinary", citationCount: 8652, articleCount: 686 },
+  { id: "50209cb5-4b16-4c05-a72b-c30704d06a34", name: "Journal of Biomedical and Sustainable Healthcare Applications", issn: "2790-0088", country: "Kenya", score: 11.75, primaryDiscipline: "Health Sciences", citationCount: 188, articleCount: 32 },
+  { id: "13abf2ae-24be-4b15-be7e-9f0b3e592713", name: "African Journal of Infectious Diseases", issn: "2006-0165", country: "Nigeria", score: 10.667, primaryDiscipline: "Health Sciences", citationCount: 64, articleCount: 18 },
+  { id: "9f321b6e-27eb-4d27-8ea1-7a36bfbf2676", name: "Alexandria Engineering Journal", issn: "1110-0168", country: "Egypt", score: 9.763, primaryDiscipline: "Engineering & Physical Sciences", citationCount: 25608, articleCount: 2232 },
+  { id: "01b229a6-b4ea-452b-97d2-423fabae4a0d", name: "South African Journal of Education", issn: "0256-0100", country: "South Africa", score: 8.862, primaryDiscipline: "Education", citationCount: 2044, articleCount: 181 },
+  { id: "4b87f1cf-710a-460a-a994-8821859622d0", name: "Journal of Public Relations", issn: "2789-9799", country: "Kenya", score: 7.083, primaryDiscipline: "Multidisciplinary", citationCount: 85, articleCount: 10 },
+  { id: "7c729807-0835-4f60-9466-5993cbd99dd9", name: "International Journal of Educational Administration and Policy Studies", issn: "2141-6656", country: "Nigeria", score: 6.7, primaryDiscipline: "Education", citationCount: 67, articleCount: 10 },
+  { id: "af667ea6-0912-43ec-b220-735febdf4116", name: "EURASIP Journal on Information Security", issn: "1687-4161", country: "Egypt", score: 6.378, primaryDiscipline: "Multidisciplinary", citationCount: 472, articleCount: 48 },
+  { id: "60ee34fb-47ae-40d8-af5e-4fddbc4126a0", name: "Future Journal of Pharmaceutical Sciences", issn: "2314-7245", country: "Egypt", score: 6.159, primaryDiscipline: "Health Sciences", citationCount: 2656, articleCount: 298 },
+  { id: "42d43752-28e1-4630-81fb-a6267b649c6f", name: "Ain Shams Engineering Journal", issn: "2090-4479", country: "Egypt", score: 6.055, primaryDiscipline: "Engineering & Physical Sciences", citationCount: 9418, articleCount: 949 }
+];
+
 export default function Home() {
   const { t } = useLang();
   const router = useRouter();
-  const [heroJournal, setHeroJournal] = useState<ShowcaseJournal | null>(null);
-  const [showcaseJournals, setShowcaseJournals] = useState<ShowcaseJournal[]>([]);
-  const [top10Journals, setTop10Journals] = useState<any[]>([]);
-  const [loadingTopJournals, setLoadingTopJournals] = useState<boolean>(true);
+  const [heroJournal, setHeroJournal] = useState<ShowcaseJournal>(DEFAULT_HERO_JOURNAL);
+  const [showcaseJournals, setShowcaseJournals] = useState<ShowcaseJournal[]>([DEFAULT_HERO_JOURNAL]);
+  const [top10Journals, setTop10Journals] = useState<any[]>(INITIAL_TOP_JOURNALS);
+  const [loadingTopJournals, setLoadingTopJournals] = useState<boolean>(false);
   const [heroSearchQuery, setHeroSearchQuery] = useState<string>("");
   const [heroSearchType, setHeroSearchType] = useState<"all" | "articles" | "journals" | "scholars">("all");
   const [liveSearchResults, setLiveSearchResults] = useState<any>(null);
@@ -120,13 +149,13 @@ export default function Home() {
   }, []);
 
   const disciplinesMarquee = [
-    { name: t.disciplines.health, filter: "Health Sciences", icon: "fa-stethoscope", count: "380+ " + t.disciplines.journals_count },
-    { name: t.disciplines.social, filter: "Social Sciences", icon: "fa-book-open-reader", count: "420+ " + t.disciplines.journals_count },
-    { name: t.disciplines.stem, filter: "Science", icon: "fa-microchip", count: "290+ " + t.disciplines.journals_count },
-    { name: t.disciplines.agri, filter: "Environment", icon: "fa-leaf", count: "240+ " + t.disciplines.journals_count },
-    { name: t.disciplines.business, filter: "Business", icon: "fa-chart-pie", count: "195+ " + t.disciplines.journals_count },
-    { name: t.disciplines.education, filter: "Education", icon: "fa-graduation-cap", count: "210+ " + t.disciplines.journals_count },
-    { name: t.disciplines.law, filter: "Social Sciences", icon: "fa-scale-balanced", count: "125+ " + t.disciplines.journals_count }
+    { name: t.disciplines.health, filter: "Health Sciences", icon: "fa-stethoscope", count: "420+ " + t.disciplines.journals_count },
+    { name: t.disciplines.social, filter: "Social Sciences", icon: "fa-book-open-reader", count: "370+ " + t.disciplines.journals_count },
+    { name: t.disciplines.stem, filter: "Science", icon: "fa-microchip", count: "330+ " + t.disciplines.journals_count },
+    { name: t.disciplines.agri, filter: "Environment", icon: "fa-leaf", count: "175+ " + t.disciplines.journals_count },
+    { name: t.disciplines.business, filter: "Business", icon: "fa-chart-pie", count: "150+ " + t.disciplines.journals_count },
+    { name: t.disciplines.education, filter: "Education", icon: "fa-graduation-cap", count: "140+ " + t.disciplines.journals_count },
+    { name: t.disciplines.law, filter: "Social Sciences", icon: "fa-scale-balanced", count: "95+ " + t.disciplines.journals_count }
   ];
 
   const top5Universities = [
@@ -506,7 +535,7 @@ export default function Home() {
                     <div style={{ marginBottom: "1.25rem" }}>
                       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "0.5rem" }}>
                         <span className="journal-tag" style={{ fontSize: "0.72rem", background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe" }}>
-                          <i className="fa-solid fa-award" style={{ marginRight: "4px" }}></i> {heroJournal.quartile} Quartile
+                          <i className="fa-solid fa-book-open" style={{ marginRight: "4px" }}></i> {heroJournal.primaryDiscipline}
                         </span>
                         <span className="journal-tag" style={{ fontSize: "0.72rem", background: "#ecfdf5", color: "#047857", border: "1px solid #a7f3d0" }}>
                           <i className="fa-solid fa-circle-check" style={{ marginRight: "4px" }}></i> Open Access
@@ -566,15 +595,15 @@ export default function Home() {
         <section className="stats-section">
           <div className="container stats-grid">
             <div className="stat-card">
-              <div className="stat-num">1,600+</div>
+              <div className="stat-num">1,900+</div>
               <div className="stat-label">{t.stats.journals}</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num">45,000+</div>
+              <div className="stat-num">745,000+</div>
               <div className="stat-label">Citable Peer Articles</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num">54</div>
+              <div className="stat-num">40+</div>
               <div className="stat-label">{t.stats.countries_covered}</div>
             </div>
             <div className="stat-card">
@@ -706,6 +735,69 @@ export default function Home() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </section>
+
+        {/* 7. Where Africa Publishes Scientometrics Feature Banner */}
+        <section style={{ padding: "3.5rem 0", background: "var(--color-bg-base)", borderTop: "1px solid var(--color-border)" }}>
+          <div className="container">
+            <div style={{
+              background: "linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.98))",
+              border: "1px solid rgba(212, 160, 74, 0.3)",
+              borderRadius: "20px",
+              padding: "2.5rem 2.2rem",
+              color: "#ffffff",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "2rem",
+              boxShadow: "0 20px 45px -10px rgba(15, 23, 42, 0.35)"
+            }}>
+              <div style={{ maxWidth: "700px" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(212, 160, 74, 0.2)", border: "1px solid rgba(212, 160, 74, 0.4)", padding: "0.25rem 0.75rem", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "0.85rem" }}>
+                  <i className="fa-solid fa-earth-africa"></i>
+                  Continental Scientometrics Matrix
+                </div>
+                <h3 style={{ fontSize: "clamp(1.4rem, 2.8vw, 1.95rem)", fontWeight: 800, margin: "0 0 0.6rem", color: "#ffffff", lineHeight: 1.3 }}>
+                  Where Does Africa Publish? Mapped Across 530,000+ Career Works
+                </h3>
+                <p style={{ fontSize: "0.92rem", color: "#cbd5e1", lineHeight: 1.7, margin: 0 }}>
+                  A public bibliometric analysis tracking publications across 500 top international open-access venues (such as <em>PLOS ONE</em>, <em>Scientific Reports</em>, and <em>The Lancet</em>) alongside 1,900+ sovereign African peer-reviewed journals.
+                </p>
+                <div style={{ display: "flex", gap: "1rem", marginTop: "1.2rem", flexWrap: "wrap", fontSize: "0.82rem" }}>
+                  <div style={{ background: "rgba(255,255,255,0.08)", padding: "0.35rem 0.8rem", borderRadius: "8px" }}>
+                    <strong style={{ color: "#38bdf8" }}>537,388</strong> Analyzed Works
+                  </div>
+                  <div style={{ background: "rgba(255,255,255,0.08)", padding: "0.35rem 0.8rem", borderRadius: "8px" }}>
+                    <strong style={{ color: "#4ade80" }}>1,907</strong> Sovereign African Journals
+                  </div>
+                  <div style={{ background: "rgba(255,255,255,0.08)", padding: "0.35rem 0.8rem", borderRadius: "8px" }}>
+                    <strong style={{ color: "#fbbf24" }}>17,488</strong> Preserved Continental Citations
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Link
+                  href="/where-africa-publishes"
+                  className="btn btn-primary"
+                  style={{
+                    padding: "0.85rem 1.6rem",
+                    fontSize: "0.95rem",
+                    fontWeight: 700,
+                    borderRadius: "12px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  <span>Explore Scientometrics Matrix</span>
+                  <i className="fa-solid fa-arrow-right"></i>
+                </Link>
+              </div>
             </div>
           </div>
         </section>

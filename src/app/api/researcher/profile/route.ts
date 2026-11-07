@@ -388,7 +388,9 @@ export async function GET(request: Request) {
         journalQuartile: null,
         citationsCount: articleCitations,
         claimRole: c.role,
-        claimStatus: c.status
+        claimStatus: c.status,
+        isLocalJournal: Boolean(isGenuineLocalJournal),
+        localArticleId: (art.id as string | null | undefined) ?? null
       };
     });
 
@@ -422,7 +424,50 @@ export async function GET(request: Request) {
     // Compute citation metrics with verified scientometrics taking precedence
     const citationCounts = articles.map(art => art.citationsCount).sort((a, b) => b - a);
 
-    // Fetch authentic publications from OpenAlex if user has an openAlexId or is a verified scholar
+    // Load authentic publications directly from persistent scholar_publication table
+    try {
+      const dbScholarPubs = await prisma.scholarPublication.findMany({
+        where: { userId: user.id },
+        orderBy: { citationCount: "desc" }
+      });
+
+      if (dbScholarPubs.length > 0) {
+        for (const sp of dbScholarPubs) {
+          const cleanDoi = sp.doi ? sp.doi.toLowerCase().trim() : null;
+          const pubDate = sp.publishDate ? new Date(sp.publishDate) : new Date();
+
+          // Deduplicate against existing claimed articles
+          const alreadyExists = articles.some(existing => {
+            if (cleanDoi && existing.doi && existing.doi.toLowerCase() === cleanDoi) return true;
+            return existing.title.toLowerCase().trim() === sp.title.toLowerCase().trim();
+          });
+
+          if (!alreadyExists) {
+            articles.push({
+              id: sp.id,
+              title: sp.title,
+              doi: cleanDoi,
+              publishDate: sp.publishDate || pubDate,
+              publishedYear: sp.publicationYear || (!isNaN(pubDate.getFullYear()) ? pubDate.getFullYear() : undefined),
+              journalId: sp.localArticleId || undefined,
+              journalName: sp.venue || undefined,
+              journalGrade: null,
+              journalScore: null,
+              journalQuartile: null,
+              citationsCount: sp.citationCount || 0,
+              claimRole: sp.role || "Author / Co-Author",
+              claimStatus: "VERIFIED",
+              isLocalJournal: Boolean(sp.isLocalJournal),
+              localArticleId: sp.localArticleId || null
+            });
+          }
+        }
+      }
+    } catch (errDbPub) {
+      console.warn("Could not query scholar_publication, using fallback:", errDbPub);
+    }
+
+    // Fallback: Fetch authentic publications from OpenAlex on the fly if DB publications not yet populated
     // STRICT AUTHENTICITY SAFEGUARD: Only fetch by verified author.id — NO synthetic arrays or fake scores
     const authorOaId = user.openAlexId 
       ? user.openAlexId.replace(/https?:\/\/openalex\.org\//i, "").replace("https://openalex.org/", "").trim()
@@ -466,7 +511,9 @@ export async function GET(request: Request) {
                 journalQuartile: null,
                 citationsCount: w.cited_by_count || 0,
                 claimRole: "Author / Co-Author",
-                claimStatus: "VERIFIED"
+                claimStatus: "VERIFIED",
+                isLocalJournal: false,
+                localArticleId: null
               });
             }
           });

@@ -61,6 +61,7 @@ model User {
   submissions   Submission[]
   comments      Comment[]
   claims        ClaimedPublication[]
+  publications  ScholarPublication[]
   payments      Payment[]
   forumTopics   ForumTopic[]
   forumReplies  ForumReply[]
@@ -148,6 +149,7 @@ model Journal {
   @@index([certificatePaid])
   @@index([isScopusIndexed])
   @@index([isWosIndexed])
+  @@fulltext([name, publisherName])
   @@map("journal")
 }
 
@@ -195,6 +197,7 @@ model Article {
 
   @@index([journalId])
   @@index([publishDate])
+  @@fulltext([title, abstract])
   @@map("article")
 }
 
@@ -266,6 +269,36 @@ model ClaimedPublication {
   @@index([userId])
   @@index([articleId])
   @@map("claimedpublication")
+}
+
+model ScholarPublication {
+  id              String    @id @default(uuid())
+  userId          String
+  title           String    @db.Text
+  doi             String?   @db.VarChar(255)
+  venue           String?   @db.VarChar(500)
+  publicationYear Int?
+  publishDate     DateTime?
+  citationCount   Int       @default(0)
+  abstract        String?   @db.LongText
+  pdfUrl          String?   @db.Text
+  openAlexWorkId  String?   @db.VarChar(100)
+  isLocalJournal  Boolean   @default(false)
+  localArticleId  String?   @db.VarChar(191)
+  role            String    @default("Author / Co-Author") @db.VarChar(100)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, openAlexWorkId], name: "uniq_scholar_work")
+  @@index([userId])
+  @@index([doi])
+  @@index([openAlexWorkId])
+  @@index([localArticleId])
+  @@index([citationCount])
+  @@fulltext([title, venue])
+  @@map("scholar_publication")
 }
 
 model Payment {

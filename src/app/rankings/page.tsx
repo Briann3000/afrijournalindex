@@ -11,11 +11,9 @@ interface RankedJournal {
   issn: string;
   eissn?: string;
   publisherName: string;
-  qualityGrade: string;
   country: string;
   primaryDiscipline?: string;
   disciplines?: string[];
-  quartile?: "Q1" | "Q2" | "Q3" | "Q4";
   disciplineRank?: number;
   totalInDiscipline?: number;
   score: number;

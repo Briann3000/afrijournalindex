@@ -48,6 +48,7 @@ export default function Footer() {
           <a href="/pricing">{t.nav.pricing}</a>
           <a href="/rankings">{t.nav.rankings}</a>
           <a href="/institution">{t.nav.institution}</a>
+          <a href="/where-africa-publishes">Where Africa Publishes</a>
         </div>
         
         <div className="footer-links">

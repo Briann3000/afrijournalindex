@@ -44,7 +44,6 @@ export async function generateMetadata({
     const issnStr = [journal.issn, journal.eissn].filter(Boolean).join(" / ") || "Registered";
     const report = journal.reports[0];
     const score = report ? report.standardScore.toFixed(3) : "Evaluated";
-    const quartile = report?.quartile ? ` (${report.quartile})` : "";
 
     const title = `${journal.name} — Indexed in AfriJournal Indexing | AJCI Metrics & Profile`;
     const description = `Official indexing record and citation metrics for ${journal.name} (ISSN: ${issnStr}), published by ${journal.publisherName} in ${journal.country}. Officially indexed in AfriJournal Indexing with verified 2-Year AJCI Citation Score: ${score}.`;

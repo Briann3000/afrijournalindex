@@ -10,12 +10,15 @@ function SearchPageContent() {
   const router = useRouter();
   const query = searchParams.get("q") || "";
   const typeParam = searchParams.get("type");
+  const pageParam = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
 
   const [activeTab, setActiveTab] = useState<"all" | "articles" | "journals" | "scholars">(
     typeParam === "articles" || typeParam === "journals" || typeParam === "scholars" ? typeParam : "all"
   );
   const [searchTerm, setSearchTerm] = useState<string>(query);
   const [loading, setLoading] = useState<boolean>(true);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
   const [results, setResults] = useState<{
     directAsidMatch?: boolean;
     journals: any[];
@@ -45,12 +48,16 @@ function SearchPageContent() {
     async function fetchResults() {
       if (!query.trim()) {
         setResults({ journals: [], scholars: [], articles: [], totalJournals: 0, totalScholars: 0, totalArticles: 0 });
+        setTotalPages(1);
+        setLatencyMs(null);
         setLoading(false);
         return;
       }
       setLoading(true);
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+        const typePart = activeTab !== "all" ? `&type=${activeTab}` : "";
+        const pagePart = pageParam > 1 ? `&page=${pageParam}` : "";
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}${typePart}${pagePart}`);
         const json = await res.json();
         if (json.success) {
           const fetchedResults = {
@@ -63,6 +70,8 @@ function SearchPageContent() {
             totalArticles: json.totalArticles || 0
           };
           setResults(fetchedResults);
+          setTotalPages(json.totalPages || 1);
+          setLatencyMs(json.latencyMs ?? null);
 
           // Smart Auto-Fallback: If URL requested a specific category with 0 matches, but other categories have matches, auto-show "all"
           const total = fetchedResults.totalArticles + fetchedResults.totalJournals + fetchedResults.totalScholars;
@@ -85,13 +94,13 @@ function SearchPageContent() {
     }
 
     fetchResults();
-  }, [query]);
+  }, [query, activeTab, pageParam]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
       const typePart = activeTab !== "all" ? `&type=${activeTab}` : "";
-      router.push(`/search?q=${encodeURIComponent(searchTerm.trim())}${typePart}`);
+      router.push(`/search?q=${encodeURIComponent(searchTerm.trim())}${typePart}&page=1`);
     }
   };
 
@@ -99,8 +108,15 @@ function SearchPageContent() {
     setActiveTab(newTab);
     if (query.trim()) {
       const typePart = newTab !== "all" ? `&type=${newTab}` : "";
-      router.push(`/search?q=${encodeURIComponent(query.trim())}${typePart}`);
+      router.push(`/search?q=${encodeURIComponent(query.trim())}${typePart}&page=1`);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    const typePart = activeTab !== "all" ? `&type=${activeTab}` : "";
+    router.push(`/search?q=${encodeURIComponent(query.trim())}${typePart}&page=${newPage}`);
+    window.scrollTo({ top: 120, behavior: "smooth" });
   };
 
   const totalResults = results.totalArticles + results.totalJournals + results.totalScholars;
@@ -130,8 +146,16 @@ function SearchPageContent() {
           </form>
 
           {query && (
-            <div style={{ marginTop: "1rem", fontSize: "0.9rem", color: "var(--color-text-muted)" }}>
-              Found <strong>{totalResults}</strong> result{totalResults !== 1 ? "s" : ""} for &quot;<span style={{ color: "var(--color-text-main)", fontWeight: 600 }}>{query}</span>&quot;
+            <div style={{ marginTop: "1rem", fontSize: "0.9rem", color: "var(--color-text-muted)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+              <div>
+                Found <strong>{totalResults.toLocaleString()}</strong> result{totalResults !== 1 ? "s" : ""} for &quot;<span style={{ color: "var(--color-text-main)", fontWeight: 600 }}>{query}</span>&quot;
+              </div>
+              {latencyMs !== null && (
+                <div style={{ fontSize: "0.78rem", color: "#166534", background: "rgba(22, 163, 74, 0.1)", padding: "2px 8px", borderRadius: "6px", display: "inline-flex", alignItems: "center", gap: "5px", fontWeight: 600 }}>
+                  <i className="fa-solid fa-bolt" style={{ fontSize: "0.7rem", color: "#16a34a" }}></i>
+                  <span>{latencyMs}ms index speed</span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -679,6 +703,80 @@ function SearchPageContent() {
                   );
                 })}
                 </div>
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "0.6rem",
+                  marginTop: "1.5rem",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => handlePageChange(pageParam - 1)}
+                  disabled={pageParam <= 1}
+                  className="btn btn-secondary btn-sm"
+                  style={{
+                    opacity: pageParam <= 1 ? 0.45 : 1,
+                    cursor: pageParam <= 1 ? "not-allowed" : "pointer",
+                    padding: "0.45rem 0.95rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontWeight: 600,
+                    borderRadius: "8px"
+                  }}
+                >
+                  <i className="fa-solid fa-chevron-left" style={{ fontSize: "0.75rem" }}></i>
+                  Previous
+                </button>
+
+                <div
+                  style={{
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    color: "var(--color-text-main)",
+                    padding: "0 1rem",
+                    background: "var(--color-bg-card)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "8px",
+                    height: "36px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px"
+                  }}
+                >
+                  <span>Page</span>
+                  <span style={{ color: "var(--color-primary)" }}>{pageParam}</span>
+                  <span>of {totalPages}</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handlePageChange(pageParam + 1)}
+                  disabled={pageParam >= totalPages}
+                  className="btn btn-secondary btn-sm"
+                  style={{
+                    opacity: pageParam >= totalPages ? 0.45 : 1,
+                    cursor: pageParam >= totalPages ? "not-allowed" : "pointer",
+                    padding: "0.45rem 0.95rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontWeight: 600,
+                    borderRadius: "8px"
+                  }}
+                >
+                  Next
+                  <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.75rem" }}></i>
+                </button>
               </div>
             )}
 

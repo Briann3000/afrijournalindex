@@ -111,8 +111,7 @@ export default async function CountryBrowsePage({
           ) : (
             journals.map((j) => {
               const report = j.reports[0];
-              const score = report ? report.standardScore.toFixed(3) : "—";
-              const quartile = report?.quartile || "Unrated";
+              const score = report && report.standardScore > 0 ? report.standardScore.toFixed(3) : "—";
               const issnDisplay = [j.issn, j.eissn].filter(Boolean).join(" • ") || "ISSN Pending";
 
               return (

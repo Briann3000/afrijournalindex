@@ -3242,7 +3242,7 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
                 Are some of your published African research papers missing?
               </h3>
               <p style={{ margin: 0, fontSize: "0.84rem", color: "#cbd5e1" }}>
-                Search over 31,500 cataloged articles in AfriJournal Index and claim them to your verified profile.
+                Search over 745,000+ cataloged articles in AfriJournal Index and claim them to your verified profile.
               </p>
             </div>
 
@@ -3460,7 +3460,7 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
                   Welcome to your Scholar Profile, {profile.name}!
                 </h3>
                 <p style={{ color: "var(--color-text-muted)", fontSize: "0.88rem", maxWidth: "520px", margin: "0 auto 1.4rem", lineHeight: 1.5 }}>
-                  You currently have 0 publications linked. Search over 31,500 cataloged African articles to claim your papers with Crossref DOI verification and compute your h-index.
+                  You currently have 0 publications linked. Search over 745,000+ cataloged African articles to claim your papers with Crossref DOI verification and compute your h-index.
                 </p>
                 {isOwner && (
                   <button
@@ -3556,6 +3556,28 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
                         <span style={{ color: "#16a34a", fontWeight: 600 }}>
                           <i className="fa-solid fa-check" style={{ marginRight: "3px" }}></i> Verified Peer-Reviewed
                         </span>
+
+                        {(art.isLocalJournal || art.localArticleId) && (
+                          <a
+                            href={art.localArticleId ? `/article/${art.localArticleId}` : (art.journalId ? `/journal/${art.journalId}` : "#")}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              padding: "2px 8px",
+                              borderRadius: "12px",
+                              background: "rgba(16, 185, 129, 0.12)",
+                              border: "1px solid rgba(16, 185, 129, 0.35)",
+                              color: "#059669",
+                              fontWeight: 700,
+                              fontSize: "0.75rem",
+                              textDecoration: "none"
+                            }}
+                            title="Indexed directly in the AfriJournal repository"
+                          >
+                            <i className="fa-solid fa-circle-check" style={{ fontSize: "0.75rem" }}></i> AfriJournal Indexed
+                          </a>
+                        )}
                       </div>
                     </div>
                   </div>
