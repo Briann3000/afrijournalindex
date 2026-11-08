@@ -8,6 +8,9 @@ import { ALL_AFRICAN_COUNTRIES } from "../../../data/african-countries";
 import { getScholarScientometrics, getAuthenticPublicationVenue } from "../../../../lib/scholar-metrics";
 import { fetchScholarProfile } from "../../../../lib/scholar-service";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const AFRICAN_COUNTRY_SET = new Set(ALL_AFRICAN_COUNTRIES.map(c => c.name.toLowerCase()));
 
 const AFRICAN_INSTITUTIONS_MAP: Record<string, string> = {

@@ -58,6 +58,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/forum`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.85,
+    },
+    {
       url: `${baseUrl}/pricing`,
       lastModified: new Date(),
       changeFrequency: "monthly",
@@ -206,6 +212,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.72,
     }));
 
+    // 6. Fetch active African scholarly forum discussions
+    const forumTopics = await prisma.forumTopic.findMany({
+      select: {
+        slug: true,
+        updatedAt: true,
+        createdAt: true,
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 2000,
+    });
+
+    const forumRoutes: MetadataRoute.Sitemap = forumTopics.map((t) => ({
+      url: `${baseUrl}/forum/${encodeURIComponent(t.slug)}`,
+      lastModified: t.updatedAt || t.createdAt || new Date(),
+      changeFrequency: "weekly",
+      priority: 0.75,
+    }));
+
     return [
       ...staticRoutes,
       ...countryRoutes,
@@ -215,6 +239,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...scholarRoutes,
       ...directoryRoutes,
       ...articleRoutes,
+      ...forumRoutes,
     ];
   } catch {
     return [...staticRoutes, ...countryRoutes, ...disciplineRoutes];

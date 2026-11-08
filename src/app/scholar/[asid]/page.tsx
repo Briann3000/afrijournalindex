@@ -6,6 +6,9 @@ import { normalizeAfriScholarId } from "../../../lib/afrischolar-id";
 import { fetchScholarProfile } from "../../../lib/scholar-service";
 import ResearcherProfileContent from "../../researcher/ResearcherProfileContent";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface Props {
   params: Promise<{ asid: string }>;
 }

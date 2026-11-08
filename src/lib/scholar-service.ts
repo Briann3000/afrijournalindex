@@ -288,31 +288,79 @@ export async function fetchScholarProfile(id: string) {
     });
 
     if (dbScholarPubs.length > 0) {
+      // Batch fetch local article records if any
+      const localArtIds = dbScholarPubs.map(sp => sp.localArticleId).filter(Boolean) as string[];
+      const localArticles = localArtIds.length > 0
+        ? await prisma.article.findMany({
+            where: { id: { in: localArtIds } },
+            select: {
+              id: true,
+              journalId: true,
+              journal: {
+                select: {
+                  id: true,
+                  name: true,
+                  issn: true,
+                  eissn: true,
+                  qualityGrade: true,
+                  reports: {
+                    orderBy: { year: "desc" },
+                    take: 1
+                  }
+                }
+              }
+            }
+          })
+        : [];
+      const localArtMap = new Map(localArticles.map(a => [a.id, a]));
+
       for (const sp of dbScholarPubs) {
         const cleanDoi = sp.doi ? sp.doi.toLowerCase().trim() : null;
         const pubDate = sp.publishDate ? new Date(sp.publishDate) : new Date();
 
-        const alreadyExists = articles.some(existing => {
+        const existingIdx = articles.findIndex(existing => {
           if (cleanDoi && existing.doi && existing.doi.toLowerCase() === cleanDoi) return true;
           return existing.title.toLowerCase().trim() === sp.title.toLowerCase().trim();
         });
 
-        if (!alreadyExists) {
+        const matchedLocal = sp.localArticleId ? localArtMap.get(sp.localArticleId) : null;
+        const canonicalJournalId = matchedLocal?.journal?.issn || matchedLocal?.journal?.eissn || matchedLocal?.journal?.id;
+        const canonicalJournalName = matchedLocal?.journal?.name || sp.venue || undefined;
+        const latestRep = matchedLocal?.journal?.reports?.[0];
+
+        if (existingIdx !== -1) {
+          // If the persistent record has curated journal/local data, enrich/override the existing claim
+          if (matchedLocal || sp.isLocalJournal || sp.localArticleId || sp.venue) {
+            articles[existingIdx].journalName = canonicalJournalName;
+            articles[existingIdx].journalId = canonicalJournalId || articles[existingIdx].journalId;
+            articles[existingIdx].isLocalJournal = Boolean(sp.isLocalJournal || matchedLocal);
+            articles[existingIdx].localArticleId = sp.localArticleId || articles[existingIdx].localArticleId;
+            if (matchedLocal) {
+              articles[existingIdx].journalGrade = matchedLocal.journal?.qualityGrade || null;
+              articles[existingIdx].journalScore = latestRep && typeof latestRep.standardScore === "number" ? latestRep.standardScore.toFixed(3) : null;
+              articles[existingIdx].journalQuartile = latestRep?.quartile || null;
+            }
+          } else if (articles[existingIdx].journalName === "The Journal of Independent Teaching and Learning" && !matchedLocal) {
+            // Unmap legacy false positive JITL fallback
+            articles[existingIdx].journalName = undefined;
+            articles[existingIdx].journalId = undefined;
+          }
+        } else {
           articles.push({
             id: sp.id,
             title: sp.title,
             doi: cleanDoi,
             publishDate: sp.publishDate || pubDate,
             publishedYear: sp.publicationYear || (!isNaN(pubDate.getFullYear()) ? pubDate.getFullYear() : undefined),
-            journalId: (sp.isLocalJournal && sp.localArticleId) ? sp.localArticleId : undefined,
-            journalName: sp.venue || undefined,
-            journalGrade: null,
-            journalScore: null,
-            journalQuartile: null,
+            journalId: canonicalJournalId || undefined,
+            journalName: canonicalJournalName,
+            journalGrade: matchedLocal?.journal?.qualityGrade || null,
+            journalScore: latestRep && typeof latestRep.standardScore === "number" ? latestRep.standardScore.toFixed(3) : null,
+            journalQuartile: latestRep?.quartile || null,
             citationsCount: sp.citationCount || 0,
             claimRole: sp.role || "Author / Co-Author",
             claimStatus: "VERIFIED",
-            isLocalJournal: Boolean(sp.isLocalJournal),
+            isLocalJournal: Boolean(sp.isLocalJournal || matchedLocal),
             localArticleId: sp.localArticleId || null
           });
         }

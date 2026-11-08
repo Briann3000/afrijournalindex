@@ -1480,7 +1480,7 @@ export default function ResearcherProfileContent({
       if (articles.length > 0) {
         const articleRows: CellDef[][] = articles.map((art: any) => [
           { text: `${art.publishedYear || "—"}`, isBold: true },
-          `${art.title}\nVenue: ${art.journalName || "AfriJournal Index"}`,
+          `${art.title}${art.journalName ? `\nVenue: ${art.journalName}` : ""}`,
           "Journal Article",
           art.doi
             ? { text: `DOI: ${art.doi}\nCitations: ${art.citationsCount || 0}`, url: `https://doi.org/${art.doi}` }
@@ -1793,7 +1793,7 @@ export default function ResearcherProfileContent({
     const bibEntries = data.articles.map((art: any) => {
       const authorLastName = (data.profile.name || "author").split(" ").pop()?.toLowerCase() || "author";
       const key = `${authorLastName}${art.publishedYear || 2024}_${art.id.slice(0, 5)}`;
-      return `@article{${key},\n  author = {${data.profile.name}},\n  title = {${art.title}},\n  journal = {${art.journalName || "AfriJournal Index"}},\n  year = {${art.publishedYear || 2024}}${art.doi ? `,\n  doi = {${art.doi}}` : ""}${asid ? `,\n  afrischolarid = {${asid}}` : ""}${orcid ? `,\n  orcid = {${orcid}}` : ""},\n  url = {${scholarUrl}}\n}`;
+      return `@article{${key},\n  author = {${data.profile.name}},\n  title = {${art.title}},${art.journalName ? `\n  journal = {${art.journalName}},` : ""}\n  year = {${art.publishedYear || 2024}}${art.doi ? `,\n  doi = {${art.doi}}` : ""}${asid ? `,\n  afrischolarid = {${asid}}` : ""}${orcid ? `,\n  orcid = {${orcid}}` : ""},\n  url = {${scholarUrl}}\n}`;
     }).join("\n\n");
 
     const blob = new Blob([bibEntries], { type: "text/plain;charset=utf-8" });
@@ -3559,6 +3559,14 @@ export default function ResearcherProfileContent({
                               >
                                 {art.journalName}
                               </a>
+                            ) : (art.journalName?.toLowerCase().includes("kenpro") || art.journalName?.toLowerCase().includes("kenya projects organization")) ? (
+                              <a 
+                                href={`/institution?name=${encodeURIComponent("Kenya Projects Organization (KENPRO)")}`} 
+                                style={{ color: "var(--color-primary)", fontWeight: 700, textDecoration: "none" }}
+                                title="View Kenya Projects Organization (KENPRO) Institutional Console"
+                              >
+                                {art.journalName}
+                              </a>
                             ) : (
                               <span style={{ fontWeight: 600, color: "var(--color-text-body)" }}>
                                 {art.journalName}
@@ -3586,30 +3594,17 @@ export default function ResearcherProfileContent({
                           </span>
                         )}
 
-                        <span style={{ color: "#16a34a", fontWeight: 600 }}>
-                          <i className="fa-solid fa-check" style={{ marginRight: "3px" }}></i> Verified Peer-Reviewed
-                        </span>
-
-                        {(art.isLocalJournal || art.localArticleId) && (
-                          <a
-                            href={art.localArticleId ? `/article/${art.localArticleId}` : (art.journalId ? `/journal/${art.journalId}` : "#")}
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "4px",
-                              padding: "2px 8px",
-                              borderRadius: "12px",
-                              background: "rgba(16, 185, 129, 0.12)",
-                              border: "1px solid rgba(16, 185, 129, 0.35)",
-                              color: "#059669",
-                              fontWeight: 700,
-                              fontSize: "0.75rem",
-                              textDecoration: "none"
-                            }}
-                            title="Indexed directly in the AfriJournal repository"
-                          >
-                            <i className="fa-solid fa-circle-check" style={{ fontSize: "0.75rem" }}></i> AfriJournal Indexed
-                          </a>
+                        {Boolean(
+                          art.journalName && 
+                          (art.isLocalJournal || art.journalGrade || art.doi) && 
+                          !art.journalName.toLowerCase().includes("repository") && 
+                          !art.journalName.toLowerCase().includes("preprint") &&
+                          !art.journalName.toLowerCase().includes("kenpro") &&
+                          !art.journalName.toLowerCase().includes("kenya projects organization")
+                        ) && (
+                          <span style={{ color: "#16a34a", fontWeight: 600 }}>
+                            <i className="fa-solid fa-check" style={{ marginRight: "3px" }}></i> Verified Peer-Reviewed
+                          </span>
                         )}
                       </div>
                     </div>
@@ -5851,19 +5846,19 @@ export default function ResearcherProfileContent({
                   `${profile.name}. (${activeCiteArticle.publishedYear || 2024}). ${activeCiteArticle.title}. ${activeCiteArticle.journalName}.${activeCiteArticle.doi ? ` https://doi.org/${activeCiteArticle.doi}` : ""}`
                 )}
                 {citeFormat === "Harvard" && (
-                  `${profile.name}, ${activeCiteArticle.publishedYear || 2024}. '${activeCiteArticle.title}', ${activeCiteArticle.journalName}.${activeCiteArticle.doi ? ` Available at: <https://doi.org/${activeCiteArticle.doi}>.` : ""}`
+                  `${profile.name}, ${activeCiteArticle.publishedYear || 2024}. '${activeCiteArticle.title}'${activeCiteArticle.journalName ? `, ${activeCiteArticle.journalName}` : ""}.${activeCiteArticle.doi ? ` Available at: <https://doi.org/${activeCiteArticle.doi}>.` : ""}`
                 )}
                 {citeFormat === "Chicago" && (
-                  `${profile.name}. ${activeCiteArticle.publishedYear || 2024}. "${activeCiteArticle.title}." ${activeCiteArticle.journalName}.${activeCiteArticle.doi ? ` https://doi.org/${activeCiteArticle.doi}.` : ""}`
+                  `${profile.name}. ${activeCiteArticle.publishedYear || 2024}. "${activeCiteArticle.title}."${activeCiteArticle.journalName ? ` ${activeCiteArticle.journalName}.` : ""}${activeCiteArticle.doi ? ` https://doi.org/${activeCiteArticle.doi}.` : ""}`
                 )}
                 {citeFormat === "Vancouver" && (
-                  `${profile.name}. ${activeCiteArticle.title}. ${activeCiteArticle.journalName}. ${activeCiteArticle.publishedYear || 2024};${activeCiteArticle.doi ? ` Available from: https://doi.org/${activeCiteArticle.doi}` : ""}`
+                  `${profile.name}. ${activeCiteArticle.title}.${activeCiteArticle.journalName ? ` ${activeCiteArticle.journalName}.` : ""} ${activeCiteArticle.publishedYear || 2024};${activeCiteArticle.doi ? ` Available from: https://doi.org/${activeCiteArticle.doi}` : ""}`
                 )}
                 {citeFormat === "BibTeX" && (
-                  `@article{${profile.name.split(" ")[0].toLowerCase()}${activeCiteArticle.publishedYear || 2024},\n  author = {${profile.name}},\n  title = {${activeCiteArticle.title}},\n  journal = {${activeCiteArticle.journalName}},\n  year = {${activeCiteArticle.publishedYear || 2024}}${activeCiteArticle.doi ? `,\n  doi = {${activeCiteArticle.doi}}` : ""}\n}`
+                  `@article{${profile.name.split(" ")[0].toLowerCase()}${activeCiteArticle.publishedYear || 2024},\n  author = {${profile.name}},\n  title = {${activeCiteArticle.title}},${activeCiteArticle.journalName ? `\n  journal = {${activeCiteArticle.journalName}},` : ""}\n  year = {${activeCiteArticle.publishedYear || 2024}}${activeCiteArticle.doi ? `,\n  doi = {${activeCiteArticle.doi}}` : ""}\n}`
                 )}
                 {citeFormat === "RIS" && (
-                  `TY  - JOUR\nTI  - ${activeCiteArticle.title}\nAU  - ${profile.name}\nJO  - ${activeCiteArticle.journalName}\nPY  - ${activeCiteArticle.publishedYear || 2024}\n${activeCiteArticle.doi ? `DO  - ${activeCiteArticle.doi}\n` : ""}ER  - `
+                  `TY  - JOUR\nTI  - ${activeCiteArticle.title}\nAU  - ${profile.name}${activeCiteArticle.journalName ? `\nJO  - ${activeCiteArticle.journalName}` : ""}\nPY  - ${activeCiteArticle.publishedYear || 2024}\n${activeCiteArticle.doi ? `DO  - ${activeCiteArticle.doi}\n` : ""}ER  - `
                 )}
               </div>
 
@@ -5872,10 +5867,10 @@ export default function ResearcherProfileContent({
                   <button
                     onClick={() => {
                       if (citeFormat === "BibTeX") {
-                        const content = `@article{${profile.name.split(" ")[0].toLowerCase()}${activeCiteArticle.publishedYear || 2024},\n  author = {${profile.name}},\n  title = {${activeCiteArticle.title}},\n  journal = {${activeCiteArticle.journalName}},\n  year = {${activeCiteArticle.publishedYear || 2024}}${activeCiteArticle.doi ? `,\n  doi = {${activeCiteArticle.doi}}` : ""}\n}`;
+                        const content = `@article{${profile.name.split(" ")[0].toLowerCase()}${activeCiteArticle.publishedYear || 2024},\n  author = {${profile.name}},\n  title = {${activeCiteArticle.title}},${activeCiteArticle.journalName ? `\n  journal = {${activeCiteArticle.journalName}},` : ""}\n  year = {${activeCiteArticle.publishedYear || 2024}}${activeCiteArticle.doi ? `,\n  doi = {${activeCiteArticle.doi}}` : ""}\n}`;
                         downloadFile(content, `citation_${activeCiteArticle.id || "export"}.bib`, "text/plain");
                       } else {
-                        const content = `TY  - JOUR\nTI  - ${activeCiteArticle.title}\nAU  - ${profile.name}\nJO  - ${activeCiteArticle.journalName}\nPY  - ${activeCiteArticle.publishedYear || 2024}\n${activeCiteArticle.doi ? `DO  - ${activeCiteArticle.doi}\n` : ""}ER  - `;
+                        const content = `TY  - JOUR\nTI  - ${activeCiteArticle.title}\nAU  - ${profile.name}${activeCiteArticle.journalName ? `\nJO  - ${activeCiteArticle.journalName}` : ""}\nPY  - ${activeCiteArticle.publishedYear || 2024}\n${activeCiteArticle.doi ? `DO  - ${activeCiteArticle.doi}\n` : ""}ER  - `;
                         downloadFile(content, `citation_${activeCiteArticle.id || "export"}.ris`, "application/x-research-info-systems");
                       }
                       showToast(`Downloaded citation as .${citeFormat.toLowerCase()}!`);
@@ -5892,17 +5887,17 @@ export default function ResearcherProfileContent({
                   onClick={() => {
                     let text = "";
                     if (citeFormat === "APA") {
-                      text = `${profile.name}. (${activeCiteArticle.publishedYear || 2024}). ${activeCiteArticle.title}. ${activeCiteArticle.journalName}.${activeCiteArticle.doi ? ` https://doi.org/${activeCiteArticle.doi}` : ""}`;
+                      text = `${profile.name}. (${activeCiteArticle.publishedYear || 2024}). ${activeCiteArticle.title}.${activeCiteArticle.journalName ? ` ${activeCiteArticle.journalName}.` : ""}${activeCiteArticle.doi ? ` https://doi.org/${activeCiteArticle.doi}` : ""}`;
                     } else if (citeFormat === "Harvard") {
-                      text = `${profile.name}, ${activeCiteArticle.publishedYear || 2024}. '${activeCiteArticle.title}', ${activeCiteArticle.journalName}.${activeCiteArticle.doi ? ` Available at: <https://doi.org/${activeCiteArticle.doi}>.` : ""}`;
+                      text = `${profile.name}, ${activeCiteArticle.publishedYear || 2024}. '${activeCiteArticle.title}'${activeCiteArticle.journalName ? `, ${activeCiteArticle.journalName}` : ""}.${activeCiteArticle.doi ? ` Available at: <https://doi.org/${activeCiteArticle.doi}>.` : ""}`;
                     } else if (citeFormat === "Chicago") {
-                      text = `${profile.name}. ${activeCiteArticle.publishedYear || 2024}. "${activeCiteArticle.title}." ${activeCiteArticle.journalName}.${activeCiteArticle.doi ? ` https://doi.org/${activeCiteArticle.doi}.` : ""}`;
+                      text = `${profile.name}. ${activeCiteArticle.publishedYear || 2024}. "${activeCiteArticle.title}."${activeCiteArticle.journalName ? ` ${activeCiteArticle.journalName}.` : ""}${activeCiteArticle.doi ? ` https://doi.org/${activeCiteArticle.doi}.` : ""}`;
                     } else if (citeFormat === "Vancouver") {
-                      text = `${profile.name}. ${activeCiteArticle.title}. ${activeCiteArticle.journalName}. ${activeCiteArticle.publishedYear || 2024};${activeCiteArticle.doi ? ` Available from: https://doi.org/${activeCiteArticle.doi}` : ""}`;
+                      text = `${profile.name}. ${activeCiteArticle.title}.${activeCiteArticle.journalName ? ` ${activeCiteArticle.journalName}.` : ""} ${activeCiteArticle.publishedYear || 2024};${activeCiteArticle.doi ? ` Available from: https://doi.org/${activeCiteArticle.doi}` : ""}`;
                     } else if (citeFormat === "BibTeX") {
-                      text = `@article{${profile.name.split(" ")[0].toLowerCase()}${activeCiteArticle.publishedYear || 2024},\n  author = {${profile.name}},\n  title = {${activeCiteArticle.title}},\n  journal = {${activeCiteArticle.journalName}},\n  year = {${activeCiteArticle.publishedYear || 2024}}${activeCiteArticle.doi ? `,\n  doi = {${activeCiteArticle.doi}}` : ""}\n}`;
+                      text = `@article{${profile.name.split(" ")[0].toLowerCase()}${activeCiteArticle.publishedYear || 2024},\n  author = {${profile.name}},\n  title = {${activeCiteArticle.title}},${activeCiteArticle.journalName ? `\n  journal = {${activeCiteArticle.journalName}},` : ""}\n  year = {${activeCiteArticle.publishedYear || 2024}}${activeCiteArticle.doi ? `,\n  doi = {${activeCiteArticle.doi}}` : ""}\n}`;
                     } else {
-                      text = `TY  - JOUR\nTI  - ${activeCiteArticle.title}\nAU  - ${profile.name}\nJO  - ${activeCiteArticle.journalName}\nPY  - ${activeCiteArticle.publishedYear || 2024}\n${activeCiteArticle.doi ? `DO  - ${activeCiteArticle.doi}\n` : ""}ER  - `;
+                      text = `TY  - JOUR\nTI  - ${activeCiteArticle.title}\nAU  - ${profile.name}${activeCiteArticle.journalName ? `\nJO  - ${activeCiteArticle.journalName}` : ""}\nPY  - ${activeCiteArticle.publishedYear || 2024}\n${activeCiteArticle.doi ? `DO  - ${activeCiteArticle.doi}\n` : ""}ER  - `;
                     }
                     navigator.clipboard.writeText(text);
                     showToast(`${citeFormat} citation copied!`);
