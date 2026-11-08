@@ -7,6 +7,7 @@ import { useLang } from "./LangContext";
 import Header from "./Header";
 import Footer from "./Footer";
 import AfricaMap from "./AfricaMap";
+import { getJournalUrl } from "../lib/journal-utils";
 
 interface ShowcaseJournal {
   id: string;
@@ -176,11 +177,6 @@ export default function Home() {
         <section className="hero-section">
           <div className="container hero-container">
             <div className="hero-content">
-              <div className="badge-featured">
-                <i className="fa-solid fa-certificate"></i>
-                {t.hero.pre_badge}
-              </div>
-
               <h1 className="hero-title">
                 Elevating African Academic Excellence Through Unbiased Indexing
               </h1>
@@ -360,7 +356,7 @@ export default function Home() {
                         {liveSearchResults.journals.slice(0, 3).map((j: any) => (
                           <Link
                             key={j.id}
-                            href={`/journal/${j.id}`}
+                            href={getJournalUrl(j)}
                             onClick={() => setShowLiveDropdown(false)}
                             style={{
                               display: "flex",
@@ -496,7 +492,7 @@ export default function Home() {
                 </a>
                 <a href="/submit" className="btn btn-secondary btn-lg">
                   <i className="fa-solid fa-cloud-arrow-up"></i>
-                  {t.hero.cta_submit}
+                  {t.hero.cta_submit || "Submit Your Journal"}
                 </a>
               </div>
             </div>
@@ -517,17 +513,7 @@ export default function Home() {
               />
               <div className="glass-card visual-card" style={{ position: "relative", zIndex: 1, background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "20px", padding: "1.75rem", boxShadow: "0 20px 45px -10px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(212, 160, 74, 0.15)" }}>
                 {/* Visual Header / Live Verification Pill */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "0.85rem" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 0 3px rgba(16, 185, 129, 0.25)" }}></span>
-                    <span style={{ fontSize: "0.78rem", fontWeight: 800, color: "#047857", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                      Verified Continental Index
-                    </span>
-                  </div>
-                  <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
-                    AJCI 2025/2026
-                  </span>
-                </div>
+
 
                 {/* Journal Showcase Profile */}
                 {heroJournal ? (
@@ -599,16 +585,16 @@ export default function Home() {
               <div className="stat-label">{t.stats.journals}</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num">745,000+</div>
+              <div className="stat-num">746,000+</div>
               <div className="stat-label">Citable Peer Articles</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num">40+</div>
-              <div className="stat-label">{t.stats.countries_covered}</div>
+              <div className="stat-num">509,000+</div>
+              <div className="stat-label">Scholar Publications</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num">100%</div>
-              <div className="stat-label">{t.stats.free_indexing}</div>
+              <div className="stat-num">1,140+</div>
+              <div className="stat-label">African Institutions</div>
             </div>
           </div>
         </section>
@@ -702,7 +688,7 @@ export default function Home() {
                           #{idx + 1}
                         </td>
                         <td style={{ padding: "1rem 1.25rem", fontWeight: 700 }}>
-                          <a href={`/journal/${j.issn || j.id}`} style={{ color: "var(--color-navy)", textDecoration: "none" }} className="hover-primary">
+                          <a href={getJournalUrl(j)} style={{ color: "var(--color-navy)", textDecoration: "none" }} className="hover-primary">
                             {j.name}
                           </a>
                           <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", fontWeight: 400, marginTop: "2px" }}>
@@ -756,10 +742,6 @@ export default function Home() {
               boxShadow: "0 20px 45px -10px rgba(15, 23, 42, 0.35)"
             }}>
               <div style={{ maxWidth: "700px" }}>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(212, 160, 74, 0.2)", border: "1px solid rgba(212, 160, 74, 0.4)", padding: "0.25rem 0.75rem", borderRadius: "12px", fontSize: "0.78rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "0.85rem" }}>
-                  <i className="fa-solid fa-earth-africa"></i>
-                  Continental Scientometrics Matrix
-                </div>
                 <h3 style={{ fontSize: "clamp(1.4rem, 2.8vw, 1.95rem)", fontWeight: 800, margin: "0 0 0.6rem", color: "#ffffff", lineHeight: 1.3 }}>
                   Where Does Africa Publish? Mapped Across 530,000+ Career Works
                 </h3>
@@ -768,13 +750,13 @@ export default function Home() {
                 </p>
                 <div style={{ display: "flex", gap: "1rem", marginTop: "1.2rem", flexWrap: "wrap", fontSize: "0.82rem" }}>
                   <div style={{ background: "rgba(255,255,255,0.08)", padding: "0.35rem 0.8rem", borderRadius: "8px" }}>
-                    <strong style={{ color: "#38bdf8" }}>537,388</strong> Analyzed Works
+                    <strong style={{ color: "#fbbf24" }}>537,000+</strong> Analyzed Works
                   </div>
                   <div style={{ background: "rgba(255,255,255,0.08)", padding: "0.35rem 0.8rem", borderRadius: "8px" }}>
-                    <strong style={{ color: "#4ade80" }}>1,907</strong> Sovereign African Journals
+                    <strong style={{ color: "#fbbf24" }}>1,900+</strong> Sovereign African Journals
                   </div>
                   <div style={{ background: "rgba(255,255,255,0.08)", padding: "0.35rem 0.8rem", borderRadius: "8px" }}>
-                    <strong style={{ color: "#fbbf24" }}>17,488</strong> Preserved Continental Citations
+                    <strong style={{ color: "#fbbf24" }}>17,000+</strong> Preserved Continental Citations
                   </div>
                 </div>
               </div>

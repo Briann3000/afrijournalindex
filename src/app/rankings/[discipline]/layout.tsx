@@ -10,7 +10,7 @@ export async function generateMetadata({
   const disciplineName = TOP_DISCIPLINE_SLUGS[disciplineSlug] || disciplineSlug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
   const title = `African Journal Rankings: ${disciplineName} — AJCI Leaderboard & Quartiles`;
-  const description = `Top-ranked African scholarly journals in ${disciplineName}. Compare 2-year AJCI citation impact, subject quartiles (Q1 to Q4), and regional research output.`;
+  const description = `Top-ranked African scholarly journals in ${disciplineName}. Compare 2-year AJCI citation impact and regional research output.`;
 
   return {
     title,

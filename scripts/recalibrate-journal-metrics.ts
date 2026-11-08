@@ -157,7 +157,7 @@ async function recalibrateAll() {
   });
   console.log("Top 5 Leaderboard after recalibration:");
   for (const r of topRanked) {
-    console.log(`- ${r.journal.name} (${r.journal.country}) [Grade ${r.journal.qualityGrade}]: AJIF = ${r.standardScore.toFixed(3)}, Regional = ${r.regionalScore?.toFixed(3)}, Citations = ${r.citationCount}`);
+    console.log(`- ${r.journal.name} (${r.journal.country}) [Grade ${r.journal.qualityGrade}]: AJCI = ${r.standardScore.toFixed(3)}, Regional = ${r.regionalScore?.toFixed(3)}, Citations = ${r.citationCount}`);
   }
 }
 

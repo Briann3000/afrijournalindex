@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
 import Header from "../Header";
 import Footer from "../Footer";
+import { getJournalUrl } from "../../lib/journal-utils";
 
 interface RankedJournal {
   id: string;
@@ -211,7 +212,7 @@ export default function RankingsPage() {
                     title="Click to sort by 2-Year AJCI Citation Index"
                   >
                     <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: "6px", width: "100%" }}>
-                      {t.rankings_page.col_ajif}
+                      {(t.rankings_page as any).col_ajci || (t.rankings_page as any).col_AJCI || t.rankings_page.col_ajif}
                       <i 
                         className={`fa-solid ${sortBy === "score" ? (sortOrder === "asc" ? "fa-sort-up" : "fa-sort-down") : "fa-sort"}`}
                         style={{ opacity: sortBy === "score" ? 1 : 0.35, color: sortBy === "score" ? "var(--color-primary)" : "inherit" }}
@@ -273,7 +274,7 @@ export default function RankingsPage() {
                         )}
                       </td>
                       <td style={{ padding: "1rem" }}>
-                        <a href={`/journal/${journal.id}`} style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "0.98rem" }}>
+                        <a href={getJournalUrl(journal)} style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "0.98rem" }}>
                           {journal.name}
                         </a>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem", fontSize: "0.8rem", color: "var(--color-text-muted)", marginTop: "0.25rem" }}>

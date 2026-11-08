@@ -40,7 +40,7 @@ copyRecursive(path.join(baseDir, 'prisma'), path.join(deployDir, 'prisma'));
 
 console.log('Copying source files & scripts...');
 copyRecursive(path.join(baseDir, 'src'), path.join(deployDir, 'src'));
-copyRecursive(path.join(baseDir, 'scripts'), path.join(deployDir, 'scripts'), ['build-zip.js', 'verify-zip.js', 'inspect-build.js']);
+copyRecursive(path.join(baseDir, 'scripts'), path.join(deployDir, 'scripts'), ['build-zip.js', 'verify-zip.js', 'inspect-build.js', 'cpanel-migrations', 'full-sync']);
 
 console.log('Copying manifests & config files...');
 const filesToCopy = ['package.json', 'package-lock.json', 'next.config.ts', 'tsconfig.json', 'server.js', 'app.js'];
@@ -53,7 +53,8 @@ console.log('Compressing deploy-package.zip...');
 const zipOutput = path.join(baseDir, 'deploy-package.zip');
 if (fs.existsSync(zipOutput)) fs.unlinkSync(zipOutput);
 
-execSync(`powershell -Command "Compress-Archive -Path '${deployDir}\\*' -DestinationPath '${zipOutput}' -Force"`, { stdio: 'inherit' });
+// Use native Windows tar to avoid PowerShell System.OutOfMemoryException
+execSync(`tar -a -c -f "${zipOutput}" -C "${deployDir}" .`, { stdio: 'inherit' });
 
 // Cleanup staging folder
 fs.rmSync(deployDir, { recursive: true, force: true });

@@ -892,7 +892,13 @@ export default function Header({ activePage }: HeaderProps) {
                           setOpenDropdown(null);
                           await fetch("/api/auth/login", { method: "DELETE" }).catch(() => {});
                           await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
-                          window.location.href = "/login";
+                          const currentPath = window.location.pathname;
+                          const isProtectedRoute = currentPath.startsWith("/admin") || currentPath.startsWith("/reviewer") || currentPath.startsWith("/editor");
+                          if (isProtectedRoute) {
+                            window.location.href = "/login";
+                          } else {
+                            window.location.reload();
+                          }
                         }}
                         style={{
                           width: "100%",
@@ -931,18 +937,6 @@ export default function Header({ activePage }: HeaderProps) {
                   }}
                 >
                   {t.nav.login}
-                </a>
-                <a 
-                  href="/submit" 
-                  className="btn btn-primary btn-sm"
-                  style={{
-                    padding: "0.32rem 0.75rem",
-                    fontSize: "0.80rem",
-                    whiteSpace: "nowrap",
-                    fontWeight: 700
-                  }}
-                >
-                  {t.nav.get_started}
                 </a>
               </>
             )}
@@ -1597,7 +1591,13 @@ export default function Header({ activePage }: HeaderProps) {
                     onClick={async () => {
                       await fetch("/api/auth/login", { method: "DELETE" }).catch(() => {});
                       await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
-                      window.location.href = "/login";
+                      const currentPath = window.location.pathname;
+                      const isProtectedRoute = currentPath.startsWith("/admin") || currentPath.startsWith("/reviewer") || currentPath.startsWith("/editor");
+                      if (isProtectedRoute) {
+                        window.location.href = "/login";
+                      } else {
+                        window.location.reload();
+                      }
                     }}
                     className="btn btn-secondary"
                     style={{ width: "100%", justifyContent: "center", border: "1px solid rgba(239,68,68,0.4)", color: "#f87171", background: "#1e293b" }}
@@ -1614,14 +1614,6 @@ export default function Header({ activePage }: HeaderProps) {
                     style={{ width: "100%", justifyContent: "center", background: "#1e293b", color: "#ffffff", border: "1px solid #334155" }}
                   >
                     {t.nav.login}
-                  </Link>
-                  <Link 
-                    href="/submit" 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="btn btn-primary" 
-                    style={{ width: "100%", justifyContent: "center" }}
-                  >
-                    {t.nav.get_started}
                   </Link>
                 </>
               )}

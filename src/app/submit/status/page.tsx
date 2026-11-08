@@ -289,14 +289,14 @@ function StatusContent() {
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(185px, 1fr))", gap: "1.25rem" }}>
               <div style={{ padding: "1.25rem", background: "var(--color-bg-base)", borderRadius: "var(--border-radius-sm)", textAlign: "center", border: "1px solid var(--color-border)" }}>
-                <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>{t.journal_page.standard_ajif}</span>
+                <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>{(t.journal_page as any).standard_ajci || (t.journal_page as any).standard_AJCI || t.journal_page.standard_ajif}</span>
                 <div style={{ fontSize: "2rem", fontWeight: "bold", color: "var(--color-primary)", marginTop: "0.4rem" }}>
                   {latestReport.standardScore.toFixed(3)}
                 </div>
               </div>
 
               <div style={{ padding: "1.25rem", background: "var(--color-bg-base)", borderRadius: "var(--border-radius-sm)", textAlign: "center", border: "1px solid var(--color-border)" }}>
-                <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>{t.journal_page.regional_ajif}</span>
+                <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>{(t.journal_page as any).regional_ajci || (t.journal_page as any).regional_AJCI || t.journal_page.regional_ajif}</span>
                 <div style={{ fontSize: "2rem", fontWeight: "bold", color: "var(--color-secondary)", marginTop: "0.4rem" }}>
                   {latestReport.regionalScore ? latestReport.regionalScore.toFixed(3) : "N/A"}
                 </div>
@@ -321,7 +321,7 @@ function StatusContent() {
               <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
                 <i className="fa-solid fa-ribbon" style={{ color: "#059669", fontSize: "1.2rem" }}></i>
                 <span style={{ fontSize: "0.88rem", color: "#065f46" }}>
-                  {t.journal_page.indexed_badge}: <strong>{journal.qualityGrade || "A"}</strong>.
+                  {t.journal_page.indexed_badge}: <strong>Accredited</strong>.
                 </span>
               </div>
               <a 

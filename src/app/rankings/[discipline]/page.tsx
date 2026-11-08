@@ -5,6 +5,7 @@ import Header from "../../Header";
 import Footer from "../../Footer";
 import { TOP_DISCIPLINE_SLUGS } from "../../data/seo-slugs";
 import { prisma } from "../../../lib/db";
+import { getJournalUrl } from "../../../lib/journal-utils";
 
 export default async function DisciplineRankingsPage({
   params,
@@ -88,7 +89,7 @@ export default async function DisciplineRankingsPage({
                 African Journal Rankings: {disciplineName}
               </h1>
               <p style={{ margin: "0.35rem 0 0", color: "var(--color-text-muted)", fontSize: "0.95rem" }}>
-                Continental Subject Leaderboard • Subject Quartiles (Q1–Q4) • 2-Year AJCI Citation Impact
+                Continental Subject Leaderboard • 2-Year AJCI Citation Impact
               </p>
             </div>
           </div>
@@ -131,7 +132,7 @@ export default async function DisciplineRankingsPage({
                           #{index + 1}
                         </td>
                         <td style={{ padding: "1rem 1.2rem" }}>
-                          <Link href={`/journal/${j.id}`} style={{ textDecoration: "none", color: "var(--color-text-main)", fontWeight: 700 }} className="hover-primary">
+                          <Link href={getJournalUrl(j)} style={{ textDecoration: "none", color: "var(--color-text-main)", fontWeight: 700 }} className="hover-primary">
                             {j.name}
                           </Link>
                           <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", marginTop: "2px" }}>
@@ -142,7 +143,7 @@ export default async function DisciplineRankingsPage({
                           {score}
                         </td>
                         <td style={{ padding: "1rem 1.2rem", textAlign: "center" }}>
-                          <Link href={`/journal/${j.id}`} className="btn btn-outline-primary btn-sm" style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem" }}>
+                          <Link href={getJournalUrl(j)} className="btn btn-outline-primary btn-sm" style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem" }}>
                             Profile
                           </Link>
                         </td>

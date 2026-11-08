@@ -55,7 +55,7 @@ export default function ServicesPage() {
       timeline: "5 to 10 Business Days",
       deliverables: [
         "Complete 36-point editorial compliance & peer review audit",
-        "Calculation of verified annual AJCI standard scores and quartiles (Q1–Q4)",
+        "Calculation of verified annual AJCI standard scores and regional citation indicators",
         "Automated OAI-PMH metadata harvesting into continental repositories",
         "Official Indexing Certificate and embeddable quality badge for journal website"
       ],
