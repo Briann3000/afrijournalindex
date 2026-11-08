@@ -237,12 +237,14 @@ export async function GET(request: Request) {
       }
     });
 
+    const activeDomain = dbInstitution?.domain || specificDomain;
+
     const faculty = await prisma.user.findMany({
       where: {
         OR: [
           ...(dbInstitution ? [{ institutionId: dbInstitution.id }] : []),
           { institution: { contains: institutionName } },
-          ...(specificDomain ? [{ email: { contains: specificDomain } }] : [])
+          ...(activeDomain ? [{ email: { contains: activeDomain } }] : [])
         ]
       },
       select: {
@@ -259,6 +261,12 @@ export async function GET(request: Request) {
         i10Index: true,
         googleScholarUrl: true,
         isClaimed: true,
+        _count: {
+          select: {
+            publications: true,
+            claims: { where: { status: "VERIFIED" } }
+          }
+        },
         claims: {
           where: { status: "VERIFIED" },
           select: {
@@ -277,8 +285,8 @@ export async function GET(request: Request) {
 
     // Compute authentic scientometrics per faculty member
     const facultyLeaderboard = faculty.map(f => {
-      const articles = (f.claims || []).map(c => c.article).filter(Boolean);
-      const articlesCount = articles.length;
+      const claimedArticles = (f.claims || []).map(c => c.article).filter(Boolean);
+      const articlesCount = (f._count?.publications || 0) > 0 ? f._count.publications : claimedArticles.length;
 
       // Check Tier-1 Google Scholar precedence or synced DB metrics
       const verifiedScholar = getScholarScientometrics({
@@ -464,12 +472,56 @@ export async function GET(request: Request) {
       journalMap[j.id].citationsCount += art.citedBy.length;
     }
 
+    const topArticlesList = articles.slice(0, 10).map(a => ({
+      id: a.id,
+      title: a.title,
+      doi: a.doi,
+      journalName: a.journal?.name,
+      citations: a.citedBy ? a.citedBy.length : (a.citationCount || 0)
+    }));
+
+    if (topArticlesList.length < 10 && dbInstitution?.id) {
+      const scholarPubs = await prisma.scholarPublication.findMany({
+        where: {
+          user: {
+            institutionId: dbInstitution.id
+          }
+        },
+        take: 15,
+        orderBy: {
+          citationCount: "desc"
+        },
+        select: {
+          id: true,
+          title: true,
+          doi: true,
+          venue: true,
+          citationCount: true
+        }
+      });
+
+      for (const sp of scholarPubs) {
+        if (!topArticlesList.some(d => d.title.toLowerCase() === sp.title.toLowerCase())) {
+          topArticlesList.push({
+            id: sp.id,
+            title: sp.title,
+            doi: sp.doi,
+            journalName: sp.venue || "Verified Indexed Venue",
+            citations: sp.citationCount || 0
+          });
+        }
+        if (topArticlesList.length >= 10) break;
+      }
+    }
+
     const institutionData = {
       id: dbInstitution?.id,
       name: dbInstitution?.name || (benchmarkMatch ? benchmarkMatch.name : institutionName),
       country: dbInstitution?.country || (benchmarkMatch ? benchmarkMatch.country : "African Institution"),
       domain: dbInstitution?.domain,
-      websiteUrl: dbInstitution?.websiteUrl,
+      websiteUrl: (dbInstitution?.domain && (!dbInstitution?.websiteUrl || !dbInstitution.websiteUrl.includes(dbInstitution.domain)))
+        ? `https://${dbInstitution.domain}`
+        : dbInstitution?.websiteUrl,
       logoUrl: dbInstitution?.logoUrl,
       bannerUrl: dbInstitution?.bannerUrl,
       isKenproVerified: dbInstitution?.isKenproVerified || false,
@@ -492,13 +544,7 @@ export async function GET(request: Request) {
       })),
       affiliatedJournals: Object.values(journalMap),
       facultyLeaderboard: facultyLeaderboard,
-      topArticles: articles.slice(0, 10).map(a => ({
-        id: a.id,
-        title: a.title,
-        doi: a.doi,
-        journalName: a.journal?.name,
-        citations: a.citedBy.length
-      }))
+      topArticles: topArticlesList
     };
 
     return NextResponse.json({

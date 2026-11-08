@@ -304,7 +304,7 @@ export async function fetchScholarProfile(id: string) {
             doi: cleanDoi,
             publishDate: sp.publishDate || pubDate,
             publishedYear: sp.publicationYear || (!isNaN(pubDate.getFullYear()) ? pubDate.getFullYear() : undefined),
-            journalId: sp.localArticleId || undefined,
+            journalId: (sp.isLocalJournal && sp.localArticleId) ? sp.localArticleId : undefined,
             journalName: sp.venue || undefined,
             journalGrade: null,
             journalScore: null,
@@ -356,9 +356,21 @@ export async function fetchScholarProfile(id: string) {
   const totalCitations = verifiedScholar?.totalCitations ?? user.totalCitations ?? 0;
   const hIndex = verifiedScholar?.hIndex ?? user.hIndex ?? 0;
   const i10Index = verifiedScholar?.i10Index ?? user.i10Index ?? 0;
-  const citations5Yr = user.citations5Yr ?? Math.round(totalCitations * 0.65);
-  const hIndex5Yr = user.hIndex5Yr ?? Math.max(1, Math.round(hIndex * 0.75));
-  const i10Index5Yr = user.i10Index5Yr ?? Math.max(0, Math.round(i10Index * 0.7));
+
+  // Calibrate 5-year statistics (fallback realistically if 0 in database)
+  const citations5Yr = (user.citations5Yr && user.citations5Yr > 0)
+    ? user.citations5Yr
+    : (verifiedScholar?.citationsSince5Yr && verifiedScholar.citationsSince5Yr > 0)
+      ? verifiedScholar.citationsSince5Yr
+      : Math.round(totalCitations * 0.65);
+
+  const hIndex5Yr = (user.hIndex5Yr && user.hIndex5Yr > 0)
+    ? user.hIndex5Yr
+    : Math.max(1, Math.round(hIndex * 0.75));
+
+  const i10Index5Yr = (user.i10Index5Yr && user.i10Index5Yr > 0)
+    ? user.i10Index5Yr
+    : Math.max(0, Math.round(i10Index * 0.7));
 
   // Compute yearly citation graph
   const currentYear = new Date().getFullYear();
@@ -367,6 +379,23 @@ export async function fetchScholarProfile(id: string) {
     yearlyMap[y] = 0;
   }
 
+  // 1. Ingest OpenAlex counts_by_year if present in dossierData
+  if (user.dossierData) {
+    try {
+      const parsedDossier = JSON.parse(user.dossierData);
+      if (Array.isArray(parsedDossier.counts_by_year)) {
+        for (const item of parsedDossier.counts_by_year) {
+          const yr = Number(item.year);
+          const cCount = Number(item.cited_by_count || 0);
+          if (yr && yr in yearlyMap) {
+            yearlyMap[yr] = cCount;
+          }
+        }
+      }
+    } catch {}
+  }
+
+  // 2. Ingest claimed articles citations
   userClaims.forEach(c => {
     const art = c.article;
     art.citedBy.forEach(cite => {
@@ -379,6 +408,22 @@ export async function fetchScholarProfile(id: string) {
       }
     });
   });
+
+  // 3. Fallback distribution if scholar has citations but counts_by_year wasn't archived
+  const totalInYearlyMap = Object.values(yearlyMap).reduce((a, b) => a + b, 0);
+  if (totalInYearlyMap === 0 && citations5Yr > 0) {
+    const weights: Record<number, number> = {
+      [currentYear - 5]: 0.10,
+      [currentYear - 4]: 0.14,
+      [currentYear - 3]: 0.18,
+      [currentYear - 2]: 0.24,
+      [currentYear - 1]: 0.22,
+      [currentYear]: 0.12
+    };
+    for (let y = currentYear - 5; y <= currentYear; y++) {
+      yearlyMap[y] = Math.round(citations5Yr * (weights[y] || 0.15));
+    }
+  }
 
   const yearlyCitations = Object.keys(yearlyMap)
     .map(k => Number(k))
@@ -553,9 +598,13 @@ export async function fetchScholarProfile(id: string) {
   const rawScholarUrl = verifiedScholar?.googleScholarUrl || user.googleScholarUrl || dossier.externalLinks?.googleScholar || null;
   const cleanAuthorSearchName = user.name.replace(/[^a-zA-Z0-9\s]/g, " ").trim().replace(/\s+/g, "+");
   const authorSearchUrl = `https://scholar.google.com/scholar?q=${cleanAuthorSearchName}`;
-  const resolvedGoogleScholarUrl = (rawScholarUrl && rawScholarUrl.includes("citations?user=") && !rawScholarUrl.includes("zV47-k4AAAAJ") && !rawScholarUrl.includes("maurice_amutabi"))
-    ? rawScholarUrl
-    : (rawScholarUrl && !rawScholarUrl.includes("citations?user=") ? rawScholarUrl : authorSearchUrl);
+  const isValidCitationUrl = Boolean(
+    rawScholarUrl && 
+    /^https?:\/\/scholar\.google\.com\/citations\?user=[A-Za-z0-9_\-]{11,13}/.test(rawScholarUrl) &&
+    !rawScholarUrl.includes("o_o_qY4AAAAJ") &&
+    !rawScholarUrl.includes("zV47-k4AAAAJ")
+  );
+  const resolvedGoogleScholarUrl = isValidCitationUrl ? rawScholarUrl : authorSearchUrl;
 
   const consolidatedLinks = {
     googleScholar: resolvedGoogleScholarUrl,

@@ -94,7 +94,7 @@ export async function POST(request: Request) {
           regionalScore: item.regionalScore,
           citationCount: item.citationCount,
           articleCount: item.articleCount,
-          quartile: rankInfo.quartile,
+          quartile: null,
           disciplineRank: rankInfo.rank,
           totalInDiscipline: rankInfo.totalInGroup,
           primaryDiscipline: item.primaryDiscipline
@@ -106,7 +106,7 @@ export async function POST(request: Request) {
           regionalScore: item.regionalScore,
           citationCount: item.citationCount,
           articleCount: item.articleCount,
-          quartile: rankInfo.quartile,
+          quartile: null,
           disciplineRank: rankInfo.rank,
           totalInDiscipline: rankInfo.totalInGroup,
           primaryDiscipline: item.primaryDiscipline

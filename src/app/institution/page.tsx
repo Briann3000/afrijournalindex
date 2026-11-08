@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useLang } from "../LangContext";
 import Header from "../Header";
 import Footer from "../Footer";
+import { getJournalUrl } from "../../lib/journal-utils";
 
 interface UniversityRankItem {
   rank: number;
@@ -72,7 +73,6 @@ function InstitutionContent() {
   const [claimVerificationDocUrl, setClaimVerificationDocUrl] = useState<string>("");
   const [uploadingDoc, setUploadingDoc] = useState<boolean>(false);
   const [uploadingLogo, setUploadingLogo] = useState<boolean>(false);
-  const [mappingWebsiteLoading, setMappingWebsiteLoading] = useState<boolean>(false);
   const [claimInstLoading, setClaimInstLoading] = useState<boolean>(false);
   const [claimInstSuccess, setClaimInstSuccess] = useState<string | null>(null);
   const [claimInstError, setClaimInstError] = useState<string | null>(null);
@@ -107,36 +107,6 @@ function InstitutionContent() {
     } finally {
       if (type === "LOGO") setUploadingLogo(false);
       else setUploadingDoc(false);
-    }
-  };
-
-  // Automated Website Mapping Handler
-  const handleAutoMapWebsite = async () => {
-    if (!profileData) return;
-    setMappingWebsiteLoading(true);
-    setClaimInstError(null);
-
-    try {
-      const res = await fetch("/api/institutions/map-website", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          institutionId: profileData.id,
-          websiteUrl: profileData.websiteUrl || `https://${profileData.domain || ""}`,
-          autoApply: true
-        })
-      });
-      const json = await res.json();
-      if (json.success) {
-        showToast(t.institution_page.mapping_success);
-        loadUniversityProfile(currentUnivName);
-      } else {
-        showToast(json.error || t.institution_page.mapping_failed);
-      }
-    } catch {
-      showToast(t.institution_page.mapping_failed);
-    } finally {
-      setMappingWebsiteLoading(false);
     }
   };
 
@@ -194,6 +164,9 @@ function InstitutionContent() {
   const disciplinesList = [
     "All",
     "Health Sciences",
+    "Social Sciences",
+    "Physical Sciences",
+    "Life Sciences",
     "Physical Sciences & Engineering",
     "Agricultural & Environmental Sciences",
     "Social Sciences & Humanities",
@@ -572,7 +545,7 @@ function InstitutionContent() {
                                 {item.affiliatedJournalsCount > 0 && (
                                   <>
                                     <span>•</span>
-                                    <span>{item.affiliatedJournalsCount} {t.showcase.title}</span>
+                                    <span>{item.affiliatedJournalsCount} {item.affiliatedJournalsCount === 1 ? "Affiliated Journal" : "Affiliated Journals"}</span>
                                   </>
                                 )}
                               </div>
@@ -766,7 +739,7 @@ function InstitutionContent() {
                                 {item.affiliatedJournalsCount > 0 && (
                                   <>
                                     <span>•</span>
-                                    <span>{item.affiliatedJournalsCount} {t.showcase.title}</span>
+                                    <span>{item.affiliatedJournalsCount} {item.affiliatedJournalsCount === 1 ? "Affiliated Journal" : "Affiliated Journals"}</span>
                                   </>
                                 )}
                               </div>
@@ -964,13 +937,28 @@ function InstitutionContent() {
                 </button>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
                 
+                {/* Top Navigation Breadcrumb */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
+                  <button 
+                    onClick={() => setActiveTab("leaderboard")}
+                    className="btn btn-secondary btn-sm"
+                    style={{ fontSize: "0.82rem", display: "inline-flex", alignItems: "center", gap: "0.45rem", padding: "0.4rem 0.85rem" }}
+                  >
+                    <i className="fa-solid fa-arrow-left"></i> {typeof t.institution_page.back_to_leaderboard === "string" ? t.institution_page.back_to_leaderboard.replace(/^[←\s]+/, "") : "Back to University Leaderboard"}
+                  </button>
+                  <span style={{ fontSize: "0.82rem", color: "var(--color-text-muted)" }}>
+                    <i className="fa-solid fa-earth-africa" style={{ marginRight: "0.35rem", color: "var(--color-primary)" }}></i>
+                    {profileData.country || "African Institution"} • Institutional Ranking Index
+                  </span>
+                </div>
+
                 {/* Institution Header Banner */}
                 <div className="card-surface" style={{ padding: "1.75rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1.5rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1.25rem" }}>
                     
-                    <div style={{ display: "flex", gap: "1.25rem", alignItems: "flex-start", flex: 1, minWidth: "260px" }}>
+                    <div style={{ display: "flex", gap: "1.25rem", alignItems: "center", flex: 1, minWidth: "280px" }}>
                       {/* Institutional Crest / Logo */}
                       <div style={{
                         width: "80px",
@@ -1001,8 +989,8 @@ function InstitutionContent() {
                       </div>
 
                       <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.4rem" }}>
-                          <span className="badge-featured">
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.3rem" }}>
+                          <span className="badge-featured" style={{ fontSize: "0.72rem" }}>
                             <i className="fa-solid fa-graduation-cap"></i>
                             {t.institution_page.tab_profile}
                           </span>
@@ -1013,11 +1001,11 @@ function InstitutionContent() {
                                 display: "inline-flex", 
                                 alignItems: "center", 
                                 gap: "0.35rem", 
-                                padding: "0.25rem 0.65rem", 
+                                padding: "0.2rem 0.6rem", 
                                 borderRadius: "20px", 
                                 background: "rgba(13, 148, 136, 0.12)", 
                                 color: "#0d9488", 
-                                fontSize: "0.78rem", 
+                                fontSize: "0.75rem", 
                                 fontWeight: 800,
                                 border: "1px solid rgba(13, 148, 136, 0.3)" 
                               }}
@@ -1026,21 +1014,37 @@ function InstitutionContent() {
                               <i className="fa-solid fa-certificate"></i> {t.institution_page.kenpro_verified}
                             </span>
                           )}
+
+                          {profileData.isClaimed && (
+                            <span style={{ 
+                              display: "inline-flex", 
+                              alignItems: "center", 
+                              gap: "0.35rem", 
+                              padding: "0.2rem 0.6rem", 
+                              borderRadius: "20px", 
+                              background: "rgba(22, 163, 74, 0.12)", 
+                              color: "#16a34a", 
+                              fontSize: "0.75rem", 
+                              fontWeight: 700 
+                            }}>
+                              <i className="fa-solid fa-circle-check"></i> Verified Institutional Profile
+                            </span>
+                          )}
                         </div>
 
-                        <h1 style={{ fontSize: "clamp(1.3rem, 4vw, 2rem)", margin: "0.2rem 0 0.5rem", color: "var(--color-text-main)", fontWeight: 800, lineHeight: 1.3 }}>
+                        <h1 style={{ fontSize: "clamp(1.3rem, 3.5vw, 1.85rem)", margin: "0.2rem 0 0.4rem", color: "var(--color-text-main)", fontWeight: 800, lineHeight: 1.25 }}>
                           {profileData.name}
                         </h1>
 
-                        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "1rem", color: "var(--color-text-muted)", fontSize: "0.88rem" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "0.85rem", color: "var(--color-text-muted)", fontSize: "0.85rem" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
                             <i className="fa-solid fa-location-dot" style={{ color: "var(--color-primary)" }}></i>
                             <span>{profileData.country || "African Academic Institution"}</span>
                           </div>
 
                           {profileData.websiteUrl && (
                             <a
-                              href={profileData.websiteUrl}
+                              href={profileData.domain && (!profileData.websiteUrl || !profileData.websiteUrl.includes(profileData.domain)) ? `https://${profileData.domain}` : profileData.websiteUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="academic-link"
@@ -1048,7 +1052,7 @@ function InstitutionContent() {
                             >
                               <i className="fa-solid fa-globe"></i>
                               <span>{profileData.domain || profileData.websiteUrl.replace(/^https?:\/\//, "").replace(/\/.*$/, "")}</span>
-                              <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.7rem" }}></i>
+                              <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.68rem" }}></i>
                             </a>
                           )}
 
@@ -1062,45 +1066,16 @@ function InstitutionContent() {
                       </div>
                     </div>
 
+                    {/* Action Group */}
                     <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", alignItems: "center" }}>
-                      {profileData.websiteUrl && (
-                        <button
-                          type="button"
-                          onClick={handleAutoMapWebsite}
-                          disabled={mappingWebsiteLoading}
-                          className="btn btn-secondary btn-sm"
-                          style={{
-                            fontSize: "0.82rem",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "0.45rem",
-                            whiteSpace: "nowrap"
-                          }}
-                          title="Synchronize institutional crest, domain and metadata from official website"
-                        >
-                          <i className={`fa-solid ${mappingWebsiteLoading ? "fa-spinner fa-spin" : "fa-globe"}`}></i>
-                          {mappingWebsiteLoading ? t.institution_page.mapping_website : t.institution_page.auto_map_btn}
-                        </button>
-                      )}
-
-                      {profileData.isClaimed ? (
-                        <span style={{ 
-                          display: "inline-flex", 
-                          alignItems: "center", 
-                          gap: "0.4rem", 
-                          padding: "0.35rem 0.75rem", 
-                          borderRadius: "20px", 
-                          background: "rgba(22, 163, 74, 0.12)", 
-                          color: "#16a34a", 
-                          fontSize: "0.8rem", 
-                          fontWeight: 700 
-                        }}>
-                          <i className="fa-solid fa-circle-check"></i> Verified Institutional Profile
-                        </span>
-                      ) : (
+                      {!profileData.isClaimed && (
                         <button
                           type="button"
                           onClick={() => {
+                            if (!currentUser) {
+                              window.location.href = `/login?redirect=${encodeURIComponent(`/institution?name=${profileData?.name || ""}`)}`;
+                              return;
+                            }
                             setClaimInstError(null);
                             setClaimInstSuccess(null);
                             setShowInstitutionClaimModal(true);
@@ -1113,8 +1088,7 @@ function InstitutionContent() {
                             gap: "0.45rem", 
                             whiteSpace: "nowrap",
                             borderColor: "var(--color-primary)",
-                            color: "var(--color-primary)",
-                            background: "rgba(2, 132, 199, 0.05)"
+                            color: "var(--color-primary)"
                           }}
                           title="Claim this institution profile as an authorized university official"
                         >
@@ -1130,14 +1104,6 @@ function InstitutionContent() {
                       >
                         <i className="fa-solid fa-users"></i> Explore Scholars in Directory
                       </a>
-
-                      <button 
-                        onClick={() => setActiveTab("leaderboard")}
-                        className="btn btn-secondary btn-sm"
-                        style={{ fontSize: "0.82rem", display: "inline-flex", alignItems: "center", gap: "0.4rem", whiteSpace: "nowrap" }}
-                      >
-                        <i className="fa-solid fa-arrow-left"></i> {typeof t.institution_page.back_to_leaderboard === "string" ? t.institution_page.back_to_leaderboard.replace(/^[←\s]+/, "") : "Back to Leaderboard"}
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -1215,7 +1181,7 @@ function InstitutionContent() {
                         <div key={j.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.15rem 1.35rem", background: "var(--color-bg-base)", borderRadius: "var(--border-radius-sm)", border: "1px solid var(--color-border)", flexWrap: "wrap", gap: "1rem" }}>
                           <div style={{ flex: 1, minWidth: "240px" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                              <a href={`/journal/${j.id}`} className="academic-link" style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "1.05rem" }}>
+                              <a href={getJournalUrl(j)} className="academic-link" style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "1.05rem" }}>
                                 {j.name}
                               </a>
                               {j.isIndexed && (
@@ -1228,7 +1194,7 @@ function InstitutionContent() {
                             <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", fontSize: "0.8rem", color: "var(--color-text-muted)", marginTop: "0.4rem", flexWrap: "wrap" }}>
                               <span>ISSN: <strong>{j.issn || "Active"}</strong></span>
                               <span>•</span>
-                              <span>{t.browse_page.score}: <strong style={{ color: "var(--color-primary)" }}>{(j.ajciScore ?? j.ajifScore)?.toFixed(3) || "0.850"}</strong></span>
+                              <span>{t.browse_page.score}: <strong style={{ color: "var(--color-primary)" }}>{(j.ajciScore ?? (j as any).ajifScore)?.toFixed(3) || "0.850"}</strong></span>
                               {j.websiteUrl && (
                                 <>
                                   <span>•</span>
@@ -1244,7 +1210,7 @@ function InstitutionContent() {
                             <span className="journal-tag">
                               {j.articlesCount} {t.top_institutions.publications}
                             </span>
-                            <a href={`/journal/${j.id}`} className="btn btn-secondary btn-sm" style={{ fontSize: "0.8rem" }}>
+                            <a href={getJournalUrl(j)} className="btn btn-secondary btn-sm" style={{ fontSize: "0.8rem" }}>
                               {t.browse_page.view_details}
                             </a>
                           </div>
@@ -1422,12 +1388,15 @@ function InstitutionContent() {
                                               </span>
                                             )}
 
-                                            {f.googleScholarUrl && (
+                                            {(f.googleScholarUrl || f.name) && (
                                               <a 
-                                                href={f.googleScholarUrl} 
+                                                href={f.googleScholarUrl && /^https:\/\/scholar\.google\.com\/citations\?user=[A-Za-z0-9_\-]{12}/.test(f.googleScholarUrl) && !f.googleScholarUrl.includes("o_o_qY4AAAAJ")
+                                                  ? f.googleScholarUrl 
+                                                  : `https://scholar.google.com/scholar?q=${encodeURIComponent(f.name)}`} 
                                                 target="_blank" 
                                                 rel="noreferrer"
                                                 style={{ fontSize: "0.72rem", color: "#0284c7", fontWeight: 600, textDecoration: "none" }}
+                                                title="View verified works on Google Scholar"
                                               >
                                                 <i className="fa-brands fa-google-scholar"></i> Scholar
                                               </a>
@@ -1568,7 +1537,9 @@ function InstitutionContent() {
                 borderRadius: "16px",
                 maxWidth: "540px",
                 width: "100%",
-                padding: "2rem",
+                maxHeight: "calc(100vh - 2.5rem)",
+                overflowY: "auto",
+                padding: "clamp(1.2rem, 3vw, 2rem)",
                 boxShadow: "0 20px 40px -15px rgba(0,0,0,0.3)",
                 border: "1px solid var(--color-border)",
                 color: "var(--color-text-main)"

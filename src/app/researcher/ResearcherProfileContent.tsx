@@ -2261,7 +2261,17 @@ export default function ResearcherProfileContent({
                       }}
                     >
                       <i className="fa-solid fa-building-circle-check" style={{ color: "#16a34a" }}></i>
-                      Verified at {profile.verifiedDomain || profile.institution}
+                      {profile.institution ? (
+                        <a
+                          href={`/institution?name=${encodeURIComponent(profile.institution.split('/')[0].trim())}`}
+                          style={{ color: "#15803d", textDecoration: "none" }}
+                          title={`View ${profile.institution} institutional profile`}
+                        >
+                          Verified at {profile.institution}
+                        </a>
+                      ) : (
+                        <span>Verified at {profile.verifiedDomain || "African Institution"}</span>
+                      )}
                     </span>
                   )}
 
@@ -2360,7 +2370,19 @@ export default function ResearcherProfileContent({
                 {/* University Affiliation & Country */}
                 <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem", margin: "0 0 0.5rem", display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
                   <i className="fa-solid fa-building-columns" style={{ color: "var(--color-primary)" }}></i> 
-                  <span style={{ fontWeight: 600 }}>{profile.institution || "Affiliation Unspecified"}</span>
+                  {profile.institution ? (
+                    <a
+                      href={`/institution?name=${encodeURIComponent(profile.institution.split('/')[0].trim())}`}
+                      className="hover-primary"
+                      style={{ fontWeight: 600, color: "inherit", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "5px" }}
+                      title={`View ${profile.institution} faculty research roster & institutional metrics`}
+                    >
+                      <span>{profile.institution}</span>
+                      <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: "0.7rem", opacity: 0.65 }}></i>
+                    </a>
+                  ) : (
+                    <span style={{ fontWeight: 600 }}>Affiliation Unspecified</span>
+                  )}
                   {profile.country && profile.country !== "International Collaborator" && (
                     <>
                       <span>•</span>
@@ -3252,7 +3274,7 @@ export default function ResearcherProfileContent({
                 Are some of your published African research papers missing?
               </h3>
               <p style={{ margin: 0, fontSize: "0.84rem", color: "#cbd5e1" }}>
-                Search over 745,000+ cataloged articles in AfriJournal Index and claim them to your verified profile.
+                Search over 746,000+ cataloged articles in AfriJournal Index and claim them to your verified profile.
               </p>
             </div>
 
@@ -3470,7 +3492,7 @@ export default function ResearcherProfileContent({
                   Welcome to your Scholar Profile, {profile.name}!
                 </h3>
                 <p style={{ color: "var(--color-text-muted)", fontSize: "0.88rem", maxWidth: "520px", margin: "0 auto 1.4rem", lineHeight: 1.5 }}>
-                  You currently have 0 publications linked. Search over 745,000+ cataloged African articles to claim your papers with Crossref DOI verification and compute your h-index.
+                  You currently have 0 publications linked. Search over 746,000+ cataloged African articles to claim your papers with Crossref DOI verification and compute your h-index.
                 </p>
                 {isOwner && (
                   <button
@@ -3529,7 +3551,7 @@ export default function ResearcherProfileContent({
                         {art.journalName && (
                           <span>
                             Published in{" "}
-                            {art.journalId ? (
+                            {art.isLocalJournal && art.journalId ? (
                               <a 
                                 href={`/journal/${art.journalId}`} 
                                 style={{ color: "var(--color-primary)", fontWeight: 700, textDecoration: "none" }}
@@ -3596,7 +3618,7 @@ export default function ResearcherProfileContent({
                     {/* Direct External Citation Link to Google Scholar */}
                     {art.citationsCount > 0 ? (
                       <a
-                        href={`https://scholar.google.com/scholar?q=${encodeURIComponent(art.title)}`}
+                        href={`https://scholar.google.com/scholar?q=${encodeURIComponent(art.doi || (art.title || "").replace(/[:\-–—"']/g, " ").replace(/\s+/g, " ").trim())}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         title="View citing literature and citation metrics on Google Scholar"
@@ -4221,7 +4243,7 @@ export default function ResearcherProfileContent({
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.6rem" }}>
                     {art.citationsCount > 0 ? (
                       <a
-                        href={`https://scholar.google.com/scholar?q=${encodeURIComponent(art.title)}`}
+                        href={`https://scholar.google.com/scholar?q=${encodeURIComponent(art.doi || (art.title || "").replace(/[:\-–—"']/g, " ").replace(/\s+/g, " ").trim())}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         title="View citations on Google Scholar"
