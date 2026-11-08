@@ -120,16 +120,6 @@ export async function GET(request: Request) {
         const disciplines = getDisciplines(journal.name, journal.description || "");
         const latestReport = journal.reports[0] || null;
 
-        let quartile = latestReport?.quartile;
-        if (!quartile && latestReport) {
-          const score = latestReport.standardScore;
-          if (score <= 0) quartile = "Unrated";
-          else if (score >= 0.500) quartile = "Q1";
-          else if (score >= 0.250) quartile = "Q2";
-          else if (score >= 0.080) quartile = "Q3";
-          else quartile = "Q4";
-        }
-
         return {
           id: journal.id,
           name: journal.name,
@@ -140,11 +130,11 @@ export async function GET(request: Request) {
           frequency: journal.frequency,
           websiteUrl: journal.websiteUrl,
           isIndexed: journal.isIndexed,
-          qualityGrade: journal.qualityGrade,
+          qualityGrade: null,
           indexedAt: journal.indexedAt,
           disciplines,
           primaryDiscipline: latestReport?.primaryDiscipline || disciplines[0] || "Multidisciplinary",
-          quartile: quartile || "Unrated",
+          quartile: null,
           disciplineRank: latestReport?.disciplineRank || null,
           totalInDiscipline: latestReport?.totalInDiscipline || null,
           selfCitationRate,

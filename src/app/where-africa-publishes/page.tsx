@@ -57,7 +57,7 @@ export default function WhereAfricaPublishesPage() {
             Where Does Africa Publish?
           </h1>
           <p style={{ fontSize: "clamp(0.95rem, 1.8vw, 1.1rem)", color: "var(--color-text-muted)", maxWidth: "880px", lineHeight: 1.7, margin: 0 }}>
-            A comprehensive bibliometric audit analyzing <strong>537,388 lifetime publications</strong> from <strong>2,357 verified African scholars</strong> across 40 sovereign nations, tracking global publication destinations and continental research sovereignty.
+            A comprehensive bibliometric audit analyzing <strong>508,578 lifetime publications</strong> from <strong>2,321 verified African scholars</strong> across 40 sovereign nations, tracking global publication destinations and continental research sovereignty.
           </p>
         </div>
 
@@ -68,10 +68,10 @@ export default function WhereAfricaPublishesPage() {
               Career Works Analyzed
             </div>
             <div style={{ fontSize: "1.9rem", fontWeight: 800, color: "var(--color-primary)", margin: "0.3rem 0" }}>
-              537,388
+              508,578
             </div>
             <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
-              Peer-reviewed works across 2,357 African scholars
+              Peer-reviewed works across 2,321 African scholars
             </div>
           </div>
 
@@ -79,8 +79,8 @@ export default function WhereAfricaPublishesPage() {
             <div style={{ fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase", color: "var(--color-text-muted)", letterSpacing: "0.5px" }}>
               Indexed African Journals
             </div>
-            <div style={{ fontSize: "1.9rem", fontWeight: 800, color: "#16a34a", margin: "0.3rem 0" }}>
-              1,907
+            <div style={{ fontSize: "1.9rem", fontWeight: 800, color: "var(--color-primary)", margin: "0.3rem 0" }}>
+              1,908
             </div>
             <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
               Sovereign African publications indexed in AfriJournal Index
@@ -91,8 +91,8 @@ export default function WhereAfricaPublishesPage() {
             <div style={{ fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase", color: "var(--color-text-muted)", letterSpacing: "0.5px" }}>
               Continental Articles Ingested
             </div>
-            <div style={{ fontSize: "1.9rem", fontWeight: 800, color: "#0284c7", margin: "0.3rem 0" }}>
-              745,394
+            <div style={{ fontSize: "1.9rem", fontWeight: 800, color: "var(--color-primary)", margin: "0.3rem 0" }}>
+              746,070+
             </div>
             <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
               2006–2026 backfiles with DOIs &amp; structured abstracts
@@ -103,7 +103,7 @@ export default function WhereAfricaPublishesPage() {
             <div style={{ fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase", color: "var(--color-text-muted)", letterSpacing: "0.5px" }}>
               Preserved African Citations
             </div>
-            <div style={{ fontSize: "1.9rem", fontWeight: 800, color: "#9333ea", margin: "0.3rem 0" }}>
+            <div style={{ fontSize: "1.9rem", fontWeight: 800, color: "var(--color-primary)", margin: "0.3rem 0" }}>
               17,488
             </div>
             <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
@@ -202,8 +202,8 @@ export default function WhereAfricaPublishesPage() {
                         <td style={{ padding: "1rem 1.25rem", textAlign: "center", fontWeight: 700, color: "var(--color-text-muted)" }}>
                           {v.scholarCount.toLocaleString()}
                         </td>
-                        <td style={{ padding: "1rem 1.25rem", fontSize: "0.82rem", color: "var(--color-text-body)", maxWidth: "340px" }}>
-                          <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={v.topScholars}>
+                        <td style={{ padding: "1rem 1.25rem", fontSize: "0.82rem", color: "var(--color-text-body)", minWidth: "260px", maxWidth: "420px", lineHeight: 1.5 }}>
+                          <div style={{ wordBreak: "break-word" }} title={v.topScholars}>
                             {v.topScholars || "African Research Collaborators"}
                           </div>
                         </td>

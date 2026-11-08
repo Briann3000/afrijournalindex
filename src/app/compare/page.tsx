@@ -6,6 +6,7 @@ import Link from "next/link";
 import Header from "../Header";
 import Footer from "../Footer";
 import { useLang } from "../LangContext";
+import { getJournalUrl } from "../../lib/journal-utils";
 
 interface CitationOrigin {
   total: number;
@@ -482,7 +483,7 @@ function CompareContent() {
                     </th>
                     {journals.map((j) => (
                       <th key={j.id} style={{ padding: "1.25rem 1.5rem", minWidth: "260px" }}>
-                        <Link href={`/journal/${j.id}`} style={{ textDecoration: "none" }}>
+                        <Link href={getJournalUrl(j)} style={{ textDecoration: "none" }}>
                           <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--color-text-main)", lineHeight: 1.35, marginBottom: "0.25rem" }}>
                             {j.name}
                           </div>
@@ -653,7 +654,7 @@ function CompareContent() {
                       <td key={j.id} style={{ padding: "1rem 1.5rem", fontSize: "0.875rem" }}>
                         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
                           <Link
-                            href={`/journal/${j.id}`}
+                            href={getJournalUrl(j)}
                             style={{
                               color: "var(--color-primary)",
                               fontWeight: 600,

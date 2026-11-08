@@ -302,17 +302,8 @@ export async function getJournalDetail(id: string): Promise<JournalDetail | null
     const disciplines = getDisciplines(journal.name, journal.description || "");
     const primaryDiscipline = latestReport?.primaryDiscipline || disciplines[0] || "Multidisciplinary";
 
-    let quartile: "Q1" | "Q2" | "Q3" | "Q4" | "Pending" | "Unrated" = (latestReport?.quartile as any) || undefined;
     const disciplineRank = latestReport?.disciplineRank || 1;
     const totalInDiscipline = latestReport?.totalInDiscipline || 20;
-
-    if (!quartile) {
-      if (standardScore <= 0) quartile = "Unrated";
-      else if (standardScore >= 0.500) quartile = "Q1";
-      else if (standardScore >= 0.250) quartile = "Q2";
-      else if (standardScore >= 0.080) quartile = "Q3";
-      else quartile = "Q4";
-    }
 
     const categoryMedian = 0.42;
     const hasArticles = formattedArticles.length > 0;
@@ -386,11 +377,11 @@ export async function getJournalDetail(id: string): Promise<JournalDetail | null
       activeTier: journal.activeTier || (journal.certificatePaid ? "BASIC" : "FREE"),
       subscriptionExpiresAt: journal.subscriptionExpiresAt ? journal.subscriptionExpiresAt.toISOString() : null,
       publisherId: journal.publisherId,
-      qualityGrade: journal.qualityGrade,
+      qualityGrade: null,
       indexedAt: journal.indexedAt ? journal.indexedAt.toISOString() : null,
       disciplines,
       primaryDiscipline,
-      quartile: hasArticles ? quartile : "Pending",
+      quartile: undefined,
       disciplineRank: hasArticles ? disciplineRank : null,
       totalInDiscipline: hasArticles ? totalInDiscipline : null,
       categoryMedian: categoryMedian || null,

@@ -447,7 +447,7 @@ function SearchPageContent() {
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
                         <a 
-                          href={`https://scholar.google.com/scholar?q=${encodeURIComponent(article.title)}`}
+                          href={`https://scholar.google.com/scholar?q=${encodeURIComponent(article.doi || (article.title || "").replace(/[:\-–—"']/g, " ").replace(/\s+/g, " ").trim())}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{ textDecoration: "none", color: "inherit", flex: 1 }}
@@ -472,7 +472,7 @@ function SearchPageContent() {
                             {article.citationCount || 0} African cites
                           </span>
                           <a
-                            href={`https://scholar.google.com/scholar?q=${encodeURIComponent(article.title)}`}
+                            href={`https://scholar.google.com/scholar?q=${encodeURIComponent(article.doi || (article.title || "").replace(/[:\-–—"']/g, " ").replace(/\s+/g, " ").trim())}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
@@ -530,7 +530,7 @@ function SearchPageContent() {
                       {/* Action Links: Google Scholar / DOI / Journal Dossier */}
                       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "0.2rem", flexWrap: "wrap", fontSize: "0.8rem" }}>
                         <a 
-                          href={`https://scholar.google.com/scholar?q=${encodeURIComponent(article.title)}`}
+                          href={`https://scholar.google.com/scholar?q=${encodeURIComponent(article.doi || (article.title || "").replace(/[:\-–—"']/g, " ").replace(/\s+/g, " ").trim())}`}
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="btn btn-secondary btn-sm"

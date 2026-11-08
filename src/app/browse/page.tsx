@@ -6,6 +6,7 @@ import { useLang } from "../LangContext";
 import Header from "../Header";
 import Footer from "../Footer";
 import { ALL_COUNTRY_NAMES, COUNTRY_META_MAP } from "../data/african-countries";
+import { getJournalUrl } from "../../lib/journal-utils";
 
 interface Journal {
   id?: string;
@@ -139,7 +140,7 @@ function BrowseContent() {
     async function loadJournals(retries = 2) {
       setLoadingJournals(true);
       try {
-        const listRes = await fetch("/api/journals/list");
+        const listRes = await fetch(`/api/journals/list?t=${Date.now()}`, { cache: "no-store" });
         if (!listRes.ok) throw new Error(`HTTP ${listRes.status}`);
         const listData = await listRes.json();
 
@@ -160,8 +161,8 @@ function BrowseContent() {
               primaryDiscipline: discs[0] || "Multidisciplinary",
               score: parsedScore,
               isIndexed: j.isIndexed ?? true,
-              isScopusIndexed: Boolean(j.isScopusIndexed),
-              isWosIndexed: Boolean(j.isWosIndexed),
+              isScopusIndexed: j.isScopusIndexed === 1 || j.isScopusIndexed === true || j.isScopusIndexed === "1",
+              isWosIndexed: j.isWosIndexed === 1 || j.isWosIndexed === true || j.isWosIndexed === "1",
               link: j.websiteUrl || ""
             };
           });
@@ -335,7 +336,7 @@ function BrowseContent() {
           </span>
           <h1 className="page-title" style={{ fontSize: "2.1rem", margin: "0 0 0.35rem" }}>{t.browse_page.title}</h1>
           <p className="page-subtitle" style={{ margin: 0 }}>
-            Search across {journals.length > 0 ? `${journals.length}+` : "1,600+"} indexed journals and 20,000+ peer-reviewed African research articles.
+            Search across {journals.length > 0 ? `${journals.length}+` : "1,900+"} indexed journals and {articleTotal > 0 ? `${articleTotal.toLocaleString()}+` : "746,000+"} peer-reviewed African research articles.
           </p>
         </div>
 
@@ -393,7 +394,7 @@ function BrowseContent() {
           }}
         >
           <i className="fa-solid fa-newspaper"></i>
-          Articles &amp; Abstracts ({articleTotal > 0 ? `${articleTotal.toLocaleString()} Results` : "745,000+ Papers"})
+          Articles &amp; Abstracts ({articleTotal > 0 ? `${articleTotal.toLocaleString()} Results` : "746,000+ Papers"})
         </button>
       </div>
 
@@ -569,7 +570,7 @@ function BrowseContent() {
                         </td>
                         <td style={{ padding: "0.9rem 1.2rem" }}>
                           <a 
-                            href={`/journal/${journal.id || journal.issn}`}
+                            href={getJournalUrl(journal)}
                             style={{ color: "var(--color-text-main)", fontWeight: 700, textDecoration: "none", fontSize: "0.95rem", display: "block", marginBottom: "0.25rem", lineHeight: 1.35 }}
                           >
                             {journal.name}
@@ -644,7 +645,7 @@ function BrowseContent() {
                               </a>
                             )}
                             <a 
-                              href={`/journal/${journal.id || journal.issn}`}
+                              href={getJournalUrl(journal)}
                               className="btn btn-primary btn-sm"
                               style={{ fontSize: "0.78rem", padding: "0.32rem 0.75rem", whiteSpace: "nowrap" }}
                             >
@@ -870,7 +871,7 @@ function BrowseContent() {
                           {art.country}
                         </span>
                         <a
-                          href={`/journal/${art.journalId || art.issn}`}
+                          href={getJournalUrl({ id: art.journalId, issn: art.issn, name: art.journalName })}
                           style={{ fontSize: "0.82rem", color: "var(--color-primary)", fontWeight: 600, textDecoration: "none" }}
                         >
                           {art.journalName}
@@ -915,7 +916,7 @@ function BrowseContent() {
                       ) : null}
 
                       <a
-                        href={`https://scholar.google.com/scholar?q=${encodeURIComponent(art.title)}`}
+                        href={`https://scholar.google.com/scholar?q=${encodeURIComponent(art.doi || (art.title || "").replace(/[:\-–—"']/g, " ").replace(/\s+/g, " ").trim())}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn btn-secondary btn-sm"

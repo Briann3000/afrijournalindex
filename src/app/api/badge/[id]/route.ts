@@ -38,24 +38,9 @@ export async function GET(
         const latest = journal.reports[0];
         const score = latest ? latest.standardScore : 0;
         
-        // Use precomputed quartile or derive directly
-        const myQuartile = latest?.quartile || (score >= 0.5 ? "Q1" : score >= 0.25 ? "Q2" : score >= 0.08 ? "Q3" : score > 0 ? "Q4" : "Unrated");
-
-        scoreText = `AJCI ${score.toFixed(2)} • ${myQuartile}`;
-
-        if (myQuartile === "Q1") {
-          rightBg = "#f59e0b"; // Warm Amber Gold
-          rightText = "#0a0a0f";
-        } else if (myQuartile === "Q2") {
-          rightBg = "#2563eb"; // Royal Blue
-          rightText = "#ffffff";
-        } else if (myQuartile === "Q3") {
-          rightBg = "#0284c7"; // Sky Blue
-          rightText = "#ffffff";
-        } else {
-          rightBg = "#475569"; // Slate
-          rightText = "#ffffff";
-        }
+        scoreText = score > 0 ? `AJCI ${score.toFixed(2)}` : "INDEXED";
+        rightBg = "#f59e0b"; // Platform Amber
+        rightText = "#0a0a0f";
       }
     }
 

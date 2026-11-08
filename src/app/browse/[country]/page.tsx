@@ -5,6 +5,7 @@ import Header from "../../Header";
 import Footer from "../../Footer";
 import { findCountryBySlug } from "../../data/seo-slugs";
 import { prisma } from "../../../lib/db";
+import { getJournalUrl } from "../../../lib/journal-utils";
 
 export default async function CountryBrowsePage({
   params,
@@ -139,7 +140,7 @@ export default async function CountryBrowsePage({
                     </div>
 
                     <Link
-                      href={`/journal/${j.id}`}
+                      href={getJournalUrl(j)}
                       style={{ textDecoration: "none", color: "var(--color-text-main)" }}
                     >
                       <h2 style={{ fontSize: "1.18rem", fontWeight: 700, margin: "0 0 0.3rem", lineHeight: 1.4 }} className="hover-primary">
@@ -163,7 +164,7 @@ export default async function CountryBrowsePage({
                     </div>
 
                     <Link
-                      href={`/journal/${j.id}`}
+                      href={getJournalUrl(j)}
                       className="btn btn-outline-primary btn-sm"
                       style={{ whiteSpace: "nowrap" }}
                     >

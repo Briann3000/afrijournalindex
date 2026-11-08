@@ -30,7 +30,7 @@ export async function generateMetadata({
     }
 
     const title = `Official Indexing Certificate — ${journal.name}`;
-    const description = `Public cryptographic verification record and Certificate of Indexation for ${journal.name} (${journal.country}). Grade ${journal.qualityGrade || "A"}. Verified in AfriJournal Indexing.`;
+    const description = `Public cryptographic verification record and Certificate of Indexation for ${journal.name} (${journal.country}). Verified in AfriJournal Indexing.`;
 
     return {
       title,

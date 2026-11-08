@@ -165,10 +165,10 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
       doc.setFont("helvetica", "bold");
       doc.setFontSize(7.5);
       doc.setTextColor(100, 116, 139);
-      doc.text("QUALITY GRADE", boxX + colWidth * 0.5, boxY + 6.5, { align: "center" });
+      doc.text("ACCREDITATION", boxX + colWidth * 0.5, boxY + 6.5, { align: "center" });
       doc.setFontSize(13);
       doc.setTextColor(22, 163, 74);
-      doc.text(journal.qualityGrade || "Grade A", boxX + colWidth * 0.5, boxY + 15, { align: "center" });
+      doc.text("ACCREDITED", boxX + colWidth * 0.5, boxY + 15, { align: "center" });
 
       // Col 2
       doc.setFontSize(7.5);
@@ -181,10 +181,10 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
       // Col 3
       doc.setFontSize(7.5);
       doc.setTextColor(100, 116, 139);
-      doc.text("CATEGORY QUARTILE", boxX + colWidth * 2.5, boxY + 6.5, { align: "center" });
+      doc.text("REGIONAL SCORE", boxX + colWidth * 2.5, boxY + 6.5, { align: "center" });
       doc.setFontSize(13);
       doc.setTextColor(180, 83, 9);
-      doc.text(journal.quartile || "Q2", boxX + colWidth * 2.5, boxY + 15, { align: "center" });
+      doc.text(journal.latestReport?.regionalScore?.toFixed(3) || "2.878", boxX + colWidth * 2.5, boxY + 15, { align: "center" });
 
       // Col 4
       doc.setFontSize(7.5);
@@ -273,7 +273,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
       const letterParagraphs = [
         `This letter serves as formal institutional certification that ${journal.name} (ISSN: ${journal.issn || "Registered"}) published by ${journal.publisherName} (${journal.country}) has undergone formal bibliometric screening and has achieved active accredited status in the AfriJournal Index Directory.`,
         `During the current evaluation cycle, the serial demonstrated sustained publication continuity, non-predatory editorial governance, and satisfied the Committee on Publication Ethics (COPE) core practices. The journal has been accorded an official Standard AfriJournal Citation Index (AJCI) of ${journal.latestReport?.standardScore?.toFixed(3) || "2.140"} and an Africa-weighted regional score of ${journal.latestReport?.regionalScore?.toFixed(3) || "2.461"}.`,
-        `Within its designated subject category (${journal.primaryDiscipline || "Multidisciplinary Sciences"}), the serial is formally classified in Category Quartile ${journal.quartile || "Q1"}, placing it among the premier verified academic serials on the African continent for academic faculty promotions, student citations, and grant allocations.`,
+        `Within its designated subject category (${journal.primaryDiscipline || "Multidisciplinary Sciences"}), the serial is formally classified with active continental indexation status, placing it among the premier verified academic serials on the African continent for academic faculty promotions, student citations, and grant allocations.`,
         `Academic institutions, national education commissions, and funding bodies may verify the digital authenticity of this certificate and its active accreditation ledger at any time by accessing the official cryptographic repository URL: ${verifyUrl}.`
       ];
 
@@ -589,11 +589,11 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                 </div>
 
                 <div>
-                  <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Category Quartile</div>
+                  <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>Regional Impact</div>
                   <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#b45309", marginTop: "0.2rem" }}>
-                    {journal.quartile || "Q2"}
+                    {journal.latestReport?.regionalScore ? journal.latestReport.regionalScore.toFixed(3) : "—"}
                   </div>
-                  <div style={{ fontSize: "0.68rem", color: "#94a3b8" }}>{journal.primaryDiscipline || "Multidisciplinary"}</div>
+                  <div style={{ fontSize: "0.68rem", color: "#94a3b8" }}>Africa-Weighted Score</div>
                 </div>
 
                 <div>

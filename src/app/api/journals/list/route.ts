@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit;
     const country = searchParams.get("country");
     const search = searchParams.get("q")?.trim();
-    const forceRefresh = searchParams.get("refresh") === "true";
+    const forceRefresh = searchParams.get("refresh") === "true" || searchParams.has("t");
 
     // 1. Full unpaginated request (used by Browse page with client-side filters)
     if (!hasPagination && !country && !search) {
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
         total: rows.length,
         journals: rows
       }, {
-        headers: { "Cache-Control": "public, s-maxage=900, stale-while-revalidate=3600" }
+        headers: { "Cache-Control": "no-cache, no-store, must-revalidate" }
       });
     }
 

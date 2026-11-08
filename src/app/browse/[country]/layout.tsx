@@ -11,7 +11,7 @@ export async function generateMetadata({
   const countryName = countryMeta ? countryMeta.name : countrySlug.charAt(0).toUpperCase() + countrySlug.slice(1);
 
   const title = `Academic Journals in ${countryName} — Verified Indexing & Impact Metrics`;
-  const description = `Explore accredited, peer-reviewed scientific journals published in ${countryName}. View 2-year AJCI citation impact, subject quartiles (Q1-Q4), and open-access research profiles.`;
+  const description = `Explore accredited, peer-reviewed scientific journals published in ${countryName}. View 2-year AJCI citation impact and open-access research profiles.`;
 
   return {
     title,

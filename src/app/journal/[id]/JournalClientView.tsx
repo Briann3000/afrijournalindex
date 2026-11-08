@@ -1417,7 +1417,8 @@ export default function JournalClientView({
                               <button 
                                 type="button"
                                 onClick={() => {
-                                  window.open(`https://scholar.google.com/scholar?q=${encodeURIComponent(`"${article.title}"`)}`, "_blank");
+                                  const query = article.doi ? article.doi : article.title.replace(/[:\-–—"']/g, " ").replace(/\s+/g, " ").trim();
+                                  window.open(`https://scholar.google.com/scholar?q=${encodeURIComponent(query)}`, "_blank");
                                 }}
                                 title="Click to view citing publications on Google Scholar"
                                 style={{ 
@@ -2915,9 +2916,10 @@ export default function JournalClientView({
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                   {evidenceModalArticle.citations.map((c, idx) => {
+                    const cleanCitingTitle = (c.citingTitle || "").replace(/[:\-–—"']/g, " ").replace(/\s+/g, " ").trim();
                     const citingUrl = c.citingDoi 
                       ? (c.citingDoi.startsWith("http") ? c.citingDoi : `https://doi.org/${c.citingDoi}`)
-                      : (c.citingPdfUrl || `https://scholar.google.com/scholar?q=${encodeURIComponent(`"${c.citingTitle}"`)}`);
+                      : (c.citingPdfUrl || `https://scholar.google.com/scholar?q=${encodeURIComponent(cleanCitingTitle)}`);
 
                     return (
                       <div 

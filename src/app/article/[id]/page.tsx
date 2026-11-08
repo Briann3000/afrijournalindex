@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Header from "../../Header";
 import Footer from "../../Footer";
 import { prisma } from "../../../lib/db";
+import { getJournalUrl } from "../../../lib/journal-utils";
 
 export default async function ArticlePage({
   params,
@@ -93,7 +94,7 @@ export default async function ArticlePage({
         <div style={{ marginBottom: "1.5rem", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
           <Link href="/" style={{ color: "var(--color-text-muted)", textDecoration: "none" }}>Home</Link>
           <span style={{ margin: "0 0.5rem" }}>/</span>
-          <Link href={`/journal/${article.journal.id}`} style={{ color: "var(--color-text-muted)", textDecoration: "none" }}>
+          <Link href={getJournalUrl(article.journal)} style={{ color: "var(--color-text-muted)", textDecoration: "none" }}>
             {article.journal.name}
           </Link>
           <span style={{ margin: "0 0.5rem" }}>/</span>
@@ -233,7 +234,7 @@ export default async function ArticlePage({
             <div>
               Published in:{" "}
               <Link
-                href={`/journal/${article.journal.id}`}
+                href={getJournalUrl(article.journal)}
                 style={{ fontWeight: 700, color: "var(--color-primary)", textDecoration: "none" }}
               >
                 {article.journal.name}
