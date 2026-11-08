@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 import { prisma } from "../lib/db";
 import { ALL_AFRICAN_COUNTRIES } from "./data/african-countries";
 import { slugify, TOP_DISCIPLINE_SLUGS } from "./data/seo-slugs";
+import { getJournalUrl } from "../lib/journal-utils";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://afrijournalindexing.org";
@@ -117,25 +118,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    // Fetch all indexed journals from the database
+    // 1. Fetch all indexed journals from the database using canonical URLs
     const journals = await prisma.journal.findMany({
       where: {
         isIndexed: true,
       },
       select: {
         id: true,
+        issn: true,
+        eissn: true,
         updatedAt: true,
       },
     });
 
     const journalRoutes: MetadataRoute.Sitemap = journals.map((j) => ({
-      url: `${baseUrl}/journal/${j.id}`,
+      url: `${baseUrl}${getJournalUrl(j)}`,
       lastModified: j.updatedAt || new Date(),
       changeFrequency: "daily",
       priority: 0.9,
     }));
 
-    // Fetch all scholars with an AfriScholar ID
+    // 2. Fetch all verified African institutions
+    const institutions = await prisma.institution.findMany({
+      select: {
+        name: true,
+        updatedAt: true,
+      },
+      orderBy: { totalPublications: "desc" },
+    });
+
+    const institutionRoutes: MetadataRoute.Sitemap = institutions.map((inst) => ({
+      url: `${baseUrl}/institution?name=${encodeURIComponent(inst.name)}`,
+      lastModified: inst.updatedAt || new Date(),
+      changeFrequency: "weekly",
+      priority: 0.86,
+    }));
+
+    // 3. Fetch all scholars with an AfriScholar ID
     const scholars = await prisma.user.findMany({
       where: {
         afriScholarId: { not: null },
@@ -148,13 +167,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
 
     const scholarRoutes: MetadataRoute.Sitemap = scholars.map((s) => ({
-      url: `${baseUrl}/scholar/${s.afriScholarId}`,
+      url: `${baseUrl}/scholar/${encodeURIComponent(s.afriScholarId!)}`,
       lastModified: s.updatedAt || new Date(),
       changeFrequency: "weekly",
       priority: 0.85,
     }));
 
-    // Generate crawlable paginated scholar directory routes
+    // 4. Generate crawlable paginated scholar directory routes
     const totalPages = Math.ceil(scholars.length / 15);
     const directoryRoutes: MetadataRoute.Sitemap = [];
     for (let p = 2; p <= Math.min(totalPages, 160); p++) {
@@ -166,7 +185,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
 
-    return [...staticRoutes, ...countryRoutes, ...disciplineRoutes, ...journalRoutes, ...directoryRoutes, ...scholarRoutes];
+    // 5. Fetch high-impact and citable articles across indexed journals
+    const articles = await prisma.article.findMany({
+      select: {
+        id: true,
+        publishDate: true,
+        createdAt: true,
+      },
+      orderBy: [
+        { citationCount: "desc" },
+        { publishDate: "desc" },
+      ],
+      take: 12000,
+    });
+
+    const articleRoutes: MetadataRoute.Sitemap = articles.map((a) => ({
+      url: `${baseUrl}/article/${a.id}`,
+      lastModified: a.publishDate || a.createdAt || new Date(),
+      changeFrequency: "monthly",
+      priority: 0.72,
+    }));
+
+    return [
+      ...staticRoutes,
+      ...countryRoutes,
+      ...disciplineRoutes,
+      ...journalRoutes,
+      ...institutionRoutes,
+      ...scholarRoutes,
+      ...directoryRoutes,
+      ...articleRoutes,
+    ];
   } catch {
     return [...staticRoutes, ...countryRoutes, ...disciplineRoutes];
   }

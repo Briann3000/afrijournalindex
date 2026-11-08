@@ -1392,7 +1392,14 @@ export default function JournalClientView({
                         >
                           <div style={{ flex: 1, minWidth: "250px" }}>
                             <h4 style={{ margin: "0 0 0.5rem", fontSize: "1rem", color: "var(--color-text-main)", fontWeight: 700, lineHeight: "1.4" }}>
-                              {article.title}
+                              <a 
+                                href={`/article/${article.id}`} 
+                                className="academic-link"
+                                style={{ color: "inherit", textDecoration: "none" }}
+                                title="View indexing record & citation metrics"
+                              >
+                                {article.title}
+                              </a>
                             </h4>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
                               <span>

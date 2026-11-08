@@ -685,6 +685,7 @@ export async function fetchScholarProfile(id: string) {
       publicationsCount: totalWorksCount,
       articlesCount: articles.length,
       citationsCount: totalCitations,
+      totalCitations,
       hIndex,
       i10Index,
       citations5Yr,
@@ -693,7 +694,28 @@ export async function fetchScholarProfile(id: string) {
       africanCitations,
       globalCitations,
       africanPercent: finalAfricanPercent,
-      peerReviewsCount: verifiedReviews.length
+      peerReviewsCount: verifiedReviews.length,
+      yearlyCitations,
+      indicesMatrix: {
+        startYear: currentYear - 5,
+        citations: {
+          all: totalCitations,
+          since5Yr: citations5Yr
+        },
+        hIndex: {
+          all: hIndex,
+          since5Yr: hIndex5Yr
+        },
+        i10Index: {
+          all: i10Index,
+          since5Yr: i10Index5Yr
+        }
+      },
+      provenance: {
+        africanPercent: finalAfricanPercent,
+        africanCount: africanCitations,
+        globalCount: globalCitations
+      }
     },
     yearlyCitations,
     articles,

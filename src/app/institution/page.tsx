@@ -290,6 +290,11 @@ function InstitutionContent() {
   useEffect(() => {
     if (activeTab === "profile" && currentUnivName) {
       loadUniversityProfile(currentUnivName);
+      if (typeof document !== "undefined") {
+        document.title = `${currentUnivName} — Research Profile & Scientometrics | AfriJournal Indexing`;
+      }
+    } else if (typeof document !== "undefined") {
+      document.title = "Institutional Research Consoles & University Benchmarking | AfriJournal Indexing";
     }
   }, [activeTab, currentUnivName]);
 
@@ -417,6 +422,25 @@ function InstitutionContent() {
         {/* TAB 1: CONTINENTAL LEADERBOARD */}
         {activeTab === "leaderboard" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            {leaderboard.length > 0 && (
+              <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    "@context": "https://schema.org",
+                    "@type": "ItemList",
+                    "name": "African University Research & Scientometrics Leaderboard",
+                    "description": "Leaderboard of leading African research universities ranked by publication volume, citations, and institutional h-index.",
+                    "itemListElement": leaderboard.slice(0, 50).map((u, idx) => ({
+                      "@type": "ListItem",
+                      "position": idx + 1,
+                      "name": u.name,
+                      "url": `https://afrijournalindexing.org/institution?name=${encodeURIComponent(u.name)}`
+                    }))
+                  })
+                }}
+              />
+            )}
             
             {/* Filter Bar */}
             <div className="card-surface" style={{ padding: "1.5rem", borderRadius: "16px", border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
@@ -730,9 +754,16 @@ function InstitutionContent() {
                             </td>
 
                             <td style={{ padding: "1rem" }}>
-                              <div style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.98rem" }}>
+                              <a 
+                                href={`/institution?name=${encodeURIComponent(item.name)}`}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleSelectUniversity(item.name);
+                                }}
+                                style={{ fontWeight: 700, color: "var(--color-text-main)", fontSize: "0.98rem", textDecoration: "none", display: "inline-block" }}
+                              >
                                 {item.name}
-                              </div>
+                              </a>
                               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.2rem", fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
                                 <i className="fa-solid fa-location-dot" style={{ color: "var(--color-primary)", fontSize: "0.75rem" }}></i>
                                 <span>{item.country}</span>
@@ -766,16 +797,17 @@ function InstitutionContent() {
                             </td>
 
                             <td style={{ textAlign: "right", padding: "1rem" }}>
-                              <button
+                              <a
+                                href={`/institution?name=${encodeURIComponent(item.name)}`}
                                 onClick={(e) => {
-                                  e.stopPropagation();
+                                  e.preventDefault();
                                   handleSelectUniversity(item.name);
                                 }}
                                 className="btn btn-secondary btn-sm"
                                 style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}
                               >
                                 View Profile <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.7rem" }}></i>
-                              </button>
+                              </a>
                             </td>
                           </tr>
                         );
@@ -938,6 +970,27 @@ function InstitutionContent() {
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                {/* Schema.org CollegeOrUniversity JSON-LD */}
+                <script
+                  type="application/ld+json"
+                  dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                      "@context": "https://schema.org",
+                      "@type": "CollegeOrUniversity",
+                      "@id": `https://afrijournalindexing.org/institution?name=${encodeURIComponent(profileData.name)}#university`,
+                      "name": profileData.name,
+                      "url": profileData.websiteUrl || `https://afrijournalindexing.org/institution?name=${encodeURIComponent(profileData.name)}`,
+                      "address": {
+                        "@type": "PostalAddress",
+                        "addressCountry": profileData.country
+                      },
+                      "identifier": [
+                        profileData.rorId ? { "@type": "PropertyValue", "name": "ROR ID", "value": profileData.rorId } : null,
+                        profileData.openAlexId ? { "@type": "PropertyValue", "name": "OpenAlex ID", "value": profileData.openAlexId } : null
+                      ].filter(Boolean)
+                    })
+                  }}
+                />
                 
                 {/* Top Navigation Breadcrumb */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>

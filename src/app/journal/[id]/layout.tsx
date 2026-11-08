@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { prisma } from "../../../lib/db";
+import { getJournalUrl } from "../../../lib/journal-utils";
 
 export async function generateMetadata({
   params,
@@ -74,7 +75,7 @@ export async function generateMetadata({
       openGraph: {
         title: `${journal.name} — Indexed in AfriJournal Indexing`,
         description,
-        url: `https://afrijournalindexing.org/journal/${journal.id}`,
+        url: `https://afrijournalindexing.org${getJournalUrl(journal)}`,
         siteName: "AfriJournal Indexing",
         type: "article",
         images: [
@@ -92,7 +93,7 @@ export async function generateMetadata({
         description,
       },
       alternates: {
-        canonical: `https://afrijournalindexing.org/journal/${journal.id}`,
+        canonical: `https://afrijournalindexing.org${getJournalUrl(journal)}`,
       },
       other: metaOther,
     };
@@ -143,7 +144,7 @@ export default async function JournalDetailLayout({
     });
 
     if (journal) {
-      const canonicalUrl = `https://afrijournalindexing.org/journal/${journal.id}`;
+      const canonicalUrl = `https://afrijournalindexing.org${getJournalUrl(journal)}`;
       const issns = [journal.issn, journal.eissn].filter(Boolean) as string[];
 
       // Extract abbreviation if present in parentheses e.g. "African Research Journal of Education and Social Sciences (ARJESS)"
