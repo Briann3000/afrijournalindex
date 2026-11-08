@@ -33,19 +33,21 @@
     "cta_explore": "Vinjari Majarida",
     "cta_institution": "Nafasi za Vyuo Vikuu",
     "card_title": "Vipimo Vilivyoangaziwa: ARJESS",
-    "card_if": "Kipimo cha Athari (AJIF)",
+    "card_if": "Kielezo cha Nukuu (AJCI)",
     "card_grade": "Daraja la Ubora",
     "card_score": "Alama: 1.482",
-    "card_regional": "AJIF ya Kikanda",
+    "card_regional": "AJCI ya Kikanda",
     "card_regional_sub": "Imehesabiwa kwa kasi ya nukuu za kikanda na upatikanaji wa wazi"
   },
   "stats": {
     "journals": "Majarida ya Kiafrika Yaliyoorodheshwa",
     "free_indexing": "Uorodheshaji wa Bure & Wazi",
     "languages": "Lugha Zinazotumika",
-    "metrics": "Vipimo Maalum vya AJIF",
+    "metrics": "Vipimo Maalum vya AJCI",
     "countries_covered": "Nchi za Kiafrika Zilizopo",
-    "verified_rate": "Uhakiki wa Uhariri"
+    "verified_rate": "Uhakiki wa Uhariri",
+    "scholar_works": "Machapisho ya Watafiti",
+    "institutions": "Taasisi za Kiafrika"
   },
   "disciplines": {
     "title": "Nyanja Mbalimbali za Kitaaluma",
@@ -122,8 +124,8 @@
     "tagline": "Kuwezesha Ugunduzi wa Kitaaluma Barani Afrika."
   },
   "rankings_page": {
-    "title": "Viwango vya Majarida ya AJIF & Robo (Q1-Q4)",
-    "subtitle": "Orodha ya moja kwa moja ya majarida ya utafiti ya Kiafrika yaliyogawanywa katika robo za kisekta (Q1–Q4) na kupangwa kwa viashiria vya athari vya AJIF vilivyothibitishwa.",
+    "title": "Viwango vya Majarida ya AJCI",
+    "subtitle": "Orodha ya moja kwa moja ya majarida ya utafiti ya Kiafrika yaliyopangwa kwa viashiria vya athari vya AJCI vilivyothibitishwa.",
     "filter_country": "Chuja kwa Nchi",
     "all_countries": "Nchi Zote za Kiafrika",
     "filter_discipline": "Chuja kwa Taaluma",
@@ -135,7 +137,9 @@
     "col_journal": "Jina la Jarida & Mchapishaji",
     "col_country": "Nchi",
     "col_discipline": "Taaluma",
-    "col_ajif": "AJIF ya Kawaida",
+    "col_ajci": "AJCI ya Kawaida",
+    "col_ajif": "AJCI ya Kawaida",
+    "col_AJCI": "AJCI ya Kawaida",
     "col_regional": "Alama ya Kikanda",
     "col_quartile": "Robo (Quartile)",
     "col_grade": "Daraja",
@@ -194,7 +198,16 @@
     "no_results": "Hakuna kumbukumbu za kitaasisi zilizopatikana.",
     "search_table": "Chuja jedwali la taasisi...",
     "sort_by": "Panga Kwa",
-    "back_to_leaderboard": "← Rudi Kwenye Viwango vya Vyuo"
+    "back_to_leaderboard": "← Rudi Kwenye Viwango vya Vyuo",
+    "kenpro_verified": "Imethibitishwa na KENPRO",
+    "kenpro_verified_desc": "Taasisi ya utafiti wa kitaaluma iliyohakikiwa na kuorodheshwa na Shirika la Miradi la Kenya (KENPRO)",
+    "claim_institution": "Dai Wasifu wa Taasisi",
+    "explore_scholars": "Tafuta Watafiti kwenye Orodha",
+    "verified_profile": "Wasifu Uliothibitishwa wa Kitaasisi",
+    "affiliated_journals_count": "Majarida Shirikishi",
+    "upload_success": "Hati imepakiwa kwa mafanikio",
+    "upload_error": "Upakiaji wa hati umeshindwa",
+    "no_hosted_journals": "Hakuna majarida shirikishi yaliyosajiliwa chini ya mchapishaji huyu wa taasisi."
   },
   "submit_page": {
     "title": "Tovuti ya Kuwasilisha Jarida",
@@ -261,7 +274,9 @@
     "filter_all_disciplines": "Taaluma Zote",
     "filter_all_grades": "Madaraja Yote ya Ubora",
     "filter_sort": "Panga Kwa",
-    "sort_ajif": "Kipimo cha Juu cha Athari (AJIF)",
+    "sort_ajci": "Kipimo cha Juu cha Nukuu (AJCI)",
+    "sort_ajif": "Kipimo cha Juu cha Nukuu (AJCI)",
+    "sort_AJCI": "Kipimo cha Juu cha Nukuu (AJCI)",
     "sort_name": "Kialfabeti (A-Z)",
     "sort_citations": "Nukuu Nyingi Zaidi",
     "no_results": "Hakuna majarida yaliyopatikana kulingana na vigezo vyako.",
@@ -270,7 +285,7 @@
     "issn": "ISSN",
     "publisher": "Mchapishaji",
     "country": "Nchi",
-    "score": "Alama ya AJIF"
+    "score": "Alama ya AJCI"
   },
   "journal_page": {
     "back_to_browse": "← Rudi Kwenye Orodha",
@@ -283,10 +298,14 @@
     "issn_print": "ISSN ya Kuchapishwa",
     "issn_electronic": "eISSN ya Mtandaoni",
     "visit_website": "Tembelea Tovuti Rasmi",
-    "impact_metrics_title": "Vipimo vya Athari vya AJIF",
+    "impact_metrics_title": "Vipimo vya Nukuu vya AJCI",
     "impact_metrics_desc": "Kimehesabiwa kwa dirisha la nukuu la miaka 2 na kizidishi cha kikanda cha Afrika",
-    "standard_ajif": "Alama ya Kawaida ya AJIF",
+    "standard_ajci": "Alama ya Kawaida ya AJCI",
+    "standard_ajif": "Alama ya Kawaida ya AJCI",
+    "standard_AJCI": "Alama ya Kawaida ya AJCI",
+    "regional_ajci": "Alama ya Kikanda Iliyopimwa",
     "regional_ajif": "Alama ya Kikanda Iliyopimwa",
+    "regional_AJCI": "Alama ya Kikanda Iliyopimwa",
     "citable_articles": "Makala Yanayoweza Kunukuliwa",
     "citations_received": "Nukuu Zilizopokelewa",
     "scope_title": "Wigo & Mwelekeo wa Uhariri",
@@ -306,7 +325,7 @@
     "not_found_title": "Jarida Halikupatikana",
     "not_found_desc": "Jarida lililoombwa halikuweza kupatikana kwenye sajili ya AfriJournal.",
     "badge_widget_title": "Weka Beji ya Uthibitisho Kwenye Tovuti Yako",
-    "badge_embed_desc": "Weka beji hii hai ya uthibitisho wa AJIF kwenye tovuti ya jarida lako kuonyesha hadhi yako rasmi:",
+    "badge_embed_desc": "Weka beji hii hai ya uthibitisho wa AJCI kwenye tovuti ya jarida lako kuonyesha hadhi yako rasmi:",
     "copy_code": "Nakili Msimbo",
     "copied": "Imenakiliwa!"
   },
@@ -325,7 +344,7 @@
     "basic_price": "$99",
     "basic_sub": "/ malipo ya mara moja",
     "basic_desc": "Hukokotoa kipimo cha athari ya nukuu cha miaka 2 na hutoa ukurasa rasmi wa ukadiriaji.",
-    "basic_feature1": "Hesabu ya Kawaida ya AJIF",
+    "basic_feature1": "Hesabu ya Kawaida ya AJCI",
     "basic_feature2": "Beji ya Uthibitisho ya Mtandaoni",
     "basic_feature3": "Jedwali la Mgawanyo wa Nukuu",
     "basic_feature4": "Viwango vya Kisekta",
@@ -333,7 +352,7 @@
     "premium_price": "$349",
     "premium_sub": "/ malipo ya mara moja",
     "premium_desc": "Ripoti kamili ya tathmini yenye ramani za njia za nukuu, alama za athari za kikanda, na mwongozo wa maendeleo.",
-    "premium_feature1": "AJIF ya Kawaida + ya Kikanda",
+    "premium_feature1": "AJCI ya Kawaida + ya Kikanda",
     "premium_feature2": "Ramani Shirikishi za Nukuu",
     "premium_feature3": "Ripoti ya Uzingatiaji wa Wizi wa Kitaaluma",
     "premium_feature4": "Mwongozo wa Kuonekana wa Miezi 12",
@@ -431,7 +450,7 @@
       "items": [
         {
           "q": "AfriJournal Index ni nini?",
-          "a": "AfriJournal Index (AJIF) ni mfumo wa wazi wa uorodheshaji wa kitaaluma uliojengwa mahsusi kwa majarida ya utafiti ya Kiafrika. Tunaorodhesha majarida, tunakokotoa vipimo vya athari, na kutoa wasifu wa watafiti bila malipo."
+          "a": "AfriJournal Index ni mfumo wa wazi wa uorodheshaji wa kitaaluma uliojengwa mahsusi kwa majarida ya utafiti ya Kiafrika. Tunaorodhesha majarida, tunakokotoa vipimo vya nukuu, na kutoa wasifu wa watafiti bila malipo."
         },
         {
           "q": "Je, mfumo huu ni bure kutumia?",
@@ -451,7 +470,7 @@
     "sec2_title": "Maelezo ya Mfumo",
     "sec2_p1": "AfriJournal Index ni injini wazi ya uorodheshaji wa kitaaluma inayoorodhesha na kutathmini majarida ya Kiafrika. Mfumo hutoa:",
     "sec2_li1": "Uwasilishaji wa majarida na tathmini ya kiotomatiki ya uzingatiaji",
-    "sec2_li2": "Kukokotoa alama za athari (AJIF ya kawaida na ya kikanda)",
+    "sec2_li2": "Kukokotoa alama za nukuu (AJCI ya kawaida na ya kikanda)",
     "sec2_li3": "Wasifu wa watafiti na uchambuzi wa kielezo cha h",
     "sec2_li4": "Dashibodi za vipimo vya kitaasisi",
     "sec2_li5": "Mijadala ya mapitio ya wanazuoni",

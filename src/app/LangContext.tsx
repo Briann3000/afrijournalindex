@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import defaultTranslations from "../locales/en.json";
 
 interface LangContextType {
   lang: string;
@@ -18,17 +19,24 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
     return "en";
   });
   
-  const [translations, setTranslations] = useState<any>(null);
+  // Initialize immediately with default english translations so SSR and initial HTML render
+  // have full text content without blocking Googlebot with "Loading AfriJournal Index..."
+  const [translations, setTranslations] = useState<any>(defaultTranslations);
 
   useEffect(() => {
     async function loadTranslations() {
+      // If language is default 'en', we already have defaultTranslations loaded
+      if (lang === "en") {
+        setTranslations(defaultTranslations);
+        return;
+      }
       try {
         const res = await fetch(`/locales/${lang}.json?v=20261105b`);
         if (!res.ok) throw new Error("Translation not found");
         const data = await res.json();
         setTranslations(data);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to load language translations:", err);
       }
     }
     loadTranslations();
@@ -45,12 +53,8 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
     }
   }, [lang]);
 
-  if (!translations) {
-    return <div style={{ background: "#121217", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>Loading AfriJournal Index...</div>;
-  }
-
   return (
-    <LangContext.Provider value={{ lang, setLang, t: translations }}>
+    <LangContext.Provider value={{ lang, setLang, t: translations || defaultTranslations }}>
       {children}
     </LangContext.Provider>
   );
@@ -58,6 +62,8 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
 
 export function useLang() {
   const context = useContext(LangContext);
-  if (!context) throw new Error("useLang must be used within LangProvider");
+  if (!context) {
+    throw new Error("useLang must be used within LangProvider");
+  }
   return context;
 }

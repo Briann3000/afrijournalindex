@@ -29,11 +29,11 @@
     "subtitle": "An open, transparent indexing directory and citation metrics engine designed to value African scientific research, eliminate predatory barriers, and calculate verified regional impact factors.",
     "search_placeholder": "Search 300+ indexed journals, universities or DOIs...",
     "search_btn": "Search Index",
-    "cta_submit": "Index Your Journal (Free)",
+    "cta_submit": "Submit Your Journal ",
     "cta_explore": "Explore Directory",
     "cta_institution": "Institutional Rankings",
     "card_title": "Featured Metrics: ARJESS",
-    "card_if": "AfriJournal IF (AJIF)",
+    "card_if": "AfriJournal IF (AJCI)",
     "card_grade": "Quality Grade",
     "card_score": "Score: 1.482",
     "card_regional": "Regional Weighted IF",
@@ -43,9 +43,11 @@
     "journals": "Indexed African Journals",
     "free_indexing": "Free Open Indexing",
     "languages": "Supported Languages",
-    "metrics": "Proprietary AJIF Metrics",
+    "metrics": "Proprietary AJCI Metrics",
     "countries_covered": "African Nations Covered",
-    "verified_rate": "Editorial Verification"
+    "verified_rate": "Editorial Verification",
+    "scholar_works": "Scholar Publications",
+    "institutions": "African Institutions"
   },
   "disciplines": {
     "title": "Broad Discipline Coverage",
@@ -123,7 +125,7 @@
   },
   "rankings_page": {
     "title": "AJCI Journal Rankings",
-    "subtitle": "Real-time leaderboard of African research journals classified into subject quartiles (Q1–Q4) and ranked by verified AJIF impact indicators.",
+    "subtitle": "Real-time leaderboard of African research journals ranked by verified AJCI impact indicators.",
     "filter_country": "Filter by Country",
     "all_countries": "All African Countries",
     "filter_discipline": "Filter by Discipline",
@@ -135,7 +137,9 @@
     "col_journal": "Journal Name & Publisher",
     "col_country": "Country",
     "col_discipline": "Discipline",
-    "col_ajif": "Standard AJIF",
+    "col_ajci": "Standard AJCI",
+    "col_ajif": "Standard AJCI",
+    "col_AJCI": "Standard AJCI",
     "col_regional": "Regional Score",
     "col_quartile": "Quartile",
     "col_grade": "Grade",
@@ -194,7 +198,16 @@
     "no_results": "No institutional records found matching criteria.",
     "search_table": "Filter institutional table...",
     "sort_by": "Sort By",
-    "back_to_leaderboard": "← Back to University Leaderboard"
+    "back_to_leaderboard": "← Back to University Leaderboard",
+    "kenpro_verified": "KENPRO Verified",
+    "kenpro_verified_desc": "Verified academic research institution indexed by Kenya Projects Organization",
+    "claim_institution": "Claim Institution Profile",
+    "explore_scholars": "Explore Scholars in Directory",
+    "verified_profile": "Verified Institutional Profile",
+    "affiliated_journals_count": "Affiliated Journals",
+    "upload_success": "Document uploaded successfully",
+    "upload_error": "Document upload failed",
+    "no_hosted_journals": "No affiliated journals registered under this institutional publisher."
   },
   "submit_page": {
     "title": "Journal Submission Portal",
@@ -261,7 +274,9 @@
     "filter_all_disciplines": "All Disciplines",
     "filter_all_grades": "All Quality Grades",
     "filter_sort": "Sort By",
-    "sort_ajif": "Highest Impact Factor (AJIF)",
+    "sort_ajci": "Highest Impact Factor (AJCI)",
+    "sort_ajif": "Highest Impact Factor (AJCI)",
+    "sort_AJCI": "Highest Impact Factor (AJCI)",
     "sort_name": "Alphabetical (A-Z)",
     "sort_citations": "Most Citations",
     "no_results": "No journals found matching your search criteria.",
@@ -270,7 +285,7 @@
     "issn": "ISSN",
     "publisher": "Publisher",
     "country": "Country",
-    "score": "AJIF Score"
+    "score": "AJCI Score"
   },
   "journal_page": {
     "back_to_browse": "← Back to Directory",
@@ -283,10 +298,14 @@
     "issn_print": "Print ISSN",
     "issn_electronic": "Online eISSN",
     "visit_website": "Visit Official Website",
-    "impact_metrics_title": "AJIF Impact Metrics",
+    "impact_metrics_title": "AJCI Impact Metrics",
     "impact_metrics_desc": "Calculated using a 2-year citation window with regional Africa-weighted multiplier",
-    "standard_ajif": "Standard AJIF Score",
+    "standard_ajci": "Standard AJCI Score",
+    "standard_ajif": "Standard AJCI Score",
+    "standard_AJCI": "Standard AJCI Score",
+    "regional_ajci": "Regional Weighted Score",
     "regional_ajif": "Regional Weighted Score",
+    "regional_AJCI": "Regional Weighted Score",
     "citable_articles": "Citable Articles",
     "citations_received": "Citations Received",
     "scope_title": "Scope & Editorial Focus",
@@ -306,7 +325,7 @@
     "not_found_title": "Journal Not Found",
     "not_found_desc": "The requested journal could not be located in the AfriJournal Index registry.",
     "badge_widget_title": "Embed Verification Badge",
-    "badge_embed_desc": "Embed this live AJIF verification badge on your journal website to display your official indexing status:",
+    "badge_embed_desc": "Embed this live AJCI verification badge on your journal website to display your official indexing status:",
     "copy_code": "Copy Embed Code",
     "copied": "Copied!"
   },
@@ -325,7 +344,7 @@
     "basic_price": "$99",
     "basic_sub": "/ one-time",
     "basic_desc": "Calculates your standard 2-year citation impact factor and provides a formal rating page.",
-    "basic_feature1": "Standard AJIF Calculation",
+    "basic_feature1": "Standard AJCI Calculation",
     "basic_feature2": "Verification Badge Widget",
     "basic_feature3": "Citation Breakdown Sheet",
     "basic_feature4": "Performance Ranking (Discipline)",
@@ -431,7 +450,7 @@
       "items": [
         {
           "q": "What is AfriJournal Index?",
-          "a": "AfriJournal Index (AJIF) is an open-access academic indexing platform built specifically for African research journals. We catalog peer-reviewed journals, compute impact factor scores, track citations, and provide researcher profile dashboards — all without paywalls."
+          "a": "AfriJournal Index is an open-access academic indexing platform built specifically for African research journals. We catalog peer-reviewed journals, compute impact factor scores, track citations, and provide researcher profile dashboards — all without paywalls."
         },
         {
           "q": "Is AfriJournal Index free to use?",
@@ -443,7 +462,7 @@
         },
         {
           "q": "Which countries are covered?",
-          "a": "The Platform indexes journals from all 54 African countries. Our regional AJIF score gives proportional weight to publication volume and open access availability within the continent, ensuring journals from smaller research ecosystems are fairly represented."
+          "a": "The Platform indexes journals from all 54 African countries. Our regional AJCI score gives proportional weight to publication volume and open access availability within the continent, ensuring journals from smaller research ecosystems are fairly represented."
         }
       ]
     },
@@ -460,7 +479,7 @@
         },
         {
           "q": "How long does evaluation take?",
-          "a": "Standard evaluation typically completes within 5–10 minutes for the automated crawl. The full editorial review may take up to 14 business days. Premium fast-track evaluation is completed within 48 hours."
+          "a": "Standard evaluation typically completes within 30 minutes for the automated crawl. The full editorial review may take up to 14 business days. Premium fast-track evaluation is completed within 48 hours."
         },
         {
           "q": "Can I track my submission status?",
@@ -469,11 +488,11 @@
       ]
     },
     {
-      "category": "Impact Factor & Rankings",
+      "category": "Citation Index & Rankings",
       "items": [
         {
-          "q": "How is the AJIF Impact Factor calculated?",
-          "a": "The AJIF score combines a standard 2-year citation window score (aligned with global impact factor methodology) and a regional Africa-weighted score that accounts for open access publication volume within the continent. Full methodology is documented on our Methodology page."
+          "q": "How is the AJCI Citation Index calculated?",
+          "a": "The AJCI score combines a standard 2-year citation window score (aligned with global impact factor methodology) and a regional Africa-weighted score that accounts for open access publication volume within the continent. Full methodology is documented on our Methodology page."
         },
         {
           "q": "How often are rankings updated?",
@@ -514,7 +533,7 @@
     "sec2_title": "Platform Description",
     "sec2_p1": "AfriJournal Index is an open academic indexing engine that catalogs, ranks, and tracks citation metrics for peer-reviewed journals published across Africa. The Platform provides:",
     "sec2_li1": "Journal submission and automated compliance evaluation",
-    "sec2_li2": "Impact Factor scoring (AJIF standard and regional scores)",
+    "sec2_li2": "Citation Index scoring (AJCI standard and regional scores)",
     "sec2_li3": "Researcher profiles with h-index analytics",
     "sec2_li4": "Institutional metrics dashboards",
     "sec2_li5": "Community peer review forums",

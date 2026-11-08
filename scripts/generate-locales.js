@@ -36,11 +36,11 @@ const en = {
     subtitle: "An open, transparent indexing directory and citation metrics engine designed to value African scientific research, eliminate predatory barriers, and calculate verified regional impact factors.",
     search_placeholder: "Search 300+ indexed journals, universities or DOIs...",
     search_btn: "Search Index",
-    cta_submit: "Index Your Journal (Free)",
+    cta_submit: "Submit Your Journal ",
     cta_explore: "Explore Directory",
     cta_institution: "Institutional Rankings",
     card_title: "Featured Metrics: ARJESS",
-    card_if: "AfriJournal IF (AJIF)",
+    card_if: "AfriJournal IF (AJCI)",
     card_grade: "Quality Grade",
     card_score: "Score: 1.482",
     card_regional: "Regional Weighted IF",
@@ -50,9 +50,11 @@ const en = {
     journals: "Indexed African Journals",
     free_indexing: "Free Open Indexing",
     languages: "Supported Languages",
-    metrics: "Proprietary AJIF Metrics",
+    metrics: "Proprietary AJCI Metrics",
     countries_covered: "African Nations Covered",
-    verified_rate: "Editorial Verification"
+    verified_rate: "Editorial Verification",
+    scholar_works: "Scholar Publications",
+    institutions: "African Institutions"
   },
   disciplines: {
     title: "Broad Discipline Coverage",
@@ -130,7 +132,7 @@ const en = {
   },
   rankings_page: {
     title: "AJCI Journal Rankings",
-    subtitle: "Real-time leaderboard of African research journals classified into subject quartiles (Q1–Q4) and ranked by verified AJIF impact indicators.",
+    subtitle: "Real-time leaderboard of African research journals ranked by verified AJCI impact indicators.",
     filter_country: "Filter by Country",
     all_countries: "All African Countries",
     filter_discipline: "Filter by Discipline",
@@ -142,7 +144,9 @@ const en = {
     col_journal: "Journal Name & Publisher",
     col_country: "Country",
     col_discipline: "Discipline",
-    col_ajif: "Standard AJIF",
+    col_ajci: "Standard AJCI",
+    col_ajif: "Standard AJCI",
+    col_AJCI: "Standard AJCI",
     col_regional: "Regional Score",
     col_quartile: "Quartile",
     col_grade: "Grade",
@@ -201,7 +205,16 @@ const en = {
     no_results: "No institutional records found matching criteria.",
     search_table: "Filter institutional table...",
     sort_by: "Sort By",
-    back_to_leaderboard: "← Back to University Leaderboard"
+    back_to_leaderboard: "← Back to University Leaderboard",
+    kenpro_verified: "KENPRO Verified",
+    kenpro_verified_desc: "Verified academic research institution indexed by Kenya Projects Organization",
+    claim_institution: "Claim Institution Profile",
+    explore_scholars: "Explore Scholars in Directory",
+    verified_profile: "Verified Institutional Profile",
+    affiliated_journals_count: "Affiliated Journals",
+    upload_success: "Document uploaded successfully",
+    upload_error: "Document upload failed",
+    no_hosted_journals: "No affiliated journals registered under this institutional publisher."
   },
   submit_page: {
     title: "Journal Submission Portal",
@@ -268,7 +281,9 @@ const en = {
     filter_all_disciplines: "All Disciplines",
     filter_all_grades: "All Quality Grades",
     filter_sort: "Sort By",
-    sort_ajif: "Highest Impact Factor (AJIF)",
+    sort_ajci: "Highest Impact Factor (AJCI)",
+    sort_ajif: "Highest Impact Factor (AJCI)",
+    sort_AJCI: "Highest Impact Factor (AJCI)",
     sort_name: "Alphabetical (A-Z)",
     sort_citations: "Most Citations",
     no_results: "No journals found matching your search criteria.",
@@ -277,7 +292,7 @@ const en = {
     issn: "ISSN",
     publisher: "Publisher",
     country: "Country",
-    score: "AJIF Score"
+    score: "AJCI Score"
   },
   journal_page: {
     back_to_browse: "← Back to Directory",
@@ -290,10 +305,14 @@ const en = {
     issn_print: "Print ISSN",
     issn_electronic: "Online eISSN",
     visit_website: "Visit Official Website",
-    impact_metrics_title: "AJIF Impact Metrics",
+    impact_metrics_title: "AJCI Impact Metrics",
     impact_metrics_desc: "Calculated using a 2-year citation window with regional Africa-weighted multiplier",
-    standard_ajif: "Standard AJIF Score",
+    standard_ajci: "Standard AJCI Score",
+    standard_ajif: "Standard AJCI Score",
+    standard_AJCI: "Standard AJCI Score",
+    regional_ajci: "Regional Weighted Score",
     regional_ajif: "Regional Weighted Score",
+    regional_AJCI: "Regional Weighted Score",
     citable_articles: "Citable Articles",
     citations_received: "Citations Received",
     scope_title: "Scope & Editorial Focus",
@@ -313,7 +332,7 @@ const en = {
     not_found_title: "Journal Not Found",
     not_found_desc: "The requested journal could not be located in the AfriJournal Index registry.",
     badge_widget_title: "Embed Verification Badge",
-    badge_embed_desc: "Embed this live AJIF verification badge on your journal website to display your official indexing status:",
+    badge_embed_desc: "Embed this live AJCI verification badge on your journal website to display your official indexing status:",
     copy_code: "Copy Embed Code",
     copied: "Copied!"
   },
@@ -332,7 +351,7 @@ const en = {
     basic_price: "$99",
     basic_sub: "/ one-time",
     basic_desc: "Calculates your standard 2-year citation impact factor and provides a formal rating page.",
-    basic_feature1: "Standard AJIF Calculation",
+    basic_feature1: "Standard AJCI Calculation",
     basic_feature2: "Verification Badge Widget",
     basic_feature3: "Citation Breakdown Sheet",
     basic_feature4: "Performance Ranking (Discipline)",
@@ -447,7 +466,7 @@ const en = {
       items: [
         {
           q: "What is AfriJournal Index?",
-          a: "AfriJournal Index (AJIF) is an open-access academic indexing platform built specifically for African research journals. We catalog peer-reviewed journals, compute impact factor scores, track citations, and provide researcher profile dashboards — all without paywalls."
+          a: "AfriJournal Index is an open-access academic indexing platform built specifically for African research journals. We catalog peer-reviewed journals, compute impact factor scores, track citations, and provide researcher profile dashboards — all without paywalls."
         },
         {
           q: "Is AfriJournal Index free to use?",
@@ -459,7 +478,7 @@ const en = {
         },
         {
           q: "Which countries are covered?",
-          a: "The Platform indexes journals from all 54 African countries. Our regional AJIF score gives proportional weight to publication volume and open access availability within the continent, ensuring journals from smaller research ecosystems are fairly represented."
+          a: "The Platform indexes journals from all 54 African countries. Our regional AJCI score gives proportional weight to publication volume and open access availability within the continent, ensuring journals from smaller research ecosystems are fairly represented."
         }
       ]
     },
@@ -476,7 +495,7 @@ const en = {
         },
         {
           q: "How long does evaluation take?",
-          a: "Standard evaluation typically completes within 5–10 minutes for the automated crawl. The full editorial review may take up to 14 business days. Premium fast-track evaluation is completed within 48 hours."
+          a: "Standard evaluation typically completes within 30 minutes for the automated crawl. The full editorial review may take up to 14 business days. Premium fast-track evaluation is completed within 48 hours."
         },
         {
           q: "Can I track my submission status?",
@@ -485,11 +504,11 @@ const en = {
       ]
     },
     {
-      category: "Impact Factor & Rankings",
+      category: "Citation Index & Rankings",
       items: [
         {
-          q: "How is the AJIF Impact Factor calculated?",
-          a: "The AJIF score combines a standard 2-year citation window score (aligned with global impact factor methodology) and a regional Africa-weighted score that accounts for open access publication volume within the continent. Full methodology is documented on our Methodology page."
+          q: "How is the AJCI Citation Index calculated?",
+          a: "The AJCI score combines a standard 2-year citation window score (aligned with global impact factor methodology) and a regional Africa-weighted score that accounts for open access publication volume within the continent. Full methodology is documented on our Methodology page."
         },
         {
           q: "How often are rankings updated?",
@@ -530,7 +549,7 @@ const en = {
     sec2_title: "Platform Description",
     sec2_p1: "AfriJournal Index is an open academic indexing engine that catalogs, ranks, and tracks citation metrics for peer-reviewed journals published across Africa. The Platform provides:",
     sec2_li1: "Journal submission and automated compliance evaluation",
-    sec2_li2: "Impact Factor scoring (AJIF standard and regional scores)",
+    sec2_li2: "Citation Index scoring (AJCI standard and regional scores)",
     sec2_li3: "Researcher profiles with h-index analytics",
     sec2_li4: "Institutional metrics dashboards",
     sec2_li5: "Community peer review forums",
@@ -638,11 +657,11 @@ const fr = {
     subtitle: "Un répertoire d'indexation transparent et un moteur d'indicateurs de citation conçus pour valoriser la recherche scientifique africaine, éliminer les barrières prédatrices et calculer des facteurs d'impact régionaux certifiés.",
     search_placeholder: "Rechercher parmi plus de 300 revues, universités ou DOI...",
     search_btn: "Rechercher",
-    cta_submit: "Indexer Votre Revue (Gratuit)",
+    cta_submit: "Soumettre Votre Revue",
     cta_explore: "Explorer l'Annuaire",
     cta_institution: "Classements Institutionnels",
     card_title: "Métriques en Vedette: ARJESS",
-    card_if: "AfriJournal IF (AJIF)",
+    card_if: "AfriJournal Citation Index (AJCI)",
     card_grade: "Note de Qualité",
     card_score: "Score: 1.482",
     card_regional: "IF Pondéré Régional",
@@ -652,9 +671,11 @@ const fr = {
     journals: "Revues Africaines Indexées",
     free_indexing: "Indexation Libre & Gratuite",
     languages: "Langues Prises en Charge",
-    metrics: "Métriques Propriétaires AJIF",
+    metrics: "Métriques Propriétaires AJCI",
     countries_covered: "Nations Africaines Couvertes",
-    verified_rate: "Vérification Éditoriale"
+    verified_rate: "Vérification Éditoriale",
+    scholar_works: "Publications de Chercheurs",
+    institutions: "Institutions Africaines"
   },
   disciplines: {
     title: "Large Couverture Disciplinaire",
@@ -731,8 +752,8 @@ const fr = {
     tagline: "Valoriser la Découverte Scientifique Africaine."
   },
   rankings_page: {
-    title: "Classements & Quartiles des Revues AJIF",
-    subtitle: "Classement en temps réel des revues de recherche africaines classées en quartiles thématiques (Q1–Q4) et classées par indicateurs d'impact AJIF vérifiés.",
+    title: "Classements des Revues AJCI",
+    subtitle: "Classement en temps réel des revues de recherche africaines classées par indicateurs d'impact AJCI vérifiés.",
     filter_country: "Filtrer par Pays",
     all_countries: "Tous les Pays Africains",
     filter_discipline: "Filtrer par Discipline",
@@ -744,7 +765,9 @@ const fr = {
     col_journal: "Nom de la Revue & Éditeur",
     col_country: "Pays",
     col_discipline: "Discipline",
-    col_ajif: "AJIF Standard",
+    col_ajci: "AJCI Standard",
+    col_ajif: "AJCI Standard",
+    col_AJCI: "AJCI Standard",
     col_regional: "Score Régional",
     col_quartile: "Quartile",
     col_grade: "Note",
@@ -803,7 +826,16 @@ const fr = {
     no_results: "Aucun dossier institutionnel correspondant aux critères.",
     search_table: "Filtrer la table institutionnelle...",
     sort_by: "Trier Par",
-    back_to_leaderboard: "← Retour au Classement Universitaire"
+    back_to_leaderboard: "← Retour au Classement Universitaire",
+    kenpro_verified: "Vérifié par KENPRO",
+    kenpro_verified_desc: "Institution de recherche académique vérifiée et indexée par Kenya Projects Organization",
+    claim_institution: "Revendiquer le Profil de l'Institution",
+    explore_scholars: "Explorer les Chercheurs dans l'Annuaire",
+    verified_profile: "Profil Institutionnel Vérifié",
+    affiliated_journals_count: "Revues Affiliées",
+    upload_success: "Document téléchargé avec succès",
+    upload_error: "Échec du téléchargement du document",
+    no_hosted_journals: "Aucune revue affiliée enregistrée sous cet éditeur institutionnel."
   },
   submit_page: {
     title: "Portail de Soumission de Revue",
@@ -870,7 +902,9 @@ const fr = {
     filter_all_disciplines: "Toutes les Disciplines",
     filter_all_grades: "Toutes les Notes de Qualité",
     filter_sort: "Trier Par",
-    sort_ajif: "Facteur d'Impact le Plus Élevé (AJIF)",
+    sort_ajci: "Indice d'Impact le Plus Élevé (AJCI)",
+    sort_ajif: "Indice d'Impact le Plus Élevé (AJCI)",
+    sort_AJCI: "Indice d'Impact le Plus Élevé (AJCI)",
     sort_name: "Ordre Alphabétique (A-Z)",
     sort_citations: "Plus de Citations",
     no_results: "Aucune revue trouvée correspondant à vos critères.",
@@ -879,7 +913,7 @@ const fr = {
     issn: "ISSN",
     publisher: "Éditeur",
     country: "Pays",
-    score: "Score AJIF"
+    score: "Score AJCI"
   },
   journal_page: {
     back_to_browse: "← Retour à l'Annuaire",
@@ -892,10 +926,14 @@ const fr = {
     issn_print: "ISSN Imprimé",
     issn_electronic: "eISSN En Ligne",
     visit_website: "Visiter le Site Web Officiel",
-    impact_metrics_title: "Indicateurs d'Impact AJIF",
+    impact_metrics_title: "Indicateurs d'Impact AJCI",
     impact_metrics_desc: "Calculé sur une fenêtre de citation de 2 ans avec multiplicateur régional pondéré",
-    standard_ajif: "Score AJIF Standard",
+    standard_ajci: "Score AJCI Standard",
+    standard_ajif: "Score AJCI Standard",
+    standard_AJCI: "Score AJCI Standard",
+    regional_ajci: "Score Régional Pondéré",
     regional_ajif: "Score Régional Pondéré",
+    regional_AJCI: "Score Régional Pondéré",
     citable_articles: "Articles Citables",
     citations_received: "Citations Reçues",
     scope_title: "Portée & Ligne Éditoriale",
@@ -915,7 +953,7 @@ const fr = {
     not_found_title: "Revue Non Trouvée",
     not_found_desc: "La revue demandée n'a pu être localisée dans le registre AfriJournal.",
     badge_widget_title: "Intégrer le Badge de Vérification",
-    badge_embed_desc: "Intégrez ce badge dynamique AJIF sur le site de votre revue pour afficher votre statut officiel :",
+    badge_embed_desc: "Intégrez ce badge dynamique AJCI sur le site de votre revue pour afficher votre statut officiel :",
     copy_code: "Copier le Code",
     copied: "Copié !"
   },
@@ -934,7 +972,7 @@ const fr = {
     basic_price: "99 $",
     basic_sub: "/ paiement unique",
     basic_desc: "Calcule votre facteur d'impact de citation standard sur 2 ans et fournit une page officielle.",
-    basic_feature1: "Calcul AJIF Standard",
+    basic_feature1: "Calcul AJCI Standard",
     basic_feature2: "Widget Badge de Vérification",
     basic_feature3: "Fiche Détail des Citations",
     basic_feature4: "Classement Disciplinaire",
@@ -1049,7 +1087,7 @@ const fr = {
       items: [
         {
           q: "Qu'est-ce qu'AfriJournal Index ?",
-          a: "AfriJournal Index (AJIF) est une plateforme d'indexation académique en libre accès dédiée aux revues africaines. Nous répertorions les revues, calculons les facteurs d'impact et fournissons des profils de chercheurs sans barrière financière."
+          a: "AfriJournal Index est une plateforme d'indexation académique en libre accès dédiée aux revues africaines. Nous répertorions les revues, calculons les indices de citation et fournissons des profils de chercheurs sans barrière financière."
         },
         {
           q: "L'utilisation est-elle gratuite ?",
@@ -1069,7 +1107,7 @@ const fr = {
     sec2_title: "Description du Service",
     sec2_p1: "AfriJournal Index est un moteur d'indexation scientifique libre répertoriant et évaluant les revues savantes africaines.",
     sec2_li1: "Soumission de revues et évaluation automatisée de conformité",
-    sec2_li2: "Calcul des scores de facteur d'impact (standard et régional AJIF)",
+    sec2_li2: "Calcul des scores d'indice de citation (standard et régional AJCI)",
     sec2_li3: "Profils de chercheurs avec analyse de l'indice h",
     sec2_li4: "Tableaux de bord des métriques institutionnelles",
     sec2_li5: "Forums d'évaluation par les pairs",
@@ -1181,19 +1219,21 @@ const sw = {
     cta_explore: "Vinjari Majarida",
     cta_institution: "Nafasi za Vyuo Vikuu",
     card_title: "Vipimo Vilivyoangaziwa: ARJESS",
-    card_if: "Kipimo cha Athari (AJIF)",
+    card_if: "Kielezo cha Nukuu (AJCI)",
     card_grade: "Daraja la Ubora",
     card_score: "Alama: 1.482",
-    card_regional: "AJIF ya Kikanda",
+    card_regional: "AJCI ya Kikanda",
     card_regional_sub: "Imehesabiwa kwa kasi ya nukuu za kikanda na upatikanaji wa wazi"
   },
   stats: {
     journals: "Majarida ya Kiafrika Yaliyoorodheshwa",
     free_indexing: "Uorodheshaji wa Bure & Wazi",
     languages: "Lugha Zinazotumika",
-    metrics: "Vipimo Maalum vya AJIF",
+    metrics: "Vipimo Maalum vya AJCI",
     countries_covered: "Nchi za Kiafrika Zilizopo",
-    verified_rate: "Uhakiki wa Uhariri"
+    verified_rate: "Uhakiki wa Uhariri",
+    scholar_works: "Machapisho ya Watafiti",
+    institutions: "Taasisi za Kiafrika"
   },
   disciplines: {
     title: "Nyanja Mbalimbali za Kitaaluma",
@@ -1270,8 +1310,8 @@ const sw = {
     tagline: "Kuwezesha Ugunduzi wa Kitaaluma Barani Afrika."
   },
   rankings_page: {
-    title: "Viwango vya Majarida ya AJIF & Robo (Q1-Q4)",
-    subtitle: "Orodha ya moja kwa moja ya majarida ya utafiti ya Kiafrika yaliyogawanywa katika robo za kisekta (Q1–Q4) na kupangwa kwa viashiria vya athari vya AJIF vilivyothibitishwa.",
+    title: "Viwango vya Majarida ya AJCI",
+    subtitle: "Orodha ya moja kwa moja ya majarida ya utafiti ya Kiafrika yaliyopangwa kwa viashiria vya athari vya AJCI vilivyothibitishwa.",
     filter_country: "Chuja kwa Nchi",
     all_countries: "Nchi Zote za Kiafrika",
     filter_discipline: "Chuja kwa Taaluma",
@@ -1283,7 +1323,9 @@ const sw = {
     col_journal: "Jina la Jarida & Mchapishaji",
     col_country: "Nchi",
     col_discipline: "Taaluma",
-    col_ajif: "AJIF ya Kawaida",
+    col_ajci: "AJCI ya Kawaida",
+    col_ajif: "AJCI ya Kawaida",
+    col_AJCI: "AJCI ya Kawaida",
     col_regional: "Alama ya Kikanda",
     col_quartile: "Robo (Quartile)",
     col_grade: "Daraja",
@@ -1342,7 +1384,16 @@ const sw = {
     no_results: "Hakuna kumbukumbu za kitaasisi zilizopatikana.",
     search_table: "Chuja jedwali la taasisi...",
     sort_by: "Panga Kwa",
-    back_to_leaderboard: "← Rudi Kwenye Viwango vya Vyuo"
+    back_to_leaderboard: "← Rudi Kwenye Viwango vya Vyuo",
+    kenpro_verified: "Imethibitishwa na KENPRO",
+    kenpro_verified_desc: "Taasisi ya utafiti wa kitaaluma iliyohakikiwa na kuorodheshwa na Shirika la Miradi la Kenya (KENPRO)",
+    claim_institution: "Dai Wasifu wa Taasisi",
+    explore_scholars: "Tafuta Watafiti kwenye Orodha",
+    verified_profile: "Wasifu Uliothibitishwa wa Kitaasisi",
+    affiliated_journals_count: "Majarida Shirikishi",
+    upload_success: "Hati imepakiwa kwa mafanikio",
+    upload_error: "Upakiaji wa hati umeshindwa",
+    no_hosted_journals: "Hakuna majarida shirikishi yaliyosajiliwa chini ya mchapishaji huyu wa taasisi."
   },
   submit_page: {
     title: "Tovuti ya Kuwasilisha Jarida",
@@ -1409,7 +1460,9 @@ const sw = {
     filter_all_disciplines: "Taaluma Zote",
     filter_all_grades: "Madaraja Yote ya Ubora",
     filter_sort: "Panga Kwa",
-    sort_ajif: "Kipimo cha Juu cha Athari (AJIF)",
+    sort_ajci: "Kipimo cha Juu cha Nukuu (AJCI)",
+    sort_ajif: "Kipimo cha Juu cha Nukuu (AJCI)",
+    sort_AJCI: "Kipimo cha Juu cha Nukuu (AJCI)",
     sort_name: "Kialfabeti (A-Z)",
     sort_citations: "Nukuu Nyingi Zaidi",
     no_results: "Hakuna majarida yaliyopatikana kulingana na vigezo vyako.",
@@ -1418,7 +1471,7 @@ const sw = {
     issn: "ISSN",
     publisher: "Mchapishaji",
     country: "Nchi",
-    score: "Alama ya AJIF"
+    score: "Alama ya AJCI"
   },
   journal_page: {
     back_to_browse: "← Rudi Kwenye Orodha",
@@ -1431,10 +1484,14 @@ const sw = {
     issn_print: "ISSN ya Kuchapishwa",
     issn_electronic: "eISSN ya Mtandaoni",
     visit_website: "Tembelea Tovuti Rasmi",
-    impact_metrics_title: "Vipimo vya Athari vya AJIF",
+    impact_metrics_title: "Vipimo vya Nukuu vya AJCI",
     impact_metrics_desc: "Kimehesabiwa kwa dirisha la nukuu la miaka 2 na kizidishi cha kikanda cha Afrika",
-    standard_ajif: "Alama ya Kawaida ya AJIF",
+    standard_ajci: "Alama ya Kawaida ya AJCI",
+    standard_ajif: "Alama ya Kawaida ya AJCI",
+    standard_AJCI: "Alama ya Kawaida ya AJCI",
+    regional_ajci: "Alama ya Kikanda Iliyopimwa",
     regional_ajif: "Alama ya Kikanda Iliyopimwa",
+    regional_AJCI: "Alama ya Kikanda Iliyopimwa",
     citable_articles: "Makala Yanayoweza Kunukuliwa",
     citations_received: "Nukuu Zilizopokelewa",
     scope_title: "Wigo & Mwelekeo wa Uhariri",
@@ -1454,7 +1511,7 @@ const sw = {
     not_found_title: "Jarida Halikupatikana",
     not_found_desc: "Jarida lililoombwa halikuweza kupatikana kwenye sajili ya AfriJournal.",
     badge_widget_title: "Weka Beji ya Uthibitisho Kwenye Tovuti Yako",
-    badge_embed_desc: "Weka beji hii hai ya uthibitisho wa AJIF kwenye tovuti ya jarida lako kuonyesha hadhi yako rasmi:",
+    badge_embed_desc: "Weka beji hii hai ya uthibitisho wa AJCI kwenye tovuti ya jarida lako kuonyesha hadhi yako rasmi:",
     copy_code: "Nakili Msimbo",
     copied: "Imenakiliwa!"
   },
@@ -1473,7 +1530,7 @@ const sw = {
     basic_price: "$99",
     basic_sub: "/ malipo ya mara moja",
     basic_desc: "Hukokotoa kipimo cha athari ya nukuu cha miaka 2 na hutoa ukurasa rasmi wa ukadiriaji.",
-    basic_feature1: "Hesabu ya Kawaida ya AJIF",
+    basic_feature1: "Hesabu ya Kawaida ya AJCI",
     basic_feature2: "Beji ya Uthibitisho ya Mtandaoni",
     basic_feature3: "Jedwali la Mgawanyo wa Nukuu",
     basic_feature4: "Viwango vya Kisekta",
@@ -1481,7 +1538,7 @@ const sw = {
     premium_price: "$349",
     premium_sub: "/ malipo ya mara moja",
     premium_desc: "Ripoti kamili ya tathmini yenye ramani za njia za nukuu, alama za athari za kikanda, na mwongozo wa maendeleo.",
-    premium_feature1: "AJIF ya Kawaida + ya Kikanda",
+    premium_feature1: "AJCI ya Kawaida + ya Kikanda",
     premium_feature2: "Ramani Shirikishi za Nukuu",
     premium_feature3: "Ripoti ya Uzingatiaji wa Wizi wa Kitaaluma",
     premium_feature4: "Mwongozo wa Kuonekana wa Miezi 12",
@@ -1588,7 +1645,7 @@ const sw = {
       items: [
         {
           q: "AfriJournal Index ni nini?",
-          a: "AfriJournal Index (AJIF) ni mfumo wa wazi wa uorodheshaji wa kitaaluma uliojengwa mahsusi kwa majarida ya utafiti ya Kiafrika. Tunaorodhesha majarida, tunakokotoa vipimo vya athari, na kutoa wasifu wa watafiti bila malipo."
+          a: "AfriJournal Index ni mfumo wa wazi wa uorodheshaji wa kitaaluma uliojengwa mahsusi kwa majarida ya utafiti ya Kiafrika. Tunaorodhesha majarida, tunakokotoa vipimo vya nukuu, na kutoa wasifu wa watafiti bila malipo."
         },
         {
           q: "Je, mfumo huu ni bure kutumia?",
@@ -1608,7 +1665,7 @@ const sw = {
     sec2_title: "Maelezo ya Mfumo",
     sec2_p1: "AfriJournal Index ni injini wazi ya uorodheshaji wa kitaaluma inayoorodhesha na kutathmini majarida ya Kiafrika. Mfumo hutoa:",
     sec2_li1: "Uwasilishaji wa majarida na tathmini ya kiotomatiki ya uzingatiaji",
-    sec2_li2: "Kukokotoa alama za athari (AJIF ya kawaida na ya kikanda)",
+    sec2_li2: "Kukokotoa alama za nukuu (AJCI ya kawaida na ya kikanda)",
     sec2_li3: "Wasifu wa watafiti na uchambuzi wa kielezo cha h",
     sec2_li4: "Dashibodi za vipimo vya kitaasisi",
     sec2_li5: "Mijadala ya mapitio ya wanazuoni",
@@ -1720,7 +1777,7 @@ const pt = {
     cta_explore: "Explorar Diretório",
     cta_institution: "Rankings Institucionais",
     card_title: "Métricas em Destaque: ARJESS",
-    card_if: "AfriJournal IF (AJIF)",
+    card_if: "Índice de Citação AfriJournal (AJCI)",
     card_grade: "Grau de Qualidade",
     card_score: "Pontuação: 1.482",
     card_regional: "IF Regional Ponderado",
@@ -1730,9 +1787,11 @@ const pt = {
     journals: "Revistas Africanas Indexadas",
     free_indexing: "Indexação Aberta & Gratuita",
     languages: "Idiomas Suportados",
-    metrics: "Métricas Exclusivas AJIF",
+    metrics: "Métricas Exclusivas AJCI",
     countries_covered: "Nações Africanas Cobertas",
-    verified_rate: "Verificação Editorial"
+    verified_rate: "Verificação Editorial",
+    scholar_works: "Publicações de Investigadores",
+    institutions: "Instituições Africanas"
   },
   disciplines: {
     title: "Ampla Cobertura Disciplinar",
@@ -1809,8 +1868,8 @@ const pt = {
     tagline: "Capacitando a Descoberta Científica Africana."
   },
   rankings_page: {
-    title: "Classificações & Quartis de Revistas AJIF",
-    subtitle: "Classificação em tempo real de revistas de investigação africanas categorizadas em quartis temáticos (Q1–Q4) e ordenadas por indicadores de impacto AJIF verificados.",
+    title: "Classificações de Revistas AJCI",
+    subtitle: "Classificação em tempo real de revistas de investigação africanas ordenadas por indicadores de impacto AJCI verificados.",
     filter_country: "Filtrar por País",
     all_countries: "Todos os Países Africanos",
     filter_discipline: "Filtrar por Disciplina",
@@ -1822,7 +1881,9 @@ const pt = {
     col_journal: "Nome da Revista & Editora",
     col_country: "País",
     col_discipline: "Disciplina",
-    col_ajif: "AJIF Padrão",
+    col_ajci: "AJCI Padrão",
+    col_ajif: "AJCI Padrão",
+    col_AJCI: "AJCI Padrão",
     col_regional: "Pontuação Regional",
     col_quartile: "Quartil",
     col_grade: "Grau",
@@ -1881,7 +1942,16 @@ const pt = {
     no_results: "Nenhum registo institucional encontrado com os critérios.",
     search_table: "Filtrar tabela institucional...",
     sort_by: "Ordenar Por",
-    back_to_leaderboard: "← Voltar à Classificação Universitária"
+    back_to_leaderboard: "← Voltar à Classificação Universitária",
+    kenpro_verified: "Verificado por KENPRO",
+    kenpro_verified_desc: "Instituição de investigação académica verificada e indexada pela Kenya Projects Organization",
+    claim_institution: "Reivindicar Perfil Institucional",
+    explore_scholars: "Explorar Investigadores no Diretório",
+    verified_profile: "Perfil Institucional Verificado",
+    affiliated_journals_count: "Revistas Filiadas",
+    upload_success: "Documento carregado com sucesso",
+    upload_error: "Falha no carregamento do documento",
+    no_hosted_journals: "Nenhuma revista filiada registada sob esta editora institucional."
   },
   submit_page: {
     title: "Portal de Submissão de Revistas",
@@ -1948,7 +2018,9 @@ const pt = {
     filter_all_disciplines: "Todas as Disciplinas",
     filter_all_grades: "Todos os Graus de Qualidade",
     filter_sort: "Ordenar Por",
-    sort_ajif: "Maior Fator de Impacto (AJIF)",
+    sort_ajci: "Maior Fator de Impacto (AJCI)",
+    sort_ajif: "Maior Fator de Impacto (AJCI)",
+    sort_AJCI: "Maior Fator de Impacto (AJCI)",
     sort_name: "Ordem Alfabética (A-Z)",
     sort_citations: "Mais Citações",
     no_results: "Nenhuma revista encontrada com os critérios pesquisados.",
@@ -1957,7 +2029,7 @@ const pt = {
     issn: "ISSN",
     publisher: "Editora",
     country: "País",
-    score: "Pontuação AJIF"
+    score: "Pontuação AJCI"
   },
   journal_page: {
     back_to_browse: "← Voltar ao Diretório",
@@ -1970,10 +2042,14 @@ const pt = {
     issn_print: "ISSN Impresso",
     issn_electronic: "eISSN Online",
     visit_website: "Visitar Página Web Oficial",
-    impact_metrics_title: "Métricas de Impacto AJIF",
+    impact_metrics_title: "Métricas de Impacto AJCI",
     impact_metrics_desc: "Calculado com uma janela de citação de 2 anos com multiplicador regional ponderado",
-    standard_ajif: "Pontuação AJIF Padrão",
+    standard_ajci: "Pontuação AJCI Padrão",
+    standard_ajif: "Pontuação AJCI Padrão",
+    standard_AJCI: "Pontuação AJCI Padrão",
+    regional_ajci: "Pontuação Regional Ponderada",
     regional_ajif: "Pontuação Regional Ponderada",
+    regional_AJCI: "Pontuação Regional Ponderada",
     citable_articles: "Artigos Citáveis",
     citations_received: "Citações Recebidas",
     scope_title: "Âmbito & Foco Editorial",
@@ -1993,7 +2069,7 @@ const pt = {
     not_found_title: "Revista Não Encontrada",
     not_found_desc: "A revista solicitada não foi encontrada no registo do AfriJournal Index.",
     badge_widget_title: "Incorporar Selo de Verificação",
-    badge_embed_desc: "Incorpore este selo dinâmico de verificação AJIF na página da sua revista para exibir o estado oficial:",
+    badge_embed_desc: "Incorpore este selo dinâmico de verificação AJCI na página da sua revista para exibir o estado oficial:",
     copy_code: "Copiar Código",
     copied: "Copiado!"
   },
@@ -2012,7 +2088,7 @@ const pt = {
     basic_price: "$99",
     basic_sub: "/ pagamento único",
     basic_desc: "Calcula o fator de impacto de citação padrão de 2 anos e fornece uma página oficial de avaliação.",
-    basic_feature1: "Cálculo AJIF Padrão",
+    basic_feature1: "Cálculo AJCI Padrão",
     basic_feature2: "Widget Selo de Verificação",
     basic_feature3: "Ficha de Detalhe de Citações",
     basic_feature4: "Classificação por Disciplina",
@@ -2127,7 +2203,7 @@ const pt = {
       items: [
         {
           q: "O que é o AfriJournal Index?",
-          a: "O AfriJournal Index (AJIF) é uma plataforma de indexação académica em acesso aberto criada para revistas de investigação africanas."
+          a: "O AfriJournal Index é uma plataforma de indexação académica em acesso aberto criada para revistas de investigação africanas."
         },
         {
           q: "A utilização é gratuita?",
@@ -2147,7 +2223,7 @@ const pt = {
     sec2_title: "Descrição da Plataforma",
     sec2_p1: "O AfriJournal Index é um motor aberto de indexação académica que cataloga e avalia revistas africanas. A plataforma disponibiliza:",
     sec2_li1: "Submissão de revistas e avaliação automatizada de conformidade",
-    sec2_li2: "Pontuação de Fator de Impacto (AJIF padrão e regional)",
+    sec2_li2: "Pontuação de Índice de Citação (AJCI padrão e regional)",
     sec2_li3: "Perfis de investigadores com análise de índice h",
     sec2_li4: "Painéis de métricas institucionais",
     sec2_li5: "Fóruns de revisão por pares",
@@ -2255,11 +2331,11 @@ const ar = {
     subtitle: "دليل فهرسة مفتوح وشفاف ومحرك لقياس الاستشهادات صُمم لتقدير البحث العلمي الإفريقي، والتغلب على المجلات الوهمية، واحتساب عوامل تأثير إقليمية معتمدة.",
     search_placeholder: "ابحث في أكثر من 300 مجلة مفهرسة أو جامعة أو معرف DOI...",
     search_btn: "بحث في الفهرس",
-    cta_submit: "فهرس مجلتك (مجاناً)",
+    cta_submit: "أضف مجلتك",
     cta_explore: "استكشف الدليل",
     cta_institution: "التصنيفات المؤسسية",
     card_title: "المقاييس المميزة: ARJESS",
-    card_if: "معامل تأثير إفريقي (AJIF)",
+    card_if: "مؤشر الاقتباس الإفريقي (AJCI)",
     card_grade: "درجة الجودة",
     card_score: "الدرجة: 1.482",
     card_regional: "معامل التأثير الإقليمي الموزون",
@@ -2269,9 +2345,11 @@ const ar = {
     journals: "مجلة إفريقية مفهرسة",
     free_indexing: "فهرسة مفتوحة ومجانية",
     languages: "لغات معتمدة",
-    metrics: "مقاييس AJIF الحصرية",
+    metrics: "مقاييس AJCI الحصرية",
     countries_covered: "دولة إفريقية مشمولة",
-    verified_rate: "التحقق التحريري"
+    verified_rate: "التحقق التحريري",
+    scholar_works: "منشورات الباحثين",
+    institutions: "المؤسسات الإفريقية"
   },
   disciplines: {
     title: "تغطية تخصصية شاملة",
@@ -2348,7 +2426,7 @@ const ar = {
     tagline: "تمكين الاكتشاف العلمي الإفريقي."
   },
   rankings_page: {
-    title: "تصنيفات وأرباع مجلات AJIF",
+    title: "تصنيفات مجلات AJCI",
     subtitle: "جدول ترتيب مباشر للمجلات البحثية الإفريقية المصنفة حسب الأرباع التخصصية (Q1–Q4) والمرتبة بمؤشرات تأثير معتمدة.",
     filter_country: "تصفية حسب الدولة",
     all_countries: "جميع الدول الإفريقية",
@@ -2361,7 +2439,9 @@ const ar = {
     col_journal: "اسم المجلة والناشر",
     col_country: "الدولة",
     col_discipline: "التخصص",
-    col_ajif: "معامل AJIF القياسي",
+    col_ajci: "مؤشر AJCI القياسي",
+    col_ajif: "مؤشر AJCI القياسي",
+    col_AJCI: "مؤشر AJCI القياسي",
     col_regional: "الدرجة الإقليمية",
     col_quartile: "الربع (Quartile)",
     col_grade: "الدرجة",
@@ -2420,7 +2500,16 @@ const ar = {
     no_results: "لم يتم العثور على سجلات تطابق معايير البحث.",
     search_table: "تصفية جدول الجامعات...",
     sort_by: "ترتيب حسب",
-    back_to_leaderboard: "← العودة إلى تصنيف الجامعات"
+    back_to_leaderboard: "← العودة إلى تصنيف الجامعات",
+    kenpro_verified: "موثقة من KENPRO",
+    kenpro_verified_desc: "مؤسسة بحثية أكاديمية موثقة ومفهرسة بواسطة منظمة مشاريع كينيا (KENPRO)",
+    claim_institution: "المطالبة بملف المؤسسة",
+    explore_scholars: "استكشاف الباحثين في الدليل",
+    verified_profile: "ملف مؤسسي موثق",
+    affiliated_journals_count: "مجلات تابعة",
+    upload_success: "تم رفع المستند بنجاح",
+    upload_error: "فشل في رفع المستند",
+    no_hosted_journals: "لا توجد مجلات تابعة مسجلة تحت هذه المؤسسة الأكاديمية."
   },
   submit_page: {
     title: "بوابة تقديم المجلات الأكاديمية",
@@ -2487,7 +2576,9 @@ const ar = {
     filter_all_disciplines: "جميع التخصصات",
     filter_all_grades: "جميع درجات الجودة",
     filter_sort: "ترتيب حسب",
-    sort_ajif: "الأعلى في معامل التأثير (AJIF)",
+    sort_ajci: "الأعلى في مؤشر الاقتباس (AJCI)",
+    sort_ajif: "الأعلى في مؤشر الاقتباس (AJCI)",
+    sort_AJCI: "الأعلى في مؤشر الاقتباس (AJCI)",
     sort_name: "أبجدياً (A-Z)",
     sort_citations: "الأكثر استشهاداً",
     no_results: "لم يتم العثور على مجلات تطابق معايير البحث.",
@@ -2496,7 +2587,7 @@ const ar = {
     issn: "الرقم المعياري",
     publisher: "الناشر",
     country: "الدولة",
-    score: "درجة AJIF"
+    score: "درجة AJCI"
   },
   journal_page: {
     back_to_browse: "← العودة إلى الدليل",
@@ -2509,10 +2600,14 @@ const ar = {
     issn_print: "الرقم المعياري المطبوع",
     issn_electronic: "الرقم المعياري الإلكتروني",
     visit_website: "زيارة الموقع الرسمي",
-    impact_metrics_title: "مقاييس التأثير AJIF",
+    impact_metrics_title: "مقاييس التأثير AJCI",
     impact_metrics_desc: "محسوبة بنافذة استشهاد مدتها سنتان مع مضاعف إقليمي إفريقي موزون",
-    standard_ajif: "درجة AJIF القياسية",
+    standard_ajci: "درجة AJCI القياسية",
+    standard_ajif: "درجة AJCI القياسية",
+    standard_AJCI: "درجة AJCI القياسية",
+    regional_ajci: "الدرجة الإقليمية الموزونة",
     regional_ajif: "الدرجة الإقليمية الموزونة",
+    regional_AJCI: "الدرجة الإقليمية الموزونة",
     citable_articles: "الأبحاث القابلة للاستشهاد",
     citations_received: "الاستشهادات المستلمة",
     scope_title: "النطاق والاهتمام التحريري",
@@ -2551,7 +2646,7 @@ const ar = {
     basic_price: "$99",
     basic_sub: "/ دفعة واحدة",
     basic_desc: "يحسب معامل تأثير الاستشهادات القياسي لسنتين ويوفر صفحة تقييم رسمية.",
-    basic_feature1: "حساب معامل AJIF القياسي",
+    basic_feature1: "حساب مؤشر AJCI القياسي",
     basic_feature2: "أداة شارة التحقق للموقع",
     basic_feature3: "ورقة تفصيل الاستشهادات",
     basic_feature4: "التصنيف التخصصي للمجلة",
@@ -2666,7 +2761,7 @@ const ar = {
       items: [
         {
           q: "ما هو فهرس AfriJournal Index؟",
-          a: "فهرس AfriJournal Index (AJIF) هو منصة فهرسة أكاديمية مفتوحة الوصول مخصصة للمجلات البحثية الإفريقية لحساب معاملات التأثير وإبراز الباحثين مجاناً."
+          a: "فهرس AfriJournal Index هو منصة فهرسة أكاديمية مفتوحة الوصول مخصصة للمجلات البحثية الإفريقية لحساب مؤشرات التأثير وإبراز الباحثين مجاناً."
         },
         {
           q: "هل المنصة مجانية للاستخدام؟",
@@ -2686,7 +2781,7 @@ const ar = {
     sec2_title: "وصف المنصة",
     sec2_p1: "AfriJournal Index هو محرك فهرسة أكاديمية مفتوح لفهرسة وتصنيف المجلات الإفريقية ومتابعة استشهاداتها. توفر المنصة:",
     sec2_li1: "تقديم المجلات والتقييم الآلي للامتثال والجودة",
-    sec2_li2: "احتساب درجات معامل التأثير (القياسي والإقليمي AJIF)",
+    sec2_li2: "احتساب درجات مؤشر الاقتباس (القياسي والإقليمي AJCI)",
     sec2_li3: "ملفات الباحثين مع تحليلات مؤشر هيرش h-index",
     sec2_li4: "لوحات تحكم مؤشرات الأداء للجامعات والمؤسسات",
     sec2_li5: "منتديات التحكيم العلمي ونقاشات الباحثين",
