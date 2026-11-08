@@ -154,7 +154,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.85,
     }));
 
-    return [...staticRoutes, ...countryRoutes, ...disciplineRoutes, ...journalRoutes, ...scholarRoutes];
+    // Generate crawlable paginated scholar directory routes
+    const totalPages = Math.ceil(scholars.length / 15);
+    const directoryRoutes: MetadataRoute.Sitemap = [];
+    for (let p = 2; p <= Math.min(totalPages, 160); p++) {
+      directoryRoutes.push({
+        url: `${baseUrl}/scholars?page=${p}`,
+        lastModified: new Date(),
+        changeFrequency: "daily",
+        priority: 0.8,
+      });
+    }
+
+    return [...staticRoutes, ...countryRoutes, ...disciplineRoutes, ...journalRoutes, ...directoryRoutes, ...scholarRoutes];
   } catch {
     return [...staticRoutes, ...countryRoutes, ...disciplineRoutes];
   }

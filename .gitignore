@@ -50,7 +50,6 @@ next-env.d.ts
 db-dump.json
 *.zip
 *.sql
-!scripts/cpanel-migrations/*.sql
 .vscode/
 
 # User uploads
@@ -59,5 +58,4 @@ db-dump.json
 
 # Scripts and Migration Artifacts
 scripts/
-!scripts/cpanel-migrations/
 

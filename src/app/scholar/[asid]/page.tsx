@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "../../../lib/db";
 import { normalizeAfriScholarId } from "../../../lib/afrischolar-id";
+import { fetchScholarProfile } from "../../../lib/scholar-service";
 import ResearcherProfileContent from "../../researcher/ResearcherProfileContent";
 
 interface Props {
@@ -19,6 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       OR: [
         { afriScholarId: normalizedAsid },
         { afriScholarId: cleanAsid },
+        { legacyAsid: cleanAsid.toUpperCase() },
+        { legacyAsid: normalizedAsid.toUpperCase() },
         { id: cleanAsid }
       ]
     },
@@ -68,7 +71,7 @@ export default async function ScholarCanonicalPage({ params }: Props) {
   const cleanAsid = decodeURIComponent(asid).trim();
   const normalizedAsid = normalizeAfriScholarId(cleanAsid) || cleanAsid;
 
-  // 1. Direct match by ASID or ID
+  // 1. Exact direct match by current ASID or internal UUID
   let user = await prisma.user.findFirst({
     where: {
       OR: [
@@ -79,61 +82,84 @@ export default async function ScholarCanonicalPage({ params }: Props) {
     },
     select: {
       id: true,
-      name: true,
       afriScholarId: true,
-      institution: true,
-      department: true,
-      orcid: true,
-      openAlexId: true,
-      googleScholarUrl: true,
-      totalCitations: true,
-      hIndex: true
+      legacyAsid: true
     }
   });
 
-  // 2. Legacy Alphanumeric or Slug Fallback: if visiting an old URL (e.g. ASID-R5GM... or a user slug)
-  if (!user && cleanAsid.toUpperCase().startsWith("ASID-")) {
-    // Check if there's any user whose name or email or legacy record can be resolved
-    // In particular, check Anthony Wanjohi or Kengne if visited via former known links
-    if (cleanAsid.includes("R5GM") || cleanAsid.toLowerCase().includes("wanjohi")) {
-      user = await prisma.user.findFirst({
-        where: { name: { contains: "Wanjohi" } },
-        select: { id: true, name: true, afriScholarId: true, institution: true, department: true, orcid: true, openAlexId: true, googleScholarUrl: true, totalCitations: true, hIndex: true }
-      });
-    } else if (cleanAsid.includes("WZK5") || cleanAsid.toLowerCase().includes("kengne")) {
-      user = await prisma.user.findFirst({
-        where: { name: { contains: "Kengne" } },
-        select: { id: true, name: true, afriScholarId: true, institution: true, department: true, orcid: true, openAlexId: true, googleScholarUrl: true, totalCitations: true, hIndex: true }
-      });
+  // 2. Deterministic 1-to-1 Legacy ASID Resolution:
+  // If user visits an old alphanumeric ASID previously indexed by Google (e.g. ASID-R5GM-5F7N-945Y),
+  // permanently 301-redirect to their exact canonical numeric ASID profile.
+  if (!user) {
+    const legacyMatch = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { legacyAsid: cleanAsid.toUpperCase() },
+          { legacyAsid: normalizedAsid.toUpperCase() }
+        ]
+      },
+      select: {
+        afriScholarId: true
+      }
+    });
+
+    if (legacyMatch?.afriScholarId) {
+      redirect(`/scholar/${encodeURIComponent(legacyMatch.afriScholarId)}`);
     }
   }
 
-  // If user was resolved through legacy/fallback and their current canonical ASID is different, redirect cleanly!
-  if (user && user.afriScholarId && user.afriScholarId !== cleanAsid && !cleanAsid.startsWith("ASID-0") && !/^\d{4}/.test(cleanAsid.replace(/^ASID-/, ""))) {
+  // 3. Fallback for unresolvable inputs:
+  if (!user) {
+    const isAsidFormat = /^ASID-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i.test(cleanAsid);
+    const isUuidFormat = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanAsid);
+
+    // If visiting a name slug or search term (e.g. /scholar/wanjohi or /scholar/anthony-wanjohi),
+    // redirect to the directory search instead of guessing an arbitrary scholar with findFirst
+    if (!isAsidFormat && !isUuidFormat) {
+      const searchTerm = cleanAsid.replace(/^ASID-/i, "").replace(/[-_]+/g, " ").trim();
+      redirect(`/scholars?q=${encodeURIComponent(searchTerm)}`);
+    }
+
+    notFound();
+  }
+
+  // 4. If accessed by internal UUID, redirect to canonical ASID URL
+  if (user && user.afriScholarId && user.afriScholarId !== cleanAsid) {
     redirect(`/scholar/${encodeURIComponent(user.afriScholarId)}`);
   }
 
-  // Schema.org Linked Data JSON-LD for Search Engines & Global Harvesters
-  const jsonLd = user
+  // 5. Server-Side Pre-rendering (SSR): Preload complete profile payload on the server
+  // Deliver full text and scientometrics directly to Googlebot on initial HTML response
+  const scholarData = await fetchScholarProfile(user.afriScholarId || user.id);
+
+  // 6. Schema.org Person JSON-LD for Search Engines & Academic Harvesters
+  const p = scholarData?.profile;
+  const jsonLd = p
     ? {
         "@context": "https://schema.org",
         "@type": "Person",
-        "@id": `https://afrijournalindexing.org/scholar/${user.afriScholarId || normalizedAsid}`,
-        "identifier": user.afriScholarId || normalizedAsid,
-        "name": user.name,
-        "jobTitle": user.department || "Academic Researcher",
-        ...(user.institution
+        "@id": `https://afrijournalindexing.org/scholar/${encodeURIComponent(p.afriScholarId || cleanAsid)}`,
+        "name": p.name,
+        "description": p.bio || `Academic profile of ${p.name}${p.institution ? ` at ${p.institution}` : ""}. Pan-African scholarly registry.`,
+        "jobTitle": p.department || "Academic Researcher",
+        ...(p.institution
           ? {
               "worksFor": {
                 "@type": "CollegeOrUniversity",
-                "name": user.institution
+                "name": p.institution
               }
             }
           : {}),
+        "identifier": [
+          p.afriScholarId ? { "@type": "PropertyValue", "name": "AfriScholar ID", "value": p.afriScholarId } : null,
+          p.legacyAsid ? { "@type": "PropertyValue", "name": "Legacy AfriScholar ID", "value": p.legacyAsid } : null,
+          p.orcid ? { "@type": "PropertyValue", "name": "ORCID", "value": p.orcid } : null,
+          p.openAlexId ? { "@type": "PropertyValue", "name": "OpenAlex ID", "value": p.openAlexId } : null
+        ].filter(Boolean),
         "sameAs": [
-          user.orcid ? `https://orcid.org/${user.orcid}` : null,
-          user.openAlexId ? `https://openalex.org/authors/${user.openAlexId}` : null,
-          user.googleScholarUrl || null
+          p.orcid ? `https://orcid.org/${p.orcid.replace(/https?:\/\/orcid\.org\//i, "")}` : null,
+          p.openAlexId ? `https://openalex.org/authors/${p.openAlexId.replace(/https?:\/\/openalex\.org\//i, "")}` : null,
+          p.googleScholarUrl || null
         ].filter(Boolean)
       }
     : null;
@@ -162,7 +188,10 @@ export default async function ScholarCanonicalPage({ params }: Props) {
           </div>
         }
       >
-        <ResearcherProfileContent idProp={user?.afriScholarId || normalizedAsid} />
+        <ResearcherProfileContent
+          idProp={user.afriScholarId || normalizedAsid}
+          initialProfileData={scholarData}
+        />
       </Suspense>
     </>
   );

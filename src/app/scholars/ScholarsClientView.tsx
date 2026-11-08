@@ -2,16 +2,19 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import Header from "../Header";
 import Footer from "../Footer";
 import { ALL_AFRICAN_COUNTRIES } from "../data/african-countries";
 
 function ScholarsDirectoryContent({
   initialScholars = [],
-  initialTotalCount = 0
+  initialTotalCount = 0,
+  initialPage = 1
 }: {
   initialScholars?: any[];
   initialTotalCount?: number;
+  initialPage?: number;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -33,10 +36,10 @@ function ScholarsDirectoryContent({
   const [broadDisciplines, setBroadDisciplines] = useState<{ name: string; count: number }[]>([]);
   const [topSubDisciplines, setTopSubDisciplines] = useState<{ name: string; count: number }[]>([]);
   const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 15,
+    page: queryPage || initialPage || 1,
+    limit: queryLimit || 15,
     totalCount: initialTotalCount,
-    totalPages: Math.max(1, Math.ceil(initialTotalCount / 15))
+    totalPages: Math.max(1, Math.ceil(initialTotalCount / (queryLimit || 15)))
   });
   
   const [searchTerm, setSearchTerm] = useState<string>(querySearch);
@@ -1119,22 +1122,41 @@ function ScholarsDirectoryContent({
                 <span>{includeDiaspora ? "Diaspora Included" : "Include Diaspora"}</span>
               </button>
 
-              <button
-                disabled={pagination.page <= 1}
-                onClick={() => updateUrl({ page: (pagination.page - 1).toString() })}
-                className="btn btn-secondary btn-sm"
-                style={{ opacity: pagination.page <= 1 ? 0.45 : 1, padding: "0.35rem 0.85rem" }}
-              >
-                Previous
-              </button>
-              <button
-                disabled={pagination.page >= pagination.totalPages}
-                onClick={() => updateUrl({ page: (pagination.page + 1).toString() })}
-                className="btn btn-secondary btn-sm"
-                style={{ opacity: pagination.page >= pagination.totalPages ? 0.45 : 1, padding: "0.35rem 0.85rem" }}
-              >
-                Next
-              </button>
+              {pagination.page > 1 ? (
+                <Link
+                  href={`/scholars?${(() => { const p = new URLSearchParams(searchParams.toString()); p.set("page", (pagination.page - 1).toString()); return p.toString(); })()}`}
+                  onClick={(e) => { e.preventDefault(); updateUrl({ page: (pagination.page - 1).toString() }); }}
+                  className="btn btn-secondary btn-sm"
+                  style={{ padding: "0.35rem 0.85rem", textDecoration: "none" }}
+                >
+                  Previous
+                </Link>
+              ) : (
+                <span
+                  className="btn btn-secondary btn-sm"
+                  style={{ opacity: 0.45, padding: "0.35rem 0.85rem", pointerEvents: "none" }}
+                >
+                  Previous
+                </span>
+              )}
+
+              {pagination.page < pagination.totalPages ? (
+                <Link
+                  href={`/scholars?${(() => { const p = new URLSearchParams(searchParams.toString()); p.set("page", (pagination.page + 1).toString()); return p.toString(); })()}`}
+                  onClick={(e) => { e.preventDefault(); updateUrl({ page: (pagination.page + 1).toString() }); }}
+                  className="btn btn-secondary btn-sm"
+                  style={{ padding: "0.35rem 0.85rem", textDecoration: "none" }}
+                >
+                  Next
+                </Link>
+              ) : (
+                <span
+                  className="btn btn-secondary btn-sm"
+                  style={{ opacity: 0.45, padding: "0.35rem 0.85rem", pointerEvents: "none" }}
+                >
+                  Next
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -1418,14 +1440,16 @@ function ScholarsDirectoryContent({
 
 export default function ScholarsClientView({
   initialScholars = [],
-  initialTotalCount = 0
+  initialTotalCount = 0,
+  initialPage = 1
 }: {
   initialScholars?: any[];
   initialTotalCount?: number;
+  initialPage?: number;
 }) {
   return (
     <Suspense fallback={<div className="page-wrapper" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>Loading African Scholar Directory...</div>}>
-      <ScholarsDirectoryContent initialScholars={initialScholars} initialTotalCount={initialTotalCount} />
+      <ScholarsDirectoryContent initialScholars={initialScholars} initialTotalCount={initialTotalCount} initialPage={initialPage} />
     </Suspense>
   );
 }

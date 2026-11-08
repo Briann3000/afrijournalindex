@@ -9,14 +9,20 @@ import Header from "../Header";
 import Footer from "../Footer";
 import { parseBibTeX } from "../../lib/bibtex-parser";
 
-export default function ResearcherProfileContent({ idProp }: { idProp?: string } = {}) {
+export default function ResearcherProfileContent({
+  idProp,
+  initialProfileData
+}: {
+  idProp?: string;
+  initialProfileData?: any;
+} = {}) {
   const { t } = useLang();
   const searchParams = useSearchParams();
   const id = idProp || searchParams.get("id");
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(!initialProfileData);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<any>(initialProfileData || null);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Modals & UI States
@@ -66,22 +72,26 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
 
   // Edit Profile Form State
+  const initProfile = initialProfileData?.profile;
+  const initDossier = initProfile?.dossier || {};
+  const initExt = initProfile?.externalLinks || {};
+
   const [editForm, setEditForm] = useState({
-    name: "",
-    academicRank: "",
-    institution: "",
-    department: "",
-    country: "",
-    orcid: "",
-    bio: "",
-    researchFocus: "",
-    googleScholarUrl: "",
-    cvPdfUrl: "",
-    amazonAuthor: "",
-    researchGate: "",
-    academia: "",
-    linkedIn: "",
-    semanticScholar: ""
+    name: initProfile?.name || "",
+    academicRank: initProfile?.academicRank || "",
+    institution: initProfile?.institution || "",
+    department: initProfile?.department || "",
+    country: initProfile?.country || "",
+    orcid: initProfile?.orcid || "",
+    bio: initProfile?.bio || "",
+    researchFocus: (initProfile?.researchFocus || []).join(", "),
+    googleScholarUrl: initProfile?.googleScholarUrl || initExt.googleScholar || "",
+    cvPdfUrl: initProfile?.cvPdfUrl || "",
+    amazonAuthor: initExt.amazonAuthor || "",
+    researchGate: initExt.researchGate || "",
+    academia: initExt.academia || "",
+    linkedIn: initExt.linkedIn || "",
+    semanticScholar: initExt.semanticScholar || ""
   });
   const [dossierState, setDossierState] = useState<{
     books: any[];
@@ -90,11 +100,11 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
     media: any[];
     memberships: any[];
   }>({
-    books: [],
-    consultancies: [],
-    innovations: [],
-    media: [],
-    memberships: []
+    books: Array.isArray(initDossier.books) ? initDossier.books : [],
+    consultancies: Array.isArray(initDossier.consultancies) ? initDossier.consultancies : [],
+    innovations: Array.isArray(initDossier.innovations) ? initDossier.innovations : [],
+    media: Array.isArray(initDossier.media) ? initDossier.media : [],
+    memberships: Array.isArray(initDossier.memberships) ? initDossier.memberships : []
   });
 
   // Entry sub-states inside modal
@@ -456,12 +466,12 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
   };
 
   useEffect(() => {
-    if (targetId) {
+    if (targetId && !initialProfileData) {
       loadProfile();
-    } else if (authChecked && !targetId) {
+    } else if (authChecked && !targetId && !initialProfileData) {
       setLoading(false);
     }
-  }, [targetId, authChecked]);
+  }, [targetId, authChecked, initialProfileData]);
 
   const showToast = (msg: string) => {
     setCopiedNotification(msg);
@@ -721,7 +731,7 @@ export default function ResearcherProfileContent({ idProp }: { idProp?: string }
             academicRank: editForm.academicRank,
             department: editForm.department,
             country: editForm.country,
-            researchFocus: editForm.researchFocus.split(",").map(s => s.trim()).filter(Boolean)
+            researchFocus: editForm.researchFocus.split(",").map((s: string) => s.trim()).filter(Boolean)
           }));
         }
         setShowEditProfileModal(false);

@@ -6,13 +6,43 @@ export interface InitialScholarsData {
   totalCount: number;
 }
 
-export async function getInitialScholars(limit = 15): Promise<InitialScholarsData> {
+export async function getInitialScholars(
+  limit = 15,
+  page = 1,
+  search = "",
+  country = "",
+  interest = ""
+): Promise<InitialScholarsData> {
   try {
+    const skip = Math.max(0, (page - 1) * limit);
+
+    const where: any = {
+      role: "RESEARCHER",
+      totalCitations: { gt: 0 }
+    };
+
+    if (search && search.trim()) {
+      const q = search.trim();
+      where.OR = [
+        { name: { contains: q } },
+        { institution: { contains: q } },
+        { department: { contains: q } },
+        { bio: { contains: q } },
+        { afriScholarId: { contains: q } }
+      ];
+    }
+
+    if (country && country.trim()) {
+      where.institution = { contains: country.trim() };
+    }
+
+    if (interest && interest.trim()) {
+      where.bio = { contains: interest.trim() };
+    }
+
     const scholars = await prisma.user.findMany({
-      where: {
-        role: "RESEARCHER",
-        totalCitations: { gt: 0 }
-      },
+      where,
+      skip,
       take: limit,
       orderBy: {
         totalCitations: "desc"
@@ -20,6 +50,7 @@ export async function getInitialScholars(limit = 15): Promise<InitialScholarsDat
       select: {
         id: true,
         afriScholarId: true,
+        legacyAsid: true,
         name: true,
         orcid: true,
         institution: true,
@@ -36,9 +67,7 @@ export async function getInitialScholars(limit = 15): Promise<InitialScholarsDat
       }
     });
 
-    const totalCount = await prisma.user.count({
-      where: { role: "RESEARCHER" }
-    });
+    const totalCount = await prisma.user.count({ where });
 
     const mappedScholars = scholars.map(s => {
       // Parse interests from bio if encoded as [Interests: ...]
