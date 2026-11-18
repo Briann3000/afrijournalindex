@@ -12,6 +12,8 @@ export default function ReviewerDashboardPage() {
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<"reviewer" | "author">("reviewer");
+  const [reviewerFilter, setReviewerFilter] = useState<"all" | "pending" | "active" | "completed">("all");
+  const [expandedAbstracts, setExpandedAbstracts] = useState<Record<string, boolean>>({});
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +32,10 @@ export default function ReviewerDashboardPage() {
 
   const [respondingId, setRespondingId] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
+  const toggleAbstract = (id: string) => {
+    setExpandedAbstracts(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -216,161 +222,248 @@ export default function ReviewerDashboardPage() {
           </div>
         ) : activeTab === "reviewer" ? (
           <>
-            {/* Section 1: Pending 48-Hour Invitations */}
-            <div style={{ marginBottom: "3rem" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-                <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--color-text-main)", margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
-                  <i className="fa-solid fa-envelope-open-text" style={{ color: "var(--color-primary)" }}></i>
-                  Pending Review Invitations ({data.pendingInvitations.length})
-                </h2>
-                <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", fontWeight: 600 }}>Strict 48-hour response window</span>
-              </div>
-
-              {data.pendingInvitations.length === 0 ? (
-                <div style={{ background: "var(--color-bg-card)", border: "1px dashed var(--color-border)", borderRadius: "12px", padding: "2.5rem 1.5rem", textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.92rem" }}>
-                  <i className="fa-regular fa-folder-open" style={{ fontSize: "2rem", marginBottom: "0.5rem", display: "block", color: "var(--color-text-muted)" }}></i>
-                  No pending review invitations at this time. When a manuscript in your discipline is lodged, your invitation will appear here with an active 48-hour acceptance timer.
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                  {data.pendingInvitations.map((inv) => (
-                    <div key={inv.id} style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "12px", padding: "1.5rem", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px", marginBottom: "0.75rem" }}>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "var(--color-primary-light)", color: "var(--color-primary)", padding: "4px 10px", borderRadius: "16px", fontSize: "0.78rem", fontWeight: 700 }}>
-                          <i className="fa-solid fa-clock"></i> {inv.hoursRemaining} hours left to respond
-                        </div>
-                        <span style={{ fontSize: "0.82rem", color: "var(--color-primary)", fontWeight: 700 }}>
-                          {inv.discipline}
-                        </span>
-                      </div>
-
-                      <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--color-text-main)", marginBottom: "0.6rem" }}>
-                        {inv.title}
-                      </h3>
-
-                      <p style={{ color: "var(--color-text-body)", fontSize: "0.88rem", lineHeight: 1.55, margin: "0 0 1.25rem", maxHeight: "85px", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {inv.abstract}
-                      </p>
-
-                      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                        <button
-                          onClick={() => handleRespond(inv.id, "ACCEPT")}
-                          disabled={respondingId === inv.id}
-                          className="btn btn-primary btn-sm"
-                          style={{ padding: "0.5rem 1.25rem", fontSize: "0.86rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "6px" }}
-                        >
-                          <i className="fa-solid fa-check"></i> Accept Review (10-Day Window)
-                        </button>
-                        <button
-                          onClick={() => handleRespond(inv.id, "DECLINE")}
-                          disabled={respondingId === inv.id}
-                          className="btn btn-secondary btn-sm"
-                          style={{ color: "#dc2626", border: "1px solid #fecaca", padding: "0.5rem 1.25rem", fontSize: "0.86rem", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "6px" }}
-                        >
-                          <i className="fa-solid fa-xmark"></i> Decline
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+            {/* Filter Pills Toolbar */}
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", marginBottom: "1.75rem", background: "var(--color-bg-card)", padding: "0.6rem 0.8rem", borderRadius: "10px", border: "1px solid var(--color-border)" }}>
+              <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-muted)", marginRight: "4px" }}>
+                Filter:
+              </span>
+              {[
+                { key: "all", label: "All Items", count: data.pendingInvitations.length + data.activeReviews.length + data.completedReviews.length },
+                { key: "pending", label: "Pending Invitations", count: data.pendingInvitations.length },
+                { key: "active", label: "Active in Progress", count: data.activeReviews.length },
+                { key: "completed", label: "Completed Accreditations", count: data.completedReviews.length }
+              ].map(f => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setReviewerFilter(f.key as any)}
+                  style={{
+                    background: reviewerFilter === f.key ? "var(--color-primary)" : "var(--color-bg-card-subtle)",
+                    color: reviewerFilter === f.key ? "#ffffff" : "var(--color-text-main)",
+                    border: `1px solid ${reviewerFilter === f.key ? "var(--color-primary)" : "var(--color-border)"}`,
+                    borderRadius: "20px",
+                    padding: "4px 12px",
+                    fontSize: "0.8rem",
+                    fontWeight: reviewerFilter === f.key ? 700 : 500,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    transition: "all 0.15s ease"
+                  }}
+                >
+                  <span>{f.label}</span>
+                  <span style={{
+                    fontSize: "0.72rem",
+                    background: reviewerFilter === f.key ? "rgba(255,255,255,0.25)" : "var(--color-border)",
+                    padding: "1px 6px",
+                    borderRadius: "10px",
+                    fontWeight: 700
+                  }}>
+                    {f.count}
+                  </span>
+                </button>
+              ))}
             </div>
+
+            {/* Section 1: Pending 48-Hour Invitations */}
+            {(reviewerFilter === "all" || reviewerFilter === "pending") && (
+              <div style={{ marginBottom: "2.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+                  <h2 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-text-main)", margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
+                    <i className="fa-solid fa-envelope-open-text" style={{ color: "var(--color-primary)" }}></i>
+                    Pending Review Invitations ({data.pendingInvitations.length})
+                  </h2>
+                  <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 600 }}>Strict 48-hour response window</span>
+                </div>
+
+                {data.pendingInvitations.length === 0 ? (
+                  <div style={{ background: "var(--color-bg-card)", border: "1px dashed var(--color-border)", borderRadius: "12px", padding: "2rem 1.5rem", textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.88rem" }}>
+                    <i className="fa-regular fa-folder-open" style={{ fontSize: "1.8rem", marginBottom: "0.4rem", display: "block", color: "var(--color-text-muted)" }}></i>
+                    No pending review invitations. When a manuscript in your discipline is lodged, it will appear here with an active 48-hour acceptance timer.
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                    {data.pendingInvitations.map((inv) => {
+                      const isExpanded = !!expandedAbstracts[inv.id];
+                      return (
+                        <div key={inv.id} style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "12px", padding: "1.25rem 1.5rem", boxShadow: "0 2px 6px rgba(0, 0, 0, 0.02)" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "8px", marginBottom: "0.5rem" }}>
+                            <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "var(--color-primary-light)", color: "var(--color-primary)", padding: "3px 9px", borderRadius: "14px", fontSize: "0.76rem", fontWeight: 700 }}>
+                              <i className="fa-solid fa-clock"></i> {inv.hoursRemaining} hours left to respond
+                            </div>
+                            <span style={{ fontSize: "0.8rem", color: "var(--color-primary)", fontWeight: 700 }}>
+                              {inv.discipline}
+                            </span>
+                          </div>
+
+                          <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--color-text-main)", marginBottom: "0.5rem" }}>
+                            {inv.title}
+                          </h3>
+
+                          <div style={{ marginBottom: "1rem" }}>
+                            <p style={{
+                              color: "var(--color-text-body)",
+                              fontSize: "0.86rem",
+                              lineHeight: 1.55,
+                              margin: 0,
+                              ...(!isExpanded ? {
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden"
+                              } : {})
+                            }}>
+                              {inv.abstract}
+                            </p>
+                            {inv.abstract && inv.abstract.length > 120 && (
+                              <button
+                                type="button"
+                                onClick={() => toggleAbstract(inv.id)}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  color: "var(--color-primary)",
+                                  fontSize: "0.78rem",
+                                  fontWeight: 600,
+                                  cursor: "pointer",
+                                  padding: "3px 0 0 0",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "4px"
+                                }}
+                              >
+                                {isExpanded ? "Collapse abstract" : "Read full abstract"}
+                                <i className={`fa-solid fa-chevron-${isExpanded ? "up" : "down"}`} style={{ fontSize: "0.68rem" }}></i>
+                              </button>
+                            )}
+                          </div>
+
+                          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                            <button
+                              onClick={() => handleRespond(inv.id, "ACCEPT")}
+                              disabled={respondingId === inv.id}
+                              className="btn btn-primary btn-sm"
+                              style={{ padding: "0.45rem 1.15rem", fontSize: "0.84rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "6px" }}
+                            >
+                              <i className="fa-solid fa-check"></i> Accept Review (10-Day Window)
+                            </button>
+                            <button
+                              onClick={() => handleRespond(inv.id, "DECLINE")}
+                              disabled={respondingId === inv.id}
+                              className="btn btn-secondary btn-sm"
+                              style={{ color: "#dc2626", border: "1px solid #fecaca", padding: "0.45rem 1.15rem", fontSize: "0.84rem", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "6px" }}
+                            >
+                              <i className="fa-solid fa-xmark"></i> Decline
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Section 2: Active In-Progress Reviews */}
-            <div style={{ marginBottom: "3rem" }}>
-              <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--color-text-main)", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "10px" }}>
-                <i className="fa-solid fa-pen-ruler" style={{ color: "var(--color-primary)" }}></i>
-                Active Accepted Reviews ({data.activeReviews.length})
-              </h2>
+            {(reviewerFilter === "all" || reviewerFilter === "active") && (
+              <div style={{ marginBottom: "2.5rem" }}>
+                <h2 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-text-main)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "10px" }}>
+                  <i className="fa-solid fa-pen-ruler" style={{ color: "var(--color-primary)" }}></i>
+                  Active Accepted Reviews ({data.activeReviews.length})
+                </h2>
 
-              {data.activeReviews.length === 0 ? (
-                <div style={{ background: "var(--color-bg-card)", border: "1px dashed var(--color-border)", borderRadius: "12px", padding: "2.5rem 1.5rem", textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.92rem" }}>
-                  No active reviews in progress. Accept an invitation above to begin a double-blind manuscript evaluation.
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                  {data.activeReviews.map((rev) => (
-                    <div key={rev.id} style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "12px", padding: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1.25rem", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)" }}>
-                      <div>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "#f0f9ff", border: "1px solid #bae6fd", color: "#0284c7", padding: "3px 10px", borderRadius: "14px", fontSize: "0.76rem", fontWeight: 700, marginBottom: "0.4rem" }}>
-                          <i className="fa-regular fa-calendar-check"></i> {rev.daysRemaining} days remaining
+                {data.activeReviews.length === 0 ? (
+                  <div style={{ background: "var(--color-bg-card)", border: "1px dashed var(--color-border)", borderRadius: "12px", padding: "2rem 1.5rem", textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.88rem" }}>
+                    No active reviews in progress. Accept an invitation to begin a double-blind manuscript evaluation.
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                    {data.activeReviews.map((rev) => (
+                      <div key={rev.id} style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "12px", padding: "1.25rem 1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", boxShadow: "0 2px 6px rgba(0, 0, 0, 0.02)" }}>
+                        <div>
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "#f0f9ff", border: "1px solid #bae6fd", color: "#0284c7", padding: "3px 9px", borderRadius: "14px", fontSize: "0.75rem", fontWeight: 700, marginBottom: "0.35rem" }}>
+                            <i className="fa-regular fa-calendar-check"></i> {rev.daysRemaining} days remaining
+                          </div>
+                          <h3 style={{ fontSize: "1.08rem", fontWeight: 800, color: "var(--color-text-main)", margin: "0 0 0.3rem" }}>
+                            {rev.title}
+                          </h3>
+                          <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>{rev.discipline}</div>
                         </div>
-                        <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-text-main)", margin: "0 0 0.35rem" }}>
-                          {rev.title}
-                        </h3>
-                        <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)" }}>{rev.discipline}</div>
-                      </div>
 
-                      <Link
-                        href={`/reviewer/workspace/${rev.id}`}
-                        className="btn btn-primary btn-sm"
-                        style={{ padding: "0.55rem 1.25rem", fontSize: "0.86rem", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px" }}
-                      >
-                        <span>Open Evaluation Rubric</span>
-                        <i className="fa-solid fa-arrow-right"></i>
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                        <Link
+                          href={`/reviewer/workspace/${rev.id}`}
+                          className="btn btn-primary btn-sm"
+                          style={{ padding: "0.5rem 1.2rem", fontSize: "0.84rem", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px" }}
+                        >
+                          <span>Open Evaluation Rubric</span>
+                          <i className="fa-solid fa-arrow-right"></i>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Section 3: Completed Reviews & Credentials */}
-            <div>
-              <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--color-text-main)", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "10px" }}>
-                <i className="fa-solid fa-award" style={{ color: "var(--color-primary)" }}></i>
-                Completed Evaluations &amp; Accreditations ({data.completedReviews.length})
-              </h2>
+            {(reviewerFilter === "all" || reviewerFilter === "completed") && (
+              <div>
+                <h2 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--color-text-main)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "10px" }}>
+                  <i className="fa-solid fa-award" style={{ color: "var(--color-primary)" }}></i>
+                  Completed Evaluations &amp; Accreditations ({data.completedReviews.length})
+                </h2>
 
-              {data.completedReviews.length === 0 ? (
-                <div style={{ background: "var(--color-bg-card)", border: "1px dashed var(--color-border)", borderRadius: "12px", padding: "2.5rem 1.5rem", textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.92rem" }}>
-                  Completed manuscript reviews will be archived here alongside your verifiable AfriJournal Peer Review Certificates.
-                </div>
-              ) : (
-                <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "12px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)" }}>
-                  <div style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.86rem", textAlign: "left" }}>
-                      <thead>
-                        <tr style={{ background: "var(--color-bg-card-subtle)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-muted)" }}>
-                          <th style={{ padding: "0.85rem 1.25rem" }}>Manuscript Topic</th>
-                          <th style={{ padding: "0.85rem 1.25rem" }}>Discipline</th>
-                          <th style={{ padding: "0.85rem 1.25rem" }}>Recommendation</th>
-                          <th style={{ padding: "0.85rem 1.25rem" }}>Completed Date</th>
-                          <th style={{ padding: "0.85rem 1.25rem", textAlign: "right" }}>Accreditation</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {data.completedReviews.map((c) => (
-                          <tr key={c.id} style={{ borderBottom: "1px solid var(--color-border)", color: "var(--color-text-main)" }}>
-                            <td style={{ padding: "1rem 1.25rem", fontWeight: 700 }}>{c.title}</td>
-                            <td style={{ padding: "1rem 1.25rem", color: "var(--color-text-muted)" }}>{c.discipline}</td>
-                            <td style={{ padding: "1rem 1.25rem" }}>
-                              <span style={{ fontSize: "0.75rem", padding: "3px 8px", borderRadius: "10px", background: "#ecfdf5", color: "#065f46", border: "1px solid #a7f3d0", fontWeight: 700 }}>
-                                {c.overallRecommendation?.replace(/_/g, " ")}
-                              </span>
-                            </td>
-                            <td style={{ padding: "1rem 1.25rem", color: "var(--color-text-muted)" }}>
-                              {new Date(c.completedAt).toLocaleDateString()}
-                            </td>
-                            <td style={{ padding: "1rem 1.25rem", textAlign: "right" }}>
-                              {c.certificateVerificationId && (
-                                <Link
-                                  href={`/reviewer/verify/${c.certificateVerificationId}`}
-                                  target="_blank"
-                                  style={{ color: "var(--color-primary)", textDecoration: "none", fontWeight: 700, fontSize: "0.82rem", display: "inline-flex", alignItems: "center", gap: "6px" }}
-                                >
-                                  <i className="fa-solid fa-certificate"></i> View Credential
-                                </Link>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                {data.completedReviews.length === 0 ? (
+                  <div style={{ background: "var(--color-bg-card)", border: "1px dashed var(--color-border)", borderRadius: "12px", padding: "2rem 1.5rem", textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.88rem" }}>
+                    Completed manuscript reviews will be archived here alongside your verifiable AfriJournal Peer Review Certificates.
                   </div>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <div style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", borderRadius: "12px", overflow: "hidden", boxShadow: "0 2px 6px rgba(0, 0, 0, 0.02)" }}>
+                    <div style={{ overflowX: "auto" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem", textAlign: "left" }}>
+                        <thead>
+                          <tr style={{ background: "var(--color-bg-card-subtle)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-muted)" }}>
+                            <th style={{ padding: "0.75rem 1.25rem" }}>Manuscript Topic</th>
+                            <th style={{ padding: "0.75rem 1.25rem" }}>Discipline</th>
+                            <th style={{ padding: "0.75rem 1.25rem" }}>Recommendation</th>
+                            <th style={{ padding: "0.75rem 1.25rem" }}>Completed Date</th>
+                            <th style={{ padding: "0.75rem 1.25rem", textAlign: "right" }}>Accreditation</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {data.completedReviews.map((c) => (
+                            <tr key={c.id} style={{ borderBottom: "1px solid var(--color-border)", color: "var(--color-text-main)" }}>
+                              <td style={{ padding: "0.85rem 1.25rem", fontWeight: 700 }}>{c.title}</td>
+                              <td style={{ padding: "0.85rem 1.25rem", color: "var(--color-text-muted)" }}>{c.discipline}</td>
+                              <td style={{ padding: "0.85rem 1.25rem" }}>
+                                <span style={{ fontSize: "0.74rem", padding: "2px 8px", borderRadius: "10px", background: "#ecfdf5", color: "#065f46", border: "1px solid #a7f3d0", fontWeight: 700 }}>
+                                  {c.overallRecommendation?.replace(/_/g, " ")}
+                                </span>
+                              </td>
+                              <td style={{ padding: "0.85rem 1.25rem", color: "var(--color-text-muted)" }}>
+                                {new Date(c.completedAt).toLocaleDateString()}
+                              </td>
+                              <td style={{ padding: "0.85rem 1.25rem", textAlign: "right" }}>
+                                {c.certificateVerificationId && (
+                                  <Link
+                                    href={`/reviewer/verify/${c.certificateVerificationId}`}
+                                    target="_blank"
+                                    style={{ color: "var(--color-primary)", textDecoration: "none", fontWeight: 700, fontSize: "0.82rem", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                                  >
+                                    <i className="fa-solid fa-certificate"></i> View Credential
+                                  </Link>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </>
         ) : (
           /* Tab: My Submitted Manuscripts (as Author) */
