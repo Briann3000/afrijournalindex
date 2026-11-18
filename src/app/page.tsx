@@ -585,8 +585,8 @@ export default function Home() {
               <div className="stat-label">{t.stats.journals}</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num">746,000+</div>
-              <div className="stat-label">Citable Peer Articles</div>
+              <div className="stat-num">700,000+</div>
+              <div className="stat-label">Indexed Articles</div>
             </div>
             <div className="stat-card">
               <div className="stat-num">509,000+</div>
