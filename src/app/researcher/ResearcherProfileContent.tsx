@@ -131,6 +131,7 @@ export default function ResearcherProfileContent({
   const [authChecked, setAuthChecked] = useState<boolean>(false);
 
   // Publications Filter & Pagination State
+  const [chartMetric, setChartMetric] = useState<"citations" | "publications">("citations");
   const [articleSearchQuery, setArticleSearchQuery] = useState<string>("");
   const [articleSortBy, setArticleSortBy] = useState<"citations" | "year" | "title">("citations");
   const [pubPage, setPubPage] = useState<number>(1);
@@ -2765,70 +2766,142 @@ export default function ResearcherProfileContent({
               </div>
             </div>
 
-            {/* Right: Authentic Annual Citation Growth Velocity Chart */}
+            {/* Right: Authentic Annual Metric Velocity Chart (Citations & Publications) */}
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap", gap: "0.5rem" }}>
-                <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
+                <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700, color: "var(--color-text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
                   <i className="fa-solid fa-chart-column" style={{ color: "var(--color-primary)" }}></i>
-                  {t.researcher_page?.annual_growth || "Annual Citation Growth"}
+                  {chartMetric === "citations" ? (t.researcher_page?.annual_growth || "Annual Citation Growth") : "Annual Publication Output"}
                 </h3>
-                <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
-                  Verified Citations / Year
-                </span>
+                {/* Metric Selector Toggle */}
+                <div style={{ display: "inline-flex", background: "var(--color-bg-base)", border: "1px solid var(--color-border)", borderRadius: "20px", padding: "2px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setChartMetric("citations")}
+                    style={{
+                      border: "none",
+                      background: chartMetric === "citations" ? "var(--color-primary)" : "transparent",
+                      color: chartMetric === "citations" ? "#ffffff" : "var(--color-text-muted)",
+                      borderRadius: "16px",
+                      padding: "3px 10px",
+                      fontSize: "0.74rem",
+                      fontWeight: chartMetric === "citations" ? 700 : 500,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    Citations
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setChartMetric("publications")}
+                    style={{
+                      border: "none",
+                      background: chartMetric === "publications" ? "var(--color-primary)" : "transparent",
+                      color: chartMetric === "publications" ? "#ffffff" : "var(--color-text-muted)",
+                      borderRadius: "16px",
+                      padding: "3px 10px",
+                      fontSize: "0.74rem",
+                      fontWeight: chartMetric === "publications" ? 700 : 500,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    Publications
+                  </button>
+                </div>
               </div>
 
-              <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end", height: "135px", padding: "0.75rem 0.5rem 0", borderBottom: "1px solid var(--color-border)", overflowX: "auto" }}>
-                {((metrics.yearlyCitations && metrics.yearlyCitations.length > 0 ? metrics.yearlyCitations : data.yearlyCitations) || []).map((item: any, idx: number) => {
-                  const yearlyArr = (metrics.yearlyCitations && metrics.yearlyCitations.length > 0 ? metrics.yearlyCitations : data.yearlyCitations) || [];
-                  const citeValues = yearlyArr.map((x: any) => x.citations);
-                  const minCites = Math.min(...citeValues, 0);
-                  const maxCites = Math.max(...citeValues, 1);
-                  const range = maxCites - minCites;
-                  // Dynamic proportional scaling so variations stand out clearly
-                  const barHeight = range > 0 ? Math.round(25 + ((item.citations - minCites) / range) * 75) : 60;
-                  const formattedCites = item.citations >= 1000 
-                    ? `${(item.citations / 1000).toFixed(item.citations >= 10000 ? 0 : 1)}k` 
-                    : item.citations.toLocaleString();
+              {(() => {
+                const currentYr = new Date().getFullYear();
+                const yearlyArr = (metrics.yearlyCitations && metrics.yearlyCitations.length > 0 ? metrics.yearlyCitations : data.yearlyCitations) || [];
 
-                  // Calculate year-over-year variation percentage
-                  const prevItem = idx > 0 ? yearlyArr[idx - 1] : null;
-                  const growthPct = prevItem && prevItem.citations > 0 
-                    ? Math.round(((item.citations - prevItem.citations) / prevItem.citations) * 100) 
-                    : null;
+                // Build publications map from genuine articles and books
+                const pubMap: Record<number, number> = {};
+                for (let y = currentYr - 6; y <= currentYr; y++) {
+                  pubMap[y] = 0;
+                }
+                (data.articles || []).forEach((art: any) => {
+                  const yr = Number(art.publishedYear);
+                  if (yr && yr in pubMap) {
+                    pubMap[yr] = (pubMap[yr] || 0) + 1;
+                  }
+                });
+                (dossierState.books || []).forEach((b: any) => {
+                  const yr = Number(b.year);
+                  if (yr && yr in pubMap) {
+                    pubMap[yr] = (pubMap[yr] || 0) + 1;
+                  }
+                });
 
-                  return (
-                    <div key={idx} style={{ flex: 1, minWidth: "38px", display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "flex-end" }}>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "4px" }}>
-                        {growthPct !== null && growthPct !== 0 && (
-                          <span style={{ fontSize: "0.68rem", fontWeight: 700, color: growthPct > 0 ? "#16a34a" : "#dc2626", lineHeight: 1, marginBottom: "2px" }}>
-                            {growthPct > 0 ? `+${growthPct}%` : `${growthPct}%`}
+                const chartData = chartMetric === "citations"
+                  ? (yearlyArr.length > 0 ? yearlyArr.map((item: any) => ({
+                      year: item.year,
+                      value: Number(item.citations) || 0,
+                      unit: "citations"
+                    })) : Object.keys(pubMap).map(k => Number(k)).sort((a, b) => a - b).map(yr => ({
+                      year: yr,
+                      value: 0,
+                      unit: "citations"
+                    })))
+                  : Object.keys(pubMap).map(k => Number(k)).sort((a, b) => a - b).map(yr => ({
+                      year: yr,
+                      value: pubMap[yr] || 0,
+                      unit: "works"
+                    }));
+
+                const maxVal = Math.max(...chartData.map((d: any) => d.value), 1);
+
+                return (
+                  <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end", height: "135px", padding: "0.75rem 0.5rem 0", borderBottom: "1px solid var(--color-border)", overflowX: "auto" }}>
+                    {chartData.map((item: any, idx: number) => {
+                      const itemVal = item.value;
+                      // True proportional scaling without arbitrary minimum floor for 0s
+                      const barHeight = itemVal > 0 ? Math.max(10, Math.round((itemVal / maxVal) * 90)) : 0;
+                      const formattedVal = itemVal >= 1000 
+                        ? `${(itemVal / 1000).toFixed(itemVal >= 10000 ? 0 : 1)}k` 
+                        : itemVal.toLocaleString();
+
+                      const prevItem = idx > 0 ? chartData[idx - 1] : null;
+                      const growthPct = prevItem && prevItem.value > 0 
+                        ? Math.round(((itemVal - prevItem.value) / prevItem.value) * 100) 
+                        : null;
+
+                      return (
+                        <div key={idx} style={{ flex: 1, minWidth: "38px", display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "flex-end" }}>
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "4px" }}>
+                            {growthPct !== null && growthPct !== 0 && (
+                              <span style={{ fontSize: "0.68rem", fontWeight: 700, color: growthPct > 0 ? "#16a34a" : "#dc2626", lineHeight: 1, marginBottom: "2px" }}>
+                                {growthPct > 0 ? `+${growthPct}%` : `${growthPct}%`}
+                              </span>
+                            )}
+                            <span style={{ fontSize: "0.78rem", fontWeight: 800, color: itemVal > 0 ? "var(--color-text-main)" : "var(--color-text-muted)" }}>
+                              {formattedVal}
+                            </span>
+                          </div>
+                          <div 
+                            title={`${itemVal.toLocaleString()} verified ${item.unit} in ${item.year}${growthPct ? ` (${growthPct > 0 ? `+${growthPct}%` : `${growthPct}%`} YoY)` : ""}`}
+                            style={{ 
+                              width: "100%", 
+                              maxWidth: "48px", 
+                              height: itemVal > 0 ? `${barHeight}%` : "3px", 
+                              background: itemVal > 0 
+                                ? "linear-gradient(180deg, var(--color-primary) 0%, rgba(245, 158, 11, 0.75) 100%)" 
+                                : "var(--color-border)",
+                              borderRadius: itemVal > 0 ? "5px 5px 0 0" : "1px",
+                              boxShadow: itemVal > 0 ? "0 2px 6px rgba(245, 158, 11, 0.2)" : "none",
+                              transition: "height 0.3s ease"
+                            }} 
+                          />
+                          <span style={{ fontSize: "0.76rem", fontWeight: 600, color: "var(--color-text-muted)", marginTop: "6px" }}>
+                            {item.year}
                           </span>
-                        )}
-                        <span style={{ fontSize: "0.78rem", fontWeight: 800, color: item.citations > 0 ? "var(--color-text-main)" : "var(--color-text-muted)" }}>
-                          {formattedCites}
-                        </span>
-                      </div>
-                      <div 
-                        title={`${item.citations.toLocaleString()} verified citations in ${item.year}${growthPct ? ` (${growthPct > 0 ? `+${growthPct}%` : `${growthPct}%`} YoY)` : ""}`}
-                        style={{ 
-                          width: "100%", 
-                          maxWidth: "48px", 
-                          height: `${barHeight}%`, 
-                          background: item.citations > 0 
-                            ? "linear-gradient(180deg, var(--color-primary) 0%, rgba(245, 158, 11, 0.75) 100%)" 
-                            : "var(--color-border)",
-                          borderRadius: "5px 5px 0 0",
-                          boxShadow: item.citations > 0 ? "0 2px 6px rgba(245, 158, 11, 0.2)" : "none",
-                          transition: "height 0.3s ease"
-                        }} 
-                      />
-                      <span style={{ fontSize: "0.76rem", fontWeight: 600, color: "var(--color-text-muted)", marginTop: "6px" }}>
-                        {item.year}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
 
               {/* Scholarship Composition Breakdown */}
               <div style={{ marginTop: "1rem", background: "var(--color-bg-base)", padding: "0.75rem 1rem", borderRadius: "10px", border: "1px solid var(--color-border)" }}>
